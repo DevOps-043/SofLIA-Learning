@@ -1,5 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 
+import styles from "../ActivitiesExperience.module.css";
+
 export function SectionCountHeader(props: {
   count: number;
   icon: LucideIcon;
@@ -8,14 +10,14 @@ export function SectionCountHeader(props: {
   const Icon = props.icon;
 
   return (
-    <div className="flex items-center gap-3 mb-3">
-      <div className="w-6 h-6 rounded-md bg-gray-100 dark:bg-white/5 flex items-center justify-center">
-        <Icon className="w-3.5 h-3.5 text-gray-500 dark:text-white/50" />
+    <div className={styles.sectionHeader}>
+      <div className={styles.sectionIcon}>
+        <Icon />
       </div>
-      <span className="text-sm font-medium text-gray-700 dark:text-white/70">
+      <span className={styles.sectionLabel}>
         {props.label}
       </span>
-      <span className="text-xs text-gray-500 dark:text-white/30">
+      <span className={styles.sectionCount}>
         {props.count}
       </span>
     </div>

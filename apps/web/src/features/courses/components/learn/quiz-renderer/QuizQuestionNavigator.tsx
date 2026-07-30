@@ -52,23 +52,27 @@ export function QuizQuestionNavigator({
             key={question.id}
             type="button"
             onClick={() => onQuestionChange(index)}
-            className={`relative inline-flex h-7 w-7 items-center justify-center rounded-full border text-[11px] font-bold transition-all ${
+            className={`relative inline-flex h-8 w-8 items-center justify-center rounded-[0.62rem] border text-[11px] font-semibold transition-all ${
               showResults
                 ? isCorrect
                   ? "border-emerald-500 bg-emerald-500 text-white"
                   : "border-red-500 bg-red-500 text-white"
                 : isAnswered
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-300 bg-white text-gray-500 hover:border-primary hover:text-primary dark:border-white/15 dark:bg-white/5 dark:text-white/50 dark:hover:border-accent dark:hover:text-accent"
+                  ? "text-white"
+                  : "border-gray-200/90 bg-white/70 text-gray-500 hover:text-[var(--learn-accent)] dark:border-white/10 dark:bg-white/5 dark:text-white/50"
             } ${
               isCurrent
-                ? "ring-2 ring-primary/40 ring-offset-2 ring-offset-white dark:ring-accent/50 dark:ring-offset-gray-900"
+                ? "ring-2 ring-[color-mix(in_srgb,var(--learn-accent)_24%,transparent)] ring-offset-2 ring-offset-white dark:ring-offset-gray-900"
                 : ""
             }`}
             style={!showResults && isAnswered ? {
               borderColor: 'var(--learn-action)',
               backgroundColor: 'var(--learn-action)',
               color: 'var(--learn-on-action)',
+            } : !showResults && isCurrent ? {
+              borderColor: 'color-mix(in srgb, var(--learn-accent) 45%, transparent)',
+              backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)',
+              color: 'var(--learn-accent)',
             } : undefined}
             aria-label={`${t("activities.quiz.goToQuestion", { number: index + 1 })}. ${resultLabel}`}
             aria-current={isCurrent ? "step" : undefined}

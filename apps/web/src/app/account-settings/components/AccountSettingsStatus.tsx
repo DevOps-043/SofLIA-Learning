@@ -1,15 +1,13 @@
 import { motion } from 'framer-motion';
-import { Loader2 } from 'lucide-react';
+import { PremiumLoadingScreen } from '@/core/components/PremiumLoadingScreen/PremiumLoadingScreen';
 import type { SaveMessage } from '../types';
 
 export function AccountSettingsLoading() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary dark:text-accent mx-auto mb-4" />
-        <p className="text-gray-900 dark:text-white">Cargando configuracion...</p>
-      </div>
-    </div>
+    <PremiumLoadingScreen
+      description="Sincronizando tus preferencias de cuenta."
+      label="Cargando configuración"
+    />
   );
 }
 

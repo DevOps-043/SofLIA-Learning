@@ -1,10 +1,12 @@
 import { cloneElement, type CSSProperties, type ReactElement } from 'react'
-import { GraduationCap, LayoutGrid, List } from 'lucide-react'
+import { LayoutGrid, List } from 'lucide-react'
 import { motion, type Transition } from 'framer-motion'
 
 import type { BusinessUserDashboardShellProps, CourseViewMode } from './types'
+import styles from '../BusinessUserDashboard.module.css'
 
 interface CourseSectionHeaderProps {
+  courseCount: number
   courseView: CourseViewMode
   disableHeavyEffects: boolean
   hasCourses: boolean
@@ -15,6 +17,7 @@ interface CourseSectionHeaderProps {
 }
 
 export function CourseSectionHeader({
+  courseCount,
   courseView,
   disableHeavyEffects,
   hasCourses,
@@ -29,29 +32,23 @@ export function CourseSectionHeader({
       initial={disableHeavyEffects ? false : { opacity: 0, y: 10 }}
       animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
       transition={disableHeavyEffects ? undefined : interfaceTransition}
-      className="mb-6 flex items-center justify-between"
+      className={styles.coursesHeader}
     >
-      <div className="flex items-center gap-3">
-        <div
-          className="rounded-xl border p-2"
-          style={{
-            background: `linear-gradient(135deg, color-mix(in srgb, ${orgColors.iconColor} 14.5%, transparent), color-mix(in srgb, ${orgColors.iconColor} 3.1%, transparent))`,
-            borderColor: `color-mix(in srgb, ${orgColors.iconColor} 18.8%, transparent)`,
-          }}
-        >
-          <GraduationCap className="h-5 w-5" style={{ color: orgColors.iconColor }} />
-        </div>
-        <div>
-          <h2 className="text-xl font-bold" style={{ color: orgColors.text }}>
-            {t('sidebar.courses')}
-          </h2>
-        </div>
+      <div>
+        <h2 className={styles.coursesTitle}>
+          {t('sidebar.courses', 'Tus cursos')}
+        </h2>
+        <p className={styles.coursesMeta}>
+          {t(
+            'dashboard.courses.experienceCount',
+            `${courseCount} ${courseCount === 1 ? 'experiencia asignada' : 'experiencias asignadas'}`,
+          )}
+        </p>
       </div>
       {hasCourses ? (
         <div
           data-tour-id="business-user-dashboard--view-toggle"
-          className="flex shrink-0 items-center rounded-lg border p-1"
-          style={{ backgroundColor: `color-mix(in srgb, ${orgColors.cardBg} 50.2%, transparent)`, borderColor: orgColors.border }}
+          className={styles.viewToggle}
         >
           <CourseViewButton icon={<LayoutGrid />} isActive={courseView === 'grid'} label={t('dashboard.view.grid', 'Vista cuadricula')} onClick={() => onCourseViewChange('grid')} orgColors={orgColors} />
           <CourseViewButton icon={<List />} isActive={courseView === 'list'} label={t('dashboard.view.list', 'Vista lista')} onClick={() => onCourseViewChange('list')} orgColors={orgColors} />
@@ -77,12 +74,14 @@ function CourseViewButton({
   return (
     <button
       onClick={onClick}
-      className={`rounded-md p-2.5 transition-colors sm:p-1.5 ${isActive ? 'bg-white/20 shadow-sm dark:bg-white/10' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}
+      className={`${styles.viewButton} ${isActive ? styles.viewButtonActive : ''}`}
       title={label}
+      aria-label={label}
+      aria-pressed={isActive}
     >
       {cloneElement(icon, {
-        className: 'h-5 w-5 sm:h-4 sm:w-4',
-        style: { color: isActive ? orgColors.iconColor : orgColors.textSecondary },
+        className: 'h-4 w-4',
+        style: { color: isActive ? orgColors.onPrimary : orgColors.textSecondary },
       })}
     </button>
   )

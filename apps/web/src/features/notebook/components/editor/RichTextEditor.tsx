@@ -20,6 +20,7 @@ import {
 
 import { cn } from '@/utils/cn'
 import { EditorToolbar } from './EditorToolbar'
+import styles from '../NotebookEditor.module.css'
 
 interface RichTextEditorProps {
   /** Current HTML value. */
@@ -84,7 +85,7 @@ export function RichTextEditor({
     },
     editorProps: {
       attributes: {
-        class: 'notebook-prose min-h-[72vh] focus:outline-none',
+        class: `notebook-prose ${styles.editorContent}`,
       },
     },
   })
@@ -104,17 +105,14 @@ export function RichTextEditor({
   }, [editable, editor])
 
   return (
-    <div className={cn('flex flex-col', className)}>
+    <div className={cn(styles.editorStack, className)}>
       {editable && (
-        <div className="sticky top-4 z-20 mb-4">
+        <div className={styles.toolbarDock}>
           <EditorToolbar editor={editor} />
         </div>
       )}
       <div
-        className={cn(
-          'rounded-2xl border border-gray-200 bg-white text-gray-900 shadow-xl dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-100',
-          pageClassName,
-        )}
+        className={cn(styles.editorSheet, pageClassName)}
       >
         {header}
         <EditorContent editor={editor} />

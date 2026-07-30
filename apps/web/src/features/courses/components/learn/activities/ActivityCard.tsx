@@ -6,6 +6,7 @@ import { ActivityCardHeader } from './ActivityCard/ActivityCardHeader';
 import { useActivityZoom } from './ActivityCard/useActivityZoom';
 import { useAiActivityCompletion } from './ActivityCard/useAiActivityCompletion';
 import { findQuizStatusItem, getNormalizedActivityContent } from './utils';
+import styles from '../ActivitiesExperience.module.css';
 import type { ActivityCardProps } from './ActivityCard/types';
 
 export function ActivityCard({
@@ -50,7 +51,7 @@ export function ActivityCard({
   return (
     <div
       data-activity-card-id={activity.activity_id}
-      className="scroll-mt-6 rounded-lg border border-gray-200 bg-white shadow-sm transition-colors hover:bg-gray-50 dark:border-white/5 dark:bg-white/[0.02] dark:shadow-none dark:hover:bg-white/[0.04]"
+      className={`${styles.activityCard} ${!isCollapsed ? styles.activityCardOpen : ''}`}
     >
       <ActivityCardHeader
         activity={activity}

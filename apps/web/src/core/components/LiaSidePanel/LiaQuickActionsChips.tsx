@@ -1,211 +1,137 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-import { Sparkles } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { LiaQuickAction, LiaThemeColors } from './types'
+import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, Sparkles } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { LiaQuickAction, LiaThemeColors } from './types';
+import styles from './LiaSidePanel.module.css';
 
 interface LiaQuickActionsChipsProps {
-  quickActions: LiaQuickAction[]
-  isLoading: boolean
-  isLightTheme: boolean
-  themeColors: LiaThemeColors
-  onActionClick: (action: LiaQuickAction) => void
-  forceCollapse?: boolean | number
+  quickActions: LiaQuickAction[];
+  isLoading: boolean;
+  isLightTheme: boolean;
+  themeColors: LiaThemeColors;
+  onActionClick: (action: LiaQuickAction) => void;
+  forceCollapse?: boolean | number;
 }
 
-const SKELETON_PLACEHOLDERS = 3
-const ANIMATION_DURATION = 0.18
+const SKELETON_PLACEHOLDERS = 4;
+const ANIMATION_DURATION = 0.18;
 
-export function LiaQuickActionsChips(props: LiaQuickActionsChipsProps) {
-  const { quickActions, isLoading, isLightTheme, themeColors, onActionClick, forceCollapse } = props
-  const { t } = useTranslation('common')
-
-  const [isExpanded, setIsExpanded] = useState(!forceCollapse)
+export function LiaQuickActionsChips({
+  quickActions,
+  isLoading,
+  onActionClick,
+  forceCollapse,
+}: LiaQuickActionsChipsProps) {
+  const { t } = useTranslation('common');
+  const [isExpanded, setIsExpanded] = useState(!forceCollapse);
 
   React.useEffect(() => {
     if (forceCollapse) {
-      setIsExpanded(false)
+      setIsExpanded(false);
     }
-  }, [forceCollapse])
+  }, [forceCollapse]);
 
   if (!isLoading && quickActions.length === 0) {
-    return null
+    return null;
   }
 
-  const skeletonBg = isLightTheme
-    ? 'rgba(15, 23, 42, 0.06)'
-    : 'rgba(255, 255, 255, 0.06)'
-  const chipHoverBg = isLightTheme
-    ? 'rgba(0, 212, 179, 0.08)'
-    : 'rgba(0, 212, 179, 0.12)'
+  const regionLabel = t('lia.lessonSuggestions.title', 'Sugerencias');
 
   return (
-    <div
+    <section
       role="region"
-      aria-label={t('lia.lessonSuggestions.title', 'Sugerencias')}
-      style={{
-        padding: '0 clamp(14px, 4vw, 20px) 10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '6px',
-        flexShrink: 0,
-        maxHeight: 'clamp(96px, 28dvh, 168px)',
-        overflowY: 'auto',
-        overscrollBehavior: 'contain',
-        WebkitOverflowScrolling: 'touch',
-      }}
+      aria-label={regionLabel}
+      className={styles.quickActions}
     >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '6px',
-          color: themeColors.textSecondary,
-          fontSize: '11px',
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '0.04em',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div className={styles.quickHeader}>
+        <div className={styles.quickLabel}>
           <Sparkles
+            size={13}
             aria-hidden="true"
-            style={{ width: '12px', height: '12px', color: themeColors.accentColor }}
+            className={styles.quickLabelIcon}
           />
           <span>
             {isLoading
               ? t('lia.lessonSuggestions.loading', 'Cargando sugerencias...')
-              : t('lia.lessonSuggestions.title', 'Sugerencias')}
+              : regionLabel}
           </span>
         </div>
-        
+
         {!isLoading && (
           <button
             type="button"
-            onClick={() => setIsExpanded(!isExpanded)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              padding: '2px 4px',
-              cursor: 'pointer',
-              color: themeColors.accentColor,
-              fontSize: '10px',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              borderRadius: '4px',
-              transition: 'opacity 0.2s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+            className={styles.quickToggle}
+            onClick={() => setIsExpanded((value) => !value)}
+            aria-expanded={isExpanded}
           >
-            {isExpanded ? t('actions.hide', 'Ocultar') : t('actions.show', 'Mostrar')}
+            <span>
+              {isExpanded
+                ? t('actions.hide', 'Ocultar')
+                : t('actions.show', 'Mostrar')}
+            </span>
             <motion.span
-              animate={{ rotate: isExpanded ? 0 : 180 }}
+              aria-hidden="true"
+              animate={{ rotate: isExpanded ? 0 : -90 }}
               transition={{ duration: 0.2 }}
-              style={{ display: 'inline-block' }}
             >
-              ▼
+              <ChevronDown size={12} />
             </motion.span>
           </button>
         )}
       </div>
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0, overflow: 'hidden' }}
-            animate={{ height: 'auto', opacity: 1, overflow: 'visible' }}
-            exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: 'hidden' }}
           >
-            <div
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                paddingTop: '4px',
-              }}
-            >
+            <div className={styles.quickGrid}>
               {isLoading
                 ? Array.from({ length: SKELETON_PLACEHOLDERS }).map((_, index) => (
                     <div
                       key={`skeleton-${String(index)}`}
+                      className={styles.quickSkeleton}
                       aria-hidden="true"
-                      style={{
-                        height: '34px',
-                        width: '40%',
-                        minWidth: '120px',
-                        borderRadius: '999px',
-                        backgroundColor: skeletonBg,
-                        border: `1px solid ${themeColors.borderColor}`,
-                      }}
                     />
                   ))
-                : (
-                    <AnimatePresence initial={false}>
-                      {quickActions.map((action) => {
-                        const Icon = action.icon;
-                        return (
-                          <motion.button
-                            key={action.id}
-                            type="button"
-                            onClick={() => onActionClick(action)}
-                            initial={{ opacity: 0, y: 4 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.92 }}
-                            transition={{ duration: ANIMATION_DURATION }}
-                            aria-label={action.label}
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '6px',
-                              padding: '8px 14px',
-                              borderRadius: '999px',
-                              border: `1px solid ${themeColors.borderColor}`,
-                              backgroundColor: themeColors.inputBg,
-                              color: themeColors.textPrimary,
-                              fontSize: '12px',
-                              fontWeight: 500,
-                              lineHeight: 1.3,
-                              cursor: 'pointer',
-                              maxWidth: '100%',
-                              minHeight: '36px',
-                              textAlign: 'left',
-                              whiteSpace: 'normal',
-                              overflowWrap: 'break-word',
-                              transition: 'background-color 160ms ease, border-color 160ms ease',
-                            }}
-                            onMouseEnter={(event) => {
-                              event.currentTarget.style.backgroundColor = chipHoverBg
-                              event.currentTarget.style.borderColor = themeColors.accentColor
-                            }}
-                            onMouseLeave={(event) => {
-                              event.currentTarget.style.backgroundColor = themeColors.inputBg
-                              event.currentTarget.style.borderColor = themeColors.borderColor
-                            }}
-                            onFocus={(event) => {
-                              event.currentTarget.style.borderColor = themeColors.accentColor
-                            }}
-                            onBlur={(event) => {
-                              event.currentTarget.style.borderColor = themeColors.borderColor
-                            }}
-                          >
-                            <Icon style={{ width: '14px', height: '14px' }} color={themeColors.accentColor} />
-                            {action.label}
-                          </motion.button>
-                        )
-                      })}
-                    </AnimatePresence>
-                  )}
+                : quickActions.map((action, index) => {
+                    const Icon = action.icon;
+
+                    return (
+                      <motion.button
+                        key={action.id}
+                        type="button"
+                        className={styles.quickChip}
+                        onClick={() => onActionClick(action)}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.96 }}
+                        transition={{
+                          duration: ANIMATION_DURATION,
+                          delay: index * 0.025,
+                        }}
+                        aria-label={action.label}
+                      >
+                        <Icon
+                          size={14}
+                          aria-hidden="true"
+                          className={styles.quickChipIcon}
+                        />
+                        <span>{action.label}</span>
+                      </motion.button>
+                    );
+                  })}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  )
+    </section>
+  );
 }

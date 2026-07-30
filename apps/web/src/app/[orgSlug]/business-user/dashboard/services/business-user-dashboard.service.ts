@@ -1,4 +1,5 @@
 import { Award, BarChart3, BookOpen, CheckCircle2, Clock } from 'lucide-react'
+import { chooseReadableTextColor } from '@/core/theme/color-engine'
 import type {
   BusinessUserCertificateSummary,
   BusinessUserDashboardColors,
@@ -32,6 +33,8 @@ export function buildBusinessUserDashboardColors({
   return {
     primary,
     accent,
+    onPrimary: chooseReadableTextColor(primary),
+    onAccent: chooseReadableTextColor(accent),
     text: dbText || defaultText,
     cardBg: dbCardBg || defaultCardBg,
     sidebarBg: dbSidebarBg || defaultSidebarBg,

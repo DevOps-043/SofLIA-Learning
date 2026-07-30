@@ -1,9 +1,10 @@
-import { Settings } from 'lucide-react';
+import { AudioLines } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Section } from './Section';
 import { ToggleField } from './ToggleField';
 import type { PersonalizationFormData } from './types';
+import styles from './PersonalizationSettings.module.css';
 
 interface AdvancedSectionProps {
   formData: PersonalizationFormData;
@@ -19,11 +20,11 @@ export function AdvancedSection(props: AdvancedSectionProps) {
     <Section
       title={t('liaPersonalization.sections.advanced.title')}
       description={t('liaPersonalization.sections.advanced.description')}
-      icon={Settings}
+      icon={AudioLines}
       isExpanded={props.isExpanded}
       onToggle={props.onToggle}
     >
-      <div className="space-y-4">
+      <div className={styles.toggleList}>
         <ToggleField
           label={t('liaPersonalization.voiceLabel')}
           description={t('liaPersonalization.voiceDesc')}

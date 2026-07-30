@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Bell, Check, ChevronRight, Loader2, Trash2, Archive, X } from 'lucide-react'
+import { Archive, BellDot, Check, ChevronRight, Loader2, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { Notification } from '../services/notification.service'
@@ -13,7 +13,7 @@ import {
 } from '../utils/notification-categories'
 import { logger } from '@/lib/logger'
 import { cn } from '@/shared/utils/cn'
-import { useThemeStore } from '@/core/stores/themeStore'
+import styles from './NotificationUi.module.css'
 
 export function getNotificationActionUrl(notification: Pick<Notification, 'metadata'>): string | null {
   const actionUrl = notification.metadata?.action_url
@@ -70,21 +70,12 @@ export function NotificationListItem({
   onDelete,
 }: NotificationListItemProps) {
   const { t } = useTranslation('common')
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const Icon = getNotificationIcon(notification.notification_type)
   const isUnread = notification.status === 'unread'
   const hasActionUrl = Boolean(getNotificationActionUrl(notification))
   const isCompact = layout === 'compact'
-  const isDark = resolvedTheme === 'dark'
-  const isLightMode = !isDark
-  const titleColor = isLightMode
-    ? (isUnread ? 'var(--color-legacy-0f172a)' : 'var(--color-legacy-334155)')
-    : undefined
-  const bodyColor = isLightMode ? 'var(--color-legacy-334155)' : undefined
-  const mutedColor = isLightMode ? 'var(--color-gray-500)' : undefined
-
   const stop = (event: React.MouseEvent) => {
     event.stopPropagation()
   }
@@ -103,73 +94,48 @@ export function NotificationListItem({
       .finally(() => setIsDeleting(false))
   }
 
-  // Org-aware accent color: respects org branding when inside an org layout
-  const orgAccentStyle = 'var(--org-accent-color, var(--color-accent))'
-  const unreadBorderStyle = isDark && isUnread
-    ? { borderColor: `color-mix(in srgb, ${orgAccentStyle} 30%, transparent)` }
-    : undefined
-
   return (
     <article
       onClick={() => runAction(() => onOpen?.(notification))}
       className={cn(
-        'group relative flex w-full cursor-pointer gap-3 border bg-white text-left shadow-sm transition-colors dark:bg-transparent',
-        isCompact ? 'items-start rounded-none border-x-0 border-t-0 px-4 py-3' : 'items-center rounded-lg p-4',
-        isUnread
-          ? 'border-primary/20 bg-gray-50 dark:bg-white/5'
-          : 'border-gray-200 dark:border-white/5 dark:bg-transparent',
-        'hover:border-gray-300 hover:bg-gray-50 dark:hover:border-white/10 dark:hover:bg-white/10',
+        'group',
+        styles.item,
+        isCompact ? styles.compact : styles.comfortable,
+        isUnread && styles.unread,
       )}
-      style={unreadBorderStyle}
     >
       {isUnread && (
-        <span
-          className={cn(
-            'absolute left-0 top-0 h-full w-1',
-            isCompact ? '' : 'rounded-l-lg',
-          )}
-          style={{ backgroundColor: orgAccentStyle }}
-          aria-hidden="true"
-        />
+        <span className={styles.unreadRail} aria-hidden="true" />
       )}
 
-      <div className={cn('shrink-0 rounded-lg', getNotificationBgColor(notification.notification_type), isCompact ? 'p-2' : 'p-3')}>
+      <div className={cn(styles.iconShell, getNotificationBgColor(notification.notification_type))}>
         <Icon className={cn(isCompact ? 'h-4 w-4' : 'h-5 w-5', getNotificationTextColor(notification.notification_type))} />
       </div>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex min-w-0 items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
+      <div className={styles.content}>
+        <div className={styles.topline}>
+          <div className={styles.copy}>
             <h3
-              className={cn(
-                'truncate font-semibold leading-snug',
-                isCompact ? 'text-sm' : 'text-sm sm:text-base',
-                isUnread ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300',
-              )}
-              style={{ color: titleColor }}
+              className={styles.title}
             >
               {getNotificationText(notification, notification.title, t)}
             </h3>
             <p
-              className={cn(
-                'mt-1 text-gray-600 dark:text-gray-400',
-                isCompact ? 'line-clamp-2 text-xs' : 'line-clamp-2 text-sm',
-              )}
-              style={{ color: bodyColor }}
+              className={styles.message}
             >
               {getNotificationText(notification, notification.message, t)}
             </p>
           </div>
 
-          <time className="shrink-0 text-xs text-gray-500 dark:text-gray-400" style={{ color: mutedColor }}>
+          <time className={styles.time}>
             {formattedTime}
           </time>
         </div>
 
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className={cn('h-2 w-2 rounded-full border', getNotificationBorderColor(notification.notification_type).replace('border-l-', 'border-'))} />
-            <span className="text-xs font-medium capitalize text-gray-500 dark:text-gray-400" style={{ color: mutedColor }}>
+        <div className={styles.meta}>
+          <div className={styles.priority}>
+            <span className={cn(styles.priorityDot, getNotificationBorderColor(notification.notification_type).replace('border-l-', 'border-'))} />
+            <span>
               {t(`actions.notificationsPage.priority.${notification.priority}`, {
                 defaultValue: notification.priority,
               })}
@@ -177,12 +143,12 @@ export function NotificationListItem({
           </div>
 
           {showActions && (
-            <div className="flex shrink-0 items-center gap-1 opacity-100 sm:opacity-70 sm:transition-opacity sm:group-hover:opacity-100" onClick={stop}>
+            <div className={styles.actions} onClick={stop}>
               {isUnread && onMarkAsRead && (
                 <button
                   type="button"
                   onClick={() => runAction(() => onMarkAsRead(notification.notification_id))}
-                  className="rounded-md p-2 text-gray-500 transition-colors hover:bg-success/10 hover:text-success dark:text-gray-400"
+                  className={`${styles.actionButton} ${styles.actionSuccess}`}
                   title={t('actions.markAsRead')}
                   aria-label={t('actions.markAsRead')}
                 >
@@ -194,7 +160,7 @@ export function NotificationListItem({
                 <button
                   type="button"
                   onClick={() => runAction(() => onArchive(notification.notification_id))}
-                  className="rounded-md p-2 text-gray-500 transition-colors hover:bg-primary/10 hover:text-primary dark:text-gray-400 dark:hover:text-gray-200"
+                  className={styles.actionButton}
                   title={t('actions.archive')}
                   aria-label={t('actions.archive')}
                 >
@@ -204,12 +170,12 @@ export function NotificationListItem({
 
               {onDelete && (
                 isConfirmingDelete ? (
-                  <div className="flex items-center gap-1 rounded-md bg-error/10 p-1">
+                  <div className={styles.confirmDelete}>
                     <button
                       type="button"
                       onClick={handleDelete}
                       disabled={isDeleting}
-                      className="rounded p-1 text-error transition-colors hover:bg-error/10 disabled:opacity-50"
+                      className={`${styles.actionButton} ${styles.actionDanger}`}
                       title={t('actions.confirm')}
                       aria-label={t('actions.confirm')}
                     >
@@ -218,7 +184,7 @@ export function NotificationListItem({
                     <button
                       type="button"
                       onClick={() => setIsConfirmingDelete(false)}
-                      className="rounded p-1 text-gray-500 transition-colors hover:bg-gray-200 dark:hover:bg-white/10"
+                      className={styles.actionButton}
                       title={t('actions.cancel')}
                       aria-label={t('actions.cancel')}
                     >
@@ -229,7 +195,7 @@ export function NotificationListItem({
                   <button
                     type="button"
                     onClick={() => setIsConfirmingDelete(true)}
-                    className="rounded-md p-2 text-gray-500 transition-colors hover:bg-error/10 hover:text-error dark:text-gray-400"
+                    className={`${styles.actionButton} ${styles.actionDanger}`}
                     title={t('actions.delete')}
                     aria-label={t('actions.delete')}
                   >
@@ -239,7 +205,7 @@ export function NotificationListItem({
               )}
 
               {hasActionUrl && (
-                <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500" aria-hidden="true" />
+                <ChevronRight className={`${styles.actionArrow} h-4 w-4`} aria-hidden="true" />
               )}
             </div>
           )}
@@ -257,24 +223,23 @@ interface NotificationEmptyStateProps {
 
 export function NotificationEmptyState({ title, description, compact = false }: NotificationEmptyStateProps) {
   return (
-    <div className={cn('flex flex-col items-center justify-center text-center', compact ? 'px-6 py-10' : 'rounded-lg border border-gray-200 bg-white px-6 py-16 dark:border-white/10 dark:bg-gray-800')}>
-      <div className="mb-4 rounded-full bg-gray-100 p-4 dark:bg-gray-700">
-        <Bell className="h-7 w-7 text-gray-500 dark:text-gray-400" />
+    <div className={cn(styles.state, !compact && styles.stateComfortable)}>
+      <div className={styles.stateIcon}>
+        <BellDot className="h-5 w-5" />
       </div>
-      <h3 className="text-base font-semibold text-gray-900 dark:text-white">{title}</h3>
-      <p className="mt-1 max-w-md text-sm text-gray-600 dark:text-gray-400">{description}</p>
+      <h3 className={styles.stateTitle}>{title}</h3>
+      <p className={styles.stateDescription}>{description}</p>
     </div>
   )
 }
 
 export function NotificationLoadingState({ label, compact = false }: { label: string; compact?: boolean }) {
   return (
-    <div className={cn('flex flex-col items-center justify-center text-center', compact ? 'px-6 py-10' : 'rounded-lg border border-gray-200 bg-white px-6 py-16 dark:border-white/10 dark:bg-gray-800')}>
+    <div className={cn(styles.state, !compact && styles.stateComfortable)}>
       <Loader2
-        className="mb-4 h-8 w-8 animate-spin"
-        style={{ color: 'var(--org-accent-color, var(--color-accent))' }}
+        className={`${styles.loader} h-7 w-7 animate-spin`}
       />
-      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</p>
+      <p className={styles.stateDescription}>{label}</p>
     </div>
   )
 }

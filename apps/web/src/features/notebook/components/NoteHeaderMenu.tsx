@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Loader2, MoreHorizontal, Tag, Trash2 } from 'lucide-react'
 
-import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { TagInput } from './TagInput'
+import styles from './NotebookEditor.module.css'
 
 interface NoteHeaderMenuProps {
   tags: string[]
@@ -26,7 +26,6 @@ export function NoteHeaderMenu({
   isDeleting,
 }: NoteHeaderMenuProps) {
   const { t } = useTranslation('notebook')
-  const theme = useBusinessPanelTheme()
   const [open, setOpen] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -44,50 +43,41 @@ export function NoteHeaderMenu({
   }, [open])
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className={styles.headerMenuRoot}>
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
         aria-label={t('editor.moreActions')}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-sm transition-colors hover:opacity-80"
-        style={{
-          backgroundColor: theme.cardBg,
-          borderColor: theme.borderColor,
-          color: theme.textColor,
-        }}
+        className={styles.headerMenuTrigger}
       >
-        <MoreHorizontal className="h-4 w-4" />
+        <MoreHorizontal />
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-40 mt-2 w-72 rounded-xl border p-3 shadow-xl"
-          style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+          className={styles.headerMenu}
         >
-          <p
-            className="mb-1.5 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide"
-            style={{ color: theme.mutedTextColor }}
-          >
-            <Tag className="h-3.5 w-3.5" />
+          <p className={styles.headerMenuLabel}>
+            <Tag />
             {t('editor.tagsLabel')}
           </p>
           <TagInput tags={tags} onChange={onTagsChange} />
 
-          <div className="mt-3 border-t pt-3" style={{ borderColor: theme.borderColor }}>
+          <div className={styles.headerMenuDangerZone}>
             {confirmDelete ? (
-              <div className="flex flex-col gap-2 rounded-lg bg-red-500/5 p-2">
-                <p className="px-1 text-xs" style={{ color: theme.subtextColor }}>
+              <div className={styles.deleteConfirm}>
+                <p>
                   {t('editor.confirmDeletePrompt')}
                 </p>
-                <div className="flex gap-2">
+                <div className={styles.deleteConfirmActions}>
                   <button
                     type="button"
                     onClick={() => void onDelete()}
                     disabled={isDeleting}
-                    className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-red-500 px-3 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                    className={styles.deleteConfirmButton}
                   >
                     {isDeleting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -99,8 +89,7 @@ export function NoteHeaderMenu({
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(false)}
-                    className="rounded-lg px-3 py-2 text-sm font-medium hover:opacity-70"
-                    style={{ color: theme.subtextColor }}
+                    className={styles.deleteCancelButton}
                   >
                     {t('editor.cancel')}
                   </button>
@@ -110,7 +99,7 @@ export function NoteHeaderMenu({
               <button
                 type="button"
                 onClick={() => setConfirmDelete(true)}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-red-500/30 px-4 py-2 text-sm font-semibold text-red-500 transition-colors hover:bg-red-500/10"
+                className={styles.deleteButton}
               >
                 <Trash2 className="h-4 w-4" />
                 {t('editor.delete')}

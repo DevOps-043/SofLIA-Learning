@@ -11,6 +11,7 @@ import {
 } from '../services/notebook.client.service'
 import { NoteContentView } from './NoteContentView'
 import { NoteEnrichmentPanel } from './NoteEnrichmentPanel'
+import styles from './NotebookEditor.module.css'
 
 interface NotebookSofliaPanelProps {
   orgSlug: string
@@ -104,47 +105,51 @@ export function NotebookSofliaPanel({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className={styles.sofliaStack}>
       {showAnalysis && (
-        <NoteEnrichmentPanel
-          orgSlug={orgSlug}
-          noteId={noteId}
-          onTaskActionError={() => onError(t('enrichment.taskActionError'))}
-        />
+        <NoteEnrichmentPanel orgSlug={orgSlug} noteId={noteId} onError={onError} />
       )}
 
       <div
-        className="flex flex-col rounded-2xl border shadow-sm"
-        style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+        className={styles.chatCard}
       >
-        <div
-          className="flex items-center gap-1.5 border-b px-4 py-3"
-          style={{ borderColor: theme.borderColor }}
-        >
-          <Sparkles className="h-4 w-4" style={{ color: theme.actionColor }} />
-          <p className="text-sm font-semibold" style={{ color: theme.textColor }}>
-            {t('soflia.chat.title')}
-          </p>
+        <div className={styles.chatHeader}>
+          <span className={styles.chatHeaderIcon}>
+            <Sparkles />
+          </span>
+          <div>
+            <p className={styles.chatTitle}>{t('soflia.chat.title')}</p>
+            <span className={styles.chatStatus}>SofLIA</span>
+          </div>
         </div>
 
         <div
           ref={scrollRef}
-          className="flex max-h-[46vh] min-h-[120px] flex-col gap-3 overflow-y-auto px-4 py-3"
+          className={styles.chatMessages}
         >
           {messages.length === 0 ? (
-            <p className="text-xs leading-relaxed" style={{ color: theme.mutedTextColor }}>
+            <div className={styles.chatEmpty}>
+              <WandSparkles />
+              <p>
               {t('soflia.chat.placeholder')}
-            </p>
+              </p>
+            </div>
           ) : (
             messages.map((message, index) => (
-              <div key={index} className="flex flex-col gap-2">
+              <div key={index} className={styles.chatTurn}>
                 <div
                   className={
-                    message.role === 'user' ? 'flex justify-end' : 'flex justify-start'
+                    message.role === 'user'
+                      ? styles.chatRowUser
+                      : styles.chatRowAssistant
                   }
                 >
                   <div
-                    className="max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-relaxed"
+                    className={
+                      message.role === 'user'
+                        ? styles.chatBubbleUser
+                        : styles.chatBubbleAssistant
+                    }
                     style={
                       message.role === 'user'
                         ? { backgroundColor: theme.actionColor, color: theme.onActionColor }
@@ -160,20 +165,20 @@ export function NotebookSofliaPanel({
 
                 {message.role === 'assistant' && message.proposedContent && (
                   <div
-                    className="rounded-xl border p-3"
+                    className={styles.proposalCard}
                     style={{
                       borderColor: theme.borderColor,
                       backgroundColor: `${theme.actionColor}08`,
                     }}
                   >
                     <p
-                      className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide"
+                      className={styles.proposalTitle}
                       style={{ color: theme.actionColor }}
                     >
                       <WandSparkles className="h-3.5 w-3.5" />
                       {t('soflia.edit.proposalTitle')}
                     </p>
-                    <div className="max-h-56 overflow-y-auto rounded-lg border p-2" style={{ borderColor: theme.borderColor }}>
+                    <div className={styles.proposalPreview} style={{ borderColor: theme.borderColor }}>
                       <NoteContentView
                         className="notebook-prose--preview"
                         html={message.proposedContent}
@@ -181,23 +186,23 @@ export function NotebookSofliaPanel({
                     </div>
 
                     {message.proposalState === 'applied' ? (
-                      <p className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold" style={{ color: theme.actionColor }}>
+                      <p className={styles.proposalApplied} style={{ color: theme.actionColor }}>
                         <Check className="h-3.5 w-3.5" />
                         {t('soflia.edit.applied')}
                       </p>
                     ) : message.proposalState === 'dismissed' ? (
-                      <p className="mt-2 text-xs" style={{ color: theme.mutedTextColor }}>
+                      <p className={styles.proposalDismissed} style={{ color: theme.mutedTextColor }}>
                         {t('soflia.edit.dismissed')}
                       </p>
                     ) : (
-                      <div className="mt-2 flex gap-2">
+                      <div className={styles.proposalActions}>
                         <button
                           type="button"
                           onClick={() =>
                             applyProposal(index, message.proposedContent as string)
                           }
                           disabled={!onApplyEdit}
-                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
+                          className={styles.proposalApply}
                           style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
                         >
                           <Check className="h-3.5 w-3.5" />
@@ -206,7 +211,7 @@ export function NotebookSofliaPanel({
                         <button
                           type="button"
                           onClick={() => resolveProposal(index, 'dismissed')}
-                          className="inline-flex items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold transition-opacity hover:opacity-80"
+                          className={styles.proposalDiscard}
                           style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
                         >
                           <X className="h-3.5 w-3.5" />
@@ -220,9 +225,9 @@ export function NotebookSofliaPanel({
             ))
           )}
           {isSending && (
-            <div className="flex justify-start">
+            <div className={styles.chatRowAssistant}>
               <div
-                className="inline-flex items-center gap-1.5 rounded-2xl px-3 py-2 text-sm"
+                className={styles.chatThinking}
                 style={{ backgroundColor: `${theme.actionColor}12`, color: theme.mutedTextColor }}
               >
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -232,10 +237,7 @@ export function NotebookSofliaPanel({
           )}
         </div>
 
-        <div
-          className="flex items-end gap-2 border-t p-3"
-          style={{ borderColor: theme.borderColor }}
-        >
+        <div className={styles.chatComposer}>
           <textarea
             value={input}
             onChange={(event) => setInput(event.target.value)}
@@ -248,15 +250,14 @@ export function NotebookSofliaPanel({
             rows={1}
             maxLength={2_000}
             placeholder={t('soflia.chat.inputPlaceholder')}
-            className="max-h-28 min-h-[40px] flex-1 resize-none rounded-xl border bg-transparent px-3 py-2 text-sm outline-none"
-            style={{ borderColor: theme.borderColor, color: theme.textColor }}
+            className={styles.chatInput}
           />
           <button
             type="button"
             onClick={() => void send()}
             disabled={isSending || !input.trim()}
             aria-label={t('soflia.chat.send')}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-opacity hover:opacity-90 disabled:opacity-40"
+            className={styles.chatSend}
             style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
           >
             {isSending ? (

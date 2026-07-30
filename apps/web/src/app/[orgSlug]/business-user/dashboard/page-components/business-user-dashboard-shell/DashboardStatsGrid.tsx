@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 
 import { ModernStatsCard } from './dynamic-components'
 import type { BusinessUserDashboardShellProps } from './types'
+import styles from '../BusinessUserDashboard.module.css'
 
 type DashboardStatsGridProps = Pick<
   BusinessUserDashboardShellProps,
@@ -24,9 +25,9 @@ export function DashboardStatsGrid({
   userDashboardStyles,
 }: DashboardStatsGridProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-5 lg:gap-6">
+    <div className={styles.statsGrid}>
       <Suspense
-        fallback={myStats.map((stat) => (
+        fallback={myStats.filter((stat) => stat.kind !== 'analytics').map((stat) => (
           <div
             key={stat.label}
             className="h-32 animate-pulse rounded-2xl p-5"
@@ -37,7 +38,7 @@ export function DashboardStatsGrid({
           />
         ))}
       >
-        {myStats.map((stat, index) => {
+        {myStats.filter((stat) => stat.kind !== 'analytics').map((stat, index) => {
           const isCertificates = stat.kind === 'certificates'
           const isAnalytics = stat.kind === 'analytics'
           return (

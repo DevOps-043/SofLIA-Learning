@@ -41,7 +41,7 @@ export function DialogueFooter({
   showInactivityPrompt,
 }: DialogueFooterProps) {
   return (
-    <div className="space-y-3 border-t border-gray-200 bg-gray-50/70 px-4 py-4 dark:border-white/10 dark:bg-white/[0.02]">
+    <div className="space-y-3 border-t border-gray-200/70 bg-white/55 px-4 py-4 dark:border-white/10 dark:bg-white/[0.025] sm:px-5">
       <DialogueInactivityNotice
         onContinue={onDismissInactivityPrompt}
         onRestart={onRestartFromInactivity}

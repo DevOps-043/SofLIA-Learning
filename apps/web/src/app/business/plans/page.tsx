@@ -13,6 +13,7 @@ import { BusinessPageContent } from '@aprende-y-aplica/shared';
 import { fadeIn, slideUp, staggerContainer } from '../../../shared/utils/animations';
 import { Check, ArrowRight } from 'lucide-react';
 import { useEffect } from 'react';
+import { PremiumLoadingScreen } from '@/core/components/PremiumLoadingScreen/PremiumLoadingScreen';
 
 export default function PlansPage() {
   const [content, setContent] = useState<BusinessPageContent | null>(null);
@@ -39,12 +40,10 @@ export default function PlansPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-white dark:bg-carbon-900 flex items-center justify-center pt-24">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary/30 dark:border-accent/30 border-t-primary dark:border-t-accent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-500 dark:text-white/70">Cargando...</p>
-        </div>
-      </main>
+      <PremiumLoadingScreen
+        description="Preparando planes, beneficios y comparativos."
+        label="Cargando planes"
+      />
     );
   }
 
@@ -108,4 +107,3 @@ export default function PlansPage() {
     </main>
   );
 }
-

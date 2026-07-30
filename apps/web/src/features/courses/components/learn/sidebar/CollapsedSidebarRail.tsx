@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronRight, FileText, Layers, Plus } from "lucide-react";
+import { Layers3, NotebookPen, PanelLeftOpen, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import styles from "./CourseSidebar.module.css";
 
 type CollapsedSidebarRailProps = {
   onOpenSidebar: () => void;
@@ -19,43 +20,44 @@ export function CollapsedSidebarRail({
   const { t } = useTranslation("learn");
 
   return (
-    <div className="my-2 ml-2 hidden w-12 flex-col rounded-lg border border-gray-200 bg-white shadow-xl backdrop-blur-sm dark:border-gray-500/30 dark:bg-carbon-800 md:flex">
-      <div className="flex h-[56px] shrink-0 items-center justify-center rounded-t-lg border-b border-gray-200 bg-white p-3 backdrop-blur-sm dark:border-gray-500/30 dark:bg-carbon-800">
-        <button
-          onClick={onOpenSidebar}
-          className="rounded-lg p-2 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
-          title="Mostrar material del curso"
-        >
-          <ChevronRight className="h-5 w-5 text-gray-500 dark:text-white" />
-        </button>
-      </div>
+    <div className={styles.collapsedRail}>
+      <button
+        type="button"
+        onClick={onOpenSidebar}
+        className={styles.railButton}
+        title="Mostrar material del curso"
+      >
+        <PanelLeftOpen aria-hidden="true" />
+      </button>
 
-      <div className="flex flex-1 flex-col items-center gap-2 p-2">
-        <button
-          onClick={onOpenContent}
-          className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
-          title="Ver lecciones"
-        >
-          <Layers className="h-4 w-4 text-gray-500 dark:text-white/80" />
-        </button>
+      <span className={styles.railDivider} aria-hidden="true" />
 
-        <button
-          onClick={onOpenNotes}
-          className="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
-          title={t("leftPanel.notesSection.viewNotes")}
-        >
-          <FileText className="h-4 w-4 text-gray-500 dark:text-white/80" />
-        </button>
+      <button
+        type="button"
+        onClick={onOpenContent}
+        className={styles.railButton}
+        title="Ver lecciones"
+      >
+        <Layers3 aria-hidden="true" />
+      </button>
 
-        <button
-          onClick={onOpenNewNote}
-          className="flex h-8 w-8 items-center justify-center rounded-full shadow-lg transition-colors hover:brightness-95"
-          style={{ backgroundColor: 'var(--learn-action)' }}
-          title={t("leftPanel.notesSection.newNote")}
-        >
-          <Plus className="h-4 w-4" style={{ color: 'var(--learn-on-action)' }} />
-        </button>
-      </div>
+      <button
+        type="button"
+        onClick={onOpenNotes}
+        className={styles.railButton}
+        title={t("leftPanel.notesSection.viewNotes")}
+      >
+        <NotebookPen aria-hidden="true" />
+      </button>
+
+      <button
+        type="button"
+        onClick={onOpenNewNote}
+        className={styles.railPrimary}
+        title={t("leftPanel.notesSection.newNote")}
+      >
+        <Plus aria-hidden="true" />
+      </button>
     </div>
   );
 }

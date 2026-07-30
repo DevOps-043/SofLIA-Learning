@@ -22,10 +22,10 @@ export function DialogueMessageBubble({
         <DialogueAvatar role={message.role} userDisplayName={userDisplayName} userInitials={userInitials} userProfilePictureUrl={userProfilePictureUrl} />
       )}
       <div
-        className={`max-w-[88%] break-words rounded-2xl border px-3.5 py-2.5 text-sm leading-relaxed ${
+        className={`max-w-[88%] break-words rounded-2xl border px-4 py-3 text-sm leading-relaxed shadow-[0_0.35rem_1rem_rgb(15_23_42_/_0.035)] ${
           isUser
             ? "rounded-br-md border-transparent"
-            : "rounded-bl-md border-gray-200/70 bg-gray-50 text-gray-800 dark:border-white/10 dark:bg-white/[0.05] dark:text-white/90"
+            : "rounded-bl-md border-gray-200/70 bg-white/75 text-gray-800 dark:border-white/10 dark:bg-white/[0.045] dark:text-white/90"
         }`}
         style={isUser ? { backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' } : undefined}
       >

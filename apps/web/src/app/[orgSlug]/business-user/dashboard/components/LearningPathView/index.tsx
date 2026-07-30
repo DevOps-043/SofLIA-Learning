@@ -11,6 +11,7 @@ import { useLearningPathCourses } from './useLearningPathCourses'
 import { useLearningPathPreview } from './useLearningPathPreview'
 import { usePathScroller } from './usePathScroller'
 import { useVisiblePathItems } from './useVisiblePathItems'
+import dashboardStyles from '../../page-components/BusinessUserDashboard.module.css'
 
 export function LearningPathView({
   learningPaths,
@@ -43,7 +44,10 @@ export function LearningPathView({
   }
 
   return (
-    <div data-tour-id="business-user-dashboard--learning-paths" className="space-y-12">
+    <div
+      data-tour-id="business-user-dashboard--learning-paths"
+      className={dashboardStyles.learningPaths}
+    >
       {learningPaths.map((learningPath, pathIndex) => (
         <LearningPathSection
           key={learningPath.id}

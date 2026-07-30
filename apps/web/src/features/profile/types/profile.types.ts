@@ -69,6 +69,8 @@ export type ProfileTabId = 'personal' | 'security'
 export interface ProfileColorPalette {
   primary: string
   accent: string
+  onPrimary: string
+  onAccent: string
   success: string
   warning: string
   error: string
@@ -80,6 +82,7 @@ export interface ProfileColorPalette {
   text: string
   textSecondary: string
   border: string
+  isLightMode: boolean
 }
 
 export interface UseProfileReturn {

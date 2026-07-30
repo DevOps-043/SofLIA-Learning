@@ -13,7 +13,7 @@ interface LiveVoiceStageProps {
   onStop: () => void;
 }
 
-const RING_SIZES = [168, 228, 292];
+const RING_SIZES = [164, 238];
 
 export function LiveVoiceStage({
   themeColors,
@@ -47,7 +47,7 @@ export function LiveVoiceStage({
         aria-hidden="true"
         style={{
           position: 'relative',
-          width: 'min(76vw, 320px)',
+          width: 'min(68vw, 260px)',
           aspectRatio: '1 / 1',
           display: 'flex',
           alignItems: 'center',
@@ -99,11 +99,11 @@ export function LiveVoiceStage({
             ease: 'easeInOut',
           }}
           style={{
-            width: '96px',
-            height: '96px',
+            width: '84px',
+            height: '84px',
             borderRadius: '50%',
             objectFit: 'cover',
-            border: `3px solid ${themeColors.accentColor}`,
+            border: `2px solid ${themeColors.accentColor}`,
             position: 'relative',
             zIndex: 1,
           }}

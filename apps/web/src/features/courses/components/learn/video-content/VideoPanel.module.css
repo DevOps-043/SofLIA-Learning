@@ -1,0 +1,241 @@
+.stage {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.stage::before {
+  position: absolute;
+  z-index: -1;
+  inset: auto 8% -0.8rem;
+  height: 2.25rem;
+  content: "";
+  background: color-mix(in srgb, var(--learn-action) 12%, transparent);
+  pointer-events: none;
+  filter: blur(1.8rem);
+  opacity: 0.5;
+}
+
+.videoFrame {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-height: calc(100dvh - 13rem);
+  overflow: hidden;
+  border: 0;
+  border-radius: 1.1rem;
+  aspect-ratio: 16 / 9;
+  background:
+    radial-gradient(circle at 50% 35%, rgb(22 78 99 / 0.2), transparent 42%),
+    #050b12;
+  box-shadow: 0 1.15rem 2.7rem rgb(15 23 42 / 0.14);
+}
+
+.videoFrame::after {
+  content: none;
+}
+
+.player {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.unavailableFrame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.unavailableGlow {
+  position: absolute;
+  width: 18rem;
+  height: 18rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--learn-accent) 13%, transparent);
+  pointer-events: none;
+  filter: blur(3.5rem);
+}
+
+.unavailableContent {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  max-width: 22rem;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.unavailableIcon {
+  display: inline-flex;
+  width: 4.6rem;
+  height: 4.6rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  border-radius: 1.35rem;
+  color: white;
+  background: rgb(255 255 255 / 0.08);
+  box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.24);
+  backdrop-filter: blur(1rem);
+}
+
+.unavailableIcon svg {
+  width: 1.65rem;
+  height: 1.65rem;
+}
+
+.unavailableText {
+  margin: 0;
+  color: rgb(255 255 255 / 0.72);
+  font-family: var(--font-system-ui);
+  font-size: 0.78rem;
+  line-height: 1.6;
+}
+
+.navigationOverlay {
+  position: absolute;
+  z-index: 70;
+  inset: 0;
+  pointer-events: none;
+}
+
+.navigationButton {
+  position: absolute;
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  top: 50%;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 0.4);
+  border-radius: 999px;
+  color: rgb(255 255 255 / 0.92);
+  background: rgb(15 23 42 / 0.38);
+  pointer-events: auto;
+  box-shadow:
+    0 0.65rem 1.5rem rgb(0 0 0 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.22);
+  backdrop-filter: blur(1rem) saturate(135%);
+  transform: translateY(-50%);
+  transition:
+    color 170ms ease,
+    border-color 170ms ease,
+    background-color 170ms ease,
+    box-shadow 170ms ease,
+    transform 170ms ease;
+}
+
+.navigationButton:hover,
+.navigationButton:focus-visible {
+  border-color: color-mix(in srgb, var(--learn-accent) 64%, white 36%);
+  outline: none;
+  color: white;
+  background: color-mix(in srgb, var(--learn-action) 68%, transparent);
+  box-shadow:
+    0 0.8rem 2rem color-mix(in srgb, var(--learn-action) 22%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.22);
+}
+
+.navigationButton:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.navigationPrevious {
+  left: 0.85rem;
+}
+
+.navigationNext {
+  right: 0.85rem;
+}
+
+.navigationFinish {
+  color: var(--learn-on-action);
+  background: color-mix(in srgb, var(--learn-action) 76%, transparent);
+}
+
+.navigationButton svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.navigationLabel {
+  position: absolute;
+  top: 50%;
+  border: 1px solid rgb(255 255 255 / 0.12);
+  border-radius: 0.65rem;
+  padding: 0.38rem 0.55rem;
+  color: white;
+  background: rgb(3 12 22 / 0.82);
+  font-family: var(--font-system-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.035em;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  backdrop-filter: blur(0.8rem);
+  transform: translateY(-50%);
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+
+.navigationPrevious .navigationLabel {
+  left: calc(100% + 0.55rem);
+  transform: translate(-0.25rem, -50%);
+}
+
+.navigationNext .navigationLabel {
+  right: calc(100% + 0.55rem);
+  transform: translate(0.25rem, -50%);
+}
+
+.navigationButton:hover .navigationLabel,
+.navigationButton:focus-visible .navigationLabel {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+
+@media (max-width: 47.99rem) {
+  .stage {
+    border-radius: 0.95rem;
+  }
+
+  .videoFrame {
+    max-height: none;
+    border-radius: 0.95rem;
+  }
+
+  .navigationButton {
+    width: 2.35rem;
+    height: 2.35rem;
+    border-radius: 0.78rem;
+  }
+
+  .navigationPrevious {
+    left: 0.55rem;
+  }
+
+  .navigationNext {
+    right: 0.55rem;
+  }
+
+  .navigationLabel {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navigationButton,
+  .navigationLabel {
+    transition-duration: 1ms;
+  }
+}

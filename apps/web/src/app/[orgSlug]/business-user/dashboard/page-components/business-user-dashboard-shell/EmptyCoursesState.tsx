@@ -2,6 +2,7 @@ import { BookOpen, GraduationCap, Sparkles } from 'lucide-react'
 import { motion, type Transition } from 'framer-motion'
 
 import type { BusinessUserDashboardShellProps } from './types'
+import styles from '../BusinessUserDashboard.module.css'
 
 interface EmptyCoursesStateProps {
   disableHeavyEffects: boolean
@@ -20,7 +21,7 @@ export function EmptyCoursesState({
     <motion.div
       initial={disableHeavyEffects ? false : { opacity: 0, scale: 0.98 }}
       animate={disableHeavyEffects ? undefined : { opacity: 1, scale: 1 }}
-      className={`relative overflow-hidden rounded-2xl p-12 text-center ${disableHeavyEffects ? '' : 'backdrop-blur-xl'}`}
+      className={styles.emptyState}
       style={{
         backgroundColor: orgColors.cardBg,
         border: `1px solid ${orgColors.border}`,

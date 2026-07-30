@@ -2,6 +2,7 @@ import { BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { MaterialCard } from "../activities/MaterialCard";
+import styles from "../ActivitiesExperience.module.css";
 import { SectionCountHeader } from "./SectionCountHeader";
 import type { ActivitiesData } from "./types";
 
@@ -22,13 +23,13 @@ export function MaterialListSection(props: {
   }
 
   return (
-    <div data-tour-id="course-learn--material-list">
+    <section data-tour-id="course-learn--material-list" className={styles.group}>
       <SectionCountHeader
         count={props.data.materials.length}
         icon={BookOpen}
         label={t("activities.materials")}
       />
-      <div className="space-y-2">
+      <div className={styles.stack}>
         {props.data.materials.map((material) => (
           <MaterialCard
             key={material.material_id}
@@ -43,6 +44,6 @@ export function MaterialListSection(props: {
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

@@ -89,7 +89,9 @@ async function generateEnrichment(input: {
       resourceType: 'notebook_note',
     },
     jsonSchema: AI_ENRICHMENT_JSON_SCHEMA,
-    maxOutputTokens: settings.maxOutputTokens ?? 1_024,
+    // El razonamiento del modelo se descuenta de este presupuesto: por debajo de
+    // ~2.000 tokens el JSON llega truncado (ver purposes.ts).
+    maxOutputTokens: settings.maxOutputTokens ?? 2_048,
     model: settings.model,
     operation: 'notebook_enrichment',
     prompt: input.prompt,

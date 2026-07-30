@@ -4,6 +4,8 @@ import type { StyleConfig } from '../../../../../features/business-panel/hooks/u
 export interface BusinessUserDashboardColors {
   primary: string
   accent: string
+  onPrimary: string
+  onAccent: string
   text: string
   cardBg: string
   sidebarBg: string

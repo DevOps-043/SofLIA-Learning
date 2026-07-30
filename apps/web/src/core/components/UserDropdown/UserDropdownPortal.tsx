@@ -1,4 +1,5 @@
 import { createPortal } from 'react-dom'
+import type { CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { LogOut } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
@@ -11,27 +12,12 @@ import {
   USER_DROPDOWN_MENU_Z_INDEX,
 } from './types'
 import type { useUserDropdownLogic } from './useUserDropdownLogic'
+import styles from './UserDropdown.module.css'
 
 type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
 
 export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
   if (!logic.isMounted) return null
-
-  const isDark = logic.resolvedTheme === 'dark'
-
-  // Panel background uses only CSS/design-system tokens — no hardcoded hex or rgba.
-  // primaryColor / accentColor come from the org store (dynamic, not hardcoded).
-  // In dark mode: tints var(--color-bg-dark) with the org primary so black-primary orgs
-  // produce a near-black panel and navy-primary orgs produce a deep navy.
-  // In light mode: platform bg-light (white) with org-primary-tinted border.
-  const panelStyles = {
-    backgroundColor: isDark
-      ? `color-mix(in srgb, ${logic.primaryColor} 60%, var(--color-bg-dark))`
-      : 'var(--color-bg-light)',
-    borderColor: isDark
-      ? `color-mix(in srgb, ${logic.accentColor} 20%, var(--color-gray-800))`
-      : `color-mix(in srgb, ${logic.primaryColor} 15%, var(--color-gray-200))`,
-  }
 
   const menuStyle = logic.isMobileViewport
     ? {
@@ -42,18 +28,17 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
         left: 0,
         maxHeight: 'none',
         height: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px)`,
-        ...panelStyles,
+        '--user-primary': logic.primaryColor,
+        '--user-accent': logic.accentColor,
       }
     : {
         zIndex: USER_DROPDOWN_MENU_Z_INDEX,
         top: logic.pos.top,
         right: logic.pos.right,
         maxHeight: `calc(var(--soflia-viewport-height) - ${logic.pos.top}px - 16px)`,
-        ...panelStyles,
+        '--user-primary': logic.primaryColor,
+        '--user-accent': logic.accentColor,
       }
-  const mobileSectionClassName = logic.isMobileViewport
-    ? 'overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/10 dark:bg-white/5'
-    : ''
 
   return createPortal(
     <AnimatePresence>
@@ -63,7 +48,7 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/10"
+            className={styles.backdrop}
             style={{ zIndex: USER_DROPDOWN_BACKDROP_Z_INDEX }}
             onClick={() => { logic.setIsOpen(false); logic.setActiveSubmenu(null); logic.setIsOrgSwitcherOpen(false) }}
           />
@@ -73,16 +58,12 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
             animate={logic.isMobileViewport ? { opacity: 1, y: 0 } : { opacity: 1, y: 0, scale: 1 }}
             exit={logic.isMobileViewport ? { opacity: 0, y: -12 } : { opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
-            className={cn(
-              'fixed overflow-y-auto border shadow-2xl',
-              logic.isMobileViewport
-                ? 'w-screen max-w-none rounded-none border-x-0 border-b-0'
-                : 'w-[308px] max-w-[calc(100vw-2rem)] rounded-2xl backdrop-blur-xl',
-            )}
-            style={menuStyle}
+            className={styles.menu}
+            style={menuStyle as CSSProperties}
+            role="menu"
           >
-            <div className={cn(logic.isMobileViewport && 'flex min-h-full flex-col gap-2 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]')}>
-              <div className={cn(logic.isMobileViewport && 'basis-[12%] min-h-[72px]', mobileSectionClassName)}>
+            <div className={cn(logic.isMobileViewport && styles.mobileLayout)}>
+              <div className={cn(logic.isMobileViewport && styles.mobileSection)}>
                 <UserDropdownHeader
                   accentColor={logic.accentColor}
                   displayName={logic.displayName}
@@ -92,34 +73,31 @@ export function UserDropdownPortal({ logic }: { logic: UserDropdownLogic }) {
                   isMounted={logic.isMounted}
                   onImageError={() => logic.setImageError(true)}
                   primaryColor={logic.primaryColor}
-                  resolvedTheme={logic.resolvedTheme}
                   roleLabel={logic.roleLabel}
                   onProfileClick={logic.handleProfileClick}
                 />
               </div>
-              <div className={cn(logic.isMobileViewport && 'basis-[24%] min-h-[132px]', mobileSectionClassName)}>
+              <div className={cn(logic.isMobileViewport && styles.mobileSection)}>
                 <UserDropdownOrgSection logic={logic} />
               </div>
-              <div className={cn(logic.isMobileViewport && 'basis-[11%] min-h-[62px]', mobileSectionClassName)}>
+              <div className={cn(logic.isMobileViewport && styles.mobileSection)}>
                 <UserDropdownPanelSwitcher logic={logic} />
               </div>
-              <div className={cn(logic.isMobileViewport && 'min-h-[188px] flex-1', mobileSectionClassName)}>
+              <div className={cn(logic.isMobileViewport && styles.mobileSection)}>
                 <UserDropdownMenuItems logic={logic} />
               </div>
               <div className={cn(
-                'px-2 py-1.5 border-t border-gray-200 dark:border-white/5',
-                logic.isMobileViewport && 'basis-[9%] min-h-[58px] rounded-2xl border border-red-500/20 bg-red-500/5 dark:border-red-400/20 dark:bg-red-500/10',
+                styles.logoutWrap,
+                logic.isMobileViewport && styles.logoutWrapMobile,
               )}>
                 <motion.button
+                  type="button"
                   onClick={logic.handleLogout}
-                  className={cn(
-                    'w-full flex items-center gap-2.5 px-3 py-1.5 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-500/10 transition-all',
-                    logic.isMobileViewport && 'h-full min-h-11',
-                  )}
+                  className={styles.logoutButton}
                   whileHover={{ x: 3 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <LogOut className="w-[18px] h-[18px]" />
+                  <LogOut className={styles.menuItemIcon} />
                   <span>{logic.t('menu.logout')}</span>
                 </motion.button>
               </div>

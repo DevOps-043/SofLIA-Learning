@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useId } from 'react'
 import { motion } from 'framer-motion'
 import { useMotionSafe } from '@/lib/utils/motion'
 import type { PremiumTextareaProps } from './types'
+import styles from '../ProfileExperience.module.css'
 
 export function PremiumTextarea({
   label,
@@ -13,37 +14,35 @@ export function PremiumTextarea({
   rows = 4,
   colors,
 }: PremiumTextareaProps) {
-  const [focused, setFocused] = useState(false)
+  const textareaId = useId()
   const { interfaceTransition } = useMotionSafe()
   const charCount = value.length
   const isNearLimit = charCount > maxLength * 0.8
 
   return (
-    <motion.div className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
-      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${colors.accent} 25.1%, transparent), transparent 50%, color-mix(in srgb, ${colors.accent} 12.5%, transparent))` }} animate={{ opacity: focused ? 1 : 0 }} />
-      <div className="relative rounded-2xl overflow-hidden transition-all duration-300" style={{ boxShadow: focused ? `0 0 30px color-mix(in srgb, ${colors.accent} 14.9%, transparent)` : 'none' }}>
-        <div className="absolute inset-0" style={{ backgroundColor: focused ? colors.bgSecondary : `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)` }} />
-        <div className="absolute inset-0 rounded-2xl border-2 transition-colors duration-300" style={{ borderColor: focused ? `color-mix(in srgb, ${colors.accent} 50.2%, transparent)` : colors.border }} />
-        <div className="relative p-5">
-          <motion.label className="block mb-3 font-medium text-xs tracking-wide" animate={{ color: focused ? colors.accent : colors.textSecondary }}>
-            {label}
-          </motion.label>
+    <motion.div
+      animate={{ opacity: 1, y: 0 }}
+      className={styles.field}
+      data-color-mode={colors.isLightMode ? 'light' : 'dark'}
+      initial={{ opacity: 0, y: 12 }}
+      transition={interfaceTransition}
+    >
+      <div className={styles.textAreaShell}>
+          <label className={styles.textAreaLabel} htmlFor={textareaId}>{label}</label>
           <textarea
+            id={textareaId}
             value={value}
             onChange={event => onChange(event.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
             rows={rows}
             maxLength={maxLength}
-            className="w-full bg-transparent resize-none focus:outline-none text-sm leading-relaxed"
-            style={{ color: colors.text }}
+            className={styles.textArea}
           />
-          <div className="flex justify-end mt-3">
-            <span className="text-xs" style={{ color: isNearLimit ? colors.warning : colors.textSecondary }}>
-              {charCount}/{maxLength}
-            </span>
-          </div>
-        </div>
+          <span
+            className={styles.charCount}
+            style={isNearLimit ? { color: colors.warning } : undefined}
+          >
+            {charCount}/{maxLength}
+          </span>
       </div>
     </motion.div>
   )

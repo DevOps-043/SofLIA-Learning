@@ -1,0 +1,696 @@
+.root {
+  position: relative;
+}
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.22rem;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color 170ms ease,
+    background-color 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.trigger:hover,
+.trigger:focus-visible {
+  border-color: color-mix(
+    in srgb,
+    var(--org-accent-color, var(--color-accent)) 22%,
+    transparent
+  );
+  outline: none;
+  background: color-mix(
+    in srgb,
+    var(--org-accent-color, var(--color-accent)) 6%,
+    transparent
+  );
+}
+
+.triggerAvatar {
+  position: relative;
+}
+
+.presence {
+  position: absolute;
+  right: 0.1rem;
+  bottom: 0.1rem;
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 2px solid var(--user-presence-ring, var(--color-bg-light));
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 2px rgb(0 0 0 / 0.05);
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgb(2 10 20 / 0.18);
+  backdrop-filter: blur(0.15rem);
+}
+
+.menu {
+  --user-accent: var(--org-accent-color, var(--color-accent));
+  --user-primary: var(--org-primary-color, var(--color-primary));
+  --user-surface: rgb(255 255 255 / 0.97);
+  --user-surface-soft: rgb(246 249 252 / 0.94);
+  --user-surface-raised: rgb(255 255 255);
+  --user-text: var(--color-primary);
+  --user-muted: rgb(75 94 116);
+  --user-border: rgb(10 37 64 / 0.12);
+  --user-shadow: rgb(10 37 64 / 0.22);
+  position: fixed;
+  width: 20rem;
+  max-width: calc(100vw - 2rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--user-accent) 16%,
+    var(--user-border)
+  );
+  border-radius: 1.35rem;
+  color: var(--user-text);
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      color-mix(in srgb, var(--user-accent) 7%, transparent),
+      transparent 10rem
+    ),
+    var(--user-surface);
+  box-shadow:
+    0 2rem 5rem var(--user-shadow),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  backdrop-filter: blur(1.5rem) saturate(125%);
+  font-family: var(--font-system-ui);
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.menu::-webkit-scrollbar {
+  display: none;
+}
+
+:global(.dark) .menu {
+  --user-surface: color-mix(
+    in srgb,
+    var(--color-bg-dark) 90%,
+    var(--color-gray-800)
+  );
+  --user-surface-soft: color-mix(
+    in srgb,
+    var(--color-bg-dark) 78%,
+    var(--color-gray-800)
+  );
+  --user-surface-raised: color-mix(
+    in srgb,
+    var(--color-gray-800) 84%,
+    var(--color-bg-dark)
+  );
+  --user-text: var(--color-bg-light);
+  --user-muted: rgb(190 202 215);
+  --user-border: rgb(255 255 255 / 0.1);
+  --user-shadow: rgb(0 0 0 / 0.5);
+}
+
+.mobileLayout {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.7rem 0.8rem calc(0.7rem + env(safe-area-inset-bottom, 0px));
+}
+
+.mobileSection {
+  overflow: hidden;
+  border: 1px solid var(--user-border);
+  border-radius: 1rem;
+  background: var(--user-surface-raised);
+}
+
+.header {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid var(--user-border);
+  background: color-mix(in srgb, var(--user-surface-soft) 80%, transparent);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.headerCopy {
+  min-width: 0;
+  flex: 1;
+}
+
+.headerName,
+.headerRole {
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerName {
+  color: var(--user-text);
+  font-size: 0.77rem;
+  font-weight: 650;
+}
+
+.headerRole {
+  margin-top: 0.12rem;
+  color: var(--user-muted);
+  font-size: 0.64rem;
+}
+
+.iconButton {
+  display: inline-flex;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 0.68rem;
+  color: var(--user-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  border-color: var(--user-border);
+  outline: none;
+  color: var(--user-text);
+  background: var(--user-surface-raised);
+}
+
+.orgSection,
+.panelSection {
+  border-bottom: 1px solid var(--user-border);
+  padding: 0.65rem 0.75rem;
+}
+
+.orgCard {
+  border: 1px solid var(--user-border);
+  border-radius: 0.92rem;
+  padding: 0.55rem;
+  background: var(--user-surface-soft);
+}
+
+.orgHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.orgIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.orgMark {
+  display: inline-flex;
+  width: 1.85rem;
+  height: 1.85rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--user-border);
+  border-radius: 0.58rem;
+  color: white;
+  background: var(--user-surface-raised);
+  box-shadow: 0 0.3rem 0.8rem rgb(2 10 20 / 0.08);
+  font-size: 0.66rem;
+  font-weight: 750;
+}
+
+.orgMarkImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.orgCopy {
+  min-width: 0;
+}
+
+.orgName,
+.orgRole {
+  display: block;
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orgName {
+  color: var(--user-text);
+  font-size: 0.69rem;
+  font-weight: 650;
+}
+
+.orgRole {
+  margin-top: 0.06rem;
+  color: var(--user-muted);
+  font-size: 0.6rem;
+}
+
+.currentBadge {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 0.2rem 0.42rem;
+  color: color-mix(in srgb, var(--color-success) 82%, var(--user-text));
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+  font-size: 0.54rem;
+  font-weight: 700;
+}
+
+.switcher {
+  margin-top: 0.5rem;
+}
+
+.microLabel,
+.panelLabel {
+  display: block;
+  margin: 0 0 0.32rem 0.2rem;
+  color: var(--user-muted);
+  font-size: 0.54rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.orgTrigger {
+  display: flex;
+  width: 100%;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border: 1px solid var(--user-border);
+  border-radius: 0.65rem;
+  padding: 0.42rem 0.55rem;
+  color: var(--user-text);
+  text-align: left;
+  background: var(--user-surface-raised);
+  cursor: pointer;
+}
+
+.orgTrigger:hover,
+.orgTrigger:focus-visible {
+  border-color: color-mix(in srgb, var(--user-accent) 32%, var(--user-border));
+  outline: none;
+  background: color-mix(in srgb, var(--user-accent) 5%, var(--user-surface-raised));
+}
+
+.orgTriggerLabel {
+  overflow: hidden;
+  flex: 1;
+  font-size: 0.65rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orgChevron {
+  flex-shrink: 0;
+  color: var(--user-muted);
+  transition: transform 180ms ease;
+}
+
+.orgChevronOpen {
+  transform: rotate(-90deg);
+}
+
+.orgList {
+  overflow: hidden;
+  margin-top: 0.35rem;
+  border: 1px solid var(--user-border);
+  border-radius: 0.72rem;
+  padding: 0.2rem;
+  background: var(--user-surface-raised);
+}
+
+.orgOption {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 0.58rem;
+  padding: 0.42rem;
+  color: var(--user-text);
+  text-align: left;
+  background: transparent;
+  cursor: pointer;
+}
+
+.orgOption:hover,
+.orgOption:focus-visible,
+.orgOptionActive {
+  outline: none;
+  background: color-mix(in srgb, var(--user-accent) 7%, transparent);
+}
+
+.orgCheck {
+  flex-shrink: 0;
+  color: var(--user-accent);
+}
+
+.panelGrid {
+  display: grid;
+  gap: 0.3rem;
+  border-radius: 0.78rem;
+  padding: 0.25rem;
+  background: var(--user-surface-soft);
+}
+
+.panelGridTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.panelGridThree {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.panelButton {
+  display: flex;
+  min-width: 0;
+  min-height: 2.15rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid transparent;
+  border-radius: 0.64rem;
+  padding: 0.4rem;
+  color: var(--user-muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.61rem;
+  font-weight: 650;
+}
+
+.panelButton:hover,
+.panelButton:focus-visible {
+  outline: none;
+  color: var(--user-text);
+  background: color-mix(in srgb, var(--user-surface-raised) 76%, transparent);
+}
+
+.panelButtonActive {
+  border-color: var(--user-border);
+  color: var(--user-text);
+  background: var(--user-surface-raised);
+  box-shadow: 0 0.35rem 0.8rem rgb(2 10 20 / 0.08);
+}
+
+.panelIcon {
+  width: 0.82rem;
+  height: 0.82rem;
+  flex-shrink: 0;
+}
+
+.panelButtonActive .panelIcon {
+  color: var(--user-accent);
+}
+
+.panelButtonLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menuItems {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.38rem;
+}
+
+.menuItemsMobile {
+  align-content: start;
+  height: 100%;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.menuItem {
+  display: flex;
+  width: calc(100% - 0.2rem);
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0.1rem;
+  border: 1px solid transparent;
+  border-radius: 0.72rem;
+  padding: 0.38rem 0.55rem;
+  color: var(--user-text);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 550;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    transform 150ms ease;
+}
+
+.menuItem:hover,
+.menuItem:focus-visible {
+  border-color: var(--user-border);
+  outline: none;
+  background: var(--user-surface-soft);
+  transform: translateX(0.12rem);
+}
+
+.menuItemHighlight {
+  color: var(--user-accent);
+  font-weight: 650;
+}
+
+.menuItemIcon {
+  width: 0.92rem;
+  height: 0.92rem;
+  flex-shrink: 0;
+  color: var(--user-muted);
+}
+
+.menuItemHighlight .menuItemIcon {
+  color: var(--user-accent);
+}
+
+.menuItemLabel {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.countBadge {
+  display: inline-flex;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--user-accent);
+  background: color-mix(in srgb, var(--user-accent) 9%, transparent);
+  font-size: 0.55rem;
+  font-weight: 750;
+}
+
+.languageMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  color: var(--user-muted);
+  font-size: 0.6rem;
+}
+
+.languageChevron {
+  transition: transform 170ms ease;
+}
+
+.languageChevronOpen {
+  transform: rotate(90deg);
+}
+
+.submenu {
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.15rem 0.55rem 0.35rem 2rem;
+}
+
+.submenuOption {
+  display: flex;
+  min-height: 1.95rem;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 0.6rem;
+  padding: 0.35rem 0.5rem;
+  color: var(--user-muted);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.62rem;
+}
+
+.submenuOption:hover,
+.submenuOption:focus-visible,
+.submenuActive {
+  border-color: color-mix(in srgb, var(--user-accent) 15%, transparent);
+  outline: none;
+  color: var(--user-text);
+  background: color-mix(in srgb, var(--user-accent) 6%, transparent);
+}
+
+.submenuActive {
+  color: var(--user-accent);
+}
+
+.submenuCheck {
+  margin-left: auto;
+}
+
+.preferences {
+  display: grid;
+  flex: 1;
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.preferenceGroup {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  border: 1px solid var(--user-border);
+  border-radius: 1rem;
+  padding: 0.55rem;
+  background: var(--user-surface-raised);
+}
+
+.preferenceTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  color: var(--user-muted);
+  font-size: 0.62rem;
+  font-weight: 650;
+}
+
+.preferenceGrid {
+  display: grid;
+  height: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.preferenceButton {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.3rem;
+  border: 1px solid var(--user-border);
+  border-radius: 0.75rem;
+  padding: 0.4rem;
+  color: var(--user-muted);
+  text-align: center;
+  background: var(--user-surface-soft);
+  cursor: pointer;
+  font-size: 0.56rem;
+  font-weight: 650;
+}
+
+.preferenceButton:hover,
+.preferenceButton:focus-visible,
+.preferenceButtonActive {
+  border-color: color-mix(in srgb, var(--user-accent) 26%, var(--user-border));
+  outline: none;
+  color: var(--user-accent);
+  background: color-mix(in srgb, var(--user-accent) 7%, var(--user-surface-soft));
+}
+
+.preferenceOptionLabel {
+  overflow: hidden;
+  max-width: 100%;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logoutWrap {
+  border-top: 1px solid var(--user-border);
+  padding: 0.42rem;
+}
+
+.logoutWrapMobile {
+  border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--color-error) 5%, transparent);
+}
+
+.logoutButton {
+  display: flex;
+  width: 100%;
+  min-height: 2.25rem;
+  align-items: center;
+  gap: 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 0.72rem;
+  padding: 0.4rem 0.58rem;
+  color: var(--color-error);
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 650;
+}
+
+.logoutButton:hover,
+.logoutButton:focus-visible {
+  border-color: color-mix(in srgb, var(--color-error) 18%, transparent);
+  outline: none;
+  background: color-mix(in srgb, var(--color-error) 7%, transparent);
+  transform: translateX(0.12rem);
+}
+
+@media (max-width: 40rem) {
+  .menu {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    max-width: none;
+    border-right: 0;
+    border-bottom: 0;
+    border-left: 0;
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .menuItem,
+  .logoutButton,
+  .orgChevron {
+    transition-duration: 1ms;
+  }
+}

@@ -1,19 +1,34 @@
 'use client'
 
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from 'react'
 import { Dialog, Transition } from '@headlessui/react'
-import { BookOpen, FileText, Loader2, NotebookPen, X } from 'lucide-react'
+import * as Select from '@radix-ui/react-select'
+import {
+  BookOpen,
+  Check,
+  ChevronDown,
+  FileText,
+  Loader2,
+  NotebookPen,
+  Plus,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import {
-  ToolbarDropdown,
-  type ToolbarDropdownOption,
-} from './editor/ToolbarDropdown'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import {
   createNotebookNote,
   fetchNotebookCourseOptions,
 } from '../services/notebook.client.service'
 import type { NotebookCourseOption } from '../types'
+import styles from './NotebookExperience.module.css'
 
 interface NewNoteModalProps {
   orgSlug: string
@@ -22,8 +37,6 @@ interface NewNoteModalProps {
   onCreated: (noteId: string) => void
 }
 
-const GRADIENT = 'linear-gradient(135deg, var(--color-primary), var(--color-accent))'
-
 export function NewNoteModal({
   orgSlug,
   isOpen,
@@ -31,6 +44,7 @@ export function NewNoteModal({
   onCreated,
 }: NewNoteModalProps) {
   const { t } = useTranslation('notebook')
+  const theme = useBusinessPanelTheme()
   const [courses, setCourses] = useState<NotebookCourseOption[]>([])
   const [isLoadingCourses, setIsLoadingCourses] = useState(false)
   const [courseId, setCourseId] = useState('')
@@ -75,16 +89,27 @@ export function NewNoteModal({
     [courses, courseId],
   )
 
-  const courseOptions: ToolbarDropdownOption[] = courses.map((course) => ({
+  const courseOptions: ModalSelectOption[] = courses.map((course) => ({
     value: course.courseId,
     label: course.title,
   }))
-  const lessonOptions: ToolbarDropdownOption[] = lessons.map((lesson) => ({
+  const lessonOptions: ModalSelectOption[] = lessons.map((lesson) => ({
     value: lesson.lessonId,
     label: lesson.title,
   }))
 
   const canSubmit = Boolean(courseId && lessonId) && !isCreating
+  const modalVars = {
+    '--notebook-action': theme.actionColor,
+    '--notebook-on-action': theme.onActionColor,
+    '--notebook-accent': theme.accentColor,
+    '--notebook-text': theme.textColor,
+    '--notebook-muted': theme.mutedTextColor,
+    '--notebook-card': theme.cardBg,
+    '--notebook-input': theme.inputBg,
+    '--notebook-hover': theme.hoverBg,
+    '--notebook-border': theme.borderColor,
+  } as CSSProperties
 
   const handleCreate = async () => {
     if (!canSubmit) return
@@ -105,7 +130,12 @@ export function NewNoteModal({
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog
+        as="div"
+        className={styles.modalRoot}
+        style={modalVars}
+        onClose={onClose}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-200"
@@ -115,11 +145,11 @@ export function NewNoteModal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className={styles.modalBackdrop} />
         </Transition.Child>
 
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4">
+        <div className={styles.modalViewport}>
+          <div className={styles.modalCenter}>
             <Transition.Child
               as={Fragment}
               enter="ease-out duration-200"
@@ -129,27 +159,24 @@ export function NewNoteModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[var(--color-gray-800)]">
+              <Dialog.Panel className={styles.modalPanel}>
                 {/* Header */}
-                <div className="flex items-start gap-3 border-b border-gray-100 p-5 dark:border-white/10">
-                  <span
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white shadow-md"
-                    style={{ backgroundImage: GRADIENT }}
-                  >
+                <div className={styles.modalHeader}>
+                  <span className={styles.modalIcon}>
                     <NotebookPen className="h-5 w-5" />
                   </span>
-                  <div className="min-w-0 flex-1">
-                    <Dialog.Title className="text-lg font-bold text-gray-900 dark:text-white">
+                  <div className={styles.modalHeading}>
+                    <Dialog.Title className={styles.modalTitle}>
                       {t('newNote.title')}
                     </Dialog.Title>
-                    <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    <p className={styles.modalSubtitle}>
                       {t('newNote.subtitle')}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10"
+                    className={styles.modalClose}
                     aria-label={t('newNote.close')}
                   >
                     <X className="h-5 w-5" />
@@ -157,30 +184,28 @@ export function NewNoteModal({
                 </div>
 
                 {/* Body */}
-                <div className="p-5">
+                <div className={styles.modalBody}>
                   {isLoadingCourses ? (
-                    <div className="flex items-center justify-center gap-2 py-8 text-gray-400">
+                    <div className={styles.modalLoading}>
                       <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="text-sm">{t('newNote.loadingCourses')}</span>
+                      <span>{t('newNote.loadingCourses')}</span>
                     </div>
                   ) : courses.length === 0 ? (
-                    <p className="py-6 text-center text-sm text-gray-500 dark:text-gray-400">
+                    <p className={styles.modalEmpty}>
                       {t('newNote.noCourses')}
                     </p>
                   ) : (
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <div className={styles.modalForm}>
+                      <div className={styles.modalField}>
+                        <span className={styles.modalLabel}>
                           {t('newNote.courseLabel')}
-                        </label>
-                        <ToolbarDropdown
-                          size="md"
+                        </span>
+                        <ModalSelect
                           icon={BookOpen}
                           ariaLabel={t('newNote.courseLabel')}
                           placeholder={t('newNote.coursePlaceholder')}
                           value={courseId}
                           options={courseOptions}
-                          triggerClassName="w-full"
                           onSelect={(value) => {
                             setCourseId(value)
                             setLessonId('')
@@ -188,12 +213,11 @@ export function NewNoteModal({
                         />
                       </div>
 
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      <div className={styles.modalField}>
+                        <span className={styles.modalLabel}>
                           {t('newNote.lessonLabel')}
-                        </label>
-                        <ToolbarDropdown
-                          size="md"
+                        </span>
+                        <ModalSelect
                           icon={FileText}
                           ariaLabel={t('newNote.lessonLabel')}
                           placeholder={t('newNote.lessonPlaceholder')}
@@ -205,33 +229,34 @@ export function NewNoteModal({
                         />
                       </div>
 
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      <div className={styles.modalField}>
+                        <label htmlFor="new-note-title" className={styles.modalLabel}>
                           {t('newNote.titleLabel')}
                         </label>
                         <input
+                          id="new-note-title"
                           type="text"
                           value={title}
                           maxLength={256}
                           onChange={(event) => setTitle(event.target.value)}
                           placeholder={t('newNote.titlePlaceholder')}
-                          className="h-11 rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 outline-none transition-colors focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-white/5 dark:text-white"
+                          className={styles.modalInput}
                         />
                       </div>
                     </div>
                   )}
 
                   {error && (
-                    <p className="mt-3 text-sm text-[var(--color-error)]">{error}</p>
+                    <p className={styles.modalError}>{error}</p>
                   )}
                 </div>
 
                 {/* Footer */}
-                <div className="flex justify-end gap-2 border-t border-gray-100 p-4 dark:border-white/10">
+                <div className={styles.modalFooter}>
                   <button
                     type="button"
                     onClick={onClose}
-                    className="rounded-xl px-4 py-2.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+                    className={styles.modalCancel}
                   >
                     {t('newNote.cancel')}
                   </button>
@@ -239,10 +264,10 @@ export function NewNoteModal({
                     type="button"
                     onClick={handleCreate}
                     disabled={!canSubmit}
-                    className="inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50"
-                    style={{ backgroundImage: GRADIENT }}
+                    className={styles.modalSubmit}
                   >
                     {isCreating && <Loader2 className="h-4 w-4 animate-spin" />}
+                    {!isCreating && <Plus className="h-4 w-4" />}
                     {t('newNote.create')}
                   </button>
                 </div>
@@ -252,5 +277,79 @@ export function NewNoteModal({
         </div>
       </Dialog>
     </Transition>
+  )
+}
+
+interface ModalSelectOption {
+  value: string
+  label: string
+}
+
+function ModalSelect({
+  value,
+  options,
+  onSelect,
+  ariaLabel,
+  placeholder,
+  icon: Icon,
+  disabled = false,
+}: {
+  value: string
+  options: ModalSelectOption[]
+  onSelect: (value: string) => void
+  ariaLabel: string
+  placeholder: string
+  icon: LucideIcon
+  disabled?: boolean
+}) {
+  const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null)
+
+  return (
+    <div ref={setPortalContainer} className={styles.modalSelectRoot}>
+      <Select.Root
+        value={value || undefined}
+        onValueChange={onSelect}
+        disabled={disabled}
+      >
+        <Select.Trigger
+          aria-label={ariaLabel}
+          className={styles.modalSelectTrigger}
+        >
+          <span className={styles.modalSelectValue}>
+            <Icon aria-hidden="true" className={styles.modalSelectIcon} />
+            <Select.Value placeholder={placeholder} />
+          </span>
+          <Select.Icon asChild>
+            <ChevronDown aria-hidden="true" className={styles.modalSelectChevron} />
+          </Select.Icon>
+        </Select.Trigger>
+
+        {portalContainer && (
+          <Select.Portal container={portalContainer}>
+            <Select.Content
+              position="popper"
+              sideOffset={8}
+              collisionPadding={16}
+              className={styles.modalSelectMenu}
+            >
+              <Select.Viewport className={styles.modalSelectViewport}>
+                {options.map((option) => (
+                  <Select.Item
+                    key={option.value}
+                    value={option.value}
+                    className={styles.modalSelectOption}
+                  >
+                    <Select.ItemText>{option.label}</Select.ItemText>
+                    <Select.ItemIndicator className={styles.modalSelectIndicator}>
+                      <Check aria-hidden="true" />
+                    </Select.ItemIndicator>
+                  </Select.Item>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        )}
+      </Select.Root>
+    </div>
   )
 }

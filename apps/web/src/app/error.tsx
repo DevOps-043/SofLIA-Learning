@@ -1,54 +1,45 @@
-'use client';
+'use client'
 
+import { ArrowRight, RotateCcw } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect } from 'react'
+
+import { SystemErrorScene } from './_components/system-error/SystemErrorScene'
+import styles from './_components/system-error/SystemErrorScene.module.css'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import * as React from 'react';
-import Link from 'next/link';
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+  error: Error & { digest?: string }
+  reset: () => void
 }) {
-  React.useEffect(() => {
-    techDebtLogger.error('Application error:', error);
-  }, [error]);
+  useEffect(() => {
+    techDebtLogger.error('Application error:', error)
+  }, [error])
 
   return (
-    <div className="min-h-screen bg-white dark:bg-carbon-900 flex items-center justify-center p-6" style={{ fontFamily: 'var(--font-system-ui)' }}>
-      <div className="max-w-md w-full text-center space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-9xl font-bold text-gray-500/20 dark:text-gray-500/30">
-            500
-          </h1>
-          <h2 className="text-3xl font-bold text-primary dark:text-white" style={{ fontFamily: 'var(--font-system-ui)' }}>
-            Error del servidor
-          </h2>
-          <p className="text-gray-500 dark:text-white/80" style={{ fontFamily: 'var(--font-system-ui)' }}>
-            Lo sentimos, ocurrió un error inesperado. Por favor, intenta de nuevo.
-          </p>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={reset}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary text-white rounded-xl font-semibold transition-all shadow-sm"
-            style={{ fontFamily: 'var(--font-system-ui)' }}
-          >
+    <SystemErrorScene
+      code="500"
+      eyebrow="Interrupción temporal"
+      title="Algo no salió como esperábamos."
+      description="Tu información permanece segura. Puedes intentar cargar nuevamente esta vista o regresar al inicio de SofLIA."
+      detail={error.digest ? `Referencia ${error.digest}` : undefined}
+      actions={
+        <>
+          <button type="button" onClick={reset} className={styles.primaryButton}>
+            <RotateCcw className="h-4 w-4" aria-hidden="true" />
             Intentar de nuevo
           </button>
-          <Link
-            href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 border-2 border-primary dark:border-primary text-primary dark:text-white bg-transparent rounded-xl font-semibold hover:bg-primary hover:text-white dark:hover:bg-primary transition-all"
-            style={{ fontFamily: 'var(--font-system-ui)' }}
-          >
+          <Link href="/" className={styles.secondaryButton}>
             Ir al inicio
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
-        </div>
-      </div>
-    </div>
-  );
+        </>
+      }
+    />
+  )
 }

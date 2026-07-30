@@ -2,6 +2,7 @@ import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { SofLIAMessage } from '@/core/types/lia.types';
+import styles from '../CourseLiaPanel.module.css';
 import type { CourseLiaProps, CourseLiaThemeColors } from '../types';
 
 import { CourseLiaMessageBubble } from './CourseLiaMessageBubble';
@@ -10,10 +11,8 @@ interface CourseLiaMessageItemProps {
   copiedMessageId: string | null;
   editInputRef: React.RefObject<HTMLTextAreaElement>;
   editingValue: string;
-  forceDarkText: boolean;
   isDarkMode: boolean;
   isEditingThisMessage: boolean;
-  isLightTheme: boolean;
   isLoading: boolean;
   message: SofLIAMessage;
   onCancelEditing: () => void;
@@ -30,7 +29,6 @@ interface CourseLiaMessageItemProps {
 
 export function CourseLiaMessageItem({
   isEditingThisMessage,
-  isLightTheme,
   isLoading,
   message,
   onStartEditing,
@@ -41,14 +39,14 @@ export function CourseLiaMessageItem({
   const canEdit = message.role === 'user' && !isEditingThisMessage && !isLoading;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start', gap: '6px' }}>
+    <div className={`${styles.messageRow} ${message.role === 'user' ? styles.messageRowUser : ''}`}>
       {canEdit ? (
         <button
           type="button"
           onClick={() => onStartEditing(message)}
           title={t('lia.editMessage')}
           aria-label={t('lia.editMessage')}
-          style={{ width: '26px', height: '26px', borderRadius: '50%', background: isLightTheme ? 'var(--color-gray-100)' : 'rgba(255,255,255,0.08)', border: `1px solid ${isLightTheme ? 'var(--color-gray-300)' : 'rgba(255,255,255,0.12)'}`, cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: isLightTheme ? 'var(--color-gray-600)' : 'rgba(255,255,255,0.75)', flexShrink: 0 }}
+          className={styles.editButton}
         >
           <Pencil style={{ width: '13px', height: '13px' }} />
         </button>
@@ -56,7 +54,6 @@ export function CourseLiaMessageItem({
       <CourseLiaMessageBubble
         {...bubbleProps}
         isEditingThisMessage={isEditingThisMessage}
-        isLightTheme={isLightTheme}
         isLoading={isLoading}
         message={message}
         themeColors={themeColors}

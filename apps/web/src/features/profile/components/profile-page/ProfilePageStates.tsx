@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { PremiumLoadingScreen } from '@/core/components/PremiumLoadingScreen/PremiumLoadingScreen'
 import { useTranslation } from 'react-i18next'
 import type { ProfileColorPalette } from '../../types/profile.types'
 
@@ -11,25 +11,19 @@ interface ProfileLoadingStateProps {
 export function ProfileLoadingState({ colors }: ProfileLoadingStateProps) {
   const { t } = useTranslation('common')
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: colors.bgPrimary }}>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-        <div className="relative w-16 h-16 mx-auto mb-4">
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{ border: `2px solid color-mix(in srgb, ${colors.accent} 18.8%, transparent)` }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          />
-          <motion.div
-            className="absolute inset-1 rounded-full border-2 border-r-transparent border-b-transparent border-l-transparent"
-            style={{ borderTopColor: colors.accent }}
-            animate={{ rotate: -360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          />
-        </div>
-        <p style={{ color: colors.textSecondary }}>{t('profile.loading')}</p>
-      </motion.div>
-    </div>
+    <PremiumLoadingScreen
+      label={t('profile.loading')}
+      palette={{
+        accent: colors.accent,
+        background: colors.bgPrimary,
+        border: colors.border,
+        muted: colors.textSecondary,
+        onPrimary: colors.onPrimary,
+        primary: colors.primary,
+        surface: colors.bgSecondary,
+        text: colors.text,
+      }}
+    />
   )
 }
 

@@ -17,6 +17,7 @@ import type {
   LessonQuizStatus,
   LessonQuizStatusItem,
 } from "../types";
+import styles from "./CourseSidebar.module.css";
 import { getQuizStatusItem } from "./utils";
 
 type LessonSidebarContentProps = {
@@ -39,24 +40,24 @@ function QuizStatusBadge({
   }
 
   return (
-    <div className="mt-2 border-t border-gray-200/50 pt-2 dark:border-gray-500/30">
+    <>
       {quizInfo.isPassed ? (
-        <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--learn-accent)' }}>
-          <CheckCircle className="h-3.5 w-3.5" />
-          <span className="font-medium">Aprobado ({quizInfo.percentage}%)</span>
+        <div className={`${styles.quizStatus} ${styles.quizStatusPassed}`}>
+          <CheckCircle aria-hidden="true" />
+          <span>Aprobado ({quizInfo.percentage}%)</span>
         </div>
       ) : quizInfo.isCompleted ? (
-        <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
-          <X className="h-3.5 w-3.5" />
-          <span className="font-medium">Reprobado ({quizInfo.percentage}%)</span>
+        <div className={`${styles.quizStatus} ${styles.quizStatusFailed}`}>
+          <X aria-hidden="true" />
+          <span>Reprobado ({quizInfo.percentage}%)</span>
         </div>
       ) : (
-        <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400">
-          <Clock className="h-3.5 w-3.5" />
+        <div className={styles.quizStatus}>
+          <Clock aria-hidden="true" />
           <span>Pendiente</span>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -67,20 +68,18 @@ function LoadingSkeleton() {
       animate={{ height: "auto", opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="overflow-hidden"
+      className={styles.lessonSkeleton}
     >
-      <div className="ml-9 mt-3 space-y-2.5 border-l-2 pl-4" style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 40%, transparent)' }}>
+      <div className={styles.lessonContentInner}>
         {[1, 2].map((itemIndex) => (
           <div
             key={itemIndex}
-            className="animate-pulse rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-500/30 dark:bg-carbon-800"
+            className={`${styles.skeletonCard} animate-pulse`}
           >
-            <div className="flex items-start gap-3">
-              <div className="h-8 w-8 flex-shrink-0 rounded-lg bg-gray-200 dark:bg-carbon-800" />
-              <div className="flex-1 space-y-2">
-                <div className="h-4 w-3/4 rounded bg-gray-200 dark:bg-carbon-800" />
-                <div className="h-3 w-1/4 rounded bg-gray-200 dark:bg-carbon-800" />
-              </div>
+            <span className={styles.skeletonIcon} />
+            <div className={styles.skeletonLines}>
+              <span />
+              <span />
             </div>
           </div>
         ))}
@@ -111,11 +110,11 @@ export function LessonSidebarContent({
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="overflow-hidden"
+          className={styles.lessonContent}
         >
-          <div className="ml-9 mt-3 space-y-2.5 border-l-2 pl-4" style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 40%, transparent)' }}>
+          <div className={styles.lessonContentInner}>
             {activities.length > 0 && (
-              <div className="space-y-2">
+              <>
                 {activities.map((activity) => {
                   const isQuiz = activity.activity_type === "quiz";
                   const quizInfo = isQuiz
@@ -129,29 +128,29 @@ export function LessonSidebarContent({
                       onClick={() => {
                         void onSelectActivity(activity.activity_id);
                       }}
-                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-accent"
+                      className={styles.lessonItem}
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-carbon-900 dark:group-hover:border-white/20">
+                      <div className={styles.lessonItemMain}>
+                        <div className={styles.lessonItemIcon}>
                           {isQuiz ? (
-                            <FileText className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
+                            <FileText aria-hidden="true" />
                           ) : (
-                            <ActivityIcon className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
+                            <ActivityIcon aria-hidden="true" />
                           )}
                         </div>
 
-                        <div className="min-w-0 flex-1 pt-0.5">
-                          <p className="mb-2 text-sm font-medium leading-tight text-gray-900 dark:text-white">
+                        <div className={styles.lessonItemBody}>
+                          <p className={styles.lessonItemTitle}>
                             {activity.activity_title}
                           </p>
 
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)', color: 'var(--learn-accent)' }}>
+                          <div className={styles.lessonItemMeta}>
+                            <span className={styles.metaBadge}>
                               {activity.activity_type}
                             </span>
 
                             {activity.is_required && (
-                              <span className="rounded-full border border-red-300 bg-red-100 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+                              <span className={styles.requiredBadge}>
                                 {t("activities.required")}
                               </span>
                             )}
@@ -163,11 +162,11 @@ export function LessonSidebarContent({
                     </button>
                   );
                 })}
-              </div>
+              </>
             )}
 
             {materials.length > 0 && (
-              <div className="space-y-2">
+              <>
                 {materials.map((material) => {
                   const isQuiz = material.material_type === "quiz";
                   const isReading = material.material_type === "reading";
@@ -182,30 +181,30 @@ export function LessonSidebarContent({
                       onClick={() => {
                         void onSelectMaterial(material.material_id);
                       }}
-                      className="group relative w-full rounded-2xl p-3 text-left transition-all duration-200 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 dark:hover:bg-white/5 dark:focus-visible:ring-accent"
+                      className={styles.lessonItem}
                     >
-                      <div className="flex items-start gap-4">
-                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-100 shadow-sm transition-colors group-hover:border-gray-300 dark:border-white/10 dark:bg-carbon-900 dark:group-hover:border-white/20">
+                      <div className={styles.lessonItemMain}>
+                        <div className={styles.lessonItemIcon}>
                           {isReading ? (
-                            <BookOpen className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
+                            <BookOpen aria-hidden="true" />
                           ) : (
-                            <FileText className="h-5 w-5" style={{ color: 'var(--learn-accent)' }} />
+                            <FileText aria-hidden="true" />
                           )}
                         </div>
 
-                        <div className="min-w-0 flex-1 pt-0.5">
-                          <p className="mb-2 text-sm font-medium leading-tight text-gray-900 dark:text-white">
+                        <div className={styles.lessonItemBody}>
+                          <p className={styles.lessonItemTitle}>
                             {material.material_title}
                           </p>
 
-                          <div className="flex flex-wrap items-center gap-2">
+                          <div className={styles.lessonItemMeta}>
                             {material.is_required && (
-                              <span className="rounded-full border border-red-300 bg-red-100 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400">
+                              <span className={styles.requiredBadge}>
                                 Requerida
                               </span>
                             )}
 
-                            <span className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 30%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)', color: 'var(--learn-accent)' }}>
+                            <span className={styles.metaBadge}>
                               {material.material_type}
                             </span>
                           </div>
@@ -216,7 +215,7 @@ export function LessonSidebarContent({
                     </button>
                   );
                 })}
-              </div>
+              </>
             )}
           </div>
         </motion.div>

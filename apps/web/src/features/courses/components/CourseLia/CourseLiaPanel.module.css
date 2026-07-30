@@ -1,0 +1,192 @@
+.panel {
+  --course-lia-on-accent: #fff;
+  position: fixed;
+  z-index: 45;
+  pointer-events: auto;
+  display: flex;
+  width: min(420px, calc(100vw - 1.5rem));
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--course-lia-border) 76%, transparent);
+  border-radius: 1.5rem;
+  color: var(--course-lia-text);
+  font-family: var(--font-system-ui);
+  background:
+    radial-gradient(circle at 105% -5%, color-mix(in srgb, var(--course-lia-accent) 9%, transparent), transparent 34%),
+    color-mix(in srgb, var(--course-lia-panel) 96%, transparent);
+  box-shadow: 0 1.6rem 4.5rem rgb(2 12 23 / 0.17), 0 0.18rem 0.65rem rgb(2 12 23 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.08);
+  isolation: isolate;
+  backdrop-filter: blur(1.4rem) saturate(125%);
+}
+
+.panel::before {
+  position: absolute;
+  z-index: -1;
+  width: 11rem;
+  height: 11rem;
+  top: -7.4rem;
+  right: -6.4rem;
+  border: 1px solid color-mix(in srgb, var(--course-lia-accent) 18%, transparent);
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  box-shadow: 0 0 0 3.2rem color-mix(in srgb, var(--course-lia-accent) 2.5%, transparent);
+}
+
+.panelMobile {
+  z-index: 100;
+  width: 100%;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.header {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  min-height: 4.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.8rem 0.75rem 0.9rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--course-lia-border) 70%, transparent);
+  background: color-mix(in srgb, var(--course-lia-panel) 86%, transparent);
+  backdrop-filter: blur(1.2rem) saturate(125%);
+}
+
+.headerMobile { padding-top: calc(0.75rem + env(safe-area-inset-top, 0px)); }
+.identity { display: flex; min-width: 0; align-items: center; gap: 0.7rem; }
+.avatarWrap { position: relative; display: inline-flex; width: 2.45rem; height: 2.45rem; flex-shrink: 0; align-items: center; justify-content: center; }
+.avatarPulse { position: absolute; inset: -0.2rem; border: 1px solid var(--course-lia-accent); border-radius: 50%; pointer-events: none; }
+.avatar { position: relative; z-index: 1; width: 100%; height: 100%; border: 1px solid color-mix(in srgb, var(--course-lia-accent) 75%, transparent); border-radius: 50%; object-fit: cover; box-shadow: 0 0.6rem 1.6rem color-mix(in srgb, var(--course-lia-accent) 12%, transparent); }
+.presence { position: absolute; z-index: 2; width: 0.58rem; height: 0.58rem; right: -0.05rem; bottom: -0.02rem; border: 2px solid var(--course-lia-panel); border-radius: 50%; background: var(--course-lia-accent); box-shadow: 0 0 0.7rem color-mix(in srgb, var(--course-lia-accent) 52%, transparent); }
+.identityCopy { min-width: 0; }
+.identityTitle { overflow: hidden; margin: 0; color: var(--course-lia-text); font-family: var(--font-system-display); font-size: 1.05rem; font-weight: 300; letter-spacing: -0.025em; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+.identityStatus { display: flex; align-items: center; gap: 0.32rem; margin: 0.22rem 0 0; color: var(--course-lia-muted); font-family: var(--font-system-label); font-size: 0.56rem; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; }
+.identityStatus::before { width: 0.27rem; height: 0.27rem; border-radius: 50%; content: ""; background: var(--course-lia-accent); }
+.identityStatusSpeaking { color: var(--course-lia-accent); }
+.headerActions { display: flex; flex-shrink: 0; align-items: center; gap: 0.18rem; }
+
+.iconButton,
+.editButton,
+.messageAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  padding: 0;
+  color: var(--course-lia-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.iconButton { width: 2.1rem; height: 2.1rem; border-radius: 0.72rem; }
+.iconButton:hover,
+.iconButton:focus-visible,
+.iconButtonActive { border-color: color-mix(in srgb, var(--course-lia-accent) 24%, transparent); outline: none; color: var(--course-lia-text); background: color-mix(in srgb, var(--course-lia-accent) 7%, transparent); }
+.iconButton:hover,
+.iconButton:focus-visible { transform: translateY(-0.08rem); }
+.iconButton:disabled { cursor: wait; opacity: 0.5; }
+
+.messages {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 1.05rem;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.messages::-webkit-scrollbar,
+.suggestions::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.emptyState { display: flex; min-height: 100%; flex: 1; flex-direction: column; align-items: center; justify-content: center; padding: 1.5rem 1.15rem; text-align: center; }
+.emptyVisual { position: relative; display: inline-flex; width: 4.4rem; height: 4.4rem; align-items: center; justify-content: center; margin-bottom: 1rem; }
+.emptyVisual::before { position: absolute; inset: -1rem; border-radius: 50%; content: ""; background: color-mix(in srgb, var(--course-lia-accent) 12%, transparent); filter: blur(1rem); }
+.emptyAvatar { position: relative; width: 4rem; height: 4rem; border: 1px solid color-mix(in srgb, var(--course-lia-accent) 72%, transparent); border-radius: 50%; object-fit: cover; box-shadow: 0 0.8rem 2.5rem color-mix(in srgb, var(--course-lia-accent) 13%, transparent); }
+.emptyEyebrow { margin: 0 0 0.45rem; color: var(--course-lia-accent); font-family: var(--font-system-label); font-size: 0.58rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; }
+.emptyTitle { margin: 0; color: var(--course-lia-text); font-family: var(--font-system-display); font-size: 1.8rem; font-weight: 300; letter-spacing: -0.035em; line-height: 1; }
+.emptyText { max-width: 18rem; margin: 0.75rem auto 0; color: var(--course-lia-muted); font-size: 0.78rem; line-height: 1.65; text-wrap: balance; }
+.lessonContext { display: -webkit-box; max-width: 17rem; margin: 0.8rem auto 0; overflow: hidden; border: 1px solid color-mix(in srgb, var(--course-lia-border) 68%, transparent); border-radius: 999px; padding: 0.38rem 0.7rem; color: var(--course-lia-muted); font-family: var(--font-system-label); font-size: 0.58rem; line-height: 1.35; background: color-mix(in srgb, var(--course-lia-input) 78%, transparent); -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+
+.messageRow { display: flex; min-width: 0; align-items: center; gap: 0.35rem; }
+.messageRowUser { justify-content: flex-end; }
+.editButton { width: 1.7rem; height: 1.7rem; flex-shrink: 0; border-color: color-mix(in srgb, var(--course-lia-border) 70%, transparent); border-radius: 0.58rem; background: color-mix(in srgb, var(--course-lia-input) 80%, transparent); }
+.editButton:hover,
+.editButton:focus-visible { border-color: color-mix(in srgb, var(--course-lia-accent) 45%, transparent); outline: none; color: var(--course-lia-text); transform: translateY(-0.06rem); }
+.messageBubble { min-width: 0; max-width: min(86%, calc(100% - 0.5rem)); overflow: hidden; border: 1px solid color-mix(in srgb, var(--course-lia-border) 64%, transparent); padding: 0.72rem 0.82rem; color: var(--course-lia-text); font-size: 0.78rem; line-height: 1.55; overflow-wrap: break-word; word-break: break-word; }
+.messageBubbleAssistant { border-radius: 1rem 1rem 1rem 0.3rem; background: color-mix(in srgb, var(--course-lia-assistant-bubble) 92%, transparent); }
+.messageBubbleUser { border-color: color-mix(in srgb, var(--course-lia-user-bubble) 78%, transparent); border-radius: 1rem 1rem 0.3rem 1rem; color: var(--course-lia-on-accent); background: var(--course-lia-user-bubble); box-shadow: 0 0.7rem 1.8rem color-mix(in srgb, var(--course-lia-user-bubble) 14%, transparent); }
+.messageText { margin: 0; white-space: pre-wrap; }
+.assistantActions { display: flex; justify-content: flex-end; gap: 0.28rem; margin-top: 0.5rem; }
+.messageAction { width: 1.65rem; height: 1.65rem; border-radius: 0.55rem; }
+.messageAction:hover,
+.messageAction:focus-visible { border-color: color-mix(in srgb, var(--course-lia-accent) 25%, transparent); outline: none; color: var(--course-lia-text); background: color-mix(in srgb, var(--course-lia-accent) 6%, transparent); }
+.messageActionSuccess { color: var(--course-lia-accent); }
+.typing { display: inline-flex; align-items: center; gap: 0.3rem; align-self: flex-start; border: 1px solid color-mix(in srgb, var(--course-lia-border) 64%, transparent); border-radius: 1rem 1rem 1rem 0.3rem; padding: 0.72rem 0.88rem; background: color-mix(in srgb, var(--course-lia-assistant-bubble) 92%, transparent); }
+.typingDot { width: 0.34rem; height: 0.34rem; border-radius: 50%; background: var(--course-lia-muted); animation: course-lia-dot 1.2s infinite ease-in-out; }
+.typingDot:nth-child(2) { animation-delay: 0.14s; }
+.typingDot:nth-child(3) { animation-delay: 0.28s; }
+
+.suggestions { display: flex; max-height: clamp(6rem, 26dvh, 10.5rem); flex-shrink: 0; flex-direction: column; gap: 0.48rem; overflow-y: auto; padding: 0.5rem 1rem 0.72rem; overscroll-behavior: contain; scrollbar-width: none; }
+.suggestionsHeader { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; color: var(--course-lia-muted); font-family: var(--font-system-label); font-size: 0.56rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; }
+.suggestionsLabel { display: flex; min-width: 0; align-items: center; gap: 0.4rem; }
+.suggestionsIcon { flex-shrink: 0; color: var(--course-lia-accent); }
+.suggestionsToggle { display: inline-flex; align-items: center; gap: 0.24rem; border: 0; border-radius: 0.5rem; padding: 0.25rem 0.35rem; color: var(--course-lia-muted); font-family: var(--font-system-label); font-size: 0.55rem; background: transparent; cursor: pointer; }
+.suggestionsToggle:hover,
+.suggestionsToggle:focus-visible { outline: none; color: var(--course-lia-text); background: color-mix(in srgb, var(--course-lia-accent) 6%, transparent); }
+.suggestionsGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.45rem; padding-top: 0.05rem; }
+.suggestionChip,
+.suggestionSkeleton { min-height: 2.55rem; border: 1px solid color-mix(in srgb, var(--course-lia-border) 75%, transparent); border-radius: 0.85rem; background: color-mix(in srgb, var(--course-lia-input) 88%, transparent); }
+.suggestionChip { display: flex; min-width: 0; align-items: center; padding: 0.55rem 0.65rem; color: var(--course-lia-text); font-size: 0.67rem; font-weight: 500; line-height: 1.3; text-align: left; cursor: pointer; transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease; }
+.suggestionChip:hover,
+.suggestionChip:focus-visible { border-color: color-mix(in srgb, var(--course-lia-accent) 48%, transparent); outline: none; background: color-mix(in srgb, var(--course-lia-accent) 7%, var(--course-lia-input)); transform: translateY(-0.08rem); }
+.suggestionSkeleton { background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--course-lia-muted) 9%, transparent), transparent), color-mix(in srgb, var(--course-lia-input) 88%, transparent); background-size: 200% 100%; animation: course-lia-skeleton 1.4s infinite linear; }
+
+.composerWrap { position: relative; z-index: 10; flex-shrink: 0; padding: 0.55rem 0.75rem calc(0.7rem + env(safe-area-inset-bottom, 0px)); border-top: 1px solid color-mix(in srgb, var(--course-lia-border) 70%, transparent); background: color-mix(in srgb, var(--course-lia-panel) 88%, transparent); backdrop-filter: blur(1.2rem); }
+.composer { display: flex; min-width: 0; align-items: flex-end; gap: 0.55rem; border: 1px solid color-mix(in srgb, var(--course-lia-input-border) 78%, transparent); border-radius: 1rem; padding: 0.45rem 0.5rem 0.45rem 0.75rem; background: color-mix(in srgb, var(--course-lia-input) 90%, transparent); box-shadow: 0 0.8rem 2rem rgb(2 12 23 / 0.07), inset 0 1px 0 rgb(255 255 255 / 0.06); transition: border-color 180ms ease, box-shadow 180ms ease; }
+.composer:focus-within { border-color: color-mix(in srgb, var(--course-lia-accent) 55%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--course-lia-accent) 8%, transparent), 0 0.9rem 2.2rem rgb(2 12 23 / 0.08); }
+.textarea { display: block; min-width: 0; min-height: 2.15rem; max-height: 7.5rem; flex: 1; margin: 0; border: 0; outline: 0; padding: 0.46rem 0 0.36rem; resize: none; color: var(--course-lia-text); caret-color: var(--course-lia-text); font: inherit; font-size: 0.77rem; line-height: 1.35; background: transparent; overflow-y: hidden; }
+.textarea::placeholder { color: var(--course-lia-muted); opacity: 0.9; }
+.primaryAction { display: inline-flex; width: 2.2rem; height: 2.2rem; flex-shrink: 0; align-items: center; justify-content: center; border: 1px solid color-mix(in srgb, var(--course-lia-accent) 38%, transparent); border-radius: 0.8rem; padding: 0; color: var(--course-lia-on-accent); background: var(--course-lia-primary); cursor: pointer; box-shadow: 0 0.55rem 1.4rem color-mix(in srgb, var(--course-lia-primary) 18%, transparent); transition: filter 160ms ease, transform 160ms ease, opacity 160ms ease; }
+.primaryAction:hover,
+.primaryAction:focus-visible { outline: none; filter: saturate(1.08) brightness(1.03); }
+.primaryAction:disabled { cursor: not-allowed; opacity: 0.5; box-shadow: none; }
+.primaryActionVoice { color: var(--course-lia-accent); background: color-mix(in srgb, var(--course-lia-accent) 8%, var(--course-lia-input)); box-shadow: none; }
+.primaryActionStop { border-color: color-mix(in srgb, var(--color-error) 45%, transparent); background: var(--color-error); }
+.editComposer { width: 100%; min-width: 12rem; max-width: 100%; border: 0; outline: 0; padding: 0; resize: none; color: var(--course-lia-on-accent); font: inherit; font-size: 0.78rem; line-height: 1.5; background: transparent; }
+.editActions { display: flex; justify-content: flex-end; gap: 0.25rem; margin-top: 0.45rem; }
+.editAction { display: inline-flex; width: 1.65rem; height: 1.65rem; align-items: center; justify-content: center; border: 1px solid color-mix(in srgb, #fff 20%, transparent); border-radius: 0.52rem; padding: 0; color: rgb(255 255 255 / 0.8); background: rgb(255 255 255 / 0.08); cursor: pointer; }
+.editAction:disabled { cursor: not-allowed; opacity: 0.45; }
+
+@keyframes course-lia-dot {
+  0%, 60%, 100% { opacity: 0.38; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-0.16rem); }
+}
+
+@keyframes course-lia-skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@media (max-width: 520px) {
+  .headerActions { gap: 0.08rem; }
+  .suggestionsGrid { grid-template-columns: 1fr; }
+  .emptyState { padding-block: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iconButton,
+  .editButton,
+  .suggestionChip,
+  .primaryAction { transition: none; }
+  .typingDot,
+  .suggestionSkeleton { animation: none; }
+}

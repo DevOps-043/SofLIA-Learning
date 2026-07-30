@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ALargeSmall, StretchVertical, Type } from 'lucide-react'
 
 import { ToolbarDropdown, type ToolbarDropdownOption } from './ToolbarDropdown'
+import styles from '../NotebookEditor.module.css'
 
 interface FontControlsProps {
   editor: Editor
@@ -99,7 +100,7 @@ export function FontControls({ editor }: FontControlsProps) {
         title={t('editor.toolbar.decreaseFont')}
         aria-label={t('editor.toolbar.decreaseFont')}
         onClick={() => stepFontSize(-1)}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+        className={styles.toolbarTypeButton}
       >
         <span className="text-xs font-bold">A−</span>
       </button>
@@ -119,7 +120,7 @@ export function FontControls({ editor }: FontControlsProps) {
         title={t('editor.toolbar.increaseFont')}
         aria-label={t('editor.toolbar.increaseFont')}
         onClick={() => stepFontSize(1)}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+        className={styles.toolbarTypeButton}
       >
         <span className="text-base font-bold">A+</span>
       </button>

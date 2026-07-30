@@ -2,6 +2,7 @@ import { BriefcaseBusiness, GraduationCap, LayoutDashboard, ShieldCheck, type Lu
 import { useMemo } from 'react'
 import { cn } from '@/shared/utils/cn'
 import type { useUserDropdownLogic } from './useUserDropdownLogic'
+import styles from './UserDropdown.module.css'
 
 type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
 
@@ -20,14 +21,14 @@ interface PanelSwitcherProps {
 }
 
 function PanelSwitcherGrid({ items, label, accentColor }: PanelSwitcherProps) {
-  const gridClassName = items.length >= 4 ? 'grid-cols-2' : items.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
+  const gridClassName = items.length === 3 ? styles.panelGridThree : styles.panelGridTwo
 
   return (
-    <div className="border-b border-gray-200 px-3 py-2 dark:border-white/5">
-      <p className="mb-1 px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+    <section className={styles.panelSection}>
+      <p className={styles.panelLabel}>
         {label}
       </p>
-      <div className={cn('grid gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-900/70', gridClassName)}>
+      <div className={cn(styles.panelGrid, gridClassName)}>
         {items.map((item) => {
           const Icon = item.icon
           return (
@@ -37,22 +38,20 @@ function PanelSwitcherGrid({ items, label, accentColor }: PanelSwitcherProps) {
               aria-current={item.isActive ? 'page' : undefined}
               onClick={item.onClick}
               className={cn(
-                'flex min-h-[34px] min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 text-xs font-semibold transition-colors focus:outline-none',
-                item.isActive
-                  ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200 dark:bg-white/10 dark:text-white dark:ring-white/10'
-                  : 'text-gray-600 hover:bg-white/70 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white',
+                styles.panelButton,
+                item.isActive && styles.panelButtonActive,
               )}
             >
               <Icon
-                className={cn('h-3.5 w-3.5 shrink-0', !item.isActive && 'text-gray-400')}
+                className={styles.panelIcon}
                 style={item.isActive ? { color: accentColor } : undefined}
               />
-              <span className="min-w-0 truncate">{item.label}</span>
+              <span className={styles.panelButtonLabel}>{item.label}</span>
             </button>
           )
         })}
       </div>
-    </div>
+    </section>
   )
 }
 

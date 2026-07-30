@@ -1,9 +1,9 @@
-import type React from 'react';
-import { User } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Section } from './Section';
 import type { PersonalizationFormData } from './types';
+import styles from './PersonalizationSettings.module.css';
 
 interface AboutSectionProps {
   formData: PersonalizationFormData;
@@ -19,11 +19,11 @@ export function AboutSection(props: AboutSectionProps) {
     <Section
       title={t('liaPersonalization.sections.about.title')}
       description={t('liaPersonalization.sections.about.description')}
-      icon={User}
+      icon={UserRound}
       isExpanded={props.isExpanded}
       onToggle={props.onToggle}
     >
-      <label className="block text-sm font-medium mb-2 text-primary dark:text-white">
+      <label className={styles.fieldLabel}>
         {t('liaPersonalization.nicknameLabel')}
       </label>
       <input
@@ -34,10 +34,9 @@ export function AboutSection(props: AboutSectionProps) {
         }
         placeholder={t('liaPersonalization.nicknamePlaceholder')}
         maxLength={50}
-        style={{ '--ifr': 'var(--org-accent-color, var(--color-accent))' } as React.CSSProperties}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-900 text-primary dark:text-white focus:outline-none focus:ring-2 focus:ring-[var(--ifr)] focus:border-[var(--ifr)]"
+        className={styles.textControl}
       />
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+      <p className={styles.fieldHint}>
         {t('liaPersonalization.nicknameHint')}
       </p>
     </Section>

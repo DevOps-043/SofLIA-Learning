@@ -1,44 +1,39 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
+import { useCallback, useState, type CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   AlertCircle,
   ArrowLeft,
   BookOpen,
   Check,
-  ChevronRight,
   CloudOff,
-  FileText,
   Loader2,
+  NotebookPen,
 } from 'lucide-react'
 
-import dynamic from 'next/dynamic'
-
-import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import {
   ToastNotification,
   type ToastType,
 } from '@/core/components/ToastNotification/ToastNotification'
+import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import { useNoteEditor, type NoteSaveStatus } from '../hooks/useNoteEditor'
 import { CompendiumActionsPanel } from './CompendiumActionsPanel'
 import { NoteContentView } from './NoteContentView'
 import { NoteHeaderMenu } from './NoteHeaderMenu'
 import { NotebookSofliaPanel } from './NotebookSofliaPanel'
-import { useNoteEditor, type NoteSaveStatus } from '../hooks/useNoteEditor'
+import { NoteTitleField } from './editor/NoteTitleField'
+import styles from './NotebookEditor.module.css'
 
-/**
- * The rich-text editor pulls in TipTap (a large dependency). Code-split it so
- * the page shell (header, sidebar, title) renders immediately while the editor
- * chunk loads on the client.
- */
 const RichTextEditor = dynamic(
   () => import('./editor/RichTextEditor').then((mod) => mod.RichTextEditor),
   {
     ssr: false,
     loading: () => (
-      <div className="flex min-h-[60vh] items-center justify-center rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-white/[0.03]">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+      <div className={styles.editorLoading}>
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     ),
   },
@@ -74,6 +69,22 @@ export function NoteEditorPageClient({
     regenerate,
   } = useNoteEditor(orgSlug, noteId)
   const isCompendium = note?.source === 'course_compendium'
+  const editorVars = {
+    '--editor-action': theme.actionColor,
+    '--editor-on-action': theme.onActionColor,
+    '--editor-accent': theme.accentColor,
+    '--editor-text': theme.textColor,
+    '--editor-subtext': theme.subtextColor,
+    '--editor-muted': theme.mutedTextColor,
+    '--editor-card': theme.cardBg,
+    '--editor-input': theme.inputBg,
+    '--editor-panel': theme.panelBg,
+    '--editor-hover': theme.hoverBg,
+    '--editor-border': theme.borderColor,
+    '--editor-divider': theme.dividerColor,
+    '--editor-success': theme.successColor,
+    '--editor-danger': theme.dangerColor,
+  } as CSSProperties
 
   const [toast, setToast] = useState<{
     isOpen: boolean
@@ -103,32 +114,24 @@ export function NoteEditorPageClient({
 
   if (isLoading) {
     return (
-      <div
-        className="flex min-h-screen flex-col items-center justify-center gap-3"
-        style={{ backgroundColor: theme.panelBg, color: theme.mutedTextColor }}
-      >
-        <Loader2 className="h-7 w-7 animate-spin" style={{ color: theme.actionColor }} />
-        <p className="text-sm">{t('editor.loading')}</p>
+      <div className={styles.statePage} style={editorVars}>
+        <span className={styles.stateIcon}>
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </span>
+        <p>{t('editor.loading')}</p>
       </div>
     )
   }
 
   if (loadError || !note) {
     return (
-      <div
-        className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center"
-        style={{ backgroundColor: theme.panelBg }}
-      >
-        <AlertCircle className="h-8 w-8 text-red-500" />
-        <p className="text-sm" style={{ color: theme.textColor }}>
-          {loadError ?? t('editor.notFound')}
-        </p>
-        <button
-          type="button"
-          onClick={goBack}
-          className="rounded-lg px-4 py-2 text-sm font-semibold hover:opacity-90"
-          style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
-        >
+      <div className={styles.statePage} style={editorVars}>
+        <span className={styles.stateIconError}>
+          <AlertCircle className="h-6 w-6" />
+        </span>
+        <p>{loadError ?? t('editor.notFound')}</p>
+        <button type="button" onClick={goBack} className={styles.stateAction}>
+          <ArrowLeft className="h-4 w-4" />
           {t('editor.backToNotebook')}
         </button>
       </div>
@@ -136,52 +139,45 @@ export function NoteEditorPageClient({
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: theme.panelBg }}>
-      {/* Top bar */}
-      <header
-        className="sticky top-0 z-30 border-b backdrop-blur-md"
-        style={{
-          backgroundColor: theme.cardBg + 'cc',
-          borderColor: theme.borderColor,
-        }}
-      >
-        <div className="mx-auto flex max-w-[1600px] items-center gap-3 px-4 py-2.5 sm:px-6">
+    <div className={styles.page} style={editorVars}>
+      <header className={styles.navShell}>
+        <div className={styles.navbar}>
           <button
             type="button"
             onClick={goBack}
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm font-medium shadow-sm transition-colors hover:opacity-80"
-            style={{
-              backgroundColor: theme.cardBg,
-              borderColor: theme.borderColor,
-              color: theme.textColor,
-            }}
+            className={styles.backButton}
+            aria-label={t('editor.back')}
+            title={t('editor.back')}
           >
             <ArrowLeft className="h-4 w-4" />
-            {t('editor.back')}
           </button>
 
-          <nav
-            className="flex min-w-0 flex-1 items-center gap-1.5 text-sm"
-            style={{ color: theme.subtextColor }}
-          >
-            <BookOpen className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
-            <span className="hidden max-w-[45%] truncate sm:block" title={note.courseTitle}>
-              {note.courseTitle}
-            </span>
-            <ChevronRight className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
-            <FileText className="hidden h-4 w-4 shrink-0 sm:block" style={{ color: theme.mutedTextColor }} />
-            <span
-              className="truncate"
+          <span className={styles.navDivider} aria-hidden="true" />
+
+          <nav className={styles.navContext} aria-label={t('editor.locationLabel')}>
+            <div className={styles.navContextPath}>
+              <span className={styles.navSection}>
+                <NotebookPen aria-hidden="true" />
+                {t('pageTitle')}
+              </span>
+              <span className={styles.navContextDot} aria-hidden="true" />
+              <span className={styles.navCourse} title={note.courseTitle}>
+                {note.courseTitle}
+              </span>
+            </div>
+            <div
+              className={styles.navDocumentTitle}
               title={isCompendium ? t('compendium.label') : note.lessonTitle}
             >
-              {isCompendium ? t('compendium.label') : note.lessonTitle}
-            </span>
+              <BookOpen aria-hidden="true" />
+              <span>
+                {isCompendium ? t('compendium.label') : note.lessonTitle}
+              </span>
+            </div>
           </nav>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <SaveStatusBadge status={saveStatus} actionColor={theme.actionColor} />
-            {/* El compendio no tiene etiquetas ni se elimina desde aquí; su rail
-                conserva Regenerar/Exportar. */}
+          <div className={styles.navActions}>
+            <SaveStatusBadge status={saveStatus} />
             {!isCompendium && (
               <NoteHeaderMenu
                 tags={tags}
@@ -194,50 +190,38 @@ export function NoteEditorPageClient({
         </div>
       </header>
 
-      {/* Canvas: document + side panel */}
-      <div className="mx-auto grid max-w-[1600px] grid-cols-1 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-        {/* Document sheet — compendiums are read-only (no TipTap mount) */}
-        <div className="min-w-0">
+      <div className={styles.workspace}>
+        <main className={styles.documentColumn}>
           {isReadOnly ? (
-            <div className="rounded-2xl border border-gray-200 bg-white px-6 py-12 shadow-sm dark:border-white/10 dark:bg-white/[0.03] sm:px-16 lg:px-24">
-              <h1
-                className="mb-8 border-b border-transparent pb-2 text-3xl font-bold leading-tight"
-                style={{ color: theme.textColor }}
-              >
-                {title}
-              </h1>
+            <article className={styles.readOnlySheet}>
+              <h1 className={styles.readOnlyTitle}>{title}</h1>
               <NoteContentView
-                className="text-gray-900 dark:text-gray-100"
+                className={styles.readOnlyContent}
                 html={content}
                 source={note.source}
               />
-            </div>
+            </article>
           ) : (
             <RichTextEditor
               value={content}
               onChange={setContent}
               placeholder={t('editor.contentPlaceholder')}
-              pageClassName="px-6 py-12 sm:px-16 lg:px-24"
               header={
-                <input
-                  type="text"
+                <NoteTitleField
                   value={title}
-                  maxLength={256}
-                  onChange={(event) => setTitle(event.target.value)}
+                  onChange={setTitle}
                   placeholder={t('editor.titlePlaceholder')}
-                  className="mb-8 w-full border-b border-transparent bg-transparent pb-2 text-3xl font-bold leading-tight outline-none transition-colors placeholder:text-gray-300 dark:placeholder:text-gray-600"
-                  style={{ color: theme.textColor }}
+                  ariaLabel={t('editor.titlePlaceholder')}
+                  className={styles.titleInput}
                 />
               }
             />
           )}
-        </div>
+        </main>
 
-        {/* Rail derecho: dedicado a SofLIA (análisis + chat). El compendio
-            conserva su acción de regenerar. */}
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-6 lg:h-fit">
+        <aside className={styles.sideRail}>
           {isCompendium && (
-            <SidePanelCard label={t('editor.actionsLabel')} cardBg={theme.cardBg} borderColor={theme.borderColor} textColor={theme.subtextColor}>
+            <SidePanelCard label={t('editor.actionsLabel')}>
               <CompendiumActionsPanel
                 courseId={note.courseId}
                 orgSlug={orgSlug}
@@ -255,8 +239,6 @@ export function NoteEditorPageClient({
             noteId={noteId}
             showAnalysis={!isCompendium}
             onApplyEdit={(html) => {
-              // Reemplaza el contenido del editor; el autosave persiste y marca
-              // el apunte como editado por el usuario.
               setContent(html)
               setToast({
                 isOpen: true,
@@ -285,46 +267,29 @@ export function NoteEditorPageClient({
 function SidePanelCard({
   label,
   action,
-  cardBg,
-  borderColor,
-  textColor,
   children,
 }: {
   label: string
   action?: React.ReactNode
-  cardBg: string
-  borderColor: string
-  textColor: string
   children: React.ReactNode
 }) {
   return (
-    <div
-      className="rounded-2xl border p-4 shadow-sm"
-      style={{ backgroundColor: cardBg, borderColor }}
-    >
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: textColor }}>
-          {label}
-        </p>
+    <section className={styles.sideCard}>
+      <div className={styles.sideCardHeader}>
+        <p>{label}</p>
         {action}
       </div>
       {children}
-    </div>
+    </section>
   )
 }
 
-function SaveStatusBadge({
-  status,
-  actionColor,
-}: {
-  status: NoteSaveStatus
-  actionColor: string
-}) {
+function SaveStatusBadge({ status }: { status: NoteSaveStatus }) {
   const { t } = useTranslation('notebook')
 
   if (status === 'saving') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
+      <span className={styles.saveStatus}>
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
         {t('editor.status.saving')}
       </span>
@@ -332,7 +297,7 @@ function SaveStatusBadge({
   }
   if (status === 'saved') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs" style={{ color: actionColor }}>
+      <span className={`${styles.saveStatus} ${styles.saveStatusSuccess}`}>
         <Check className="h-3.5 w-3.5" />
         {t('editor.status.saved')}
       </span>
@@ -340,7 +305,7 @@ function SaveStatusBadge({
   }
   if (status === 'error') {
     return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-red-500">
+      <span className={`${styles.saveStatus} ${styles.saveStatusError}`}>
         <CloudOff className="h-3.5 w-3.5" />
         {t('editor.status.error')}
       </span>

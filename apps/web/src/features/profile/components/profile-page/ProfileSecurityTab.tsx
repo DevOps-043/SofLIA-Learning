@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useMotionSafe } from '../../../../lib/utils/motion'
 import { PremiumPassword } from './ProfilePremiumFields'
 import type { ProfileColorPalette, UserProfile } from '../../types/profile.types'
+import styles from './ProfileExperience.module.css'
 
 interface PasswordErrors {
   current_password?: { message?: string }
@@ -54,90 +55,96 @@ export function ProfileSecurityTab({
   const emailStatusColor = profile.email_verified ? colors.success : colors.warning
 
   return (
-    <motion.div key="security" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={interfaceTransition} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <div className="relative overflow-hidden rounded-2xl border-2 p-5" style={{ backgroundColor: `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)`, borderColor: colors.border }}>
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 8.2%, transparent)`, color: colors.accent }}>
-              <Mail className="h-4 w-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em]" style={{ color: colors.textSecondary }}>
-                {t('profile.security.email')}
-              </p>
-              <p className="mt-1 truncate text-base font-semibold" style={{ color: colors.text }}>
-                {profile.email || t('profile.security.emailUnavailable')}
-              </p>
-              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold" style={{ backgroundColor: `color-mix(in srgb, ${emailStatusColor} 10%, transparent)`, color: emailStatusColor }}>
-                {profile.email_verified ? <CheckCircle2 className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
-                {profile.email_verified ? t('profile.security.emailVerified') : t('profile.security.emailUnverified')}
-              </div>
-            </div>
+    <motion.div
+      animate={{ opacity: 1, y: 0 }}
+      className={styles.securityGrid}
+      exit={{ opacity: 0 }}
+      initial={{ opacity: 0, y: 12 }}
+      key="security"
+      transition={interfaceTransition}
+    >
+      <aside className={styles.emailCard}>
+        <span className={styles.emailIcon}>
+          <Mail className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <p className={styles.emailLabel}>{t('profile.security.email')}</p>
+        <p className={styles.emailValue}>
+          {profile.email || t('profile.security.emailUnavailable')}
+        </p>
+        <div
+          className={styles.emailStatus}
+          style={{
+            backgroundColor: `color-mix(in srgb, ${emailStatusColor} 10%, transparent)`,
+            color: emailStatusColor,
+          }}
+        >
+          {profile.email_verified ? (
+            <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+          ) : (
+            <AlertCircle className="h-3.5 w-3.5" aria-hidden="true" />
+          )}
+          {profile.email_verified ? t('profile.security.emailVerified') : t('profile.security.emailUnverified')}
+        </div>
+      </aside>
+
+      <section className={styles.passwordCard}>
+        <div className={styles.securityTitle}>
+          <span className={styles.sectionIcon}>
+            <Shield className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className={styles.sectionHeading}>{t('profile.security.passwordSection')}</h2>
+            <p className={styles.sectionDescription}>{t('profile.security.passwordDescription')}</p>
           </div>
         </div>
-      </div>
 
-      <div className="pt-4 flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${colors.accent} 8.2%, transparent)` }}>
-          <Shield className="w-6 h-6" style={{ color: colors.accent }} />
+        <div className={styles.passwordFields}>
+          <PremiumPassword
+            label={t('profile.security.currentPassword')}
+            value={currentPassword}
+            onChange={value => setPasswordValue('current_password', value)}
+            show={showCurrentPassword}
+            onToggle={() => setShowCurrentPassword(!showCurrentPassword)}
+            error={passwordErrors.current_password?.message}
+            colors={colors}
+          />
+          <PremiumPassword
+            label={t('profile.security.newPassword')}
+            value={newPassword}
+            onChange={value => setPasswordValue('new_password', value)}
+            show={showNewPassword}
+            onToggle={() => setShowNewPassword(!showNewPassword)}
+            error={passwordErrors.new_password?.message}
+            colors={colors}
+          />
+          <PremiumPassword
+            label={t('profile.security.confirmPassword')}
+            value={confirmPassword}
+            onChange={value => setPasswordValue('confirm_password', value)}
+            show={showConfirmPassword}
+            onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
+            error={passwordErrors.confirm_password?.message}
+            colors={colors}
+          />
         </div>
-        <div>
-          <h3 className="text-lg font-bold" style={{ color: colors.text }}>{t('profile.security.passwordSection')}</h3>
-          <p className="text-sm" style={{ color: colors.textSecondary }}>{t('profile.security.passwordDescription')}</p>
+
+        <div className={styles.passwordActions}>
+          <motion.button
+            className={styles.passwordButton}
+            disabled={isPasswordSubmitDisabled}
+            onClick={() => void handleChangePassword()}
+            type="button"
+            whileTap={isPasswordSubmitDisabled ? undefined : { scale: 0.98 }}
+          >
+            {isChangingPassword ? (
+              <span className={styles.spinner} aria-hidden="true" />
+            ) : (
+              <Lock className="h-4 w-4" aria-hidden="true" />
+            )}
+            {isChangingPassword ? t('profile.security.updating') : t('profile.security.updatePassword')}
+          </motion.button>
         </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        <PremiumPassword
-          label={t('profile.security.currentPassword')}
-          value={currentPassword}
-          onChange={value => setPasswordValue('current_password', value)}
-          show={showCurrentPassword}
-          onToggle={() => setShowCurrentPassword(!showCurrentPassword)}
-          error={passwordErrors.current_password?.message}
-          colors={colors}
-        />
-        <PremiumPassword
-          label={t('profile.security.newPassword')}
-          value={newPassword}
-          onChange={value => setPasswordValue('new_password', value)}
-          show={showNewPassword}
-          onToggle={() => setShowNewPassword(!showNewPassword)}
-          error={passwordErrors.new_password?.message}
-          colors={colors}
-        />
-        <PremiumPassword
-          label={t('profile.security.confirmPassword')}
-          value={confirmPassword}
-          onChange={value => setPasswordValue('confirm_password', value)}
-          show={showConfirmPassword}
-          onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
-          error={passwordErrors.confirm_password?.message}
-          colors={colors}
-        />
-      </div>
-
-      <div className="flex justify-end pt-2">
-        <motion.button
-          onClick={() => void handleChangePassword()}
-          disabled={isPasswordSubmitDisabled}
-          className="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-semibold transition-all duration-300"
-          style={{
-            backgroundColor: isPasswordSubmitDisabled ? 'rgba(255,255,255,0.05)' : colors.accent,
-            color: isPasswordSubmitDisabled ? 'rgba(255,255,255,0.3)' : colors.primary,
-            boxShadow: isPasswordSubmitDisabled ? 'none' : `0 10px 30px color-mix(in srgb, ${colors.accent} 18.8%, transparent)`
-          }}
-          whileHover={isPasswordSubmitDisabled ? undefined : { scale: 1.02, boxShadow: `0 15px 40px color-mix(in srgb, ${colors.accent} 25.1%, transparent)` }}
-          whileTap={isPasswordSubmitDisabled ? undefined : { scale: 0.98 }}
-        >
-          {isChangingPassword ? (
-            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: `color-mix(in srgb, ${colors.primary} 18.8%, transparent)`, borderTopColor: colors.primary }} />
-          ) : (
-            <Lock className="w-5 h-5" />
-          )}
-          {isChangingPassword ? t('profile.security.updating') : t('profile.security.updatePassword')}
-        </motion.button>
-      </div>
+      </section>
     </motion.div>
   )
 }

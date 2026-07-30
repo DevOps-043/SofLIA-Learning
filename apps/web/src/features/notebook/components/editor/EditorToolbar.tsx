@@ -34,6 +34,7 @@ import {
 import { cn } from '@/utils/cn'
 import { ColorMenu } from './ColorMenu'
 import { FontControls } from './FontControls'
+import styles from '../NotebookEditor.module.css'
 
 interface EditorToolbarProps {
   editor: Editor | null
@@ -61,18 +62,17 @@ function ToolbarButton({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        'flex h-9 w-9 items-center justify-center rounded-md text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40 dark:text-gray-300 dark:hover:bg-white/10',
-        isActive &&
-          'bg-[var(--color-accent)]/15 text-[var(--color-primary)] dark:text-[var(--color-accent)]',
+        styles.toolbarButton,
+        isActive && styles.toolbarButtonActive,
       )}
     >
-      <Icon className="h-[18px] w-[18px]" />
+      <Icon />
     </button>
   )
 }
 
 function ToolbarDivider() {
-  return <span className="mx-1 h-5 w-px shrink-0 bg-gray-200 dark:bg-white/10" />
+  return <span className={styles.toolbarDivider} />
 }
 
 export function EditorToolbar({ editor }: EditorToolbarProps) {
@@ -105,7 +105,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   }
 
   return (
-    <div className="relative flex flex-wrap items-center gap-0.5 rounded-xl border border-gray-200 bg-white px-2 py-1.5 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
+    <div className={styles.toolbar}>
       <ToolbarButton
         icon={Bold}
         label={t('editor.toolbar.bold')}
@@ -273,7 +273,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
       />
 
       {showLinkInput && (
-        <div className="absolute left-2 top-full z-20 mt-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-white/10 dark:bg-[var(--color-gray-800)]">
+        <div className={styles.linkPopover}>
           <input
             autoFocus
             type="url"
@@ -288,19 +288,19 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
               }
             }}
             placeholder="https://"
-            className="h-8 w-56 rounded-md border border-gray-200 bg-white px-2 text-sm text-gray-900 outline-none focus:border-[var(--color-accent)] dark:border-white/10 dark:bg-white/5 dark:text-white"
+            className={styles.linkInput}
           />
           <button
             type="button"
             onClick={applyLink}
-            className="h-8 rounded-md bg-[var(--color-primary)] px-3 text-xs font-semibold text-white hover:opacity-90"
+            className={styles.linkApply}
           >
             {t('editor.toolbar.applyLink')}
           </button>
           <button
             type="button"
             onClick={() => setShowLinkInput(false)}
-            className="h-8 rounded-md px-2 text-xs font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/10"
+            className={styles.linkCancel}
           >
             {t('editor.toolbar.cancelLink')}
           </button>

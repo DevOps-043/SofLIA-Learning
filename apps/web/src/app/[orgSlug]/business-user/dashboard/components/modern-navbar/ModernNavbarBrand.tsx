@@ -3,6 +3,7 @@ import { Building2 } from 'lucide-react';
 import Image from 'next/image';
 import type { TFunction } from 'i18next';
 import type { ModernNavbarColors, ModernNavbarOrganization } from './types';
+import dashboardStyles from '../../page-components/BusinessUserDashboard.module.css';
 
 interface ModernNavbarBrandProps {
   colors: ModernNavbarColors;
@@ -12,17 +13,17 @@ interface ModernNavbarBrandProps {
 
 export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrandProps) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex min-w-0 items-center gap-4">
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="flex items-center gap-3"
+        className="flex min-w-0 items-center gap-3"
       >
         <div className="relative">
           {(organization?.brand_logo_url || organization?.logo_url || organization?.brand_favicon_url || organization?.favicon_url) ? (
             <motion.div
-              className="relative flex items-center justify-center h-10 sm:h-12 w-auto min-w-[36px]"
+              className="relative flex h-9 min-w-[36px] items-center justify-center sm:h-10"
               whileHover={{ scale: 1.05 }}
               transition={{ type: 'spring', stiffness: 400 }}
             >
@@ -31,7 +32,7 @@ export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrand
                 alt={organization?.name || 'Organización'}
                 width={180}
                 height={48}
-                className="object-contain h-10 sm:h-12 w-auto max-w-[140px] sm:max-w-[180px] rounded-lg"
+                className="h-9 w-auto max-w-[120px] rounded-lg object-contain sm:h-10 sm:max-w-[160px]"
                 onError={(event) => {
                   (event.target as HTMLImageElement).src = '/icono.png';
                 }}
@@ -62,9 +63,9 @@ export function ModernNavbarBrand({ colors, organization, t }: ModernNavbarBrand
 
         {organization?.show_navbar_name !== false && (
           <div className="hidden sm:block">
-            <h1 className="text-lg sm:text-xl font-bold leading-tight tracking-tight truncate max-w-[200px] sm:max-w-[300px]" style={{ color: colors.text }}>
+            <p className={dashboardStyles.navBrandName} style={{ color: colors.text }}>
               {organization?.name || t('header.myOrganization')}
-            </h1>
+            </p>
           </div>
         )}
       </motion.div>

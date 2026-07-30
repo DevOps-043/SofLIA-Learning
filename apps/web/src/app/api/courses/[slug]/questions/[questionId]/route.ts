@@ -101,7 +101,7 @@ export async function GET(
     // Límite organizacional: una pregunta de otra empresa no existe para este
     // usuario (404 en lugar de 403 para no revelar su existencia).
     const currentUser = await SessionService.getCurrentUser();
-    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser);
+    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser, course.id);
     if (!isQuestionInOrgScope(question, orgScope)) {
       return NextResponse.json(
         { error: 'Pregunta no encontrada' },
@@ -314,7 +314,7 @@ async function handlePut(
       return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);
     }
 
-    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+    const orgScope = await resolveQuestionsOrgScope(supabase, user, course.id);
     if (!isQuestionInOrgScope(question, orgScope)) {
       return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);
     }
@@ -438,7 +438,7 @@ export async function DELETE(
       );
     }
 
-    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+    const orgScope = await resolveQuestionsOrgScope(supabase, user, course.id);
     if (!isQuestionInOrgScope(question, orgScope)) {
       return NextResponse.json(
         { error: 'Pregunta no encontrada' },

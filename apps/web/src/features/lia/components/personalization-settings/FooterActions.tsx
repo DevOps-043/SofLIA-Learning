@@ -1,7 +1,6 @@
-import { Loader2, Save } from 'lucide-react';
+import { Loader2, RotateCcw, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-
-const ORG_ACCENT = 'var(--org-accent-color, var(--color-accent))';
+import styles from './PersonalizationSettings.module.css';
 
 export function FooterActions(props: {
   isSaving: boolean;
@@ -12,40 +11,43 @@ export function FooterActions(props: {
   const { t } = useTranslation('common');
 
   return (
-    <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-500/30">
+    <footer className={styles.footer}>
       <button
+        type="button"
         onClick={props.onReset}
         disabled={props.isSaving}
-        className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors disabled:opacity-50"
+        className={styles.resetButton}
       >
+        <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
         {t('actions.retry')}
       </button>
-      <div className="flex items-center gap-3">
+      <div className={styles.footerGroup}>
         <button
+          type="button"
           onClick={props.onClose}
-          className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-white transition-colors"
+          className={styles.secondaryButton}
         >
           {t('actions.cancel')}
         </button>
         <button
+          type="button"
           onClick={props.onSave}
           disabled={props.isSaving}
-          style={{ backgroundColor: ORG_ACCENT }}
-          className="px-6 py-2 text-white rounded-lg transition-opacity disabled:opacity-50 flex items-center gap-2"
+          className={styles.primaryButton}
         >
           {props.isSaving ? (
             <>
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
               {t('actions.saving')}
             </>
           ) : (
             <>
-              <Save className="w-4 h-4" />
+              <Save className="h-3.5 w-3.5" />
               {t('actions.save')}
             </>
           )}
         </button>
       </div>
-    </div>
+    </footer>
   );
 }

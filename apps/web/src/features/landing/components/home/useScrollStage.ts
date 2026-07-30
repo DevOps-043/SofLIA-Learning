@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState, type RefObject } from "react";
 
 const STICKY_STAGE_QUERY =
-  "(min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference)";
+  "(min-width: 1200px) and (min-height: 900px) and (prefers-reduced-motion: no-preference)";
 
 function getPageScroller() {
   const body = document.body;

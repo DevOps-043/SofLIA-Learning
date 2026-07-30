@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, CheckCheck, X } from 'lucide-react'
+import { ArrowUpRight, BellRing, CheckCheck, X } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { enUS, es, pt } from 'date-fns/locale'
 import Link from 'next/link'
@@ -20,7 +20,7 @@ import {
 import type { Notification } from '@/features/notifications/services/notification.service'
 import { logger } from '@/lib/logger'
 import { cn } from '@/shared/utils/cn'
-import { useThemeStore } from '@/core/stores/themeStore'
+import styles from './NotificationBell.module.css'
 
 export interface NotificationBellProps {
   className?: string
@@ -60,21 +60,9 @@ export function NotificationBell({
   } = useNotifications()
   const { t } = useTranslation('common')
   const { language } = useLanguage()
-  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
   const currentLocale = dateLocales[language as keyof typeof dateLocales] || es
-  const isLightMode = resolvedTheme === 'light'
-  const headingColor = isLightMode ? 'var(--color-legacy-0f172a)' : undefined
-  const mutedTextColor = isLightMode ? 'var(--color-legacy-334155)' : undefined
-
-  // Org-aware panel: tints the platform bg-dark with the org primary so black-primary orgs
-  // produce a near-black panel while still falling back to platform tokens when no org is set.
-  const panelDarkStyle = !isLightMode ? {
-    backgroundColor: 'color-mix(in srgb, var(--org-primary-button-color, var(--color-primary)) 60%, var(--color-bg-dark))',
-    borderColor: 'color-mix(in srgb, var(--org-accent-color, var(--color-accent)) 15%, var(--color-gray-800))',
-  } : undefined
-
   useEffect(() => {
     if (!isDropdownOpen) return
 
@@ -132,44 +120,40 @@ export function NotificationBell({
     })
 
   return (
-    <div ref={containerRef} className={cn('relative', className)}>
+    <div ref={containerRef} className={cn(styles.root, className)}>
       <motion.button
         type="button"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-        className="relative rounded-lg p-2.5 text-gray-600 transition-colors hover:bg-gray-100 hover:text-primary dark:text-gray-400 dark:hover:bg-white/10"
+        className={styles.trigger}
         whileHover={{ scale: 1.03 }}
         whileTap={{ scale: 0.97 }}
         aria-label={t('actions.notificationsPage.title')}
         aria-expanded={isDropdownOpen}
       >
-        <Bell className={iconSizes[iconSize]} />
+        <BellRing className={iconSizes[iconSize]} />
 
         {unreadCount > 0 && (
-          <span
-            className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-xs font-semibold shadow-sm"
-            style={{
-              backgroundColor: 'var(--org-action-color, var(--color-accent))',
-              color: 'var(--org-on-action-color, #ffffff)',
-            }}
-          >
+          <span className={styles.badge}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
 
         {showPulse && criticalCount > 0 && (
-          <span className="absolute inset-1 rounded-lg border border-error/40 animate-pulse" aria-hidden="true" />
+          <span className={styles.criticalPulse} aria-hidden="true" />
         )}
       </motion.button>
 
       <AnimatePresence>
         {isDropdownOpen && (
           <>
-            <motion.div
+            <motion.button
+              type="button"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[90] bg-gray-950/30 backdrop-blur-[2px] sm:hidden"
+              className={styles.backdrop}
               onClick={() => setIsDropdownOpen(false)}
+              aria-label={t('actions.close')}
             />
 
             <motion.section
@@ -177,20 +161,19 @@ export function NotificationBell({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -8, scale: 0.98 }}
               transition={{ duration: 0.16 }}
-              className="fixed inset-x-3 top-20 z-[100] overflow-hidden rounded-lg border border-gray-200 bg-white shadow-2xl sm:absolute sm:inset-auto sm:right-0 sm:top-full sm:mt-2 sm:w-[28rem]"
-              style={panelDarkStyle}
+              className={styles.panel}
               role="dialog"
               aria-label={t('actions.notificationsPage.title')}
             >
-              <header className="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3 dark:border-white/10">
-                <div className="min-w-0">
-                  <h2 className="truncate text-sm font-semibold text-gray-900 dark:text-white" style={{ color: headingColor }}>
+              <header className={styles.header}>
+                <div className={styles.heading}>
+                  <h2 className={styles.title}>
                     {t('actions.notificationsPage.title')}
                   </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400" style={{ color: mutedTextColor }}>{unreadLabel}</p>
+                  <p className={styles.subtitle}>{unreadLabel}</p>
                 </div>
 
-                <div className="flex items-center gap-1">
+                <div className={styles.headerActions}>
                   {unreadCount > 0 && (
                     <button
                       type="button"
@@ -198,7 +181,7 @@ export function NotificationBell({
                         void runAction(markAllAsRead)
                       }}
                       disabled={isLoading}
-                      className="rounded-md p-2 text-gray-500 transition-colors hover:bg-success/10 hover:text-success disabled:opacity-50 dark:text-gray-400"
+                      className={`${styles.iconButton} ${styles.iconButtonSuccess}`}
                       title={t('actions.notificationsPage.markAllRead')}
                       aria-label={t('actions.notificationsPage.markAllRead')}
                     >
@@ -208,7 +191,7 @@ export function NotificationBell({
                   <button
                     type="button"
                     onClick={() => setIsDropdownOpen(false)}
-                    className="rounded-md p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white"
+                    className={styles.iconButton}
                     title={t('actions.close')}
                     aria-label={t('actions.close')}
                   >
@@ -217,7 +200,7 @@ export function NotificationBell({
                 </div>
               </header>
 
-              <div className="scrollbar-thin max-h-[min(28rem,calc(var(--soflia-viewport-height)-12rem))] overflow-y-auto">
+              <div className={styles.viewport}>
                 {isLoading && notifications.length === 0 ? (
                   <NotificationLoadingState label={t('actions.notificationsPage.loading')} compact />
                 ) : notifications.length === 0 ? (
@@ -242,14 +225,14 @@ export function NotificationBell({
                 )}
               </div>
 
-              <footer className="border-t border-gray-200 px-4 py-3 dark:border-white/10">
+              <footer className={styles.footer}>
                 <Link
                   href="/dashboard/notifications"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex w-full items-center justify-center rounded-md px-3 py-2 text-sm font-semibold transition-colors hover:bg-black/5 dark:hover:bg-white/5"
-                  style={{ color: 'var(--org-accent-color, var(--color-accent))' }}
+                  className={styles.viewAll}
                 >
                   {t('actions.notificationsPage.viewAll')}
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                 </Link>
               </footer>
             </motion.section>

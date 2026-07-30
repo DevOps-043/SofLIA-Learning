@@ -1,15 +1,16 @@
 "use client";
 
 import {
-  BookOpen,
-  Check,
+  BookText,
+  CircleCheck,
   ChevronDown,
   ExternalLink,
-  FileDown,
-  FileText,
+  Download,
+  FileQuestion,
   ScrollText,
 } from "lucide-react";
 
+import styles from "../ActivitiesExperience.module.css";
 import { FormattedContentRenderer } from "../ContentRenderers";
 import { QuizRenderer } from "../QuizRenderer";
 import { MaterialReadingContent } from "./MaterialReadingContent";
@@ -62,41 +63,41 @@ export function MaterialCard({
   return (
     <div
       data-material-card-id={material.material_id}
-      className="scroll-mt-6 rounded-lg border border-gray-200 dark:border-white/5 bg-white dark:bg-white/[0.02] hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors shadow-sm dark:shadow-none"
+      className={`${styles.activityCard} ${!isCollapsed ? styles.activityCardOpen : ""}`}
     >
       <button
         onClick={(event) => {
           event.stopPropagation();
           onToggle(material.material_id);
         }}
-        className="w-full px-4 py-3 flex items-center gap-3"
+        className={styles.cardButton}
       >
-        <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center flex-shrink-0">
+        <div className={styles.cardIcon}>
           {isQuiz ? (
-            <FileText className="w-4 h-4 text-gray-500 dark:text-white/60" />
+            <FileQuestion />
           ) : isReading ? (
-            <BookOpen className="w-4 h-4 text-gray-500 dark:text-white/60" />
+            <BookText />
           ) : (
-            <ScrollText className="w-4 h-4 text-gray-500 dark:text-white/60" />
+            <ScrollText />
           )}
         </div>
 
-        <div className="flex-1 text-left min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+        <div className={styles.cardCopy}>
+          <div className={styles.cardTitleRow}>
+            <span className={styles.cardTitle}>
               {material.material_title}
             </span>
-            <span className="px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:text-white/40 bg-gray-100 dark:bg-white/5 rounded capitalize">
+            <span className="rounded-full border border-gray-200/70 bg-gray-100/70 px-2 py-1 text-[10px] font-medium capitalize text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white/45">
               {isReading ? "Lectura" : material.material_type}
             </span>
             {material.is_downloadable && (
-              <span className="px-1.5 py-0.5 text-[10px] font-medium text-blue-600 dark:text-white/40 bg-blue-100 dark:bg-white/5 rounded">
+              <span className="rounded-full border border-gray-200/70 bg-gray-100/70 px-2 py-1 text-[10px] font-medium text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-white/45">
                 Descargable
               </span>
             )}
             {quizInfo?.isPassed && (
-              <span className="px-1.5 py-0.5 text-[10px] font-medium rounded flex items-center gap-1" style={{ color: 'var(--learn-accent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)' }}>
-                <Check className="w-2.5 h-2.5" /> Completado
+              <span className="flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-medium" style={{ color: 'var(--learn-accent)', borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)' }}>
+                <CircleCheck className="h-3 w-3" /> Completado
               </span>
             )}
             {quizInfo?.isCompleted && !quizInfo.isPassed && (
@@ -108,22 +109,22 @@ export function MaterialCard({
         </div>
 
         <ChevronDown
-          className={`w-4 h-4 text-gray-400 dark:text-white/30 transition-transform ${
-            !isCollapsed ? "rotate-180" : ""
+          className={`${styles.chevron} ${
+            !isCollapsed ? styles.chevronOpen : ""
           }`}
         />
       </button>
 
       {!isCollapsed && (
-        <div className="px-4 pb-4 border-t border-gray-200 dark:border-white/5">
+        <div className={styles.cardBody}>
           {material.material_description && !isReading && (
-            <p className="text-gray-500 dark:text-white/40 text-xs mt-3 mb-3 leading-relaxed">
+            <p className={styles.description}>
               {material.material_description}
             </p>
           )}
 
           {shouldShowMaterialCard && (
-            <div className="rounded-lg bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/5 p-3">
+            <div className={styles.contentSurface}>
               {(isQuiz || hasMaterialContent) && (
                 <div className="w-full">
                   {isQuiz && (() => {
@@ -165,19 +166,20 @@ export function MaterialCard({
                     <FormattedContentRenderer
                       content={material.content_data}
                       activityId={material.material_id}
+                      presentation="editorial"
                     />
                   )}
                 </div>
               )}
 
               {(material.external_url || material.file_url) && (
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-white/5">
+                <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-gray-200/70 pt-3 dark:border-white/10">
                   {material.external_url && (
                     <a
                       href={material.external_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-white/60 hover:text-gray-900 dark:hover:text-white/80 transition-colors"
+                      className={styles.quizSecondaryButton}
                     >
                       <ExternalLink className="w-3 h-3" />
                       Abrir enlace
@@ -188,9 +190,9 @@ export function MaterialCard({
                       href={material.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg text-xs font-medium text-gray-600 dark:text-white/70 transition-colors"
+                      className={styles.quizSecondaryButton}
                     >
-                      <FileDown className="w-3.5 h-3.5" />
+                      <Download className="h-3.5 w-3.5" />
                       Ver archivo
                     </a>
                   )}

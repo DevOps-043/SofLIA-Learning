@@ -1,8 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
+import { ChartSpline } from 'lucide-react'
 import type { BusinessUserAnalyticsRange, BusinessUserAnalyticsTrendPoint } from '@/features/business-panel/types/business-user-analytics.types'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import styles from '../BusinessUserAnalytics.module.css'
 
 const RANGE_OPTIONS: { value: BusinessUserAnalyticsRange; label: string }[] = [
   { value: '30d',  label: '30 días' },
@@ -80,35 +82,33 @@ export function LearningTrendChart({
   return (
     <section
       aria-label="Evolución de aprendizaje"
-      className="rounded-2xl border p-6 shadow-sm"
-      style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+      className={`${styles.sectionCard} ${styles.sectionPadding}`}
     >
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionHeading}>
+          <span className={styles.sectionIcon} aria-hidden="true">
+            <ChartSpline className="h-4 w-4" />
+          </span>
+          <div>
+          <h2 className={styles.sectionTitle}>
             Evolución de aprendizaje
           </h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className={styles.sectionSubtitle}>
             Mira si estás aprendiendo más o menos que antes.
           </p>
+          </div>
         </div>
 
         {/* Range selector */}
-        <div
-          className="flex gap-1 rounded-xl border p-1"
-          style={{ backgroundColor: theme.inputBg, borderColor: theme.borderColor }}
-        >
+        <div className={styles.rangeSelector}>
           {RANGE_OPTIONS.map((opt) => (
             <button
               key={opt.value}
               type="button"
               onClick={() => onRangeChange(opt.value)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
-                range === opt.value
-                  ? 'no-theme text-white shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              className={`${styles.rangeButton} ${
+                range === opt.value ? styles.rangeButtonActive : ''
               }`}
-              style={range === opt.value ? { backgroundColor: theme.actionColor, color: theme.onActionColor } : undefined}
             >
               {opt.label}
             </button>
@@ -117,14 +117,14 @@ export function LearningTrendChart({
       </div>
 
       {isEmpty ? (
-        <div className="flex h-48 items-center justify-center">
-          <p className="text-sm text-gray-400 dark:text-gray-500">
+        <div className={styles.chartEmpty}>
+          <p>
             Sin datos de actividad en este período.
           </p>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto">
+          <div className={styles.chartViewport}>
             <svg
               aria-hidden="true"
               viewBox={`0 0 ${W} ${H}`}
@@ -159,13 +159,13 @@ export function LearningTrendChart({
                 <>
                   <polyline
                     points={`${xFor(0)},${yFor(0)} ${lessonPath} ${xFor(points.length - 1)},${yFor(0)}`}
-                    fill={theme.actionColor}
+                    fill="var(--analytics-action)"
                     fillOpacity="0.08"
                     stroke="none"
                   />
                   <polyline
                     points={`${xFor(0)},${yFor(0)} ${activityPath} ${xFor(points.length - 1)},${yFor(0)}`}
-                    fill={theme.accentColor}
+                    fill="var(--analytics-accent)"
                     fillOpacity="0.08"
                     stroke="none"
                   />
@@ -175,7 +175,7 @@ export function LearningTrendChart({
               <polyline
                 points={lessonPath}
                 fill="none"
-                stroke={theme.actionColor}
+                stroke="var(--analytics-action)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -183,7 +183,7 @@ export function LearningTrendChart({
               <polyline
                 points={activityPath}
                 fill="none"
-                stroke={theme.accentColor}
+                stroke="var(--analytics-accent)"
                 strokeWidth="2.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -191,8 +191,8 @@ export function LearningTrendChart({
 
               {points.map((p, i) => (
                 <g key={p.key}>
-                  <circle cx={xFor(i)} cy={yFor(p.lessons)}    r="3.5" fill={theme.actionColor} />
-                  <circle cx={xFor(i)} cy={yFor(p.activities)} r="3.5" fill={theme.accentColor}  />
+                  <circle cx={xFor(i)} cy={yFor(p.lessons)} r="3.5" fill="var(--analytics-action)" />
+                  <circle cx={xFor(i)} cy={yFor(p.activities)} r="3.5" fill="var(--analytics-accent)" />
                 </g>
               ))}
 
@@ -215,13 +215,13 @@ export function LearningTrendChart({
             </svg>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-5 text-xs font-semibold text-gray-500 dark:text-gray-400">
-            <span className="inline-flex items-center gap-2">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: theme.actionColor }} />
+          <div className={styles.chartLegend}>
+            <span className={styles.legendItem}>
+              <span className={styles.legendDot} style={{ backgroundColor: 'var(--analytics-action)' }} />
               Lecciones completadas
             </span>
-            <span className="inline-flex items-center gap-2">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: theme.accentColor }} />
+            <span className={styles.legendItem}>
+              <span className={styles.legendDot} style={{ backgroundColor: 'var(--analytics-accent)' }} />
               Actividades entregadas
             </span>
           </div>

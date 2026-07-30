@@ -24,6 +24,7 @@ export function ActivityInteractionBody(props: {
         <FormattedContentRenderer
           content={activity.activity_content}
           activityId={activity.activity_id}
+          presentation="editorial"
         />
       )}
       {activityConfig.interactionType === "long_text" && (

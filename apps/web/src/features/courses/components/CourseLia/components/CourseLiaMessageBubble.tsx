@@ -1,6 +1,7 @@
 import { useVideoPlayerOptional } from '@/app/courses/[slug]/learn/VideoPlayerContext';
 import type { LiaImageAttachment } from '@/core/reporting/report-problem.contract';
 import type { SofLIAMessage } from '@/core/types/lia.types';
+import styles from '../CourseLiaPanel.module.css';
 import type { NormalizedLiaLink } from '../lia-link.utils';
 import type { CourseLiaProps, CourseLiaThemeColors } from '../types';
 import { parseMarkdownContent } from '../utils/markdown-content';
@@ -15,7 +16,6 @@ interface CourseLiaMessageBubbleProps {
   editingValue: string;
   isDarkMode: boolean;
   isEditingThisMessage: boolean;
-  isLightTheme: boolean;
   isLoading: boolean;
   message: SofLIAMessage;
   onCancelEditing: () => void;
@@ -47,7 +47,11 @@ export function CourseLiaMessageBubble({
     : undefined;
 
   return (
-    <div style={{ maxWidth: '85%', padding: '12px 16px', borderRadius: '16px', backgroundColor: isUser ? themeColors.messageBubbleUser : themeColors.messageBubbleAssistant }}>
+    <div
+      className={`${styles.messageBubble} ${
+        isUser ? styles.messageBubbleUser : styles.messageBubbleAssistant
+      }`}
+    >
       {isEditingThisMessage ? (
         <CourseLiaEditComposer
           editInputRef={props.editInputRef}
@@ -57,10 +61,9 @@ export function CourseLiaMessageBubble({
           onEditKeyDown={props.onEditKeyDown}
           onSubmitEditedMessage={props.onSubmitEditedMessage}
           setEditingValue={props.setEditingValue}
-          themeColors={themeColors}
         />
       ) : (
-        <p className={isUser ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} style={{ fontSize: '14px', lineHeight: 1.5, margin: 0, whiteSpace: 'pre-wrap', color: isUser ? 'var(--color-bg-light)' : themeColors.textPrimary }}>
+        <p className={`${isUser ? 'lia-msg-user-text' : 'lia-msg-assistant-text'} ${styles.messageText}`}>
           {message.role === 'assistant'
             ? parseMarkdownContent(message.content, props.onLinkClick, themeColors.assistantLinkColor, onTimestampClick)
             : message.content}
@@ -70,12 +73,10 @@ export function CourseLiaMessageBubble({
       {message.role === 'assistant' ? (
         <AssistantMessageActions
           copiedMessageId={props.copiedMessageId}
-          isLightTheme={props.isLightTheme}
           message={message}
           onCopyMessage={props.onCopyMessage}
           onSaveNote={props.onSaveNote}
           precedingUserMessage={props.precedingUserMessage}
-          themeColors={themeColors}
         />
       ) : null}
     </div>

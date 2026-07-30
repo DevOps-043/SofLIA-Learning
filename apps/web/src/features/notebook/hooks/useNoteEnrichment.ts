@@ -103,14 +103,25 @@ export function useNoteEnrichment(
     [mutate, noteId, orgSlug],
   )
 
-  const retryEnrichment = useCallback(async (): Promise<boolean> => {
+  /**
+   * Reencola el análisis del contenido actual. Devuelve el motivo del servidor
+   * cuando falla (p. ej. "la nota necesita más contenido"): un booleano obligaba
+   * a la UI a inventar un mensaje genérico y ocultaba la causa real.
+   */
+  const retryEnrichment = useCallback(async (): Promise<{
+    ok: boolean
+    error?: string
+  }> => {
     setIsRetrying(true)
     try {
       const updated = await retryNotebookNoteEnrichment(orgSlug, noteId)
       await mutate(updated, { revalidate: false })
-      return true
-    } catch {
-      return false
+      return { ok: true }
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : undefined,
+      }
     } finally {
       setIsRetrying(false)
     }

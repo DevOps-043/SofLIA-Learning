@@ -6,6 +6,7 @@ import { useMotionSafe } from '@/lib/utils/motion'
 import { PremiumDateCalendar } from './PremiumDateCalendar'
 import { usePremiumDateInput } from './usePremiumDateInput'
 import type { PremiumDateInputProps } from './types'
+import styles from '../ProfileExperience.module.css'
 
 export function PremiumDateInput({
   label,
@@ -20,19 +21,21 @@ export function PremiumDateInput({
   const isActive = dateInput.focused || dateInput.open
 
   return (
-    <motion.div ref={dateInput.rootRef} className="relative group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
-      <motion.div className="absolute -inset-[1px] rounded-2xl opacity-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${colors.accent} 25.1%, transparent), transparent 50%, color-mix(in srgb, ${colors.accent} 12.5%, transparent))` }} animate={{ opacity: isActive ? 1 : 0 }} />
-      <div className="relative rounded-2xl overflow-hidden transition-all duration-300 ease-out" style={{ boxShadow: isActive ? `0 0 30px color-mix(in srgb, ${colors.accent} 14.9%, transparent)` : 'none' }}>
-        <div className="absolute inset-0 transition-all duration-300" style={{ backgroundColor: isActive ? colors.bgSecondary : `color-mix(in srgb, ${colors.bgSecondary} 80%, transparent)` }} />
-        <div className="absolute inset-0 rounded-2xl border-2 transition-all duration-300" style={{ borderColor: isActive ? `color-mix(in srgb, ${colors.accent} 50.2%, transparent)` : colors.border }} />
-        <div className="relative flex items-center">
-          <div className="pl-5 flex-shrink-0 transition-transform duration-200" style={{ color: isActive ? colors.accent : colors.textSecondary, transform: isActive ? 'scale(1.1)' : 'scale(1)' }}>
-            <Calendar className="w-4 h-4" />
-          </div>
-          <div className="relative flex-1 py-5 px-4">
-            <label className="absolute left-4 top-2 pointer-events-none text-[11px] font-medium tracking-wide" style={{ color: isActive ? colors.accent : colors.textSecondary }}>
-              {label}
-            </label>
+    <motion.div
+      animate={{ opacity: 1, y: 0 }}
+      className={styles.field}
+      data-color-mode={colors.isLightMode ? 'light' : 'dark'}
+      initial={{ opacity: 0, y: 12 }}
+      ref={dateInput.rootRef}
+      transition={interfaceTransition}
+    >
+      <div className={`${styles.fieldShell} ${isActive ? styles.fieldShellActive : ''}`}>
+        <div className={styles.fieldRow}>
+          <span className={`${styles.fieldIcon} ${isActive ? styles.fieldIconActive : ''}`}>
+            <Calendar className="h-4 w-4" aria-hidden="true" />
+          </span>
+          <div className={styles.fieldBody}>
+            <label className={styles.fieldLabel}>{label}</label>
             <input
               type="text"
               inputMode="numeric"
@@ -41,12 +44,12 @@ export function PremiumDateInput({
               onFocus={() => dateInput.setFocused(true)}
               onBlur={() => dateInput.setFocused(false)}
               placeholder="dd/mm/aaaa"
-              className="w-full bg-transparent pt-4 text-base font-medium focus:outline-none placeholder:text-current placeholder:opacity-50"
-              style={{ color: colors.text }}
+              className={styles.fieldControl}
+              aria-label={label}
             />
           </div>
-          <button type="button" onClick={() => dateInput.setOpen(prev => !prev)} className="pr-5 transition-transform duration-200 hover:scale-110 focus:outline-none" style={{ color: dateInput.open ? colors.accent : colors.textSecondary }} aria-label={label}>
-            <Calendar className="w-4 h-4" />
+          <button type="button" onClick={() => dateInput.setOpen(prev => !prev)} className={styles.dateButton} aria-label={label}>
+            <Calendar className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       </div>

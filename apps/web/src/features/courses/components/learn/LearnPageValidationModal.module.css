@@ -1,0 +1,204 @@
+.overlay {
+  --validation-primary: var(--org-primary-color, var(--color-primary));
+  --validation-accent: var(--org-accent-color, var(--color-accent));
+  --validation-on-primary: var(--org-on-primary-color, var(--color-bg-light));
+  --validation-surface: rgb(255 255 255 / 0.96);
+  --validation-surface-alt: color-mix(in srgb, var(--validation-primary) 3%, white);
+  --validation-text: var(--color-primary);
+  --validation-muted: rgb(15 35 59 / 0.58);
+  --validation-border: rgb(15 35 59 / 0.11);
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      color-mix(in srgb, var(--validation-accent) 10%, transparent),
+      transparent 28rem
+    ),
+    rgb(3 12 22 / 0.58);
+  backdrop-filter: blur(0.9rem) saturate(115%);
+}
+
+:global(.dark) .overlay {
+  --validation-surface: color-mix(in srgb, var(--color-gray-800) 94%, transparent);
+  --validation-surface-alt: color-mix(in srgb, var(--color-gray-800) 78%, var(--color-bg-dark));
+  --validation-text: var(--color-bg-light);
+  --validation-muted: rgb(255 255 255 / 0.58);
+  --validation-border: rgb(255 255 255 / 0.1);
+}
+
+.dialog {
+  position: relative;
+  display: flex;
+  width: min(100%, 28rem);
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--validation-accent) 22%, var(--validation-border));
+  border-radius: 1.65rem;
+  padding: 2rem;
+  text-align: center;
+  color: var(--validation-text);
+  background:
+    radial-gradient(
+      circle at 50% 0,
+      color-mix(in srgb, var(--validation-accent) 8%, transparent),
+      transparent 15rem
+    ),
+    var(--validation-surface);
+  box-shadow:
+    0 2.5rem 7rem rgb(2 12 22 / 0.34),
+    inset 0 1px 0 rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(1.5rem) saturate(135%);
+}
+
+.dialog::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 7rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--validation-accent), transparent);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 0.78rem;
+  color: var(--validation-muted);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  border-color: var(--validation-border);
+  outline: none;
+  color: var(--validation-text);
+  background: color-mix(in srgb, var(--validation-surface-alt) 82%, transparent);
+}
+
+.icon {
+  display: grid;
+  width: 3.4rem;
+  height: 3.4rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--validation-accent) 38%, var(--validation-border));
+  border-radius: 1.08rem;
+  color: var(--validation-accent);
+  background: color-mix(in srgb, var(--validation-accent) 8%, transparent);
+  box-shadow:
+    0 0.9rem 2.4rem color-mix(in srgb, var(--validation-accent) 14%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+.dialog[data-kind="activity"] .icon {
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 35%, var(--validation-border));
+  background: color-mix(in srgb, var(--color-warning) 8%, transparent);
+}
+
+.eyebrow {
+  margin-top: 1rem;
+  color: var(--validation-accent);
+  font-family: var(--font-system-label);
+  font-size: 0.58rem;
+  font-weight: 650;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.title {
+  max-width: 22rem;
+  margin: 0.48rem 0 0;
+  color: var(--validation-text);
+  font-family: var(--font-system-heading);
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+.message {
+  max-width: 22rem;
+  margin: 0.78rem 0 0;
+  color: var(--validation-muted);
+  font-family: var(--font-system-ui);
+  font-size: 0.86rem;
+  line-height: 1.6;
+}
+
+.details {
+  width: 100%;
+  margin: 1rem 0 0;
+  border: 1px solid var(--validation-border);
+  border-radius: 0.95rem;
+  padding: 0.75rem 0.85rem;
+  color: var(--validation-text);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  background: color-mix(in srgb, var(--validation-surface-alt) 84%, transparent);
+}
+
+.primaryButton {
+  width: 100%;
+  min-height: 3rem;
+  margin-top: 1.35rem;
+  border: 1px solid var(--validation-primary);
+  border-radius: 0.95rem;
+  padding: 0.72rem 1rem;
+  color: var(--validation-on-primary);
+  background: var(--validation-primary);
+  box-shadow: 0 1rem 2.6rem color-mix(in srgb, var(--validation-primary) 20%, transparent);
+  font-family: var(--font-system-ui);
+  font-size: 0.8rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.primaryButton:hover,
+.primaryButton:focus-visible {
+  outline: none;
+  box-shadow:
+    0 1.15rem 3rem color-mix(in srgb, var(--validation-primary) 28%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--validation-primary) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .dialog {
+    border-radius: 1.35rem;
+    padding: 1.65rem 1.15rem 1.15rem;
+  }
+
+  .closeButton {
+    top: 0.65rem;
+    right: 0.65rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .closeButton,
+  .primaryButton {
+    transition-duration: 0.01ms;
+  }
+}

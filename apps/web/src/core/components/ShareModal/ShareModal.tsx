@@ -1,247 +1,240 @@
-'use client';
+'use client'
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Copy, Twitter, Facebook, Mail, Share2, Check } from 'lucide-react';
+import { useEffect, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowUpRight,
+  Check,
+  Copy,
+  Facebook,
+  Link2,
+  Mail,
+  Share2,
+  Twitter,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
+import styles from './ShareModal.module.css'
 
 export interface ShareData {
-  url: string;
-  title?: string;
-  text?: string;
-  description?: string;
+  url: string
+  title?: string
+  text?: string
+  description?: string
 }
 
 interface ShareModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  shareData: ShareData | null;
+  isOpen: boolean
+  onClose: () => void
+  shareData: ShareData | null
+}
+
+interface ShareOption {
+  name: string
+  hint: string
+  icon: LucideIcon
+  action: () => void | Promise<void>
+  primary?: boolean
 }
 
 export function ShareModal({ isOpen, onClose, shareData }: ShareModalProps) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false)
 
-  // Resetear estado cuando se cierra el modal
   useEffect(() => {
     if (!isOpen) {
-      setCopied(false);
+      setCopied(false)
+      return
     }
-  }, [isOpen]);
 
-  if (!shareData) return null;
+    const previousOverflow = document.body.style.overflow
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
 
-  const { url, title, text, description } = shareData;
-  const shareText = text || description || title || 'Mira esto';
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, onClose])
+
+  if (!shareData) return null
+
+  const { url, title, text, description } = shareData
+  const shareText = text || description || title || 'Mira esto'
 
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      // Fallback para navegadores que no soportan clipboard API
-      const textArea = document.createElement('textarea');
-      textArea.value = url;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(url)
+    } catch {
+      const textArea = document.createElement('textarea')
+      textArea.value = url
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
     }
-  };
+
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const shareToTwitter = () => {
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(url)}`;
-    window.open(twitterUrl, '_blank', 'width=600,height=400');
-  };
+    const twitterUrl =
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}` +
+      `&url=${encodeURIComponent(url)}`
+    window.open(twitterUrl, '_blank', 'width=600,height=400')
+  }
 
   const shareToFacebook = () => {
-    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`;
-    window.open(facebookUrl, '_blank', 'width=600,height=400');
-  };
+    const facebookUrl =
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
+    window.open(facebookUrl, '_blank', 'width=600,height=400')
+  }
 
   const shareByEmail = () => {
-    const subject = title || 'Compartir contenido';
-    const body = `${shareText}\n\nVer más: ${url}`;
-    const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = emailUrl;
-  };
+    const subject = title || 'Compartir contenido'
+    const body = `${shareText}\n\nVer más: ${url}`
+    window.location.href =
+      `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  }
 
-  const shareOptions = [
+  const shareOptions: ShareOption[] = [
     {
-      name: 'Copiar enlace',
+      name: copied ? 'Enlace copiado' : 'Copiar enlace',
+      hint: copied ? 'Listo para compartir' : 'Guárdalo en el portapapeles',
       icon: Copy,
       action: copyToClipboard,
-      color: 'text-accent',
-      bgColor: 'bg-accent/10 dark:bg-accent/20',
+      primary: true,
     },
     {
-      name: 'Compartir en Twitter',
+      name: 'Compartir en X',
+      hint: 'Publicar credencial',
       icon: Twitter,
       action: shareToTwitter,
-      color: 'text-primary dark:text-accent',
-      bgColor: 'bg-primary/10 dark:bg-accent/20',
     },
     {
-      name: 'Compartir en Facebook',
+      name: 'Facebook',
+      hint: 'Compartir publicación',
       icon: Facebook,
       action: shareToFacebook,
-      color: 'text-primary dark:text-accent',
-      bgColor: 'bg-primary/10 dark:bg-accent/20',
     },
     {
-      name: 'Compartir por email',
+      name: 'Enviar por email',
+      hint: 'Abrir correo electrónico',
       icon: Mail,
       action: shareByEmail,
-      color: 'text-success',
-      bgColor: 'bg-success/10 dark:bg-success/20',
     },
-  ];
+  ]
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay con backdrop blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-carbon-900/80 backdrop-blur-sm z-[9998]"
+            className={styles.overlay}
             onClick={onClose}
           />
 
-          {/* Modal */}
-          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          <div className={styles.viewport}>
+            <motion.section
+              initial={{ opacity: 0, scale: 0.96, y: 18 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{
-                type: 'spring',
-                stiffness: 300,
-                damping: 30,
-              }}
-              className="bg-white dark:bg-carbon-800 rounded-xl shadow-2xl max-w-md w-full pointer-events-auto relative max-h-[90vh] overflow-y-auto overflow-x-hidden border border-gray-200 dark:border-gray-500/30"
+              exit={{ opacity: 0, scale: 0.96, y: 18 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className={styles.modal}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="share-modal-title"
             >
-              {/* Contenido */}
-              <div className="relative p-5 sm:p-8">
-                {/* Botón de cerrar */}
+              <header className={styles.header}>
+                <span className={styles.headerIcon}>
+                  <Share2 className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <div>
+                  <p className={styles.eyebrow}>Compartir credencial</p>
+                  <h2 id="share-modal-title" className={styles.title}>
+                    Comparte este logro
+                  </h2>
+                </div>
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="absolute top-4 right-4 p-1.5 text-gray-500 dark:text-white/60 hover:text-primary dark:hover:text-white transition-colors rounded-lg hover:bg-gray-200 dark:hover:bg-primary/30"
+                  className={styles.closeButton}
                   aria-label="Cerrar"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="h-4 w-4" aria-hidden="true" />
                 </button>
+              </header>
 
-                {/* Icono y título */}
-                <div className="flex flex-col items-center mb-4 sm:mb-6">
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 200,
-                      damping: 15,
-                      delay: 0.1,
-                    }}
-                    className="w-14 h-14 sm:w-16 sm:h-16 bg-primary dark:bg-primary rounded-full flex items-center justify-center shadow-lg mb-3 sm:mb-4"
-                  >
-                    <Share2 className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
-                  </motion.div>
+              <div className={styles.body}>
+                {title && (
+                  <p className={styles.shareSummary}>
+                    <strong>{title}</strong>
+                    {description ? ` · ${description}` : ''}
+                  </p>
+                )}
 
-                  <motion.h3
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="text-xl sm:text-2xl font-bold text-center text-primary dark:text-white mb-2"
-                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 700 }}
-                  >
-                    Compartir
-                  </motion.h3>
-
-                  {title && (
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 }}
-                      className="text-center text-gray-500 dark:text-white/80 text-sm"
-                      style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
-                    >
-                      {title}
-                    </motion.p>
-                  )}
-                </div>
-
-                {/* Opciones de compartir */}
-                <div className="space-y-2 mb-4">
+                <div className={styles.options}>
                   {shareOptions.map((option, index) => (
                     <motion.button
                       key={option.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.1 + index * 0.05, duration: 0.2 }}
+                      type="button"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.08 + index * 0.04, duration: 0.2 }}
                       onClick={() => {
-                        option.action();
-                        if (option.name === 'Copiar enlace') {
-                          // No cerrar inmediatamente para mostrar el feedback
-                        } else {
-                          // Cerrar después de un pequeño delay para otras acciones
-                          setTimeout(() => onClose(), 300);
-                        }
+                        void option.action()
+                        if (!option.primary) setTimeout(onClose, 300)
                       }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-200/50 dark:hover:bg-primary/30 transition-colors text-left group border border-gray-200 dark:border-gray-500/30"
+                      className={`${styles.option} ${
+                        option.primary ? styles.optionPrimary : ''
+                      }`}
                     >
-                      <div className={`p-2 rounded-xl ${option.bgColor} group-hover:scale-110 transition-transform`}>
-                        <option.icon className={`w-5 h-5 ${option.color}`} />
-                      </div>
-                      <span 
-                        className="text-primary dark:text-white font-medium flex-1"
-                        style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
-                      >
-                        {option.name}
+                      <span className={styles.optionIcon}>
+                        <option.icon className="h-4 w-4" aria-hidden="true" />
                       </span>
-                      {option.name === 'Copiar enlace' && copied && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          className="text-success"
-                        >
-                          <Check className="w-5 h-5" />
-                        </motion.div>
-                      )}
+                      <span>
+                        <span className={styles.optionName}>{option.name}</span>
+                        <span className={styles.optionHint}>{option.hint}</span>
+                      </span>
+                      <span
+                        className={`${styles.optionEnd} ${
+                          option.primary && copied ? styles.optionEndSuccess : ''
+                        }`}
+                      >
+                        {option.primary && copied ? (
+                          <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                        ) : (
+                          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                        )}
+                      </span>
                     </motion.button>
                   ))}
                 </div>
 
-                {/* URL preview */}
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="mt-4 p-3 bg-gray-200/30 dark:bg-primary/20 rounded-xl border border-gray-200 dark:border-gray-500/30"
-                >
-                  <p 
-                    className="text-xs text-gray-500 dark:text-white/60 mb-1.5"
-                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 500 }}
-                  >
-                    Enlace:
-                  </p>
-                  <p 
-                    className="text-sm text-primary dark:text-white break-all font-mono"
-                    style={{ fontFamily: 'var(--font-system-ui)', fontWeight: 400 }}
-                  >
-                    {url}
-                  </p>
-                </motion.div>
+                <div className={styles.linkPanel}>
+                  <span className={styles.linkIcon}>
+                    <Link2 className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <span className={styles.linkLabel}>Enlace público de verificación</span>
+                    <span className={styles.linkValue} title={url}>
+                      {url}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </motion.div>
+            </motion.section>
           </div>
         </>
       )}
     </AnimatePresence>
-  );
+  )
 }
-

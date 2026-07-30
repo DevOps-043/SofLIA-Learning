@@ -1,7 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  Layers3,
+  NotebookPen,
+  PanelLeftClose,
+  Plus,
+  X,
+} from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { useSwipe } from "../../../../../hooks/useSwipe";
 import { NotesSidebarSection } from "../NotesSidebarSection";
@@ -16,6 +24,7 @@ import type {
 } from "../types";
 import { CollapsedSidebarRail } from "./CollapsedSidebarRail";
 import { CourseContentTree } from "./CourseContentTree";
+import styles from "./CourseSidebar.module.css";
 
 type CourseSidebarPanelProps = {
   isOpen: boolean;
@@ -102,6 +111,10 @@ export function CourseSidebarPanel({
     velocity: 0.3,
     enabled: isMobile && isOpen,
   });
+  const { t } = useTranslation("learn");
+  const [activeSection, setActiveSection] = useState<"content" | "notes">(
+    !isNotesCollapsed && isMaterialCollapsed ? "notes" : "content"
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -113,6 +126,27 @@ export function CourseSidebarPanel({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isNotesCollapsed && isMaterialCollapsed) {
+      setActiveSection("notes");
+    } else if (!isMaterialCollapsed && isNotesCollapsed) {
+      setActiveSection("content");
+    }
+  }, [isMaterialCollapsed, isNotesCollapsed]);
+
+  const selectSection = (section: "content" | "notes") => {
+    setActiveSection(section);
+
+    if (section === "content") {
+      if (isMaterialCollapsed) onToggleMaterialCollapsed();
+      if (!isNotesCollapsed) onToggleNotesCollapsed();
+      return;
+    }
+
+    if (!isMaterialCollapsed) onToggleMaterialCollapsed();
+    if (isNotesCollapsed) onToggleNotesCollapsed();
+  };
 
   return (
     <>
@@ -133,50 +167,120 @@ export function CourseSidebarPanel({
               data-tour-id="course-learn--sidebar"
               ref={swipeToCloseRef}
               initial={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}
-              animate={isMobile ? { x: 0 } : { width: 320, opacity: 1 }}
+              animate={isMobile ? { x: 0 } : { width: 368, opacity: 1 }}
               exit={isMobile ? { x: "-100%" } : { width: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className={`${
-                isMobile
-                  ? "fixed inset-y-0 left-0 z-50 w-full max-w-sm md:relative md:inset-auto md:w-auto md:max-w-none"
-                  : "relative h-full md:my-2 md:ml-2 md:rounded-lg"
-              } flex flex-col overflow-hidden border-r border-gray-200 bg-white dark:border-white/5 dark:bg-carbon-900`}
+              transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              className={`${styles.sidebarWindow} ${
+                isMobile ? styles.sidebarMobile : ""
+              }`}
               style={{
                 ...(sidebarBg ? { backgroundColor: sidebarBg } : {}),
                 ...(sidebarBorderColor ? { borderColor: sidebarBorderColor } : {}),
               }}
             >
-              <div
-                className="flex-1 overflow-y-auto px-6 pb-24 md:pb-6"
-                style={{
-                  paddingTop: isMobile
-                    ? `calc(4.5rem + env(safe-area-inset-top, 0px))`
-                    : "1.5rem",
-                }}
-              >
-                <CourseContentTree
-                  modules={modules}
-                  currentLesson={currentLesson}
-                  isCollapsed={isMaterialCollapsed}
-                  expandedLessons={expandedLessons}
-                  expandedModules={expandedModules}
-                  lessonsActivities={lessonsActivities}
-                  lessonsMaterials={lessonsMaterials}
-                  lessonsQuizStatus={lessonsQuizStatus}
-                  onToggleCollapsed={onToggleMaterialCollapsed}
-                  onToggleModule={onToggleModuleExpand}
-                  onToggleLesson={onToggleLessonExpand}
-                  onSelectActivity={onSelectActivity}
-                  onSelectMaterial={onSelectMaterial}
-                  onSelectLesson={onSelectLesson}
-                  onClosePanel={onClose}
-                />
+              <div className={styles.panelHeader}>
+                <div className={styles.sectionTabs} role="tablist">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeSection === "content"}
+                    onClick={() => selectSection("content")}
+                    className={`${styles.sectionTab} ${
+                      activeSection === "content"
+                        ? styles.sectionTabActive
+                        : ""
+                    }`}
+                  >
+                    <Layers3 aria-hidden="true" />
+                    <span>{t("leftPanel.content")}</span>
+                    <span className={styles.tabCount}>{modules.length}</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeSection === "notes"}
+                    onClick={() => selectSection("notes")}
+                    className={`${styles.sectionTab} ${
+                      activeSection === "notes"
+                        ? styles.sectionTabActive
+                        : ""
+                    }`}
+                  >
+                    <NotebookPen aria-hidden="true" />
+                    <span>{t("leftPanel.notesSection.myNotes")}</span>
+                    <span className={styles.tabCount}>{savedNotes.length}</span>
+                  </button>
+                </div>
 
-                <div className="mb-6 border-b border-gray-200 dark:border-gray-500/30" />
+                {activeSection === "notes" ? (
+                  <button
+                    type="button"
+                    onClick={onCreateNote}
+                    className={styles.headerAction}
+                    aria-label={t("leftPanel.notesSection.newNote")}
+                    title={t("leftPanel.notesSection.newNote")}
+                  >
+                    <Plus aria-hidden="true" />
+                  </button>
+                ) : null}
 
-                <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className={styles.panelClose}
+                  aria-label={t("leftPanel.closePanel")}
+                  title={t("leftPanel.closePanel")}
+                >
+                  {isMobile ? (
+                    <X aria-hidden="true" />
+                  ) : (
+                    <PanelLeftClose aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+
+              <div className={styles.panelBody}>
+                <AnimatePresence mode="wait" initial={false}>
+                  {activeSection === "content" ? (
+                    <motion.div
+                      key="content"
+                      role="tabpanel"
+                      initial={{ opacity: 0, x: -6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 6 }}
+                      transition={{ duration: 0.18 }}
+                      className={styles.sectionViewport}
+                    >
+                      <CourseContentTree
+                        modules={modules}
+                        currentLesson={currentLesson}
+                        isCollapsed={false}
+                        expandedLessons={expandedLessons}
+                        expandedModules={expandedModules}
+                        lessonsActivities={lessonsActivities}
+                        lessonsMaterials={lessonsMaterials}
+                        lessonsQuizStatus={lessonsQuizStatus}
+                        onToggleCollapsed={onToggleMaterialCollapsed}
+                        onToggleModule={onToggleModuleExpand}
+                        onToggleLesson={onToggleLessonExpand}
+                        onSelectActivity={onSelectActivity}
+                        onSelectMaterial={onSelectMaterial}
+                        onSelectLesson={onSelectLesson}
+                        showHeader={false}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="notes"
+                      role="tabpanel"
+                      initial={{ opacity: 0, x: 6 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -6 }}
+                      transition={{ duration: 0.18 }}
+                      className={styles.sectionViewport}
+                    >
                   <NotesSidebarSection
-                    isCollapsed={isNotesCollapsed}
+                    isCollapsed={false}
                     savedNotes={savedNotes}
                     notesStats={notesStats}
                     onToggleCollapsed={onToggleNotesCollapsed}
@@ -184,8 +288,11 @@ export function CourseSidebarPanel({
                     onEditNote={onEditNote}
                     onDeleteNote={onDeleteNote}
                     notebookBasePath={notebookBasePath}
+                    showHeader={false}
                   />
-                </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </motion.div>
           </>

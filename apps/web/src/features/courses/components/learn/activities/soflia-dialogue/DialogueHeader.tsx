@@ -33,17 +33,17 @@ export function DialogueHeader({
   const { t } = useTranslation("learn");
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-gray-200/70 px-3.5 py-2.5 dark:border-white/10">
-      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-medium ${getStateTone(session?.state)}`}>
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-gray-200/70 bg-white/45 px-4 py-3 dark:border-white/10 dark:bg-white/[0.025]">
+      <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] font-semibold ${getStateTone(session?.state)}`}>
         {canPracticeAgain ? <CheckCircle2 className="h-3.5 w-3.5" /> : canRetry ? <AlertCircle className="h-3.5 w-3.5" /> : <Sparkles className="h-3.5 w-3.5" />}
         {stateLabel}
       </span>
-      <span className="flex items-center gap-1 text-[10px] font-medium text-gray-400 dark:text-white/40">
+      <span className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.08em] text-gray-400 dark:text-white/40">
         <MessageSquareText className="h-3 w-3" />
         {session?.turnsCount || 0} {t("activities.dialogue.metrics.turns")}
       </span>
 
-      <div className="ml-auto flex min-w-[220px] flex-1 items-center gap-4">
+      <div className="ml-auto flex min-w-[220px] flex-1 items-center gap-5">
         <div className="flex-1">
           <DialogueMetricBar
             icon={<Target className="h-3.5 w-3.5" />}

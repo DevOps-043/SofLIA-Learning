@@ -1,23 +1,27 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import {
-  AlertCircle,
+  AlertTriangle,
   ArrowLeft,
-  Award,
-  CheckCircle2,
+  BadgeCheck,
+  CalendarDays,
   Download,
   Eye,
   Loader2,
-  Shield,
+  ShieldCheck,
+  UserRound,
+  X,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { LiaPanelMount } from '@/core/components/LiaSidePanel/LiaPanelMount'
 import { OrgNavbar } from '@/core/components/OrgNavbar/OrgNavbar'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { CertificateDocument } from '@/features/certificates/components/CertificateDocument'
-import { CertificateDocumentPreview } from '@/features/certificates/components/CertificateDocumentPreview'
+import { CertificateDocumentViewport } from '@/features/certificates/components/CertificateDocumentViewport'
+import styles from '@/features/certificates/components/CertificateExperience.module.css'
 import { downloadCertificatePdf } from '@/features/certificates/services/certificate-client-pdf.service'
 import {
   CERTIFICATE_RENDER_HEIGHT_PX,
@@ -56,6 +60,18 @@ export default function OrgCertificatesPage() {
   const [downloadError, setDownloadError] = useState<string | null>(null)
   const [downloadTarget, setDownloadTarget] = useState<CertificateListItem | null>(null)
   const [downloadingCertificateId, setDownloadingCertificateId] = useState<string | null>(null)
+
+  const certificateVars = {
+    '--certificate-action': theme.actionColor,
+    '--certificate-on-action': theme.onActionColor,
+    '--certificate-accent': theme.accentColor,
+    '--certificate-surface': theme.panelBg,
+    '--certificate-card': theme.cardBg,
+    '--certificate-inner': theme.inputBg,
+    '--certificate-border': theme.borderColor,
+    '--certificate-text': theme.textColor,
+    '--certificate-muted': theme.subtextColor,
+  } as CSSProperties
 
   useEffect(() => {
     void fetchCertificates()
@@ -96,11 +112,18 @@ export default function OrgCertificatesPage() {
       setDownloadTarget(certificate)
       setDownloadingCertificateId(certificate.certificateId)
       await waitForDownloadRender()
-      const el = downloadDocumentRef.current
-      if (!el) throw new Error(t('certificates.errorDownload'))
-      await downloadCertificatePdf({ element: el, fileName: certificate.documentModel.fileName })
-    } catch (err) {
-      setDownloadError(err instanceof Error ? err.message : t('certificates.errorDownload'))
+      const element = downloadDocumentRef.current
+      if (!element) throw new Error(t('certificates.errorDownload'))
+      await downloadCertificatePdf({
+        element,
+        fileName: certificate.documentModel.fileName,
+      })
+    } catch (downloadFailure) {
+      setDownloadError(
+        downloadFailure instanceof Error
+          ? downloadFailure.message
+          : t('certificates.errorDownload'),
+      )
     } finally {
       setDownloadingCertificateId(null)
       setDownloadTarget(null)
@@ -109,14 +132,17 @@ export default function OrgCertificatesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: theme.panelBg }}>
+      <div className={styles.page} style={certificateVars}>
         <OrgNavbar />
-        <div className="flex min-h-[calc(100vh-64px)] items-center justify-center">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-10 w-10 animate-spin" style={{ color: theme.actionColor }} />
-            <p className="text-sm" style={{ color: theme.subtextColor }}>
-              {t('certificates.loading')}
-            </p>
+        <div className={styles.loadingState}>
+          <div className={styles.loadingCard} role="status">
+            <span className={styles.loadingIcon}>
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+            </span>
+            <div>
+              <p className={styles.loadingTitle}>{t('certificates.loading')}</p>
+              <p className={styles.loadingText}>Preparando tus credenciales verificables.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -125,134 +151,87 @@ export default function OrgCertificatesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: theme.panelBg }}>
+      <div className={styles.page} style={certificateVars}>
         <OrgNavbar />
-        <div className="flex min-h-[calc(100vh-64px)] items-center justify-center p-6">
-          <div
-            className="max-w-md rounded-[24px] border p-8 text-center"
-            style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
-          >
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
-            <h1 className="mb-2 text-xl font-bold" style={{ color: theme.textColor }}>
-              {t('certificates.errorTitle')}
-            </h1>
-            <p className="mb-6 text-sm" style={{ color: theme.subtextColor }}>
-              {error}
-            </p>
+        <main className={styles.main}>
+          <div className={styles.stateCard} role="alert">
+            <span className={`${styles.stateIcon} ${styles.stateIconError}`}>
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h1 className={styles.stateTitle}>{t('certificates.errorTitle')}</h1>
+            <p className={styles.stateText}>{error}</p>
             <button
+              type="button"
               onClick={() => void fetchCertificates()}
-              className="rounded-2xl px-5 py-2.5 text-sm font-semibold"
-              style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
+              className={styles.primaryButton}
             >
               {t('certificates.retry')}
             </button>
           </div>
-        </div>
+        </main>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: theme.panelBg, color: theme.textColor }}>
+    <div className={styles.page} style={certificateVars}>
       <OrgNavbar />
 
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 md:py-10">
-        {/* Back button */}
+      <main className={styles.main}>
         <button
+          type="button"
           onClick={() => router.push(`/${orgSlug}/business-user/dashboard`)}
-          className="mb-6 inline-flex items-center gap-2 rounded-xl border px-3.5 py-2 text-sm font-medium transition-opacity hover:opacity-70"
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.borderColor,
-            color: theme.subtextColor,
-          }}
+          className={styles.backButton}
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
           {t('certificates.backToPanel')}
         </button>
 
-        {/* Hero */}
-        <section
-          className="rounded-[24px] border px-6 py-7 md:px-10 md:py-8"
-          style={{ background: theme.heroBackground, borderColor: theme.heroBorderColor }}
-        >
-          <div
-            className="mb-2.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-widest"
-            style={{
-              backgroundColor: theme.inverseSurface,
-              borderColor: theme.inverseBorderColor,
-              color: theme.inverseSubtextColor,
-            }}
-          >
-            <Award className="h-3 w-3" />
-            {t('certificates.badge')}
+        <section className={styles.hero}>
+          <div className={styles.heroContent}>
+            <p className={styles.heroEyebrow}>
+              <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              {t('certificates.badge')}
+            </p>
+            <h1 className={styles.heroTitle}>{t('certificates.pageTitle')}</h1>
           </div>
-          <h1
-            className="text-2xl font-black tracking-tight md:text-4xl"
-            style={{ color: theme.inverseTextColor }}
-          >
-            {t('certificates.pageTitle')}
-          </h1>
-          <p className="mt-1.5 text-sm" style={{ color: theme.inverseSubtextColor }}>
-            {t('certificates.pageSubtitle')}
-          </p>
         </section>
 
-        {/* Section header */}
-        <div className="mt-8 flex items-baseline gap-2">
-          <h2 className="text-base font-bold" style={{ color: theme.textColor }}>
-            {t('certificates.sectionTitle')}
-          </h2>
-          <span className="text-sm" style={{ color: theme.subtextColor }}>
-            ·{' '}
-            {t(
-              certificates.length === 1
-                ? 'certificates.sectionCount_one'
-                : 'certificates.sectionCount_other',
-              { count: certificates.length },
-            )}
-          </span>
-        </div>
+        <header className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>{t('certificates.sectionTitle')}</h2>
+        </header>
 
-        {/* Download error */}
         {downloadError && (
-          <div className="mt-4 flex items-center justify-between rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          <div className={styles.errorToast} role="alert">
             <span>{downloadError}</span>
-            <button onClick={() => setDownloadError(null)} className="ml-4 opacity-70 hover:opacity-100">
-              ×
+            <button
+              type="button"
+              onClick={() => setDownloadError(null)}
+              className={styles.toastClose}
+              aria-label="Cerrar mensaje"
+            >
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         )}
 
-        {/* Empty state */}
         {certificates.length === 0 ? (
-          <div
-            className="mt-8 rounded-[24px] border p-12 text-center"
-            style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
-          >
-            <Award
-              className="mx-auto mb-4 h-12 w-12 opacity-30"
-              style={{ color: theme.textColor }}
-            />
-            <h3 className="text-lg font-bold" style={{ color: theme.textColor }}>
-              {t('certificates.emptyTitle')}
-            </h3>
-            <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>
-              {t('certificates.emptyText')}
-            </p>
+          <div className={styles.emptyState}>
+            <span className={styles.stateIcon}>
+              <BadgeCheck className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h3 className={styles.emptyTitle}>{t('certificates.emptyTitle')}</h3>
+            <p className={styles.emptyText}>{t('certificates.emptyText')}</p>
           </div>
         ) : (
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div className={styles.certificateGrid}>
             {certificates.map((certificate) => (
               <CertificateCard
                 key={certificate.certificateId}
                 certificate={certificate}
-                theme={theme}
                 t={t}
                 downloadingId={downloadingCertificateId}
-                onView={() =>
-                  router.push(`/certificates/${certificate.certificateId}`)
-                }
+                onView={() => router.push(`/certificates/${certificate.certificateId}`)}
                 onDownload={() => void handleDownload(certificate)}
                 onVerify={() =>
                   router.push(`/certificates/verify/${certificate.certificateHash}`)
@@ -261,9 +240,8 @@ export default function OrgCertificatesPage() {
             ))}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Hidden download canvas */}
       {downloadTarget ? (
         <div
           aria-hidden="true"
@@ -290,7 +268,6 @@ export default function OrgCertificatesPage() {
 
 interface CertificateCardProps {
   certificate: CertificateListItem
-  theme: ReturnType<typeof useBusinessPanelTheme>
   t: (key: string, opts?: Record<string, unknown>) => string
   downloadingId: string | null
   onView: () => void
@@ -300,7 +277,6 @@ interface CertificateCardProps {
 
 function CertificateCard({
   certificate,
-  theme,
   t,
   downloadingId,
   onView,
@@ -311,101 +287,66 @@ function CertificateCard({
   const isAnyDownloading = downloadingId !== null
 
   return (
-    <article
-      className="group overflow-hidden rounded-[20px] border transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-      style={{
-        backgroundColor: theme.cardBg,
-        borderColor: theme.borderColor,
-        boxShadow: theme.isDark
-          ? '0 4px 24px -8px rgba(0,0,0,0.5)'
-          : '0 4px 24px -8px rgba(15,23,42,0.10)',
-      }}
-    >
-      <div
-        style={{
-          height: '3px',
-          background: `linear-gradient(90deg, ${theme.brandColor}, ${theme.accentColor})`,
-        }}
-      />
+    <article className={styles.certificateCard}>
+      <div className={styles.cardAccent} aria-hidden="true" />
 
-      <div
-        className="flex items-center justify-center px-5 pb-4 pt-5"
-        style={{ backgroundColor: theme.inputBg }}
-      >
-        <div
-          className="overflow-hidden rounded-2xl"
-          style={{
-            boxShadow: theme.isDark
-              ? '0 8px 32px -8px rgba(0,0,0,0.6)'
-              : '0 8px 32px -8px rgba(15,23,42,0.18)',
-          }}
-        >
-          <CertificateDocumentPreview model={certificate.documentModel} scale={0.24} />
+      <div className={styles.previewStage}>
+        <div className={styles.previewFrame}>
+          <CertificateDocumentViewport model={certificate.documentModel} />
         </div>
       </div>
 
-      <div className="px-4 pb-4 pt-3">
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <span
-            className="truncate rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
-            style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
-          >
-            {certificate.issuerName}
+      <div className={styles.cardBody}>
+        <div className={styles.issuerRow}>
+          <span className={styles.issuerBadge}>{certificate.issuerName}</span>
+          <span className={styles.validBadge}>
+            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('certificates.statusValid')}
           </span>
-          <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: theme.successColor }} />
         </div>
 
-        <h3 className="line-clamp-2 text-sm font-bold leading-snug" style={{ color: theme.textColor }}>
-          {certificate.courseTitle}
-        </h3>
+        <h3 className={styles.cardTitle}>{certificate.courseTitle}</h3>
 
-        <p className="mt-1.5 truncate text-xs" style={{ color: theme.subtextColor }}>
-          {certificate.instructorName}
-          <span className="mx-1.5 opacity-40">·</span>
-          {formatDate(certificate.issuedAt)}
-        </p>
+        <div className={styles.cardMeta}>
+          <span className={styles.metaItem}>
+            <UserRound className="h-3 w-3" aria-hidden="true" />
+            {certificate.instructorName}
+          </span>
+          <span className={styles.metaItem}>
+            <CalendarDays className="h-3 w-3" aria-hidden="true" />
+            {formatDate(certificate.issuedAt)}
+          </span>
+        </div>
 
-        <div className="my-3" style={{ height: '1px', backgroundColor: theme.borderColor }} />
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onView}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
-          >
-            <Eye className="h-3.5 w-3.5" />
+        <div className={styles.cardActions}>
+          <button type="button" onClick={onView} className={styles.primaryButton}>
+            <Eye className="h-3.5 w-3.5" aria-hidden="true" />
             {t('certificates.view')}
           </button>
 
           <button
+            type="button"
             onClick={onDownload}
             disabled={isAnyDownloading}
             title={t('certificates.download')}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
-            style={{
-              backgroundColor: theme.inputBg,
-              borderColor: theme.borderColor,
-              color: theme.textColor,
-            }}
+            className={styles.iconButton}
+            aria-label={t('certificates.download')}
           >
             {isDownloading ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
             ) : (
-              <Download className="h-3.5 w-3.5" />
+              <Download className="h-3.5 w-3.5" aria-hidden="true" />
             )}
           </button>
 
           <button
+            type="button"
             onClick={onVerify}
             title={t('certificates.verifyValidity')}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border transition-opacity hover:opacity-70"
-            style={{
-              backgroundColor: theme.inputBg,
-              borderColor: theme.borderColor,
-              color: theme.subtextColor,
-            }}
+            className={styles.iconButton}
+            aria-label={t('certificates.verifyValidity')}
           >
-            <Shield className="h-3.5 w-3.5" />
+            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Ban, Baseline, Highlighter } from 'lucide-react'
 
 import { cn } from '@/utils/cn'
+import styles from '../NotebookEditor.module.css'
 
 interface ColorMenuProps {
   editor: Editor
@@ -67,17 +68,17 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
   }
 
   return (
-    <div className="relative">
+    <div className={styles.colorMenu}>
       <button
         type="button"
         title={label}
         aria-label={label}
         onClick={() => setOpen((value) => !value)}
-        className="flex h-8 w-8 flex-col items-center justify-center gap-0.5 rounded-md text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+        className={cn(styles.colorTrigger, open && styles.colorTriggerOpen)}
       >
-        <Icon className="h-4 w-4" />
+        <Icon />
         <span
-          className="h-1 w-4 rounded-full"
+          className={styles.colorIndicator}
           style={{
             backgroundColor:
               current ?? (mode === 'text' ? 'currentColor' : '#FEF08A'),
@@ -88,12 +89,12 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
       {open && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className={styles.colorOverlay}
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <div className="absolute left-0 top-full z-20 mt-1 w-44 rounded-lg border border-gray-200 bg-white p-2 shadow-lg dark:border-white/10 dark:bg-[var(--color-gray-800)]">
-            <div className="grid grid-cols-6 gap-1">
+          <div className={styles.colorPopover}>
+            <div className={styles.colorGrid}>
               {colors.map((color) => (
                 <button
                   key={color}
@@ -103,9 +104,9 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
                   aria-label={color}
                   style={{ backgroundColor: color }}
                   className={cn(
-                    'h-6 w-6 rounded border border-black/10',
+                    styles.colorSwatch,
                     current?.toLowerCase() === color.toLowerCase() &&
-                      'ring-2 ring-[var(--color-accent)] ring-offset-1 dark:ring-offset-gray-800',
+                      styles.colorSwatchActive,
                   )}
                 />
               ))}
@@ -113,7 +114,7 @@ export function ColorMenu({ editor, mode }: ColorMenuProps) {
             <button
               type="button"
               onClick={clear}
-              className="mt-2 flex w-full items-center gap-1.5 rounded-md px-2 py-1 text-xs text-gray-600 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10"
+              className={styles.colorClear}
             >
               <Ban className="h-3.5 w-3.5" />
               {t('editor.toolbar.removeColor')}

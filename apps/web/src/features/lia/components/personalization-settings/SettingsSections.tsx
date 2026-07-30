@@ -4,6 +4,7 @@ import { CharacteristicsSection } from './CharacteristicsSection';
 import { InstructionsSection } from './InstructionsSection';
 import { StyleSection } from './StyleSection';
 import type { PersonalizationFormData } from './types';
+import styles from './PersonalizationSettings.module.css';
 
 interface SettingsSectionsProps {
   expandedSections: Record<string, boolean>;
@@ -19,7 +20,7 @@ export function SettingsSections(props: SettingsSectionsProps) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={styles.sections}>
       <StyleSection
         {...sectionProps}
         isExpanded={props.expandedSections.style}

@@ -62,6 +62,8 @@ export function DashboardCourseBody(props: DashboardCourseBodyProps) {
       displayedCourses={props.displayedCourses}
       handleCourseClick={props.handleCourseClick}
       orgColors={props.orgColors}
+      orgSlug={props.orgSlug}
+      t={props.t}
       userDashboardStyles={props.userDashboardStyles}
     />
   )

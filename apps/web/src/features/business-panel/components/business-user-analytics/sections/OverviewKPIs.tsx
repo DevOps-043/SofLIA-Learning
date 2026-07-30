@@ -1,17 +1,16 @@
 'use client'
 
-import type { ComponentType, CSSProperties } from 'react'
-import { Award, BookOpen, Clock, GraduationCap } from 'lucide-react'
+import type { ComponentType } from 'react'
+import { BadgeCheck, BookOpenCheck, Clock3, LibraryBig } from 'lucide-react'
 import type { BusinessUserAnalyticsResponse } from '@/features/business-panel/types/business-user-analytics.types'
-import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { estimateTotalLessons, fmtDuration, fmtNumber, fmtPercent } from '../shared/dashboard-utils'
+import styles from '../BusinessUserAnalytics.module.css'
 
 interface OverviewKPIsProps {
   data: BusinessUserAnalyticsResponse
 }
 
 export function OverviewKPIs({ data }: OverviewKPIsProps) {
-  const theme = useBusinessPanelTheme()
   const { overview } = data
   const totalLessons = estimateTotalLessons(data)
   const progress = Math.min(100, Math.max(0, Math.round(overview.averageProgress)))
@@ -19,17 +18,16 @@ export function OverviewKPIs({ data }: OverviewKPIsProps) {
   return (
     <section
       aria-label="Resumen general"
-      className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      className={styles.kpiGrid}
     >
       <ProgressCard
         progress={progress}
         lessonsCompleted={overview.lessonsCompleted}
         totalLessons={totalLessons}
-        theme={theme}
       />
 
       <KPICard
-        icon={GraduationCap}
+        icon={LibraryBig}
         label="Cursos completados"
         value={`${fmtNumber(overview.completedCourses)} / ${fmtNumber(overview.totalAssigned)}`}
         detail={
@@ -37,19 +35,17 @@ export function OverviewKPIs({ data }: OverviewKPIsProps) {
             ? `${overview.inProgressCourses} en progreso`
             : 'Sin cursos en progreso'
         }
-        theme={theme}
       />
 
       <KPICard
-        icon={Clock}
+        icon={Clock3}
         label="Tiempo de aprendizaje"
         value={fmtDuration(overview.timeSpentMinutes)}
         detail={`${overview.activeDays} días activo en el período`}
-        theme={theme}
       />
 
       <KPICard
-        icon={Award}
+        icon={BadgeCheck}
         label="Certificados obtenidos"
         value={fmtNumber(overview.certificates)}
         detail={
@@ -59,7 +55,6 @@ export function OverviewKPIs({ data }: OverviewKPIsProps) {
               ? '1 curso terminado al 100%'
               : `${overview.certificates} cursos terminados al 100%`
         }
-        theme={theme}
       />
     </section>
   )
@@ -71,34 +66,31 @@ function ProgressCard({
   progress,
   lessonsCompleted,
   totalLessons,
-  theme,
 }: {
   progress: number
   lessonsCompleted: number
   totalLessons: number
-  theme: ReturnType<typeof useBusinessPanelTheme>
 }) {
   const circumference = 2 * Math.PI * 42
   const offset = circumference - (progress / 100) * circumference
 
   return (
     <article
-      className="flex flex-col justify-between gap-4 rounded-2xl border p-6 shadow-sm"
-      style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+      className={styles.kpiCard}
     >
-      <div className="flex items-center gap-4">
-        <div className="relative shrink-0" style={{ width: 88, height: 88 } as CSSProperties}>
-          <svg width="88" height="88" viewBox="0 0 100 100" className="-rotate-90" aria-hidden="true">
+      <div className={styles.progressOverview}>
+        <div className={styles.progressRing}>
+          <svg viewBox="0 0 100 100" className={styles.progressRingSvg} aria-hidden="true">
             <circle
               cx="50" cy="50" r="42"
               fill="none"
-              stroke={theme.borderColor}
+              stroke="var(--analytics-border)"
               strokeWidth="8"
             />
             <circle
               cx="50" cy="50" r="42"
               fill="none"
-              stroke={theme.accentColor}
+              stroke="var(--analytics-accent)"
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -107,46 +99,43 @@ function ProgressCard({
             />
           </svg>
           <span
-            className="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-900 dark:text-white"
+            className={styles.progressRingValue}
             aria-label={`${progress}% de progreso`}
           >
             {progress}%
           </span>
         </div>
 
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        <div className={styles.progressMeta}>
+          <p className={styles.kpiLabel}>
             Progreso general
           </p>
-          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+          <p className={styles.kpiValue}>
             {fmtPercent(progress, 0)}
           </p>
         </div>
       </div>
 
       <div>
-        <div className="mb-1.5 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-          <span className="flex items-center gap-1">
-            <BookOpen className="h-3.5 w-3.5" />
+        <div className={styles.progressLessonRow}>
+          <span className={styles.progressLessonLabel}>
+            <BookOpenCheck className="h-3.5 w-3.5" />
             Lecciones
           </span>
           {totalLessons > 0 ? (
-            <span className="font-semibold text-gray-700 dark:text-gray-300">
+            <span className={styles.progressLessonValue}>
               {fmtNumber(lessonsCompleted)} / {fmtNumber(totalLessons)}
             </span>
           ) : (
-            <span className="font-semibold text-gray-700 dark:text-gray-300">
+            <span className={styles.progressLessonValue}>
               {fmtNumber(lessonsCompleted)} completadas
             </span>
           )}
         </div>
-        <div
-          className="h-2 w-full overflow-hidden rounded-full"
-          style={{ backgroundColor: theme.borderColor }}
-        >
+        <div className={styles.track}>
           <div
-            className="h-full rounded-full transition-all duration-700"
-            style={{ width: `${progress}%`, backgroundColor: theme.accentColor }}
+            className={styles.trackFill}
+            style={{ width: `${progress}%` }}
           />
         </div>
       </div>
@@ -161,39 +150,30 @@ function KPICard({
   label,
   value,
   detail,
-  theme,
 }: {
   icon: ComponentType<{ className?: string }>
   label: string
   value: string
   detail: string
-  theme: ReturnType<typeof useBusinessPanelTheme>
 }) {
   return (
     <article
-      className="flex flex-col justify-between gap-3 rounded-2xl border p-6 shadow-sm"
-      style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+      className={styles.kpiCard}
     >
-      <div
-        className="flex h-10 w-10 items-center justify-center rounded-xl"
-        style={{
-          backgroundColor: `color-mix(in srgb, ${theme.actionColor} 12%, transparent)`,
-          color: theme.actionColor,
-        }}
-      >
-        <Icon className="h-5 w-5" />
+      <div className={styles.kpiIcon}>
+        <Icon className="h-4 w-4" />
       </div>
 
       <div>
-        <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+        <p className={styles.kpiLabel}>
           {label}
         </p>
-        <p className="mt-1 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+        <p className={styles.kpiValue}>
           {value}
         </p>
       </div>
 
-      <p className="text-sm text-gray-500 dark:text-gray-400">{detail}</p>
+      <p className={styles.kpiDetail}>{detail}</p>
     </article>
   )
 }

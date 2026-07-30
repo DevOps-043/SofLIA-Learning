@@ -1,33 +1,21 @@
 import { useTranslation } from 'react-i18next';
 
-import { LIA_AVATAR_SRC } from '../constants';
-import type { CourseLiaThemeColors } from '../types';
+import styles from '../CourseLiaPanel.module.css';
 
 interface CourseLiaTypingIndicatorProps {
   stop: () => void;
-  themeColors: CourseLiaThemeColors;
 }
 
 export function CourseLiaTypingIndicator({
   stop,
-  themeColors,
 }: CourseLiaTypingIndicatorProps) {
   const { t } = useTranslation('learn');
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '10px' }}>
-      <div
-        className="animate-pulse"
-        style={{
-          width: '32px',
-          height: '32px',
-          borderRadius: '50%',
-          overflow: 'hidden',
-          border: `2px solid ${themeColors.accentColor}`,
-        }}
-      >
-        <img src={LIA_AVATAR_SRC} alt={t('lia.typing')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      </div>
+    <div className={styles.typing} aria-label={t('lia.typing')}>
+      <span className={styles.typingDot} aria-hidden="true" />
+      <span className={styles.typingDot} aria-hidden="true" />
+      <span className={styles.typingDot} aria-hidden="true" />
       <button type="button" onClick={stop} title={t('lia.stopGeneration')} style={{ display: 'none' }}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" />

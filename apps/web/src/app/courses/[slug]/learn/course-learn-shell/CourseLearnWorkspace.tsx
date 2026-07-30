@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from 'react'
 import { LearnPageHeader, LearnPageMobileNav } from '@/features/courses/components/learn'
+import { COURSE_LIA_PANEL_PORTAL_ID } from '@/features/courses/components/CourseLia/constants'
 import { TourTriggerButton, useTour } from '@/features/tours'
 import { courseLearnTour } from '@/features/tours/config/course-learn.tour'
 import { useOptionalOrganizationStylesContext } from '@/features/business-panel/contexts/OrganizationStylesContext'
@@ -57,6 +58,8 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
   //   --learn-body-bg     = scrollable content area background
   //   --learn-card-bg     = lesson panel / tabs bar / details card background
   //   --learn-card-border = lesson panel card borders
+  //   --learn-text        = contrast-safe primary text on the card surface
+  //   --learn-muted       = secondary text derived from --learn-text
   const learnColorVars = useMemo(() => {
     const brandColor = panelStyles?.primary_button_color
     const accentColor = panelStyles?.accent_color ?? brandColor
@@ -65,15 +68,23 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
     const bodyBg = orgPanelBg ?? (isDark ? 'var(--color-bg-dark)' : 'var(--color-bg-light)')
     const cardBg = orgPanelBg ?? (isDark ? 'var(--color-bg-dark)' : 'var(--color-bg-light)')
     const cardBorder = orgBorderColor ?? (isDark ? 'rgba(255,255,255,0.05)' : 'var(--color-gray-200)')
+    const textColor = orgPanelBg
+      ? chooseReadableTextColor(orgPanelBg)
+      : isDark
+        ? DESIGN_HEX_COLOR.white
+        : DESIGN_HEX_COLOR.slate900
+    const mutedColor = `color-mix(in srgb, ${textColor} 62%, transparent)`
 
     if (!brandColor || !accentColor) {
       return {
         '--learn-action': isDark ? 'var(--color-accent)' : 'var(--color-primary)',
-        '--learn-on-action': isDark ? 'var(--color-primary)' : '#ffffff',
+        '--learn-on-action': isDark ? 'var(--color-primary)' : DESIGN_HEX_COLOR.white,
         '--learn-accent': 'var(--color-accent)',
         '--learn-body-bg': bodyBg,
         '--learn-card-bg': cardBg,
         '--learn-card-border': cardBorder,
+        '--learn-text': textColor,
+        '--learn-muted': mutedColor,
       } as React.CSSProperties
     }
 
@@ -89,6 +100,8 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
       '--learn-body-bg': bodyBg,
       '--learn-card-bg': cardBg,
       '--learn-card-border': cardBorder,
+      '--learn-text': textColor,
+      '--learn-muted': mutedColor,
     } as React.CSSProperties
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panelStyles, isDark, orgPanelBg, orgBorderColor])
@@ -113,10 +126,16 @@ export function CourseLearnWorkspace({ logic, shell }: { logic: LearnPageLogicRe
           accentColor={panelStyles?.accent_color}
         />
         <TranslationWarning logic={logic} />
-        <CourseLearnBody logic={logic} shell={shell} panelStyles={panelStyles} />
+        <div className="relative flex min-h-0 flex-1">
+          <CourseLearnBody logic={logic} shell={shell} panelStyles={panelStyles} />
+          <div
+            id={COURSE_LIA_PANEL_PORTAL_ID}
+            className="pointer-events-none absolute inset-0"
+          />
+          <CourseLearnLiaPanel logic={logic} shell={shell} panelStyles={panelStyles} />
+        </div>
         <LearnPageMobileNav isVisible={logic.isMobileBottomNavVisible} isLeftPanelOpen={logic.isLeftPanelOpen} hasPreviousLesson={!!logic.getPreviousLesson()} hasNextLesson={!!logic.getNextLesson()} onOpenMaterial={logic.openLeftPanel} onCreateNote={logic.openNewNoteModal} onNavigatePrevious={logic.navigateToPreviousLesson} onNavigateNext={logic.navigateToNextLesson} disableHeavyEffects={shell.disableHeavyEffects} />
         <NoteErrorToast logic={logic} />
-        <CourseLearnLiaPanel logic={logic} shell={shell} panelStyles={panelStyles} />
       </div>
       <IntroVideoOverlay shell={shell} />
     </>

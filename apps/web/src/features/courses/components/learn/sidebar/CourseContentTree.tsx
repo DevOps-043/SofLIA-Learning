@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, ChevronUp, Layers, PanelLeftClose, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Layers, PanelLeftClose } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -12,6 +12,7 @@ import type {
   LearnModule,
 } from "../types";
 import { ModuleAccordion } from "./ModuleAccordion";
+import styles from "./CourseSidebar.module.css";
 import { sortModules } from "./utils";
 
 type CourseContentTreeProps = {
@@ -36,6 +37,7 @@ type CourseContentTreeProps = {
   }) => void | Promise<void>;
   onSelectLesson: (lesson: LearnLesson) => void | Promise<void>;
   onClosePanel?: () => void;
+  showHeader?: boolean;
 };
 
 export function CourseContentTree({
@@ -54,57 +56,57 @@ export function CourseContentTree({
   onSelectMaterial,
   onSelectLesson,
   onClosePanel,
+  showHeader = true,
 }: CourseContentTreeProps) {
   const { t } = useTranslation("learn");
   const sortedModules = sortModules(modules);
 
   return (
-    <div data-tour-id="course-learn--content-tree" className="mb-8">
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h3
-          className="flex min-w-0 items-center gap-2 text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-white/40"
-          style={{ fontFamily: "var(--font-system-ui)" }}
-        >
-          <Layers className="h-3 w-3 shrink-0" style={{ color: 'var(--learn-accent)' }} />
-          <span className="truncate">{t("leftPanel.content")}</span>
-        </h3>
+    <div data-tour-id="course-learn--content-tree" className={styles.tree}>
+      {showHeader ? (
+        <div className={styles.treeHeader}>
+          <h3 className={styles.treeTitle}>
+            <Layers aria-hidden="true" />
+            <span>{t("leftPanel.content")}</span>
+          </h3>
 
-        <div className="flex shrink-0 items-center gap-1">
-          {onClosePanel ? (
+          <div className={styles.treeActions}>
+            {onClosePanel ? (
+              <button
+                type="button"
+                onClick={onClosePanel}
+                aria-label={t("leftPanel.closePanel")}
+                title={t("leftPanel.closePanel")}
+                className={styles.treeAction}
+              >
+                <PanelLeftClose aria-hidden="true" />
+              </button>
+            ) : null}
+
             <button
               type="button"
-              onClick={onClosePanel}
-              aria-label={t("leftPanel.closePanel")}
-              title={t("leftPanel.closePanel")}
-              className="flex items-center justify-center rounded-lg p-1.5 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
+              onClick={onToggleCollapsed}
+              className={styles.treeAction}
+              aria-label={
+                isCollapsed
+                  ? t("leftPanel.expandContent")
+                  : t("leftPanel.collapseContent")
+              }
+              title={
+                isCollapsed
+                  ? t("leftPanel.expandContent")
+                  : t("leftPanel.collapseContent")
+              }
             >
-              <PanelLeftClose className="h-4 w-4 text-gray-500 dark:text-white/70" strokeWidth={2} />
+              {isCollapsed ? (
+                <ChevronDown aria-hidden="true" />
+              ) : (
+                <ChevronUp aria-hidden="true" />
+              )}
             </button>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={onToggleCollapsed}
-            className="rounded-lg p-1.5 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
-            aria-label={
-              isCollapsed
-                ? t("leftPanel.expandContent")
-                : t("leftPanel.collapseContent")
-            }
-            title={
-              isCollapsed
-                ? t("leftPanel.expandContent")
-                : t("leftPanel.collapseContent")
-            }
-          >
-            {isCollapsed ? (
-              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-white/70" />
-            ) : (
-              <ChevronUp className="h-4 w-4 text-gray-500 dark:text-white/70" />
-            )}
-          </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <AnimatePresence>
         {!isCollapsed && (
@@ -112,8 +114,8 @@ export function CourseContentTree({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="overflow-hidden"
+            transition={{ duration: 0.24 }}
+            className={styles.moduleContent}
           >
             {sortedModules.map((module, moduleIndex) => (
               <ModuleAccordion

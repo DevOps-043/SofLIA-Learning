@@ -149,7 +149,9 @@
       "resource": "Recurso",
       "evidence": "Evidencia"
     },
-    "retry": "Reintentar análisis"
+    "retry": "Reintentar análisis",
+    "analyzeNow": "Analizar ahora",
+    "retryError": "No se pudo pedir el análisis. Inténtalo de nuevo."
   },
   "editor": {
     "back": "Volver",

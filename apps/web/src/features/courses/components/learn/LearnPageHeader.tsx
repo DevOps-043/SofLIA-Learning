@@ -1,10 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Building2, TrendingUp } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { NotificationBell } from "@/core/components/NotificationBell";
+import styles from "./LearnPageHeader.module.css";
 
 interface LearnPageHeaderProps {
   courseTitle: string;
@@ -31,63 +32,86 @@ export function LearnPageHeader({
 }: LearnPageHeaderProps) {
   const { t } = useTranslation("learn");
 
-  const progressColor = primaryColor && accentColor
-    ? `linear-gradient(to right, ${primaryColor}, ${primaryColor}, ${accentColor})`
-    : undefined
+  const progressColor =
+    primaryColor && accentColor
+      ? `linear-gradient(90deg, ${primaryColor}, ${accentColor})`
+      : undefined;
 
   return (
     <motion.div
       data-tour-id="course-learn--header"
       initial={disableHeavyEffects ? false : { opacity: 0, y: -20 }}
       animate={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
-      className="bg-white dark:bg-carbon-800 border-b border-gray-200 dark:border-gray-500/30 px-3 md:px-4 py-1.5 md:py-2 shrink-0 relative z-40"
-      style={headerBg ? { backgroundColor: headerBg } : undefined}
+      className={styles.shell}
     >
-      <div className="flex items-center justify-between w-full gap-2">
-        <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+      <div
+        className={styles.navbar}
+        style={
+          headerBg
+            ? ({ "--learn-card-bg": headerBg } as React.CSSProperties)
+            : undefined
+        }
+      >
+        <div className={styles.identity}>
           <button
             onClick={onBack}
-            className="p-1.5 hover:bg-gray-200/50 dark:hover:bg-primary/30 rounded-lg transition-colors shrink-0"
+            className={styles.backButton}
             aria-label={t("header.backButton")}
             title={t("header.backButton")}
+            type="button"
           >
-            <ArrowLeft className="w-4 h-4 text-gray-900 dark:text-white" />
+            <ArrowLeft aria-hidden="true" />
           </button>
-          <div className="min-w-0 flex-1">
-            <h1
-              className="text-sm md:text-base font-bold text-primary dark:text-white truncate"
-              style={{ fontFamily: "var(--font-system-ui)", fontWeight: 700 }}
-            >
-              {courseTitle}
-            </h1>
+
+          <span className={styles.divider} aria-hidden="true" />
+
+          <div className={styles.courseCopy}>
+            <h1 className={styles.title}>{courseTitle}</h1>
             {organizationName ? (
-              <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-white/60">
-                {t("header.organizationContext", { organizationName })}
+              <p className={styles.organization}>
+                <Building2 aria-hidden="true" />
+                <span>{organizationName}</span>
               </p>
             ) : null}
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {tourAction}
-          <div className="hidden md:flex items-center gap-2">
-            <div className="w-32 lg:w-40 h-1.5 bg-gray-200 dark:bg-carbon-800 rounded-full overflow-hidden">
+
+        <div className={styles.actions}>
+          {tourAction ? (
+            <span className={styles.utilityAction}>{tourAction}</span>
+          ) : null}
+          <NotificationBell />
+
+          <div
+            data-tour-id="course-learn--progress"
+            className={styles.progressCard}
+          >
+            <div className={styles.progressMeta}>
+              <span className={styles.progressLabel}>
+                <TrendingUp aria-hidden="true" />
+                <span>Progreso</span>
+              </span>
+              <span className={styles.progressValue}>{courseProgress}%</span>
+            </div>
+            <div
+              className={styles.progressTrack}
+              role="progressbar"
+              aria-label="Progreso del curso"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={courseProgress}
+            >
               <motion.div
                 initial={disableHeavyEffects ? false : { width: 0 }}
                 animate={{ width: `${courseProgress}%` }}
-                transition={disableHeavyEffects ? undefined : { duration: 1 }}
-                className="h-full bg-gradient-to-r from-primary via-primary to-accent rounded-full shadow-lg"
-                style={progressColor ? { background: progressColor } : undefined}
+                transition={disableHeavyEffects ? undefined : { duration: 0.8 }}
+                className={styles.progressBar}
+                style={
+                  progressColor ? { background: progressColor } : undefined
+                }
               />
             </div>
           </div>
-          <NotificationBell />
-          <span
-            data-tour-id="course-learn--progress"
-            className="text-xs font-medium px-2 py-0.5 rounded-full min-w-[2.5rem] text-center shrink-0"
-            style={{ fontFamily: "var(--font-system-ui)", fontWeight: 500, color: 'var(--learn-accent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)' }}
-          >
-            {courseProgress}%
-          </span>
         </div>
       </div>
     </motion.div>

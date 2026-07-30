@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, ClipboardCheck } from "lucide-react";
 
+import styles from "./ActivitiesExperience.module.css";
 import { buildQuizFeedbackPrompt } from "./quiz.utils";
 import { QuizIntro } from "./quiz-renderer/QuizIntro";
 import { QuizQuestionNavigator } from "./quiz-renderer/QuizQuestionNavigator";
@@ -17,7 +19,13 @@ import type { QuizRendererProps } from "./quiz-renderer/quiz-renderer.types";
 // Componente premium y liviano de Confeti usando Framer Motion
 function ConfettiEffect() {
   const particles = useMemo(() => {
-    const colors = ["#00D4B3", "#00F0FF", "#FFD700", "#FF4500", "#FF1493", "#32CD32", "#8A2BE2"];
+    const colors = [
+      "var(--learn-accent)",
+      "var(--learn-action)",
+      "var(--color-success)",
+      "var(--color-warning)",
+      "var(--color-error)",
+    ];
     return Array.from({ length: 90 }).map((_, i) => ({
       id: i,
       x: Math.random() * 100, // porcentaje horizontal
@@ -287,8 +295,12 @@ export function QuizRenderer(props: QuizRendererProps) {
                 {/* Indicador de progreso de barra horizontal */}
                 <div className="w-full bg-gray-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
                   <div
-                    className="bg-[#00D4B3] dark:bg-teal-400 h-full transition-all duration-300 shadow-[0_0_8px_rgba(0,212,179,0.4)]"
-                    style={{ width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%` }}
+                    className="h-full transition-all duration-300"
+                    style={{
+                      backgroundColor: "var(--learn-accent)",
+                      boxShadow: "0 0 8px color-mix(in srgb, var(--learn-accent) 40%, transparent)",
+                      width: `${((currentQuestionIndex + 1) / totalQuestions) * 100}%`,
+                    }}
                   />
                 </div>
  
@@ -392,16 +404,20 @@ export function QuizRenderer(props: QuizRendererProps) {
 
   // INTERFAZ DE ESCRITORIO O INICIAL EN MÓVIL (ANTES DE INICIAR EL OVERLAY)
   return (
-    <div className="space-y-5">
+    <div className={styles.quizRoot}>
       {isMobile ? (
         // Panel de bienvenida responsivo premium previo a activar Kahoot alineado al SOFIA Design System
         <div className="p-8 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-slate-900 flex flex-col items-center text-center space-y-6 shadow-xl dark:shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#0A2540] via-[#00D4B3] to-[#10B981]" />
+          <div
+            className="absolute left-0 right-0 top-0 h-1.5"
+            style={{ background: "linear-gradient(90deg, var(--learn-action), var(--learn-accent))" }}
+          />
           
-          <div className="w-16 h-16 rounded-2xl bg-teal-50 dark:bg-[#00D4B3]/10 border border-teal-200 dark:border-[#00D4B3]/25 flex items-center justify-center text-teal-600 dark:text-[#00D4B3]">
-            <svg className="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
+          <div
+            className="flex h-16 w-16 items-center justify-center rounded-2xl border"
+            style={{ borderColor: "color-mix(in srgb, var(--learn-accent) 25%, transparent)", backgroundColor: "color-mix(in srgb, var(--learn-accent) 10%, transparent)", color: "var(--learn-accent)" }}
+          >
+            <ClipboardCheck className="h-8 w-8" />
           </div>
           
           <div className="space-y-2">
@@ -411,7 +427,7 @@ export function QuizRenderer(props: QuizRendererProps) {
             </p>
           </div>
           
-          <div className="w-full bg-slate-50 dark:bg-[#0A2540]/30 border border-gray-200/50 dark:border-white/5 rounded-xl p-4 text-left">
+          <div className="w-full rounded-xl border border-gray-200/50 bg-slate-50 p-4 text-left dark:border-white/5 dark:bg-white/[0.025]">
             <QuizIntro
               passingThreshold={passingThreshold}
               totalPoints={props.totalPoints}
@@ -421,10 +437,11 @@ export function QuizRenderer(props: QuizRendererProps) {
 
           <button
             onClick={handleStartKahoot}
-            className="w-full px-6 py-4 rounded-xl text-xs font-bold uppercase tracking-widest text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+            className="w-full cursor-pointer rounded-xl px-6 py-4 text-xs font-bold uppercase tracking-widest transition-all hover:brightness-105 active:translate-y-px"
             style={{
-              background: "linear-gradient(135deg, #0A2540, #00D4B3)",
-              boxShadow: "0 4px 15px rgba(0, 212, 179, 0.25)"
+              background: "var(--learn-action)",
+              boxShadow: "0 4px 15px color-mix(in srgb, var(--learn-action) 25%, transparent)",
+              color: "var(--learn-on-action)",
             }}
             type="button"
           >
@@ -434,20 +451,39 @@ export function QuizRenderer(props: QuizRendererProps) {
       ) : (
         // Panel estándar para Escritorio (Sin alteraciones)
         <>
-          <QuizIntro
-            passingThreshold={passingThreshold}
-            totalPoints={props.totalPoints}
-            totalQuestions={totalQuestions}
-          />
-
-          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-xs text-gray-500 dark:text-white/50">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              <span>
+          <div className={styles.quizMeta}>
+            <QuizIntro
+              passingThreshold={passingThreshold}
+              totalPoints={props.totalPoints}
+              totalQuestions={totalQuestions}
+            />
+            <div className="text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-gray-400 dark:text-white/35">
+                Progreso
+              </p>
+              <p className="mt-1 text-xs font-semibold text-gray-700 dark:text-white/75">
                 {t("activities.quiz.questionProgress", {
                   current: currentQuestionIndex + 1,
                   total: totalQuestions,
                 })}
-              </span>
+              </p>
+            </div>
+          </div>
+
+          <div className={styles.quizProgress} aria-hidden="true">
+            <div
+              className={styles.quizProgressBar}
+              style={{
+                width: `${Math.max(
+                  ((showResults ? totalQuestions : answeredQuestionCount) / totalQuestions) * 100,
+                  4,
+                )}%`,
+              }}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 dark:text-white/50">
+            <div className="flex flex-wrap items-center gap-2">
               <QuizQuestionNavigator
                 currentQuestionIndex={currentQuestionIndex}
                 onQuestionChange={setCurrentQuestionIndex}
@@ -456,7 +492,7 @@ export function QuizRenderer(props: QuizRendererProps) {
                 showResults={showResults}
               />
             </div>
-            <span>
+            <span className="rounded-full border border-gray-200/80 px-2.5 py-1 dark:border-white/10">
               {t("activities.quiz.answered", {
                 answered: answeredQuestionCount,
                 total: totalQuestions,
@@ -478,17 +514,18 @@ export function QuizRenderer(props: QuizRendererProps) {
           </div>
 
           {totalQuestions > 1 && !showResults && (
-            <div className="flex items-center justify-between gap-3">
+            <div className={styles.quizNavigation}>
               <button
-                className="rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10"
+                className={styles.quizSecondaryButton}
                 disabled={currentQuestionIndex === 0}
                 onClick={() => setCurrentQuestionIndex((index) => Math.max(0, index - 1))}
                 type="button"
               >
+                <ChevronLeft className="h-3.5 w-3.5" />
                 {t("activities.quiz.previous")}
               </button>
               <button
-                className="rounded-md bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white/5 dark:text-white/70 dark:hover:bg-white/10"
+                className={styles.quizSecondaryButton}
                 disabled={currentQuestionIndex >= totalQuestions - 1}
                 onClick={() =>
                   setCurrentQuestionIndex((index) =>
@@ -498,6 +535,7 @@ export function QuizRenderer(props: QuizRendererProps) {
                 type="button"
               >
                 {t("activities.quiz.next")}
+                <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </div>
           )}

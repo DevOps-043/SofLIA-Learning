@@ -1,33 +1,24 @@
 import { Activity } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import { ActivitiesContentShell } from "./ActivitiesContentShell";
+
 export function ActivitiesEmptyState(props: { lessonTitle: string }) {
   const { t } = useTranslation("learn");
 
   return (
-    <div data-tour-id="course-learn--activities-content" className="space-y-6 pb-24 md:pb-6">
-      <div>
-        <h2
-          data-tour-id="course-learn--activities-header"
-          className="text-2xl font-bold text-primary dark:text-white mb-2"
-        >
-          {t("activities.title")}
-        </h2>
-        <p className="text-gray-500 dark:text-white/80 text-sm">
-          {props.lessonTitle}
-        </p>
-      </div>
-      <div className="rounded-xl border-2 p-8 text-center" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
+    <ActivitiesContentShell isRefreshing={false} lessonTitle={props.lessonTitle}>
+      <div className="rounded-2xl border border-gray-200/80 bg-white/60 p-8 text-center dark:border-white/10 dark:bg-white/[0.025]">
         <div
-          className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+          className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border"
           style={{ backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)' }}
         >
-          <Activity className="w-8 h-8" style={{ color: 'var(--learn-accent)' }} />
+          <Activity className="h-6 w-6" style={{ color: 'var(--learn-accent)' }} />
         </div>
-        <h3 className="text-primary dark:text-white text-lg font-semibold mb-2">
+        <h3 className="mb-2 text-lg font-semibold text-primary dark:text-white">
           {t("activities.notAvailable")}
         </h3>
-        <p className="text-gray-500 dark:text-white/80 mb-4">
+        <p className="mb-4 text-sm text-gray-500 dark:text-white/65">
           {t("activities.notAvailableMessage")}
         </p>
         <div className="text-sm text-gray-500 dark:text-white/60">
@@ -35,6 +26,6 @@ export function ActivitiesEmptyState(props: { lessonTitle: string }) {
           <p>- {t("activities.tips.contactInstructor")}</p>
         </div>
       </div>
-    </div>
+    </ActivitiesContentShell>
   );
 }

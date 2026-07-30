@@ -14,6 +14,7 @@ import { SubmissionStatusBadges } from "./interactive/SubmissionStatusBadges";
 import { ToolTaskActions } from "./interactive/ToolTaskActions";
 import { useActivitySofliaEvaluation } from "./interactive/useActivitySofliaEvaluation";
 import { useActivitySubmission } from "./useActivitySubmission";
+import styles from "../ActivitiesExperience.module.css";
 
 export function InteractiveActivityRenderer({
   activity,
@@ -66,7 +67,7 @@ export function InteractiveActivityRenderer({
   }
 
   return (
-    <div className="space-y-4">
+    <div className={styles.interactiveSurface}>
       <SubmissionStatusBadges activity={activity} activityConfig={activityConfig} />
       <ToolTaskActions
         activity={activity}

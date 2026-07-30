@@ -79,7 +79,7 @@
 
 .header {
   position: fixed;
-  inset: 1rem 0 auto;
+  inset: max(1rem, env(safe-area-inset-top)) 0 auto;
   z-index: 70;
   width: min(100% - 2rem, 88rem);
   margin-inline: auto;
@@ -749,7 +749,7 @@
   }
 }
 
-@media (min-width: 960px) {
+@media (min-width: 1200px) {
   .desktopNav {
     display: flex;
   }
@@ -1206,7 +1206,7 @@
   font-size: 0.95rem;
 }
 
-@media (min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 1200px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
   .narrative {
     height: 360svh;
     padding-block: 0;
@@ -1494,7 +1494,7 @@
   transform-origin: left;
 }
 
-@media (min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 1200px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
   .videoShowcase {
     height: 230svh;
     padding-block: 0;
@@ -1558,7 +1558,7 @@
   }
 }
 
-@media (max-width: 1023px),
+@media (max-width: 1199px),
   (max-height: 899px),
   (prefers-reduced-motion: reduce) {
   .videoShowcaseFrame {
@@ -1586,7 +1586,7 @@
   }
 }
 
-@media (min-width: 600px) and (max-width: 1023px) {
+@media (min-width: 600px) and (max-width: 1199px) {
   .videoShowcaseFrame {
     width: min(calc(100% - 3rem), 56rem);
   }
@@ -3176,7 +3176,7 @@
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1200px) {
   .radarLayout {
     grid-template-columns: 1.05fr 0.95fr;
     gap: 3rem;
@@ -4238,7 +4238,7 @@
   }
 }
 
-@media (min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
+@media (min-width: 1200px) and (min-height: 900px) and (prefers-reduced-motion: no-preference) {
   .impactStory {
     min-height: 260svh;
     padding-block: 0;
@@ -4374,7 +4374,12 @@
   }
 }
 
-@media (max-width: 959px) {
+@media (max-width: 1199px) {
+  .header {
+    background: color-mix(in srgb, var(--home-bg) 92%, transparent);
+    backdrop-filter: blur(1.5rem) saturate(140%);
+  }
+
   .hero {
     min-height: auto;
     padding-top: 7.5rem;
@@ -4387,6 +4392,40 @@
 
   .heroVisual {
     display: none;
+  }
+}
+
+@media (min-width: 760px) and (max-width: 1199px) {
+  .shell,
+  .header {
+    width: min(100% - 3rem, 88rem);
+  }
+
+  .hero {
+    min-height: min(58rem, 78svh);
+    padding-top: 8rem;
+    padding-bottom: 6.5rem;
+  }
+
+  .heroCopy {
+    max-width: 54rem;
+  }
+
+  .heroTitle {
+    max-width: 12ch;
+    font-size: clamp(4.75rem, 9vw, 6rem);
+  }
+
+  .narrativeMobileList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .narrativeMobileCard {
+    min-height: 27rem;
+  }
+
+  .ecosystemSelector {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

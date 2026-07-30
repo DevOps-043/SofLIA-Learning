@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
-import { useThemeStore } from "@/core/stores/themeStore";
 
 import type {
   LearnActivitySummary,
@@ -10,6 +9,7 @@ import type {
   LearnMaterialSummary,
   LessonQuizStatus,
 } from "../types";
+import styles from "./CourseSidebar.module.css";
 import { LessonSidebarContent } from "./LessonSidebarContent";
 import { formatLessonDuration } from "./utils";
 
@@ -52,64 +52,40 @@ export function LessonAccordionItem({
 }: LessonAccordionItemProps) {
   const isActive = currentLessonId === lesson.lesson_id;
   const isCompleted = lesson.is_completed;
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
 
   return (
-    <div className="w-full">
-      <div className="flex items-start gap-2">
+    <div className={styles.lesson}>
+      <div className={styles.lessonRowWrap}>
         <motion.button
+          type="button"
           data-tour-id={isActive ? "course-learn--current-lesson" : undefined}
-          whileHover={{ x: 4 }}
           onClick={() => {
             void onSelectLesson(lesson);
           }}
-          className={`group relative flex flex-1 items-center gap-3 overflow-hidden rounded-r-lg border-l-2 px-3 py-2 transition-all duration-200 ${
-            isActive
-              ? isDark ? '' : 'border-blue-600 bg-blue-50'
-              : "border-transparent hover:bg-gray-50 dark:hover:bg-white/5"
+          className={`${styles.lessonRow} ${
+            isActive ? styles.lessonRowActive : ""
           }`}
-          style={isActive && isDark ? {
-            borderColor: 'var(--learn-accent)',
-            backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
-          } : undefined}
         >
           <div
-            className={`flex flex-shrink-0 items-center justify-center ${
-              isCompleted || isActive
-                ? isDark ? '' : 'text-blue-700'
-                : "text-gray-400 group-hover:text-gray-600 dark:text-white/20 dark:group-hover:text-white/40"
+            className={`${styles.lessonState} ${
+              isCompleted || isActive ? styles.lessonStateActive : ""
             }`}
-            style={(isCompleted || isActive) && isDark ? { color: 'var(--learn-accent)' } : undefined}
           >
             {isCompleted ? (
-              <CheckCircle2 className="h-4 w-4" />
+              <CheckCircle2 aria-hidden="true" />
             ) : (
-              <div
-                className={`h-1.5 w-1.5 rounded-full ${isActive ? 'animate-pulse' : 'bg-current'} ${isActive && !isDark ? 'bg-blue-600' : ''}`}
-                style={isActive && isDark ? { backgroundColor: 'var(--learn-accent)' } : undefined}
-              />
+              <span className={styles.lessonDot} />
             )}
           </div>
 
-          <div className="z-10 min-w-0 flex-1 text-left">
-            <p
-              className={`line-clamp-2 text-sm leading-snug ${
-                isActive
-                  ? "font-medium text-blue-800 dark:text-white"
-                  : "font-normal text-gray-600 group-hover:text-gray-900 dark:text-white/60 dark:group-hover:text-white/90"
-              }`}
-              style={{ fontFamily: "var(--font-system-ui)" }}
-            >
+          <div className={styles.lessonText}>
+            <p className={styles.lessonTitle}>
               {lesson.lesson_title}
             </p>
 
             {isActive && (
-              <span
-                className={`mt-1 block text-[10px] font-medium ${!isDark ? 'text-blue-700/80' : ''}`}
-                style={isDark ? { color: 'color-mix(in srgb, var(--learn-accent) 80%, transparent)' } : undefined}
-              >
-                En curso • {formatLessonDuration(lesson.duration_seconds)}
+              <span className={styles.lessonStatus}>
+                En curso · {formatLessonDuration(lesson.duration_seconds)}
               </span>
             )}
           </div>
@@ -120,13 +96,14 @@ export function LessonAccordionItem({
             event.stopPropagation();
             void onToggleExpanded(lesson.lesson_id);
           }}
-          className="flex-shrink-0 rounded-md p-2 transition-colors hover:bg-gray-200/50 dark:hover:bg-primary/30"
+          className={styles.lessonToggle}
           title={isExpanded ? collapseLabel : expandLabel}
+          aria-expanded={isExpanded}
         >
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-gray-500 dark:text-white/60" />
+            <ChevronUp aria-hidden="true" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-500 dark:text-white/60" />
+            <ChevronDown aria-hidden="true" />
           )}
         </button>
       </div>

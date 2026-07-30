@@ -27,10 +27,17 @@ export async function GET(
     // avoiding the sequential LP check that previously ran after the full data load.
     const course = await loadCourseBySlug(supabase, slug)
 
-    // Las preguntas de la comunidad se acotan a la organización del usuario
-    // resuelta desde la sesión: `orgId` llega por query string y no es fiable
-    // como control de acceso, además de que aquí se usa el cliente admin.
-    const questionsOrgScope = await resolveQuestionsOrgScope(supabase, currentUser)
+    // Las preguntas de la comunidad se acotan a la organización por la que el
+    // usuario accede a ESTE curso, resuelta desde su inscripción. `orgId` llega
+    // por query string y no es fiable como control de acceso, así que solo
+    // desempata entre inscripciones que ya tiene (aquí además se usa el cliente
+    // admin, sin RLS que lo respalde).
+    const questionsOrgScope = await resolveQuestionsOrgScope(
+      supabase,
+      currentUser,
+      course.id,
+      organizationId,
+    )
 
     const [payload, learningPathState] = await Promise.all([
       loadLearnDataPayload(

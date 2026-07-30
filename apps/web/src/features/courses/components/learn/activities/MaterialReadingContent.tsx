@@ -6,6 +6,7 @@ import { ReadingContentRenderer } from "../ContentRenderers";
 import { ReadingAudioPlayer } from "../reading-voice/ReadingAudioPlayer";
 import { useReadingAudioPlayer } from "../reading-voice/useReadingAudioPlayer";
 import type { LearnMaterial } from "../types";
+import styles from "../ActivitiesExperience.module.css";
 
 interface MaterialReadingContentProps {
   lessonId: string;
@@ -33,13 +34,13 @@ export function MaterialReadingContent({
   });
 
   return (
-    <>
-      <div className="mb-2 flex justify-end">
+    <div className={styles.readingSurface}>
+      <div className={styles.readingToolbar}>
         <ReadingAudioPlayer player={player} t={t} />
       </div>
       <ReadingContentRenderer
         content={material.content_data || material.material_description}
       />
-    </>
+    </div>
   );
 }

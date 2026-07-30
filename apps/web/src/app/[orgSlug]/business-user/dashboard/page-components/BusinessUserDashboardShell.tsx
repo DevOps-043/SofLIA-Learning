@@ -1,7 +1,7 @@
 'use client'
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 
 import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
 import { useMotionSafe } from '@/lib/utils/motion'
@@ -9,9 +9,9 @@ import { useMotionSafe } from '@/lib/utils/motion'
 import { DashboardCoursesSection } from './business-user-dashboard-shell/DashboardCoursesSection'
 import { DashboardHero } from './business-user-dashboard-shell/DashboardHero'
 import { DashboardNavbar } from './business-user-dashboard-shell/DashboardNavbar'
-import { DashboardStatsSection } from './business-user-dashboard-shell/DashboardStatsSection'
 import { useDashboardCourseSections } from './business-user-dashboard-shell/useDashboardCourseSections'
 import { useVisibleDashboardCourses } from './business-user-dashboard-shell/useVisibleDashboardCourses'
+import styles from './BusinessUserDashboard.module.css'
 import type {
   BusinessUserDashboardShellProps,
   CourseViewMode,
@@ -34,6 +34,19 @@ export function BusinessUserDashboardShell(props: BusinessUserDashboardShellProp
     props.learningPaths.length > 0 &&
     props.assignedCourses.length > 0 &&
     courseView === 'grid'
+  const dashboardStyles = {
+    ...props.cssVariables,
+    backgroundColor: props.orgColors.sidebarBg,
+    ...props.backgroundStyle,
+    '--dashboard-primary': props.orgColors.primary,
+    '--dashboard-accent': props.orgColors.accent,
+    '--dashboard-on-action': props.orgColors.onPrimary,
+    '--dashboard-text': props.orgColors.text,
+    '--dashboard-muted': props.orgColors.textSecondary,
+    '--dashboard-surface': props.orgColors.cardBg,
+    '--dashboard-canvas': props.orgColors.sidebarBg,
+    '--dashboard-border': props.orgColors.border,
+  } as CSSProperties
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return
@@ -48,27 +61,14 @@ export function BusinessUserDashboardShell(props: BusinessUserDashboardShellProp
   return (
     <div
       data-tour-id="business-user-dashboard--page"
-      className="min-h-screen"
-      style={{
-        ...props.cssVariables,
-        background:
-          props.backgroundStyle.background ||
-          props.backgroundStyle.backgroundColor ||
-          props.orgColors.sidebarBg,
-      }}
+      className={styles.page}
+      style={dashboardStyles}
     >
       <DashboardNavbar {...props} />
-      <main className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `radial-gradient(ellipse at 50% 0%, color-mix(in srgb, ${props.orgColors.primary} 3.1%, transparent) 0%, transparent 50%)`,
-          }}
-        />
-        <div className="mx-auto w-full max-w-[1920px] px-4 py-8 sm:px-6 lg:px-12 xl:px-16 2xl:px-20">
+      <main className={styles.main}>
+        <div className={styles.shell}>
           <TeamRequiredBanner orgSlug={props.orgSlug} />
           <DashboardHero {...props} interfaceTransition={interfaceTransition} />
-          <DashboardStatsSection {...props} interfaceTransition={interfaceTransition} />
           <DashboardCoursesSection
             {...props}
             collapsedGroups={collapsedGroups}

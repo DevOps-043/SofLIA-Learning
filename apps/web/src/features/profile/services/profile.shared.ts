@@ -3,7 +3,11 @@ import {
   normalizeDateOfBirthForStorage,
   normalizeGenderForStorage,
 } from '../../../lib/schemas/user-demographics.schema'
-import { hexToRgbColor, resolveHexColor } from '../../../core/theme/color-engine'
+import {
+  chooseReadableTextColor,
+  hexToRgbColor,
+  resolveHexColor,
+} from '../../../core/theme/color-engine'
 import type {
   ProfileColorPalette,
   UpdateProfileRequest,
@@ -64,6 +68,8 @@ function isLightBackgroundColor(colorValue: string): boolean {
 export const DEFAULT_PROFILE_COLORS: ProfileColorPalette = {
   primary: 'var(--color-primary)',
   accent: 'var(--color-accent)',
+  onPrimary: 'var(--color-bg-light)',
+  onAccent: 'var(--color-primary)',
   success: 'var(--color-success)',
   warning: 'var(--color-warning)',
   error: 'var(--color-error)',
@@ -74,7 +80,8 @@ export const DEFAULT_PROFILE_COLORS: ProfileColorPalette = {
   grayMedium: 'var(--color-gray-500)',
   text: 'var(--color-bg-light)',
   textSecondary: 'rgba(255, 255, 255, 0.5)',
-  border: 'rgba(255, 255, 255, 0.06)'
+  border: 'rgba(255, 255, 255, 0.06)',
+  isLightMode: false,
 }
 
 export function mapUserProfileRow(data: UserProfileRow): UserProfile {
@@ -261,6 +268,8 @@ export function resolveProfileColors(
 ): ProfileColorPalette {
   const cardBackground = userDashboardStyles?.card_background || DEFAULT_PROFILE_COLORS.bgSecondary
   const isLightMode = isLightBackgroundColor(cardBackground)
+  const primary = userDashboardStyles?.primary_button_color || DEFAULT_PROFILE_COLORS.primary
+  const accent = userDashboardStyles?.accent_color || DEFAULT_PROFILE_COLORS.accent
 
   let bgPrimary = userDashboardStyles?.sidebar_background || (isLightMode ? 'var(--color-gray-100)' : DEFAULT_PROFILE_COLORS.bgPrimary)
   let text = userDashboardStyles?.text_color || (isLightMode ? 'var(--color-legacy-0f172a)' : DEFAULT_PROFILE_COLORS.text)
@@ -278,13 +287,16 @@ export function resolveProfileColors(
 
   return {
     ...DEFAULT_PROFILE_COLORS,
-    primary: userDashboardStyles?.primary_button_color || DEFAULT_PROFILE_COLORS.primary,
-    accent: userDashboardStyles?.accent_color || DEFAULT_PROFILE_COLORS.accent,
+    primary,
+    accent,
+    onPrimary: chooseReadableTextColor(primary),
+    onAccent: chooseReadableTextColor(accent),
     bgPrimary,
     bgSecondary: cardBackground,
     text,
     textSecondary: isLightMode ? 'var(--color-gray-500)' : DEFAULT_PROFILE_COLORS.textSecondary,
-    border
+    border,
+    isLightMode,
   }
 }
 

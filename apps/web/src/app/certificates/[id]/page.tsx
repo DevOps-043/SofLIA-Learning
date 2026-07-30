@@ -1,17 +1,20 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
-  AlertCircle,
+  AlertTriangle,
   ArrowLeft,
   Building2,
-  Calendar,
+  CalendarDays,
+  Check,
   Copy,
   Download,
+  FileCheck2,
   Loader2,
   Share2,
-  Shield,
+  ShieldCheck,
   UserRound,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -20,6 +23,7 @@ import { useShareModalContext } from '@/core/providers/ShareModalProvider'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { CertificateDocument } from '@/features/certificates/components/CertificateDocument'
 import { CertificateDocumentViewport } from '@/features/certificates/components/CertificateDocumentViewport'
+import styles from '@/features/certificates/components/CertificateExperience.module.css'
 import { downloadCertificatePdf } from '@/features/certificates/services/certificate-client-pdf.service'
 import {
   CERTIFICATE_RENDER_HEIGHT_PX,
@@ -62,10 +66,23 @@ export default function CertificateDetailPage() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [hashCopied, setHashCopied] = useState(false)
 
+  const certificateVars = {
+    '--certificate-action': theme.actionColor,
+    '--certificate-on-action': theme.onActionColor,
+    '--certificate-accent': theme.accentColor,
+    '--certificate-surface': theme.panelBg,
+    '--certificate-card': theme.cardBg,
+    '--certificate-inner': theme.inputBg,
+    '--certificate-border': theme.borderColor,
+    '--certificate-text': theme.textColor,
+    '--certificate-muted': theme.subtextColor,
+  } as CSSProperties
+
   useEffect(() => {
     if (certificateId) {
       void fetchCertificate(certificateId)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [certificateId])
 
   async function fetchCertificate(id: string): Promise<void> {
@@ -76,7 +93,6 @@ export default function CertificateDetailPage() {
       const response = await fetch(`/api/certificates/${id}`, {
         credentials: 'include',
       })
-
       const data = (await response.json().catch(() => ({}))) as Partial<CertificateResponse> & {
         error?: string
       }
@@ -87,16 +103,16 @@ export default function CertificateDetailPage() {
 
       setCertificate(data.certificate)
     } catch (fetchError) {
-      setError(fetchError instanceof Error ? fetchError.message : t('certificates.errorUnknown'))
+      setError(
+        fetchError instanceof Error ? fetchError.message : t('certificates.errorUnknown'),
+      )
     } finally {
       setLoading(false)
     }
   }
 
   async function handleDownload(): Promise<void> {
-    if (!certificate) {
-      return
-    }
+    if (!certificate) return
 
     const downloadElement = downloadDocumentRef.current
     if (!downloadElement) {
@@ -107,22 +123,23 @@ export default function CertificateDetailPage() {
     try {
       setDownloadError(null)
       setIsDownloading(true)
-
       await downloadCertificatePdf({
         element: downloadElement,
         fileName: certificate.documentModel.fileName,
       })
-    } catch (err) {
-      setDownloadError(err instanceof Error ? err.message : t('certificates.errorDownload'))
+    } catch (downloadFailure) {
+      setDownloadError(
+        downloadFailure instanceof Error
+          ? downloadFailure.message
+          : t('certificates.errorDownload'),
+      )
     } finally {
       setIsDownloading(false)
     }
   }
 
   function copyHash(): void {
-    if (!certificate) {
-      return
-    }
+    if (!certificate) return
 
     void navigator.clipboard.writeText(certificate.certificateHash)
     setHashCopied(true)
@@ -130,22 +147,13 @@ export default function CertificateDetailPage() {
   }
 
   function shareCertificate(): void {
-    if (!certificate) {
-      return
-    }
+    if (!certificate) return
 
-    // Usamos SIEMPRE el modal propio (marca consistente y comportamiento
-    // predecible). Antes se priorizaba `navigator.share` (Web Share API), que en
-    // Windows abre el panel nativo del SO y en algunos navegadores de Mac no
-    // despliega nada, dando la sensacion de que el boton no responde.
     const url = getFullUrl(`/certificates/verify/${certificate.certificateHash}`)
-    const title = t('certificates.shareTitle', { title: certificate.courseTitle })
-    const text = t('certificates.shareText', { title: certificate.courseTitle })
-
     openShareModal({
       url,
-      title,
-      text,
+      title: t('certificates.shareTitle', { title: certificate.courseTitle }),
+      text: t('certificates.shareText', { title: certificate.courseTitle }),
       description: t('certificates.shareDescription', { issuer: certificate.issuerName }),
     })
   }
@@ -163,10 +171,17 @@ export default function CertificateDetailPage() {
     }
 
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: theme.panelBg }}>
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin" style={{ color: theme.actionColor }} />
-          <p style={{ color: theme.subtextColor }}>{t('certificates.loadingDetail')}</p>
+      <div className={styles.page} style={certificateVars}>
+        <div className={styles.loadingState}>
+          <div className={styles.loadingCard} role="status">
+            <span className={styles.loadingIcon}>
+              <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+            </span>
+            <div>
+              <p className={styles.loadingTitle}>{t('certificates.loadingDetail')}</p>
+              <p className={styles.loadingText}>Preparando el documento certificado.</p>
+            </div>
+          </div>
         </div>
       </div>
     )
@@ -185,32 +200,23 @@ export default function CertificateDetailPage() {
     }
 
     return (
-      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: theme.panelBg }}>
-        <div
-          className="max-w-lg rounded-[28px] border p-8 text-center"
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.borderColor,
-          }}
-        >
-          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-red-500" />
-          <h1 className="text-2xl font-black" style={{ color: theme.textColor }}>
-            {t('certificates.detailErrorTitle')}
-          </h1>
-          <p className="mt-2 text-sm" style={{ color: theme.subtextColor }}>
-            {error ?? t('certificates.notFound')}
-          </p>
-          <button
-            onClick={() => router.push('/certificates')}
-            className="mt-6 rounded-2xl px-5 py-3 font-semibold"
-            style={{
-              backgroundColor: theme.actionColor,
-              color: theme.onActionColor,
-            }}
-          >
-            {t('certificates.backToCertificates')}
-          </button>
-        </div>
+      <div className={styles.page} style={certificateVars}>
+        <main className={styles.detailMain}>
+          <div className={styles.stateCard} role="alert">
+            <span className={`${styles.stateIcon} ${styles.stateIconError}`}>
+              <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <h1 className={styles.stateTitle}>{t('certificates.detailErrorTitle')}</h1>
+            <p className={styles.stateText}>{error ?? t('certificates.notFound')}</p>
+            <button
+              type="button"
+              onClick={() => router.push('/certificates')}
+              className={styles.primaryButton}
+            >
+              {t('certificates.backToCertificates')}
+            </button>
+          </div>
+        </main>
       </div>
     )
   }
@@ -227,204 +233,141 @@ export default function CertificateDetailPage() {
   }
 
   return (
-    <div
-      className="min-h-screen overflow-x-hidden"
-      style={{
-        backgroundColor: theme.panelBg,
-        color: theme.textColor,
-      }}
-    >
-      <div className="mx-auto max-w-[1600px] px-4 py-8 md:px-6 md:py-10">
-        <button
-          onClick={() => router.push('/certificates')}
-          className="mb-6 inline-flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.borderColor,
-            color: theme.textColor,
-          }}
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {t('certificates.backToCertificates')}
-        </button>
-
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_332px]">
-          <section
-            className="min-w-0 rounded-[28px] border p-5 md:p-6"
-            style={{
-              backgroundColor: theme.cardBg,
-              borderColor: theme.borderColor,
-              boxShadow: theme.isDark
-                ? '0 20px 40px -24px rgba(0,0,0,0.65)'
-                : '0 20px 40px -28px rgba(15,23,42,0.18)',
-            }}
+    <div className={styles.page} style={certificateVars}>
+      <main className={styles.detailMain}>
+        <div className={styles.detailToolbar}>
+          <button
+            type="button"
+            onClick={() => router.push('/certificates')}
+            className={styles.backButton}
           >
-            <div
-              className="rounded-[24px] border p-4 md:p-5"
-              style={{
-                backgroundColor: theme.inputBg,
-                borderColor: theme.borderColor,
-              }}
-            >
+            <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+            {t('certificates.backToCertificates')}
+          </button>
+          <span className={styles.toolbarLabel}>
+            <span className={styles.toolbarDot} aria-hidden="true" />
+            Credencial verificable de SofLIA
+          </span>
+        </div>
+
+        <div className={styles.detailGrid}>
+          <section className={styles.documentPanel} aria-label="Documento del certificado">
+            <header className={styles.documentPanelHeader}>
+              <span className={styles.documentLabel}>
+                <FileCheck2 className="h-3.5 w-3.5" aria-hidden="true" />
+                Documento certificado
+              </span>
+              <span className={styles.documentState}>
+                <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                Emitido
+              </span>
+            </header>
+            <div className={styles.documentShell}>
               <CertificateDocumentViewport model={certificate.documentModel} />
             </div>
           </section>
 
-          <aside className="min-w-0">
-            <section
-              className="rounded-[28px] border p-5"
-              style={{
-                backgroundColor: theme.cardBg,
-                borderColor: theme.borderColor,
-              }}
-            >
-              {/* Status + title */}
-              <div
-                className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em]"
-                style={{
-                  backgroundColor: `color-mix(in srgb, ${theme.successColor} 9.4%, transparent)`,
-                  color: theme.successColor,
-                }}
-              >
-                <Shield className="h-3 w-3" />
+          <aside className={styles.detailsCard}>
+            <header className={styles.detailsHeader}>
+              <span className={`${styles.statusBadge} ${styles.statusValid}`}>
+                <ShieldCheck className="h-3 w-3" aria-hidden="true" />
                 {t('certificates.statusValid')}
+              </span>
+              <h1 className={styles.detailsTitle}>{certificate.courseTitle}</h1>
+            </header>
+
+            <div className={styles.detailsBody}>
+              <div className={styles.metaList}>
+                <MetaRow
+                  icon={Building2}
+                  label={t('certificates.labelIssuer')}
+                  value={certificate.issuerName}
+                />
+                <MetaRow
+                  icon={UserRound}
+                  label={t('certificates.labelInstructor')}
+                  value={certificate.instructorName}
+                />
+                <MetaRow
+                  icon={CalendarDays}
+                  label={t('certificates.labelIssuedAt')}
+                  value={formatDate(certificate.issuedAt)}
+                />
               </div>
 
-              <h1
-                className="mt-3 line-clamp-3 text-lg font-black leading-snug"
-                style={{ color: theme.textColor }}
-              >
-                {certificate.courseTitle}
-              </h1>
+              <div className={styles.divider} />
 
-              {/* Meta compact */}
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
-                  <span className="text-xs" style={{ color: theme.subtextColor }}>
-                    <span className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelIssuer')}:
-                    </span>{' '}
-                    {certificate.issuerName}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <UserRound className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
-                  <span className="text-xs" style={{ color: theme.subtextColor }}>
-                    <span className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelInstructor')}:
-                    </span>{' '}
-                    {certificate.instructorName}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-3.5 w-3.5 flex-shrink-0" style={{ color: theme.subtextColor }} />
-                  <span className="text-xs" style={{ color: theme.subtextColor }}>
-                    <span className="font-semibold" style={{ color: theme.textColor }}>
-                      {t('certificates.labelIssuedAt')}:
-                    </span>{' '}
-                    {formatDate(certificate.issuedAt)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Divider */}
-              <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
-
-              {/* Hash compact */}
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5">
-                  <Shield className="h-3.5 w-3.5" style={{ color: theme.actionColor }} />
-                  <span
-                    className="text-[10px] font-bold uppercase tracking-[0.18em]"
-                    style={{ color: theme.subtextColor }}
-                  >
-                    {t('certificates.labelHash')}
-                  </span>
-                </div>
+              <div className={styles.hashHeader}>
+                <span className={styles.hashLabel}>
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t('certificates.labelHash')}
+                </span>
                 <button
+                  type="button"
                   onClick={copyHash}
-                  className="rounded-lg border p-1.5"
-                  style={{
-                    borderColor: theme.borderColor,
-                    backgroundColor: theme.inputBg,
-                    color: theme.textColor,
-                  }}
+                  className={styles.copyButton}
                   aria-label={t('certificates.copyHash')}
                 >
-                  <Copy className="h-3.5 w-3.5" />
+                  {hashCopied ? (
+                    <Check className="h-3.5 w-3.5" aria-hidden="true" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                  )}
                 </button>
               </div>
-              <div
-                className="truncate rounded-xl border px-3 py-2 font-mono text-[10px]"
-                style={{
-                  backgroundColor: theme.inputBg,
-                  borderColor: theme.borderColor,
-                  color: theme.textColor,
-                }}
-              >
+              <div className={styles.hashValue} title={certificate.certificateHash}>
                 {certificate.certificateHash}
               </div>
-              {hashCopied && (
-                <p className="mt-1.5 text-[11px] text-green-400">{t('certificates.hashCopied')}</p>
-              )}
-              <p className="mt-2 text-[11px] leading-4" style={{ color: theme.subtextColor }}>
-                {t('certificates.hashDescription')}
-              </p>
+              {hashCopied && <p className={styles.copied}>{t('certificates.hashCopied')}</p>}
+              <p className={styles.hashHelper}>{t('certificates.hashDescription')}</p>
 
-              {/* Divider */}
-              <div className="my-4 border-t" style={{ borderColor: theme.borderColor }} />
+              <div className={styles.divider} />
 
-              {/* Actions */}
               {downloadError && (
-                <p className="mb-2 text-xs text-red-400">{downloadError}</p>
+                <p className={styles.errorToast} role="alert">
+                  {downloadError}
+                </p>
               )}
-              <div className="grid gap-2">
+
+              <div className={styles.actionStack}>
                 <button
+                  type="button"
                   onClick={() => void handleDownload()}
                   disabled={isDownloading}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-70"
-                  style={{
-                    backgroundColor: theme.actionColor,
-                    color: theme.onActionColor,
-                  }}
+                  className={styles.primaryButton}
                 >
                   {isDownloading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
                   ) : (
-                    <Download className="h-4 w-4" />
+                    <Download className="h-4 w-4" aria-hidden="true" />
                   )}
-                  {isDownloading ? t('certificates.generatingPdf') : t('certificates.downloadPdf')}
+                  {isDownloading
+                    ? t('certificates.generatingPdf')
+                    : t('certificates.downloadPdf')}
                 </button>
                 <button
-                  onClick={() => router.push(`/certificates/verify/${certificate.certificateHash}`)}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
-                  style={{
-                    backgroundColor: theme.inputBg,
-                    borderColor: theme.borderColor,
-                    color: theme.textColor,
-                  }}
+                  type="button"
+                  onClick={() =>
+                    router.push(`/certificates/verify/${certificate.certificateHash}`)
+                  }
+                  className={styles.secondaryButton}
                 >
-                  <Shield className="h-4 w-4" />
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                   {t('certificates.verifyPublic')}
                 </button>
                 <button
-                  onClick={() => void shareCertificate()}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold"
-                  style={{
-                    backgroundColor: theme.cardBg,
-                    borderColor: theme.borderColor,
-                    color: theme.textColor,
-                  }}
+                  type="button"
+                  onClick={shareCertificate}
+                  className={styles.secondaryButton}
                 >
-                  <Share2 className="h-4 w-4" />
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
                   {t('certificates.share')}
                 </button>
               </div>
-            </section>
+            </div>
           </aside>
         </div>
-      </div>
+      </main>
 
       <div
         aria-hidden="true"
@@ -441,6 +384,30 @@ export default function CertificateDetailPage() {
         <div ref={downloadDocumentRef}>
           <CertificateDocument model={certificate.documentModel} />
         </div>
+      </div>
+    </div>
+  )
+}
+
+function MetaRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Building2
+  label: string
+  value: string
+}) {
+  return (
+    <div className={styles.metaRow}>
+      <span className={styles.metaIcon}>
+        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+      <div>
+        <p className={styles.metaLabel}>{label}</p>
+        <p className={styles.metaValue} title={value}>
+          {value}
+        </p>
       </div>
     </div>
   )

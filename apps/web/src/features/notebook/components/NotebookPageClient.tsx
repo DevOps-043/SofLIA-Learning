@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useState, type CSSProperties } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { AlertCircle, ArrowLeft, Loader2, PanelLeft, Plus, Search } from 'lucide-react'
@@ -25,6 +25,7 @@ import {
 import type { NotebookTaskFilter } from '../hooks/useNotebookTasks'
 import { requestCourseCompendium } from '../services/notebook.client.service'
 import { useNotebookNotesList } from '../hooks/useNotebookNotesList'
+import styles from './NotebookExperience.module.css'
 
 interface NotebookPageClientProps {
   orgSlug: string
@@ -107,99 +108,101 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
     }
   }, [orgSlug, reload])
 
+  const notebookVars = {
+    '--notebook-action': theme.actionColor,
+    '--notebook-on-action': theme.onActionColor,
+    '--notebook-accent': theme.accentColor,
+    '--notebook-text': theme.textColor,
+    '--notebook-muted': theme.mutedTextColor,
+    '--notebook-inverse-text': theme.inverseTextColor,
+    '--notebook-inverse-muted': theme.inverseSubtextColor,
+    '--notebook-card': theme.cardBg,
+    '--notebook-input': theme.inputBg,
+    '--notebook-surface': theme.panelBg,
+    '--notebook-hover': theme.hoverBg,
+    '--notebook-border': theme.borderColor,
+    '--notebook-hero': theme.heroBackground,
+    '--notebook-hero-border': theme.heroBorderColor,
+  } as CSSProperties
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: theme.panelBg, color: theme.textColor }}>
+    <div className={styles.page} style={notebookVars}>
       <OrgNavbar />
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
+      <div className={styles.main}>
+        <section className={styles.hero}>
+          <div className={styles.heroIdentity}>
             <button
               type="button"
               onClick={goToDashboard}
               aria-label={t('backToDashboard')}
               title={t('backToDashboard')}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border shadow-sm transition-colors hover:opacity-80"
-              style={{
-                backgroundColor: theme.cardBg,
-                borderColor: theme.borderColor,
-                color: theme.textColor,
-              }}
+              className={styles.backButton}
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
-            <div>
-              <h1 className="text-2xl font-bold" style={{ color: theme.textColor }}>
-                {t('pageTitle')}
-              </h1>
-              <p className="text-sm" style={{ color: theme.subtextColor }}>
-                {t('pageSubtitle')}
-              </p>
+            <div className={styles.heroCopy}>
+              <h1 className={styles.heroTitle}>{t('pageTitle')}</h1>
+              <p className={styles.heroSubtitle}>{t('pageSubtitle')}</p>
             </div>
           </div>
 
           <button
             type="button"
             onClick={() => setIsNewNoteOpen(true)}
-            className="inline-flex items-center justify-center gap-2 self-start rounded-lg px-4 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
+            className={styles.heroAction}
           >
             <Plus className="h-4 w-4" />
             {t('newNote.button')}
           </button>
-        </header>
+        </section>
 
-        {mainView === 'timeline' && <div className="relative">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-            style={{ color: theme.mutedTextColor }}
+        <section className={styles.controlDeck} aria-label={t('pageTitle')}>
+          {mainView === 'timeline' && (
+            <div className={styles.search}>
+              <Search className={styles.searchIcon} aria-hidden="true" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder={t('search.placeholder')}
+                className={styles.searchInput}
+              />
+            </div>
+          )}
+
+          <NotebookViewToolbar
+            view={mainView}
+            onViewChange={setMainView}
+            source={sourceFilter}
+            onSourceChange={setSourceFilter}
+            knowledgeType={knowledgeFilter}
+            onKnowledgeTypeChange={setKnowledgeFilter}
+            lifecycleStatus={lifecycleFilter}
+            onLifecycleStatusChange={setLifecycleFilter}
           />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={t('search.placeholder')}
-            className="h-10 w-full rounded-lg border pl-9 pr-3 text-sm outline-none"
-            style={{
-              backgroundColor: theme.inputBg,
-              borderColor: theme.borderColor,
-              color: theme.textColor,
-            }}
-          />
-        </div>}
+        </section>
 
-        <NotebookViewToolbar
-          view={mainView}
-          onViewChange={setMainView}
-          source={sourceFilter}
-          onSourceChange={setSourceFilter}
-          knowledgeType={knowledgeFilter}
-          onKnowledgeTypeChange={setKnowledgeFilter}
-          lifecycleStatus={lifecycleFilter}
-          onLifecycleStatusChange={setLifecycleFilter}
-        />
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
+        <div className={styles.workspace}>
           {/* Mobile tree toggle */}
           <button
             type="button"
             onClick={() => setShowTreeMobile((value) => !value)}
-            className="flex items-center gap-2 self-start rounded-lg border px-3 py-2 text-sm font-medium lg:hidden"
-            style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
+            className={styles.treeToggle}
+            aria-expanded={showTreeMobile}
           >
             <PanelLeft className="h-4 w-4" />
             {t('tree.toggle')}
           </button>
 
           <aside
-            className={cn('rounded-xl border lg:block', showTreeMobile ? 'block' : 'hidden')}
-            style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+            className={cn(
+              styles.treePanel,
+              showTreeMobile && styles.treePanelVisible,
+            )}
           >
             {isLoading ? (
-              <div
-                className="flex items-center justify-center py-10"
-                style={{ color: theme.mutedTextColor }}
-              >
+              <div className={styles.loadingState}>
                 <Loader2 className="h-5 w-5 animate-spin" />
               </div>
             ) : (
@@ -222,7 +225,7 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
             )}
           </aside>
 
-          <main className="min-h-[320px]">
+          <main className={styles.content}>
             {mainView === 'tasks' ? (
               <NotebookTasksView
                 orgSlug={orgSlug}
@@ -230,23 +233,17 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
                 onStatusChange={setTaskFilter}
               />
             ) : isLoading || (noteList.isLoading && noteList.notes.length === 0) ? (
-              <div
-                className="flex items-center justify-center py-20"
-                style={{ color: theme.mutedTextColor }}
-              >
+              <div className={styles.loadingState}>
                 <Loader2 className="h-6 w-6 animate-spin" />
               </div>
             ) : error ? (
-              <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-500/30 bg-red-500/5 px-6 py-12 text-center">
+              <div className={styles.errorState}>
                 <AlertCircle className="h-7 w-7 text-red-500" />
-                <p className="text-sm" style={{ color: theme.textColor }}>
-                  {error}
-                </p>
+                <p>{error}</p>
                 <button
                   type="button"
                   onClick={() => void reload()}
-                  className="rounded-lg px-4 py-2 text-sm font-semibold hover:opacity-90"
-                  style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
+                  className={styles.retryButton}
                 >
                   {t('error.retry')}
                 </button>
@@ -259,8 +256,7 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
                   <button
                     type="button"
                     onClick={() => setIsNewNoteOpen(true)}
-                    className="mt-2 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold hover:opacity-90"
-                    style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}
+                    className={styles.emptyAction}
                   >
                     <Plus className="h-4 w-4" />
                     {t('newNote.button')}
@@ -273,8 +269,8 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
                 description={t('empty.filteredDescription')}
               />
             ) : (
-              <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className={styles.noteList}>
+                <div className={styles.noteGrid}>
                   {displayedNotes.map((item) => (
                     <NotebookNoteCard
                       key={item.note.noteId}
@@ -291,7 +287,7 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
                     type="button"
                     disabled={noteList.isLoadingMore}
                     onClick={() => void noteList.loadMore()}
-                    className="inline-flex items-center justify-center gap-2 self-center rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 dark:border-white/10 dark:text-gray-200 dark:hover:bg-white/5"
+                    className={styles.loadMore}
                   >
                     {noteList.isLoadingMore && <Loader2 className="h-4 w-4 animate-spin" />}
                     {t('tasks.loadMore')}
@@ -301,14 +297,14 @@ export function NotebookPageClient({ orgSlug }: NotebookPageClientProps) {
             )}
           </main>
         </div>
-
-        <NewNoteModal
-          orgSlug={orgSlug}
-          isOpen={isNewNoteOpen}
-          onClose={() => setIsNewNoteOpen(false)}
-          onCreated={handleCreated}
-        />
       </div>
+
+      <NewNoteModal
+        orgSlug={orgSlug}
+        isOpen={isNewNoteOpen}
+        onClose={() => setIsNewNoteOpen(false)}
+        onCreated={handleCreated}
+      />
     </div>
   )
 }

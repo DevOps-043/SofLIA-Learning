@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { NOTEBOOK_MAX_TAGS } from '../types'
+import styles from './NotebookEditor.module.css'
 
 interface TagInputProps {
   tags: string[]
@@ -40,17 +41,17 @@ export function TagInput({ tags, onChange }: TagInputProps) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5">
+    <div className={styles.tagInput}>
       {tags.map((tag) => (
         <span
           key={tag}
-          className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700 dark:bg-white/10 dark:text-gray-200"
+          className={styles.tagChip}
         >
           {tag}
           <button
             type="button"
             onClick={() => removeTag(tag)}
-            className="text-gray-400 hover:text-[var(--color-error)]"
+            className={styles.tagRemove}
             aria-label={t('editor.removeTag', { tag })}
           >
             <X className="h-3 w-3" />
@@ -66,7 +67,7 @@ export function TagInput({ tags, onChange }: TagInputProps) {
           onBlur={addTag}
           placeholder={t('editor.tagPlaceholder')}
           maxLength={64}
-          className="h-7 min-w-[120px] flex-1 bg-transparent text-xs text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
+          className={styles.tagDraft}
         />
       )}
     </div>

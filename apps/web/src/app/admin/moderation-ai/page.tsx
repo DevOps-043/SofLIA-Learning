@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { PremiumLoadingScreen } from '@/core/components/PremiumLoadingScreen/PremiumLoadingScreen';
 import { createClient } from '@/lib/supabase/client';
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
@@ -112,12 +113,10 @@ export default function AIModerationPanel() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando panel de moderación...</p>
-        </div>
-      </div>
+      <PremiumLoadingScreen
+        description="Sincronizando revisiones y métricas del sistema."
+        label="Preparando moderación"
+      />
     );
   }
 

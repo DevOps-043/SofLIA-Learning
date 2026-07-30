@@ -5,6 +5,7 @@ import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '@/features/auth/services/session.service'
 import { resolveCourseLessonContext } from '@/features/courses/services/activity-submission.server.service'
+import { resolveAnyScopeCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
 import { sanitizeContextPayload } from '@/lib/security/context-sanitizer'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
@@ -59,12 +60,34 @@ async function handlePost(
 
     const supabase = await createClient()
 
+    const { data: course, error: courseError } = await supabase
+      .from('courses')
+      .select('id, title')
+      .eq('slug', courseSlug)
+      .maybeSingle<CourseRow>()
+
+    if (courseError || !course) {
+      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado', 404)
+    }
+
+    // Este endpoint no vive bajo `[orgSlug]` y el cliente no envía `orgId`, así
+    // que el ámbito se deduce de la inscripción que el usuario ya tiene. Sin
+    // esto, resolveCourseLessonContext busca una inscripción con
+    // organization_id NULL —que ningún miembro de una organización tiene— y
+    // rechazaba con 403 a todos los usuarios de empresa.
+    const enrollmentScope = await resolveAnyScopeCourseEnrollment(
+      supabase,
+      currentUser.id,
+      course.id,
+    )
+
     try {
       await resolveCourseLessonContext(
         supabase,
         currentUser.id,
         courseSlug,
         lessonId,
+        enrollmentScope?.organization_id ?? null,
       )
     } catch {
       return apiError(
@@ -82,16 +105,6 @@ async function handlePost(
 
     if (lessonError || !lesson) {
       return apiError('LESSON_NOT_FOUND', 'Lección no encontrada', 404)
-    }
-
-    const { data: course, error: courseError } = await supabase
-      .from('courses')
-      .select('id, title')
-      .eq('slug', courseSlug)
-      .maybeSingle<CourseRow>()
-
-    if (courseError || !course) {
-      return apiError('COURSE_NOT_FOUND', 'Curso no encontrado', 404)
     }
 
     const snapshot: LessonContextSnapshot = {

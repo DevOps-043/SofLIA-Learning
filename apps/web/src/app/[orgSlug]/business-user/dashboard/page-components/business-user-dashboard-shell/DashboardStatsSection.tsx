@@ -1,9 +1,9 @@
-import { useState } from 'react'
 import type { Transition } from 'framer-motion'
 
 import { DashboardStatsGrid } from './DashboardStatsGrid'
 import { DashboardStatsHeader } from './DashboardStatsHeader'
 import type { BusinessUserDashboardShellProps } from './types'
+import styles from '../BusinessUserDashboard.module.css'
 
 type DashboardStatsSectionProps = Pick<
   BusinessUserDashboardShellProps,
@@ -20,25 +20,15 @@ type DashboardStatsSectionProps = Pick<
 }
 
 export function DashboardStatsSection(props: DashboardStatsSectionProps) {
-  const [isOpenMobile, setIsOpenMobile] = useState(false)
-
   return (
-    <div
-      className="relative hidden scroll-mt-32"
-    >
-      <section className="mb-6 md:mb-10">
-        <DashboardStatsHeader
-          disableHeavyEffects={props.disableHeavyEffects}
-          interfaceTransition={props.interfaceTransition}
-          isOpen={isOpenMobile}
-          onToggle={() => setIsOpenMobile((current) => !current)}
-          orgColors={props.orgColors}
-          t={props.t}
-        />
-        <div className={!isOpenMobile ? 'hidden md:block' : 'block'}>
-          <DashboardStatsGrid {...props} />
-        </div>
-      </section>
-    </div>
+    <section className={styles.statsSection}>
+      <DashboardStatsHeader
+        disableHeavyEffects={props.disableHeavyEffects}
+        interfaceTransition={props.interfaceTransition}
+        orgColors={props.orgColors}
+        t={props.t}
+      />
+      <DashboardStatsGrid {...props} />
+    </section>
   )
 }

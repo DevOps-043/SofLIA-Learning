@@ -1,8 +1,12 @@
+import { resolveCourseOrganizationScope } from '@/features/courses/services/course-enrollment.server.service'
 import { isPlatformAdminRole } from '@/lib/auth/platform-role'
 import { resolveUserPrimaryMembership } from '@/lib/services/user-org-context.service'
+import type { createAdminClient } from '@/lib/supabase/admin'
 import type { createClient } from '@/lib/supabase/server'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient =
+  | Awaited<ReturnType<typeof createClient>>
+  | ReturnType<typeof createAdminClient>
 
 /**
  * UUID nulo: nunca corresponde a una organización real, por lo que cualquier
@@ -37,26 +41,57 @@ export interface OrgScopedQuestionRow {
 }
 
 /**
- * Resuelve el alcance organizacional del usuario actual.
+ * Resuelve el alcance organizacional del usuario actual **para un curso**.
  *
- * Un usuario sin sesión o sin membresía activa obtiene un alcance vacío
- * (`organizationId: null`), que no ve ninguna pregunta: preferimos negar por
- * defecto antes que filtrar contenido de otras empresas.
+ * El ámbito sale de la inscripción del usuario en ese curso, no de una
+ * organización "principal" suya: quien pertenece a dos empresas debe leer y
+ * publicar en la que le dio acceso a ESTE curso. Usar la membresía principal
+ * hacía que sus preguntas se sellaran con la otra empresa —visibles para quien
+ * no comparte el curso e invisibles para quien sí— y que ese alcance cambiara
+ * solo con entrar en una organización nueva.
+ *
+ * La inscripción es dato del servidor, así que el alcance sigue sin depender de
+ * ningún parámetro del cliente. `requestedOrganizationId` únicamente desempata
+ * entre inscripciones que el usuario ya tiene (ver
+ * `resolveAnyScopeCourseEnrollment`).
+ *
+ * Un usuario sin sesión, sin inscripción y sin membresía activa obtiene un
+ * alcance vacío (`organizationId: null`), que no ve ninguna pregunta:
+ * preferimos negar por defecto antes que filtrar contenido de otras empresas.
  */
 export async function resolveQuestionsOrgScope(
   supabase: SupabaseServerClient,
   user: ScopeUser | null,
+  courseId?: string | null,
+  requestedOrganizationId?: string | null,
 ): Promise<QuestionsOrgScope> {
   if (!user) {
     return { isPlatformAdmin: false, organizationId: null }
   }
 
-  // La membresía se resuelve también para el superadmin: puede pertenecer a una
+  // El alcance se resuelve también para el superadmin: puede pertenecer a una
   // organización y publicar en ella, aunque su lectura no esté limitada.
+  const isPlatformAdmin = isPlatformAdminRole(user.platform_role)
+
+  if (courseId) {
+    const enrolledOrganizationId = await resolveCourseOrganizationScope(
+      supabase,
+      user.id,
+      courseId,
+      requestedOrganizationId,
+    )
+
+    if (enrolledOrganizationId) {
+      return { isPlatformAdmin, organizationId: enrolledOrganizationId }
+    }
+  }
+
+  // Respaldo para quien no está inscrito (instructor o superadmin que solo
+  // consulta) y para los llamadores que aún no acotan por curso.
   const membership = await resolveUserPrimaryMembership(supabase, user.id)
 
   return {
-    isPlatformAdmin: isPlatformAdminRole(user.platform_role),
+    isPlatformAdmin,
     organizationId: membership?.organization_id ?? null,
   }
 }

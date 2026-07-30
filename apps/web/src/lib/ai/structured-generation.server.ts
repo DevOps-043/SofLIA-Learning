@@ -173,14 +173,29 @@ export async function generateStructuredContent<T>(
       },
     })
 
+    // `MAX_TOKENS` produce texto vacío o JSON truncado. Sin este dato el fallo
+    // llega como "JSON inválido" y se confunde con un error del modelo, cuando
+    // en realidad el presupuesto de salida (compartido con el razonamiento en
+    // los modelos gemini-3.x) es demasiado bajo para el propósito.
+    const finishReason = response.candidates?.[0]?.finishReason
+    const truncated = finishReason === 'MAX_TOKENS'
+
     const rawText = normalizeJsonText(response.text || '')
-    if (!rawText) throw new Error('AI_EMPTY_STRUCTURED_RESPONSE')
+    if (!rawText) {
+      throw new Error(
+        truncated
+          ? 'AI_OUTPUT_TRUNCATED_MAX_TOKENS'
+          : 'AI_EMPTY_STRUCTURED_RESPONSE',
+      )
+    }
 
     let parsed: unknown
     try {
       parsed = JSON.parse(rawText)
     } catch {
-      throw new Error('AI_INVALID_JSON_RESPONSE')
+      throw new Error(
+        truncated ? 'AI_OUTPUT_TRUNCATED_MAX_TOKENS' : 'AI_INVALID_JSON_RESPONSE',
+      )
     }
 
     const value = input.schema.parse(parsed)

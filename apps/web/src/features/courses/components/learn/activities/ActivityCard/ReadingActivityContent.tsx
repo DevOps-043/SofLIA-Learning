@@ -5,6 +5,7 @@ import { FormattedContentRenderer } from '../../ContentRenderers';
 import type { LearnActivity } from '../../types';
 import { ReadingAudioPlayer } from '../../reading-voice/ReadingAudioPlayer';
 import { useReadingAudioPlayer } from '../../reading-voice/useReadingAudioPlayer';
+import styles from '../../ActivitiesExperience.module.css';
 
 interface ReadingActivityContentProps {
   activity: LearnActivity;
@@ -42,12 +43,12 @@ export function ReadingActivityContent({
   );
 
   return (
-    <>
-      <div className="mb-2 flex flex-wrap items-center justify-end gap-1.5">
+    <div className={styles.readingSurface}>
+      <div className={styles.readingToolbar}>
         {canListen ? (
           <>
             <ReadingAudioPlayer player={player} t={t} />
-            <div className="h-3 w-px bg-gray-200 dark:bg-white/10" />
+            <div className={styles.readingToolbarDivider} />
           </>
         ) : null}
         <ZoomIn className="h-3.5 w-3.5 text-gray-400 dark:text-white/30" />
@@ -65,9 +66,10 @@ export function ReadingActivityContent({
           currentTime={player.currentTime}
           duration={player.duration}
           isAudioActive={player.status === 'playing' || player.status === 'paused'}
+          presentation="editorial"
         />
       </div>
-    </>
+    </div>
   );
 }
 
@@ -92,7 +94,7 @@ function ZoomButton({
       disabled={disabled}
       title={label}
       aria-label={label}
-      className="rounded px-1.5 py-0.5 text-xs font-semibold text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-30 dark:text-white/40 dark:hover:bg-white/10"
+      className={styles.zoomButton}
     >
       {children}
     </button>

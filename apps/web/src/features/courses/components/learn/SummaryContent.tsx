@@ -11,6 +11,7 @@ import { HighlightableReadingText } from "@/features/courses/components/learn/re
 import { ReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/ReadingAudioPlayer";
 import { useReadingAudioPlayer } from "@/features/courses/components/learn/reading-voice/useReadingAudioPlayer";
 import { normalizeNoteContentHtml } from "@/lib/notes/generated-note-html";
+import styles from "./LessonSupplementaryContent.module.css";
 
 const summaryMarkdownComponents = createLessonMarkdownComponents({
   includeCode: true,
@@ -156,25 +157,27 @@ export function SummaryContent({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70">
-          <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: 'var(--learn-accent)' }} />
-          <span className="font-medium">{summaryWordCount}</span>
-          <span className="text-xs">{t("summary.words")}</span>
+    <div className={styles.contentStack}>
+      <div className={styles.metaBar}>
+        <div className={styles.metaPill}>
+          <span className={styles.metaDot} aria-hidden="true" />
+          <strong>{summaryWordCount}</strong>
+          <span>{t("summary.words")}</span>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-primary/10 bg-white px-3 py-1.5 text-sm text-gray-600 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/70 font-sans">
-          <Clock className="h-3.5 w-3.5" style={{ color: 'var(--learn-accent)' }} />
-          <span className="font-medium">{estimatedReadingTime}</span>
-          <span className="text-xs">{t("summary.readTime")}</span>
+        <div className={styles.metaPill}>
+          <Clock aria-hidden="true" />
+          <strong>{estimatedReadingTime}</strong>
+          <span>{t("summary.readTime")}</span>
         </div>
-        <div className="ml-auto">
+        <div className={styles.audioControl}>
           <ReadingAudioPlayer player={summaryPlayer} t={t} />
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/8 dark:bg-white/[0.03] dark:shadow-none">
-        <div className="prose prose-slate max-w-none p-6 dark:prose-invert">
+      <div className={styles.summaryPaper}>
+        <div
+          className={`${styles.summaryBody} ${styles.summaryProse} prose prose-slate max-w-none dark:prose-invert`}
+        >
           {isAudioActive ? (
             <HighlightableReadingText
               text={summaryContent || ""}
@@ -189,23 +192,26 @@ export function SummaryContent({
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 bg-gray-50 px-6 py-4 dark:border-white/10 dark:bg-white/[0.03]">
-          <span className="text-xs font-medium uppercase tracking-[0.18em] text-gray-500 dark:text-white/30">
+        <div className={styles.contentFooter}>
+          <span className={styles.provenance}>
             {t("summary.generatedFor", { lessonTitle: lesson.lesson_title })}
           </span>
           <button
             type="button"
             onClick={handleSaveToNotes}
             disabled={isSaving}
-            className="flex items-center gap-2 rounded-lg px-4 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ borderWidth: '1px', borderStyle: 'solid', borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)', color: 'var(--learn-accent)' }}
+            className={styles.noteButton}
           >
-            <Save className={`h-3.5 w-3.5 ${isSaving ? "animate-spin" : ""}`} />
+            <Save className={isSaving ? "animate-spin" : ""} />
             {isSaving ? t("summary.savingToNotes") : t("summary.generateNote")}
           </button>
-          {saveError && <p className="mt-2 text-xs text-red-500">{saveError}</p>}
+          {saveError && (
+            <p className={`${styles.feedback} ${styles.feedbackError}`}>
+              {saveError}
+            </p>
+          )}
           {saveSuccess && (
-            <p className="mt-2 text-xs text-green-500">
+            <p className={`${styles.feedback} ${styles.feedbackSuccess}`}>
               {t("summary.savedToNotes")}
             </p>
           )}

@@ -1,0 +1,209 @@
+.screen {
+  --loading-primary: var(--org-primary-color, var(--color-primary));
+  --loading-accent: var(--org-accent-color, var(--color-accent));
+  --loading-on-primary: var(--org-on-primary-color, var(--color-bg-light));
+  --loading-canvas: var(--org-background-color, var(--color-bg-light));
+  --loading-surface: var(--org-card-background, rgb(255 255 255 / 0.82));
+  --loading-text: var(--org-text-color, var(--color-primary));
+  --loading-muted: var(--org-text-secondary, rgb(15 35 59 / 0.58));
+  --loading-border: var(--org-border-color, rgb(15 35 59 / 0.1));
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  overflow: hidden;
+  place-items: center;
+  padding: 2rem;
+  color: var(--loading-text);
+  background:
+    radial-gradient(
+      circle at 50% 42%,
+      color-mix(in srgb, var(--loading-accent) 9%, transparent),
+      transparent 24rem
+    ),
+    radial-gradient(
+      circle at 88% 8%,
+      color-mix(in srgb, var(--loading-primary) 7%, transparent),
+      transparent 28rem
+    ),
+    var(--loading-canvas);
+  isolation: isolate;
+}
+
+:global(.dark) .screen {
+  --loading-canvas: var(--org-background-color, var(--color-bg-dark));
+  --loading-surface: var(--org-card-background, var(--color-gray-800));
+  --loading-text: var(--org-text-color, var(--color-bg-light));
+  --loading-muted: var(--org-text-secondary, rgb(255 255 255 / 0.58));
+  --loading-border: var(--org-border-color, rgb(255 255 255 / 0.1));
+}
+
+.contained {
+  width: 100%;
+  min-height: clamp(18rem, 48vh, 32rem);
+  border-radius: 1.5rem;
+}
+
+.ambient {
+  position: absolute;
+  z-index: -1;
+  width: min(38rem, 82vw);
+  height: min(38rem, 82vw);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--loading-accent) 7%, transparent);
+  filter: blur(5rem);
+  opacity: 0.66;
+  animation: loading-breathe 3.8s ease-in-out infinite;
+}
+
+.content {
+  display: flex;
+  width: min(100%, 24rem);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.logoStage {
+  position: relative;
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--loading-accent) 35%, var(--loading-border));
+  border-radius: 1.55rem;
+  background: color-mix(in srgb, var(--loading-surface) 91%, transparent);
+  box-shadow:
+    0 1.5rem 4rem color-mix(in srgb, var(--loading-primary) 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--loading-on-primary) 18%, transparent);
+  backdrop-filter: blur(1.25rem) saturate(135%);
+}
+
+.logo {
+  width: 1.85rem;
+  height: 2.6rem;
+  object-fit: contain;
+  filter: drop-shadow(
+    0 0 0.8rem color-mix(in srgb, var(--loading-accent) 34%, transparent)
+  );
+}
+
+.logoPulse {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.55rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--loading-accent);
+  box-shadow: 0 0 0.9rem var(--loading-accent);
+  animation: loading-dot 1.65s ease-in-out infinite;
+}
+
+.copy {
+  margin-top: 1.25rem;
+}
+
+.brand {
+  color: var(--loading-accent);
+  font-family: var(--font-system-label);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.label {
+  margin: 0.42rem 0 0;
+  color: var(--loading-text);
+  font-family: var(--font-system-ui);
+  font-size: clamp(1.12rem, 2vw, 1.36rem);
+  font-weight: 620;
+  letter-spacing: -0.025em;
+}
+
+.description {
+  max-width: 21rem;
+  margin: 0.48rem 0 0;
+  color: var(--loading-muted);
+  font-family: var(--font-system-ui);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.progress {
+  position: relative;
+  width: min(11rem, 50vw);
+  height: 0.18rem;
+  overflow: hidden;
+  margin-top: 1.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--loading-text) 10%, transparent);
+}
+
+.progressLine {
+  position: absolute;
+  inset-block: 0;
+  left: -42%;
+  width: 42%;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--loading-accent) 32%,
+    color-mix(in srgb, var(--loading-accent) 40%, var(--loading-primary)) 76%,
+    transparent
+  );
+  animation: loading-progress 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes loading-progress {
+  to {
+    transform: translateX(338%);
+  }
+}
+
+@keyframes loading-breathe {
+  0%,
+  100% {
+    opacity: 0.48;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 0.78;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes loading-dot {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: scale(0.78);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 640px) {
+  .screen {
+    padding: 1.25rem;
+  }
+
+  .logoStage {
+    width: 4.55rem;
+    height: 4.55rem;
+    border-radius: 1.35rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient,
+  .logoPulse,
+  .progressLine {
+    animation-duration: 3s;
+  }
+}

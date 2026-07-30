@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import styles from "./SofliaHome.module.css";
 
 const VIDEO_STORY_QUERY =
-  "(min-width: 1024px) and (min-height: 900px) and (prefers-reduced-motion: no-preference)";
+  "(min-width: 1200px) and (min-height: 900px) and (prefers-reduced-motion: no-preference)";
 
 function useVideoStoryProgress(sectionRef: RefObject<HTMLElement>) {
   const progress = useMotionValue(0);

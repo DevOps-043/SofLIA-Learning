@@ -1,46 +1,66 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import Image from 'next/image'
 import { ArrowLeft, Save } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import type { ProfileColorPalette } from '../../types/profile.types'
+import styles from './ProfileExperience.module.css'
 
 interface ProfilePageHeaderProps {
-  colors: ProfileColorPalette
   saving: boolean
   goBack: () => void
   handleSave: () => Promise<void>
 }
 
-export function ProfilePageHeader({ colors, saving, goBack, handleSave }: ProfilePageHeaderProps) {
+export function ProfilePageHeader({ saving, goBack, handleSave }: ProfilePageHeaderProps) {
   const { t } = useTranslation('common')
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl border-b" style={{ background: colors.bgPrimary, borderColor: colors.border }}>
-      <div className="h-full px-6 flex items-center justify-between">
-        <motion.button onClick={goBack} className="flex items-center gap-2 transition-colors" style={{ color: colors.textSecondary }} whileHover={{ x: -3, color: colors.text }}>
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-medium">{t('profile.header.back')}</span>
-        </motion.button>
-
+    <header className={styles.nav}>
+      <div className={styles.navGroup}>
         <motion.button
-          onClick={() => void handleSave()}
-          disabled={saving}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300"
-          style={{
-            backgroundColor: saving ? 'rgba(255,255,255,0.1)' : colors.primary,
-            color: saving ? colors.textSecondary : 'var(--color-bg-light)'
-          }}
-          whileHover={!saving ? { scale: 1.02 } : undefined}
-          whileTap={!saving ? { scale: 0.98 } : undefined}
+          aria-label={t('profile.header.back')}
+          className={styles.navBack}
+          onClick={goBack}
+          type="button"
+          whileTap={{ scale: 0.96 }}
         >
-          {saving ? (
-            <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          <span>{saving ? t('profile.header.saving') : t('profile.header.saveChanges')}</span>
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         </motion.button>
+        <div className={styles.navIdentity}>
+          <span className={styles.navLogo}>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={styles.navLogoImage}
+              height={34}
+              priority
+              src="/Logo.png"
+              width={25}
+            />
+          </span>
+          <span className={styles.navCopy}>
+            <span className={styles.navTitle}>SofLIA</span>
+            <span className={styles.navSubtitle}>Perfil</span>
+          </span>
+        </div>
       </div>
-    </div>
+
+      <motion.button
+        onClick={() => void handleSave()}
+        disabled={saving}
+        className={styles.saveButton}
+        whileTap={!saving ? { scale: 0.98 } : undefined}
+        type="button"
+      >
+        {saving ? (
+          <span className={styles.spinner} aria-hidden="true" />
+        ) : (
+          <Save className="h-4 w-4" aria-hidden="true" />
+        )}
+        <span className={styles.saveLabel}>
+          {saving ? t('profile.header.saving') : t('profile.header.saveChanges')}
+        </span>
+      </motion.button>
+    </header>
   )
 }

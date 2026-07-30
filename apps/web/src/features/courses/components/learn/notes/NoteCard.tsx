@@ -1,9 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Eye, LockKeyhole, Sparkles, Trash2, Edit2 } from "lucide-react";
+import {
+  BookOpen,
+  Edit2,
+  Eye,
+  LockKeyhole,
+  Sparkles,
+  Trash2,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { LearnNoteListItem } from "../types";
+import styles from "../sidebar/CourseSidebar.module.css";
 import { getNotePreviewText } from "./utils";
 
 type NoteCardProps = {
@@ -54,7 +62,7 @@ export function NoteCard({
 
   return (
     <div
-      className={`group rounded-xl border border-gray-200 bg-white p-3 transition-colors hover:bg-gray-200/50 dark:border-gray-500/30 dark:bg-carbon-800 dark:hover:bg-primary/50 ${!isGenerated || canOpenGenerated ? "cursor-pointer" : ""}`}
+      className={styles.noteCard}
       onClick={openNote}
       onKeyDown={(event) => {
         if ((event.key === "Enter" || event.key === " ") && (!isGenerated || canOpenGenerated)) {
@@ -65,32 +73,28 @@ export function NoteCard({
       role="button"
       tabIndex={!isGenerated || canOpenGenerated ? 0 : -1}
     >
-      <div className="flex items-center justify-between mb-2">
-        <span
-          className="text-sm text-primary dark:text-white font-medium"
-          style={{ fontFamily: "var(--font-system-ui)", fontWeight: 500 }}
-        >
+      <span className={styles.noteAccent} aria-hidden="true" />
+
+      <div className={styles.noteTop}>
+        <h4 className={styles.noteTitle}>
           {note.title}
-        </span>
-        <div className="flex items-center gap-2">
-          <span
-            className="text-xs text-gray-500 dark:text-white/60"
-            style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
-          >
-            {note.timestamp}
-          </span>
-          <div className="flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
-            {!isGenerated ? <><button
+        </h4>
+        <span className={styles.noteTime}>{note.timestamp}</span>
+      </div>
+
+      <div className={styles.noteActions}>
+        {!isGenerated ? (
+          <>
+            <button
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
                 onEdit(note);
               }}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded transition-colors"
-              style={{ color: 'var(--learn-accent)' }}
+              className={styles.noteAction}
               title={editLabel}
             >
-              <Edit2 className="w-3 h-3" />
+              <Edit2 aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -98,66 +102,58 @@ export function NoteCard({
                 event.stopPropagation();
                 onDelete(note.id);
               }}
-              className="p-1 hover:bg-red-500/20 rounded text-red-400 hover:text-red-300 transition-colors"
+              className={styles.noteActionDanger}
               title={deleteLabel}
             >
-              <Trash2 className="w-3 h-3" />
+              <Trash2 aria-hidden="true" />
             </button>
-            </> : canOpenGenerated ? (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  openGeneratedNote();
-                }}
-                className="rounded p-1 transition-colors hover:bg-gray-100 dark:hover:bg-white/10"
-                style={{ color: 'var(--learn-accent)' }}
-                title={t("leftPanel.notesSection.viewGenerated")}
-                aria-label={t("leftPanel.notesSection.viewGenerated")}
-              >
-                <Eye className="h-3.5 w-3.5" />
-              </button>
-            ) : null}
-          </div>
-        </div>
+          </>
+        ) : canOpenGenerated ? (
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              openGeneratedNote();
+            }}
+            className={styles.noteAction}
+            title={t("leftPanel.notesSection.viewGenerated")}
+            aria-label={t("leftPanel.notesSection.viewGenerated")}
+          >
+            <Eye aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
 
-      <div className="mb-2 flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:border-gray-500/30 dark:text-white/70">
-          {isGenerated ? <Sparkles className="h-3 w-3" /> : null}
+      <div className={styles.noteMeta}>
+        <span className={styles.noteBadge}>
+          {isGenerated ? <Sparkles aria-hidden="true" /> : null}
           {t(`leftPanel.notesSection.source.${source}`)}
         </span>
         {status ? (
-          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-600 dark:border-gray-500/30 dark:text-white/70">
-            <LockKeyhole className="h-3 w-3" />
+          <span className={styles.noteBadgeMuted}>
+            <LockKeyhole aria-hidden="true" />
             {t(`leftPanel.notesSection.generationStatus.${status}`)}
           </span>
         ) : null}
       </div>
 
-      <p className="text-sm text-gray-700 dark:text-white/70 line-clamp-2 mb-2 whitespace-pre-line">
+      <p className={styles.notePreview}>
         {getNotePreviewText(note)}
       </p>
 
       {note.lessonTitle ? (
-        <div className="mb-2">
-          <span className="inline-flex items-center rounded-full border border-gray-200 px-2 py-0.5 text-[11px] font-medium text-gray-500 dark:border-gray-500/30 dark:text-white/60">
-            {note.lessonTitle}
-          </span>
+        <div className={styles.noteLesson}>
+          <BookOpen aria-hidden="true" />
+          <span>{note.lessonTitle}</span>
         </div>
       ) : null}
 
       {note.tags && note.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-2">
-          {note.tags.map((tag) => (
+        <div className={styles.noteTags}>
+          {note.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="inline-block px-2 py-0.5 text-xs rounded border"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
-                color: 'var(--learn-accent)',
-                borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
-              }}
+              className={styles.noteTag}
             >
               {tag}
             </span>

@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 import type { ReactNode } from 'react'
-import { Award, BarChart2, Building2, Check, Globe, LayoutDashboard, Monitor, Moon, Sun, User, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, Building2, ChartNoAxesCombined, Check, Globe2, LayoutDashboard, Monitor, Moon, Sun, type LucideIcon } from 'lucide-react'
 import { cn } from '@/shared/utils/cn'
 import { LanguageSubmenu } from './LanguageSubmenu'
 import { MenuItem } from './MenuItem'
 import type { useUserDropdownLogic } from './useUserDropdownLogic'
+import styles from './UserDropdown.module.css'
 
 type UserDropdownLogic = ReturnType<typeof useUserDropdownLogic>
 
@@ -36,8 +37,8 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
   }, [logic.isAdmin, logic.isInstructor, logic.isOrgAdmin, logic.currentOrganization])
 
   return (
-    <div className={cn('py-1 space-y-0.5', logic.isMobileViewport && 'flex h-full flex-col gap-2 px-2 py-2')}>
-      <div className={cn(logic.isMobileViewport && 'space-y-0.5')}>
+    <div className={cn(styles.menuItems, logic.isMobileViewport && styles.menuItemsMobile)}>
+      <div>
       {!hasPanelSwitcher && (
         <MenuItem icon={LayoutDashboard} label={logic.t('menu.userPanel')} onClick={logic.handleUserDashboardNavigation} />
       )}
@@ -59,24 +60,18 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
       )}
       {logic.showCertificatesAction && (
         <MenuItem
-          icon={Award}
+          icon={BadgeCheck}
           label={logic.t('menu.certificates')}
           onClick={logic.handleCertificatesClick}
           rightElement={logic.certificatesCount > 0 ? (
-            <span
-              className="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
-              style={{
-                backgroundColor: `color-mix(in srgb, ${logic.accentColor} 10%, transparent)`,
-                color: logic.accentColor,
-              }}
-            >
+            <span className={styles.countBadge}>
               {logic.certificatesCount}
             </span>
           ) : null}
         />
       )}
       {logic.showAnalyticsAction && (
-        <MenuItem icon={BarChart2} label={logic.t('menu.stats')} onClick={logic.handleAnalyticsClick} />
+        <MenuItem icon={ChartNoAxesCombined} label={logic.t('menu.stats')} onClick={logic.handleAnalyticsClick} />
       )}
       </div>
       {logic.isMobileViewport ? (
@@ -105,12 +100,12 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
 
 function MobilePreferenceSections({ logic }: { logic: UserDropdownLogic }) {
   return (
-    <div className="grid flex-1 grid-rows-2 gap-2 pt-1">
+    <div className={styles.preferences}>
       <PreferenceGroup
         icon={logic.resolvedTheme === 'dark' ? Moon : Sun}
         title={logic.t('profileDropdown.theme')}
       >
-        <div className="grid h-full grid-cols-3 gap-2">
+        <div className={styles.preferenceGrid}>
           {MOBILE_THEME_OPTIONS.map((option) => {
             const Icon = option.icon
             const isActive = logic.theme === option.value
@@ -121,20 +116,14 @@ function MobilePreferenceSections({ logic }: { logic: UserDropdownLogic }) {
                 onClick={() => logic.setTheme(option.value)}
                 aria-pressed={isActive}
                 className={cn(
-                  'flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2 text-center text-[11px] font-semibold leading-tight transition-colors',
-                  !isActive && 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10',
+                  styles.preferenceButton,
+                  isActive && styles.preferenceButtonActive,
                 )}
-                style={isActive ? {
-                  borderColor: `color-mix(in srgb, ${logic.accentColor} 30%, transparent)`,
-                  backgroundColor: `color-mix(in srgb, ${logic.accentColor} 15%, transparent)`,
-                  color: logic.accentColor,
-                } : undefined}
               >
                 <Icon
-                  className={cn('h-4 w-4 shrink-0', !isActive && 'text-gray-400')}
-                  style={isActive ? { color: logic.accentColor } : undefined}
+                  className="h-4 w-4 shrink-0"
                 />
-                <span className="max-w-full truncate">{logic.t(option.labelKey)}</span>
+                <span className={styles.preferenceOptionLabel}>{logic.t(option.labelKey)}</span>
                 {isActive && <Check className="h-3 w-3 shrink-0" />}
               </button>
             )
@@ -142,8 +131,8 @@ function MobilePreferenceSections({ logic }: { logic: UserDropdownLogic }) {
         </div>
       </PreferenceGroup>
 
-      <PreferenceGroup icon={Globe} title={logic.t('menu.languages.title')}>
-        <div className="grid h-full grid-cols-3 gap-2">
+      <PreferenceGroup icon={Globe2} title={logic.t('menu.languages.title')}>
+        <div className={styles.preferenceGrid}>
           {MOBILE_LANGUAGE_OPTIONS.map((option) => {
             const isActive = logic.language === option.value
             return (
@@ -153,22 +142,14 @@ function MobilePreferenceSections({ logic }: { logic: UserDropdownLogic }) {
                 onClick={() => logic.setLanguage(option.value)}
                 aria-pressed={isActive}
                 className={cn(
-                  'flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-xl border px-1.5 py-2 text-center text-[11px] font-semibold leading-tight transition-colors',
-                  !isActive && 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10',
+                  styles.preferenceButton,
+                  isActive && styles.preferenceButtonActive,
                 )}
-                style={isActive ? {
-                  borderColor: `color-mix(in srgb, ${logic.accentColor} 30%, transparent)`,
-                  backgroundColor: `color-mix(in srgb, ${logic.accentColor} 15%, transparent)`,
-                  color: logic.accentColor,
-                } : undefined}
               >
-                <span
-                  className={cn('text-sm font-bold', !isActive && 'text-gray-500 dark:text-gray-300')}
-                  style={isActive ? { color: logic.accentColor } : undefined}
-                >
+                <span className="text-sm font-bold">
                   {option.shortLabel}
                 </span>
-                <span className="max-w-full truncate">{logic.t(option.labelKey)}</span>
+                <span className={styles.preferenceOptionLabel}>{logic.t(option.labelKey)}</span>
                 {isActive && <Check className="h-3 w-3 shrink-0" />}
               </button>
             )
@@ -189,9 +170,9 @@ function PreferenceGroup({
   title: string
 }) {
   return (
-    <section className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white p-2 dark:border-white/10 dark:bg-white/5">
-      <div className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold text-gray-600 dark:text-gray-300">
-        <Icon className="h-3.5 w-3.5 text-gray-400" />
+    <section className={styles.preferenceGroup}>
+      <div className={styles.preferenceTitle}>
+        <Icon className="h-3.5 w-3.5" />
         <span>{title}</span>
       </div>
       <div className="min-h-0 flex-1">{children}</div>

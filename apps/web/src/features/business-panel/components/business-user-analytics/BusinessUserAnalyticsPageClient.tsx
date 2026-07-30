@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Download, Loader2, RefreshCw } from 'lucide-react'
+import { ArrowLeft, ChartNoAxesCombined, Download, Loader2, RefreshCw } from 'lucide-react'
 import useSWR from 'swr'
 
 import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
@@ -14,6 +14,8 @@ import type {
 } from '@/features/business-panel/types/business-user-analytics.types'
 import { useOrganizationStore } from '@/core/stores/organizationStore'
 import { useLanguage } from '@/core/providers/I18nProvider'
+import { chooseReadableTextColor } from '@/core/theme/color-engine'
+import { resolveOrganizationBrandColors } from '@/core/theme/organization-brand-colors'
 import {
   resolveBusinessPanelActionColor,
   useBusinessPanelTheme,
@@ -28,6 +30,7 @@ import { PerformanceCards }   from './sections/PerformanceCards'
 import { QualityRadarChart }  from './sections/QualityRadarChart'
 import { NextGoals }          from './sections/NextGoals'
 import { AiInsightsCard, type InsightState } from './sections/AiInsightsCard'
+import styles from './BusinessUserAnalytics.module.css'
 
 export interface BusinessUserAnalyticsPageClientProps {
   embedded?:          boolean
@@ -83,13 +86,13 @@ export function BusinessUserAnalyticsPageClient({
   const isOwnProfile = goalActionMode === 'personal' && (!userId || userId === viewerUserId)
 
   const theme = useBusinessPanelTheme()
-  // Raw org brand colors from the server-side layout — always present regardless of
-  // whether `brandingEnabled` is true. We use these for interactive elements (buttons,
-  // chart lines, progress bars) so they reflect the org's identity even when the full
-  // panel branding theme is not enabled. Surface colors (background, cards, borders)
-  // still come from useBusinessPanelTheme() which respects the panel theme config.
-  const orgBrandPrimary = useOrganizationStore((s) => s.currentOrganization?.brandColorPrimary ?? null)
-  const orgBrandAccent  = useOrganizationStore((s) => s.currentOrganization?.brandColorAccent  ?? null)
+  // The shared resolver is the branding gate: saved organization colors are applied
+  // only when custom branding is enabled; otherwise the SofLIA palette is restored.
+  const currentOrganization = useOrganizationStore((s) => s.currentOrganization)
+  const organizationBrand = useMemo(
+    () => resolveOrganizationBrandColors(currentOrganization),
+    [currentOrganization],
+  )
 
   const [range, setRange]       = useState<BusinessUserAnalyticsRange>(DEFAULT_RANGE)
   const [insightState, setInsightState] = useState<InsightState>('idle')
@@ -240,100 +243,79 @@ export function BusinessUserAnalyticsPageClient({
   // Surface tokens (card, border, bg) come from useBusinessPanelTheme() so they
   // respect the active panel theme (SOFLIA preset or org-branded).
   //
-  // Interactive tokens (primary, accent) use the org's RAW brand colors from the
-  // store — these bypass the branding-enabled gate so buttons and chart lines
-  // always reflect the org's brand identity, not the platform's default teal.
-  //
-  // Root cause of the teal bug: when brandingEnabled=false, the context's
-  // effectiveStyles computation calls getThemeStylesForMode() which reads directly
-  // from PRESET_THEMES['SOFLIA'] and loses any panel overrides. Using raw org
-  // colors here is the correct fix without touching the shared branding system.
+  // Interactive tokens use the same resolved colors as the navbar. This keeps
+  // charts and actions consistent in both default and organization-branded modes.
   const dashVars = useMemo(() => {
-    let interactivePrimary: string
-    let interactiveAccent: string
-
-    if (orgBrandPrimary || orgBrandAccent) {
-      // Derive the action color with contrast check against the current surface.
-      // resolveBusinessPanelActionColor handles CSS var strings in surfaceColor
-      // by falling back to DESIGN_HEX_COLOR.bgDark when it can't resolve them.
-      interactivePrimary = resolveBusinessPanelActionColor({
-        primaryColor: orgBrandPrimary ?? 'var(--color-primary)',
-        accentColor:  orgBrandAccent  ?? orgBrandPrimary ?? 'var(--color-accent)',
-        surfaceColor: theme.panelBg,
-      })
-      // Accent = raw org accent (if readable) or the resolved action color
-      interactiveAccent = orgBrandAccent ?? interactivePrimary
-    } else {
-      // No raw brand colors configured — fall back to theme (teal for SOFLIA preset)
-      interactivePrimary = theme.primaryColor
-      interactiveAccent  = theme.accentColor
-    }
+    const interactivePrimary = resolveBusinessPanelActionColor({
+      primaryColor: organizationBrand.primaryColor,
+      accentColor: organizationBrand.accentColor,
+      surfaceColor: theme.panelBg,
+    })
+    const interactiveAccent = organizationBrand.accentColor
+    const onActionColor = chooseReadableTextColor(interactivePrimary)
 
     return {
       '--dash-primary':    interactivePrimary,
       '--dash-accent':     interactiveAccent,
+      '--dash-on-action':  onActionColor,
       '--dash-surface':    theme.panelBg,
       '--dash-card':       theme.cardBg,
       '--dash-card-inner': theme.hoverBg,
       '--dash-border':     theme.borderColor,
+      '--dash-text':       theme.textColor,
+      '--dash-muted':      theme.subtextColor,
     } as CSSProperties
   }, [
-    orgBrandPrimary,
-    orgBrandAccent,
+    organizationBrand.primaryColor,
+    organizationBrand.accentColor,
     theme.panelBg,
     theme.cardBg,
     theme.hoverBg,
     theme.borderColor,
-    theme.primaryColor,
-    theme.accentColor,
+    theme.textColor,
+    theme.subtextColor,
   ])
 
   // ── Render ───────────────────────────────────────────────────────────────────
 
   const content = (
-    <div className="flex w-full flex-col gap-8">
+    <div className={styles.content}>
       {/* ── Header — hidden when embedded (the modal provides its own header) ── */}
       {!embedded && (
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
+        <header className={styles.hero}>
+          <div className={styles.heroIdentity}>
             {showBackButton && (
               <button
                 type="button"
                 onClick={goBack}
                 aria-label="Volver"
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-gray-600 shadow-sm transition-colors dark:text-gray-300"
-                style={{
-                  backgroundColor: 'var(--dash-card)',
-                  borderColor:     'var(--dash-border)',
-                }}
+                className={styles.heroBack}
               >
                 <ArrowLeft className="h-4 w-4" />
               </button>
             )}
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: theme.mutedTextColor }}>
+              <p className={styles.eyebrow}>
                 Panel personal
               </p>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">
+              <h1 className={styles.heroTitle}>
                 Mis estadísticas
               </h1>
+              <p className={styles.heroSubtitle}>
+                Una lectura clara de tu progreso, constancia y calidad de aprendizaje.
+              </p>
             </div>
           </div>
 
           {/* Refresh + PDF export — only when data is loaded */}
           {!isLoading && (
-            <div className="flex items-center gap-2">
+            <div className={styles.heroActions}>
               {pdfExport && data && (
                 <button
                   type="button"
                   onClick={() => void handleExportPdf()}
                   disabled={isPdfExporting}
-                  className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300"
-                  style={{
-                    backgroundColor: 'var(--dash-card)',
-                    borderColor:     'var(--dash-border)',
-                    color:           theme.subtextColor,
-                  }}
+                  className={styles.heroAction}
                 >
                   {isPdfExporting
                     ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -345,12 +327,7 @@ export function BusinessUserAnalyticsPageClient({
               <button
                 type="button"
                 onClick={() => void mutate()}
-                className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors dark:text-gray-300"
-                style={{
-                  backgroundColor: 'var(--dash-card)',
-                  borderColor:     'var(--dash-border)',
-                  color:           theme.subtextColor,
-                }}
+                className={styles.heroAction}
               >
                 <RefreshCw className="h-4 w-4" />
                 Actualizar
@@ -364,17 +341,12 @@ export function BusinessUserAnalyticsPageClient({
           completo está oculto y contenedores como BusinessUserStatsModal ya
           tienen su propio botón, así que solo se muestra si el caller lo pide. */}
       {embedded && showEmbeddedPdfButton && pdfExport && !isLoading && data && (
-        <div className="flex items-center justify-end">
+        <div className={styles.embeddedToolbar}>
           <button
             type="button"
             onClick={() => void handleExportPdf()}
             disabled={isPdfExporting}
-            className="inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold shadow-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:text-gray-300"
-            style={{
-              backgroundColor: 'var(--dash-card)',
-              borderColor:     'var(--dash-border)',
-              color:           theme.subtextColor,
-            }}
+            className={styles.secondaryAction}
           >
             {isPdfExporting
               ? <Loader2 className="h-4 w-4 animate-spin" />
@@ -435,19 +407,16 @@ export function BusinessUserAnalyticsPageClient({
   // Embedded mode: no outer container (used inside modals or side panels)
   if (embedded) {
     return (
-      <div className="w-full" style={dashVars}>
+      <div className={`${styles.page} ${styles.embedded}`} style={dashVars}>
         {content}
       </div>
     )
   }
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ ...dashVars, backgroundColor: 'var(--dash-surface)' } as CSSProperties}
-    >
+    <div className={styles.page} style={dashVars}>
       <OrgNavbar />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-10">
+      <main className={styles.main}>
         {content}
       </main>
     </div>
@@ -458,12 +427,13 @@ export function BusinessUserAnalyticsPageClient({
 
 function ErrorBanner({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border border-red-100 bg-red-50 px-6 py-12 text-center dark:border-red-900/30 dark:bg-red-900/10">
-      <p className="text-sm font-semibold text-red-600 dark:text-red-400">{message}</p>
+    <div className={styles.errorBanner}>
+      <ChartNoAxesCombined className="h-7 w-7" aria-hidden="true" />
+      <p className={styles.errorMessage}>{message}</p>
       <button
         type="button"
         onClick={onRetry}
-        className="inline-flex items-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-600 shadow-sm hover:bg-red-50 dark:border-red-800 dark:bg-transparent dark:text-red-400 dark:hover:bg-red-900/20"
+        className={styles.secondaryAction}
       >
         <RefreshCw className="h-4 w-4" />
         Reintentar

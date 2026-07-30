@@ -1,4 +1,5 @@
 import { CheckCircle2, ChevronLeft, ChevronRight } from "lucide-react";
+import styles from "./VideoPanel.module.css";
 
 type VideoNavigationOverlayProps = {
   hasPreviousVideo: boolean;
@@ -22,14 +23,17 @@ export function VideoNavigationOverlay({
   previousLabel,
 }: VideoNavigationOverlayProps) {
   return (
-    <div className="absolute inset-0 flex items-center justify-between pointer-events-none px-2 sm:px-4">
+    <div className={styles.navigationOverlay}>
       {hasPreviousVideo && (
         <button
+          type="button"
           onClick={onNavigatePrevious}
-          className="pointer-events-auto h-10 sm:h-12 rounded-full bg-primary/50 hover:bg-primary/70 text-white flex items-center justify-center hover:justify-start overflow-hidden transition-all duration-300 shadow-lg backdrop-blur-sm border border-primary/30 group w-10 sm:w-12 md:hover:w-32 hover:pl-2 md:hover:pl-3 hover:pr-2 md:hover:pr-3"
+          className={`${styles.navigationButton} ${styles.navigationPrevious}`}
+          aria-label={previousLabel}
+          title={previousLabel}
         >
-          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-all duration-300 group-hover:mr-2" />
-          <span className="hidden md:block text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+          <ChevronLeft aria-hidden="true" />
+          <span className={styles.navigationLabel}>
             {previousLabel}
           </span>
         </button>
@@ -37,23 +41,21 @@ export function VideoNavigationOverlay({
 
       {(hasNextVideo || isLastLesson) && (
         <button
+          type="button"
           onClick={onPrimaryAction}
-          className="pointer-events-auto h-10 sm:h-12 rounded-full text-white flex items-center justify-center hover:justify-end overflow-hidden transition-all duration-300 shadow-lg backdrop-blur-sm group w-10 sm:w-12 md:hover:w-32 hover:pl-2 md:hover:pl-3 hover:pr-2 md:hover:pr-3 border"
-          style={isLastLesson ? {
-            backgroundColor: 'color-mix(in srgb, var(--learn-action) 45%, transparent)',
-            borderColor: 'color-mix(in srgb, var(--learn-action) 30%, transparent)',
-          } : {
-            backgroundColor: 'color-mix(in srgb, var(--color-primary) 50%, transparent)',
-            borderColor: 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
-          }}
+          className={`${styles.navigationButton} ${styles.navigationNext} ${
+            isLastLesson ? styles.navigationFinish : ""
+          }`}
+          aria-label={isLastLesson ? finishLabel : nextLabel}
+          title={isLastLesson ? finishLabel : nextLabel}
         >
-          <span className="hidden md:block text-sm font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden order-1">
+          <span className={styles.navigationLabel}>
             {isLastLesson ? finishLabel : nextLabel}
           </span>
           {isLastLesson ? (
-            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-all duration-300 group-hover:ml-2 order-2" />
+            <CheckCircle2 aria-hidden="true" />
           ) : (
-            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 transition-all duration-300 group-hover:ml-2 order-2" />
+            <ChevronRight aria-hidden="true" />
           )}
         </button>
       )}

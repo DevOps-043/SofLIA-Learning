@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 
 import { SummaryContent } from "./SummaryContent";
 import { TranscriptContent } from "./TranscriptContent";
+import styles from "./LessonSupplementaryContent.module.css";
 import type { LearnLesson } from "./types";
 
 type SupplementarySectionId = "transcript" | "summary";
@@ -54,43 +55,37 @@ function SupplementarySection({
   tourId,
 }: SupplementarySectionProps) {
   return (
-    <div data-tour-id={tourId} className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/80 shadow-sm transition-colors dark:border-white/10 dark:bg-white/[0.03]">
+    <article
+      data-tour-id={tourId}
+      className={`${styles.resourceSection} ${
+        isOpen ? styles.resourceSectionOpen : ""
+      }`}
+    >
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={isOpen}
         aria-controls={id}
-        className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-white/60 dark:hover:bg-white/[0.05] md:px-5"
+        className={styles.resourceButton}
       >
-        <div className="flex min-w-0 items-start gap-3">
-          <div
-            className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-            style={{
-              backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
-              color: 'var(--learn-accent)',
-            }}
-          >
-            <Icon className="h-4 w-4" />
+        <div className={styles.resourceIdentity}>
+          <div className={styles.resourceIcon}>
+            <Icon aria-hidden="true" />
           </div>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-semibold text-primary dark:text-white md:text-base">
-                {title}
-              </span>
-              <span className="rounded-full border border-primary/10 bg-white px-2.5 py-0.5 text-[11px] font-medium text-[var(--color-legacy-44556b)] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/60">
-                {badge}
-              </span>
+          <div className={styles.resourceCopy}>
+            <div className={styles.resourceTitleRow}>
+              <span className={styles.resourceTitle}>{title}</span>
+              <span className={styles.resourceBadge}>{badge}</span>
             </div>
-            <p className="mt-1 text-sm text-gray-500 dark:text-white/50">
-              {description}
-            </p>
+            <p className={styles.resourceDescription}>{description}</p>
           </div>
         </div>
 
         <ChevronDown
-          className={`h-5 w-5 shrink-0 text-gray-500 transition-transform duration-200 dark:text-white/50 ${
-            isOpen ? "rotate-180" : ""
+          className={`${styles.resourceChevron} ${
+            isOpen ? styles.resourceChevronOpen : ""
           }`}
+          aria-hidden="true"
         />
       </button>
 
@@ -103,15 +98,15 @@ function SupplementarySection({
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="overflow-hidden"
+            className={styles.resourceBody}
           >
-            <div className="border-t border-gray-200 px-4 py-4 dark:border-white/10 md:px-5 md:py-5">
+            <div className={styles.resourceBodyInner}>
               {children}
             </div>
           </motion.div>
         ) : null}
       </AnimatePresence>
-    </div>
+    </article>
   );
 }
 
@@ -160,7 +155,10 @@ export function LessonSupplementaryContent({
   };
 
   return (
-    <div data-tour-id="course-learn--lesson-resources" className="space-y-3 border-t border-gray-200 pt-5 dark:border-gray-500/30">
+    <div
+      data-tour-id="course-learn--lesson-resources"
+      className={styles.resources}
+    >
       <SupplementarySection
         id="lesson-transcript-panel"
         tourId="course-learn--transcript-section"

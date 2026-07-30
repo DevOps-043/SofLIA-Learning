@@ -1,4 +1,5 @@
 import type { BusinessUserDashboardShellProps } from './types'
+import styles from '../BusinessUserDashboard.module.css'
 
 interface LoadMoreCoursesButtonProps {
   onClick: () => void
@@ -16,12 +17,8 @@ export function LoadMoreCoursesButton({
       <button
         type="button"
         onClick={onClick}
-        className="rounded-xl border px-4 py-2 text-sm font-semibold transition-colors"
-        style={{
-          borderColor: orgColors.border,
-          backgroundColor: orgColors.cardBg,
-          color: orgColors.text,
-        }}
+        className={styles.loadMore}
+        style={{ backgroundColor: orgColors.primary, color: orgColors.onPrimary }}
       >
         {t('dashboard.actions.loadMoreCourses', 'Ver mas talleres')}
       </button>

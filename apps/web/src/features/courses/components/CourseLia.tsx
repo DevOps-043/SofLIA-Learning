@@ -8,6 +8,7 @@ import { useLiaCourse } from '@/features/courses/context/LiaCourseContext';
 
 import { CourseLiaFloatingButton } from './CourseLia/components/CourseLiaFloatingButton';
 import { CourseLiaPanelContent } from './CourseLia/CourseLiaPanelContent';
+import { COURSE_LIA_PANEL_PORTAL_ID } from './CourseLia/constants';
 import type { CourseLiaProps } from './CourseLia/types';
 
 export function CourseLia(props: CourseLiaProps) {
@@ -22,18 +23,25 @@ export function CourseLia(props: CourseLiaProps) {
     return null;
   }
 
-  return createPortal(
+  const panelPortalTarget =
+    document.getElementById(COURSE_LIA_PANEL_PORTAL_ID) ?? document.body;
+
+  return (
     <>
-      <CourseLiaPanelContent {...props} />
-      <CourseLiaFloatingButton />
-      <ToastNotification
-        isOpen={!!liaToastMessage}
-        onClose={() => setLiaToastMessage(null)}
-        message={liaToastMessage || ''}
-        type="info"
-        duration={3000}
-      />
-    </>,
-    document.body,
+      {createPortal(<CourseLiaPanelContent {...props} />, panelPortalTarget)}
+      {createPortal(
+        <>
+          <CourseLiaFloatingButton />
+          <ToastNotification
+            isOpen={!!liaToastMessage}
+            onClose={() => setLiaToastMessage(null)}
+            message={liaToastMessage || ''}
+            type="info"
+            duration={3000}
+          />
+        </>,
+        document.body,
+      )}
+    </>
   );
 }

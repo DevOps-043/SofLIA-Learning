@@ -2,12 +2,13 @@
 
 import type { CSSProperties } from 'react'
 import Image from 'next/image'
-import { Award, Play, BookOpen, CheckCircle2, Lock } from 'lucide-react'
+import { ArrowUpRight, Award, Play, BookOpen, CheckCircle2, Lock } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { hexToRgb } from '../../../../../features/business-panel/utils/styles'
 import { useThemeStore } from '../../../../../core/stores/themeStore'
 import { formatShortDate, formatDate } from '../../../../../shared/utils/date-formatter'
 import type { StyleConfig } from '../../../../../features/business-panel/contexts/OrganizationStylesContext'
+import dashboardStyles from '../page-components/BusinessUserDashboard.module.css'
 
 interface AssignedCourse {
   id: string
@@ -29,6 +30,8 @@ interface CourseCard3DProps {
   index: number
   onClick: () => void
   onCertificateClick?: () => void
+  onPreview?: (anchor: HTMLElement) => void
+  onPreviewEnd?: () => void
   styles?: Partial<StyleConfig> | null
   viewMode?: 'grid' | 'list'
   learningPathTitle?: string
@@ -46,6 +49,8 @@ export function CourseCard3D({
   index,
   onClick,
   onCertificateClick,
+  onPreview,
+  onPreviewEnd,
   styles,
   viewMode = 'grid',
   learningPathTitle,
@@ -71,9 +76,6 @@ export function CourseCard3D({
   const cardOpacity = styles?.card_opacity ?? 0.95
 
   const isLightMode = isSystemLight
-
-  // Calcular RGB para opacidad
-  const cardBgRgb = hexToRgb(cardBackground)
 
   const statusKeyMap: Record<string, string> = {
     'No iniciado': 'dashboard.courses.status.notStarted',
@@ -122,20 +124,33 @@ export function CourseCard3D({
 
   if (viewMode === 'list') {
     return (
-      <div
+      <article
         data-tour-id="business-user-dashboard--course-card"
-        className={`group grid grid-cols-[2.5rem_4rem_minmax(0,1fr)] items-center overflow-hidden rounded-2xl md:grid-cols-[2.5rem_4rem_minmax(0,1fr)_9rem_7.5rem_2.75rem] ${disableHeavyEffects ? '' : 'transition-all duration-200'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:shadow-md cursor-pointer'}`}
+        className={`${dashboardStyles.listCourseCard} group ${isLockedInPath ? dashboardStyles.listCourseCardLocked : ''}`}
         style={{
-          backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
-          border: `1px solid ${borderColor}`,
+          '--dashboard-primary': primaryColor,
+          '--dashboard-accent': accentColor,
+          '--dashboard-text': textColor,
+          '--dashboard-muted': isLightMode
+            ? 'var(--color-gray-500)'
+            : 'var(--color-legacy-9ca3af)',
+          '--dashboard-surface': cardBackground,
+          '--dashboard-border': borderColor,
+          '--list-card-opacity': cardOpacity,
           animationDelay: `${index * 40}ms`,
-          opacity: isLockedInPath ? 0.5 : 1,
-        }}
-        onClick={isLockedInPath ? undefined : onClick}
+        } as CSSProperties}
       >
+        {!isLockedInPath ? (
+          <button
+            type="button"
+            className={dashboardStyles.listCourseClickTarget}
+            onClick={onClick}
+            aria-label={`${translatedStatus}: ${course.title}`}
+          />
+        ) : null}
         {/* Path position badge */}
         <div
-          className="flex min-h-16 items-center justify-center text-xs font-bold"
+          className={dashboardStyles.listCoursePositionLane}
           style={{ color: isLockedInPath ? (isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-6b7280)') : accentColor }}
         >
           {isLockedInPath ? <Lock className="w-3.5 h-3.5" /> : learningPathPosition !== undefined ? `#${learningPathPosition}` : null}
@@ -143,39 +158,48 @@ export function CourseCard3D({
 
         {/* Thumbnail — small square, fixed 64×64 */}
         <div
-          className="relative shrink-0 overflow-hidden"
-          style={{ width: 64, minWidth: 64, height: 64, backgroundColor: isLightMode ? 'var(--color-gray-100)' : 'var(--color-legacy-0f172a)' }}
+          className={dashboardStyles.listCourseMedia}
         >
           <Image
             src={course.thumbnail || '/images/course-placeholder.png'}
             alt={course.title}
             fill
             priority={index < 6}
-            className={`object-cover ${disableHeavyEffects ? '' : 'transition-transform duration-500 group-hover:scale-105'}`}
-            sizes="64px"
+            className={dashboardStyles.listCourseImage}
+            sizes="(max-width: 768px) 40vw, 220px"
           />
+          <span className={dashboardStyles.listCourseMediaShade} />
+          {isLockedInPath || learningPathPosition !== undefined ? (
+            <span className={dashboardStyles.listCoursePosition}>
+              {isLockedInPath ? (
+                <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+              ) : (
+                learningPathPosition
+              )}
+            </span>
+          ) : null}
         </div>
 
         {/* Title + instructor — takes all available space */}
-        <div className="flex-1 min-w-0 px-4 py-3">
-          <h3
-            className="text-sm font-semibold leading-snug line-clamp-2 group-hover:opacity-75 transition-opacity"
-            style={{ color: textColor }}
-          >
+        <div className={dashboardStyles.listCourseContent}>
+          {learningPathTitle ? (
+            <span className={dashboardStyles.listCoursePath}>{learningPathTitle}</span>
+          ) : null}
+          <h3 className={dashboardStyles.listCourseTitle}>
             {course.title}
           </h3>
-          <p className="text-[11px] mt-0.5 truncate" style={{ color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)' }}>
+          <p className={dashboardStyles.listCourseInstructor}>
             {course.instructor}
           </p>
-          <div className="mt-2 flex items-center gap-2 md:hidden">
+          <div className={dashboardStyles.listCourseMobileMeta}>
             <span
-              className="inline-flex h-7 min-w-[7.5rem] items-center justify-center gap-1.5 rounded-full border px-2 text-[9px] font-bold uppercase tracking-wide"
+              className={dashboardStyles.listCourseMobileStatus}
               style={getStatusBadgeStyle()}
             >
               {getStatusIcon()}
               <span>{translatedStatus}</span>
             </span>
-            <span className="text-xs font-bold tabular-nums" style={{ color: accentColor }}>
+            <span className={dashboardStyles.listCourseMobileProgress}>
               {course.progress}%
             </span>
           </div>
@@ -183,7 +207,7 @@ export function CourseCard3D({
 
         {/* Status badge — only on md+ */}
         <div
-          className="mx-3 hidden h-8 min-w-[8.25rem] items-center justify-center gap-1.5 rounded-full border px-3 text-[10px] font-bold uppercase tracking-wide md:flex"
+          className={dashboardStyles.listCourseStatus}
           style={getStatusBadgeStyle()}
         >
           {getStatusIcon()}
@@ -191,136 +215,174 @@ export function CourseCard3D({
         </div>
 
         {/* Progress column */}
-        <div className="hidden shrink-0 flex-col items-end gap-1 pr-4 py-3 md:flex">
-          <span className="text-xs font-bold tabular-nums" style={{ color: accentColor }}>
+        <div className={dashboardStyles.listCourseProgress}>
+          <span className={dashboardStyles.listCourseProgressValue}>
             {course.progress}%
           </span>
-          <div
-            className="h-1.5 w-20 rounded-full overflow-hidden"
-            style={{ backgroundColor: isLightMode ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)' }}
-          >
+          <div className={dashboardStyles.listCourseProgressTrack}>
             <div
-              className="h-full rounded-full transition-all duration-700"
+              className={dashboardStyles.listCourseProgressBar}
               style={{ width: `${course.progress}%`, background: `linear-gradient(90deg, ${primaryColor}, ${accentColor})` }}
             />
           </div>
           {course.due_date && (
-            <span className="text-[9px] mt-0.5" style={{ color: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-6b7280)' }}>
+            <span className={dashboardStyles.listCourseDueDate}>
               {formatDate(course.due_date, i18n.language, { day: 'numeric', month: 'short' })}
             </span>
           )}
         </div>
 
-        {/* Certificate icon */}
-        <div className="hidden items-center justify-center md:flex">
-          {course.has_certificate && course.progress === 100 && onCertificateClick ? (
-            <button
-              data-tour-id="business-user-dashboard--certificate-action"
-              onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
-              className="p-2 rounded-full transition-all duration-200 hover:scale-110"
-              style={{ color: 'var(--color-warning)', backgroundColor: isLightMode ? 'var(--color-legacy-fef3c7)' : 'rgba(245,158,11,0.15)' }}
-            >
-              <Award className="w-4 h-4" />
-            </button>
-          ) : null}
-        </div>
-      </div>
+        {course.has_certificate && course.progress === 100 && onCertificateClick ? (
+          <button
+            type="button"
+            data-tour-id="business-user-dashboard--certificate-action"
+            onClick={onCertificateClick}
+            className={dashboardStyles.listCourseCertificate}
+            aria-label={t('dashboard.courses.viewCertificate', 'Ver certificado')}
+          >
+            <Award className="h-4 w-4" aria-hidden="true" />
+          </button>
+        ) : (
+          <span className={dashboardStyles.listCourseArrow}>
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </span>
+        )}
+      </article>
     )
   }
 
+  const courseActionLabel =
+    displayStatus === 'Completado'
+      ? t('dashboard.courses.review', 'Ver curso')
+      : course.progress > 0
+        ? t('dashboard.courses.continue', 'Continuar')
+        : t('dashboard.courses.start', 'Comenzar')
+
   return (
-    <div
+    <motion.article
       data-tour-id="business-user-dashboard--course-card"
-      className={`group relative flex flex-col overflow-hidden rounded-[20px] ${disableHeavyEffects ? '' : 'transition-all duration-300'} ${isLockedInPath ? 'cursor-not-allowed' : 'hover:-translate-y-1 hover:shadow-xl cursor-pointer'}`}
-      style={{
-        backgroundColor: `rgba(${cardBgRgb}, ${cardOpacity})`,
-        border: `1px solid ${borderColor}`,
-        boxShadow: isLightMode ? '0 4px 20px -10px rgba(0,0,0,0.08)' : 'none',
-        animationDelay: `${index * 50}ms`,
-        opacity: isLockedInPath ? 0.5 : 1,
+      initial={disableHeavyEffects ? false : { opacity: 0, y: 22 }}
+      whileInView={disableHeavyEffects ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.14 }}
+      transition={{
+        duration: 0.55,
+        delay: Math.min(index * 0.045, 0.18),
+        ease: [0.22, 1, 0.36, 1],
       }}
-      onClick={isLockedInPath ? undefined : onClick}
+      className={`${dashboardStyles.courseCard} group ${isLockedInPath ? dashboardStyles.courseCardLocked : ''}`}
+      onMouseEnter={(event) => {
+        if (!isLockedInPath) onPreview?.(event.currentTarget)
+      }}
+      onMouseLeave={onPreviewEnd}
+      onFocusCapture={(event) => {
+        if (!isLockedInPath) onPreview?.(event.currentTarget)
+      }}
+      onBlurCapture={(event) => {
+        const nextTarget = event.relatedTarget as Node | null
+        if (!nextTarget || !event.currentTarget.contains(nextTarget)) onPreviewEnd?.()
+      }}
+      style={{
+        '--dashboard-primary': primaryColor,
+        '--dashboard-accent': accentColor,
+        '--dashboard-text': textColor,
+        '--dashboard-muted': isLightMode
+          ? 'var(--color-gray-500)'
+          : 'var(--color-legacy-9ca3af)',
+        '--dashboard-surface': cardBackground,
+        '--dashboard-border': borderColor,
+        animationDelay: `${index * 50}ms`,
+      } as CSSProperties}
     >
-      {/* Thumbnail */}
-      <div
-        className="relative aspect-video w-full overflow-hidden"
-        style={{ backgroundColor: isLightMode ? 'var(--color-gray-50)' : 'var(--color-legacy-0f172a)' }}
-      >
+      {!isLockedInPath ? (
+        <button
+          type="button"
+          className={dashboardStyles.courseClickTarget}
+          onClick={onClick}
+          aria-label={`${courseActionLabel}: ${course.title}`}
+        />
+      ) : null}
+
+      <div className={dashboardStyles.courseMedia}>
         <Image
           src={course.thumbnail || '/images/course-placeholder.png'}
           alt={course.title}
           fill
           priority={index < 4}
-          className={`object-cover ${disableHeavyEffects ? '' : 'transition-transform duration-700 ease-out group-hover:scale-105'}`}
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className={dashboardStyles.courseImage}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+        <div className={dashboardStyles.courseMediaShade} />
 
         {isLockedInPath ? (
-          <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center">
-            <Lock className="w-7 h-7 text-white/80" />
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/50">
+            <Lock className="h-7 w-7 text-white/80" />
           </div>
         ) : (
-          <div className={`absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase text-white bg-black/40 border border-white/20 ${disableHeavyEffects ? '' : 'backdrop-blur-md'}`}>
+          <div className={dashboardStyles.courseStatus}>
             {getStatusIcon()}
             {translatedStatus}
           </div>
         )}
 
-        {course.has_certificate && course.progress === 100 && onCertificateClick && (
+        {course.has_certificate && course.progress === 100 && onCertificateClick ? (
           <button
+            type="button"
             data-tour-id="business-user-dashboard--certificate-action"
-            onClick={(e) => { e.stopPropagation(); onCertificateClick() }}
-            className={`absolute top-3 right-3 p-2 rounded-full bg-white/20 border border-white/40 text-yellow-400 shadow-sm ${disableHeavyEffects ? '' : 'backdrop-blur-md transition-all duration-300 hover:scale-110 hover:bg-white hover:text-yellow-600'}`}
+            onClick={(event) => {
+              event.stopPropagation()
+              onCertificateClick()
+            }}
+            className={dashboardStyles.certificateButton}
+            aria-label={t('dashboard.courses.openCertificate', 'Abrir certificado')}
           >
-            <Award className="w-4 h-4" />
+            <Award className="h-4 w-4" />
           </button>
-        )}
+        ) : null}
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col flex-1 p-3.5">
+      <div className={dashboardStyles.courseContent}>
+        {learningPathTitle ? (
+          <p className={dashboardStyles.coursePath}>
+            <span>#{learningPathPosition}</span>
+            <span aria-hidden="true">·</span>
+            <span className="truncate">{learningPathTitle}</span>
+          </p>
+        ) : null}
         <h3
-          className="text-sm font-bold leading-snug mb-1 transition-colors group-hover:opacity-80"
-          style={{ color: textColor }}
+          id={`dashboard-course-${course.id}`}
+          className={dashboardStyles.courseTitle}
         >
           {course.title}
         </h3>
-        <p className="text-[10px] mb-1 line-clamp-1" style={{ color: isLightMode ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)' }}>
-          {course.instructor}
-        </p>
-        {learningPathTitle && (
-          <p className="text-[9px] mb-2 flex items-center gap-1 truncate font-medium" style={{ color: accentColor + 'bb' }}>
-            <span className="font-bold">#{learningPathPosition}</span>
-            <span>·</span>
-            <span className="truncate">{learningPathTitle}</span>
-          </p>
-        )}
+        <p className={dashboardStyles.courseInstructor}>{course.instructor}</p>
 
-        <div className="mt-auto pt-3">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] uppercase tracking-wider font-semibold" style={{ color: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-858e9b)' }}>
-              {t('dashboard.courses.progress', 'Progreso')}
-            </span>
-            <span className="text-[10px] font-bold" style={{ color: accentColor }}>
-              {course.progress}%
-            </span>
+        <div className={dashboardStyles.courseFooter}>
+          <div className={dashboardStyles.courseProgressMeta}>
+            <span>{t('dashboard.courses.progress', 'Progreso')}</span>
+            <span className={dashboardStyles.courseProgressValue}>{course.progress}%</span>
           </div>
-          <div className="h-1.5 w-full rounded-full overflow-hidden" style={{ backgroundColor: isLightMode ? 'var(--color-gray-100)' : 'rgba(255,255,255,0.08)' }}>
+          <div className={dashboardStyles.courseProgressTrack}>
             <div
-              className={`h-full rounded-full ${disableHeavyEffects ? '' : 'transition-all duration-700 ease-out'}`}
-              style={{ width: `${course.progress}%`, background: `linear-gradient(90deg, ${primaryColor}, ${accentColor})` }}
+              className={dashboardStyles.courseProgressBar}
+              style={{ width: `${course.progress}%` }}
             />
           </div>
-          <div className="h-[14px] mt-2">
-            {course.due_date && (
-              <p className="text-[9px] font-medium" style={{ color: isLightMode ? 'var(--color-gray-400)' : 'var(--color-legacy-858e9b)' }}>
-                {t('dashboard.courses.dueDatePrefix', 'Vence:')} {formatShortDate(course.due_date, i18n.language)}
+          <div className={dashboardStyles.courseBottomLine}>
+            {course.due_date ? (
+              <p className={dashboardStyles.courseDueDate}>
+                {t('dashboard.courses.dueDatePrefix', 'Vence:')}{' '}
+                {formatShortDate(course.due_date, i18n.language)}
               </p>
-            )}
+            ) : null}
+            {!isLockedInPath ? (
+              <span className={dashboardStyles.courseCta}>
+                {courseActionLabel}
+                <ArrowUpRight className={`${dashboardStyles.courseCtaIcon} h-3.5 w-3.5`} />
+              </span>
+            ) : null}
           </div>
         </div>
       </div>
-    </div>
+    </motion.article>
   )
 }

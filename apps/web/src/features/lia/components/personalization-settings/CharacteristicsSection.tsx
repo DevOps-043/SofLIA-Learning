@@ -1,9 +1,10 @@
-import { MessageSquare } from 'lucide-react';
+import { MessageCircleMore } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Section } from './Section';
 import { ToggleField } from './ToggleField';
 import type { PersonalizationFormData } from './types';
+import styles from './PersonalizationSettings.module.css';
 
 interface CharacteristicsSectionProps {
   formData: PersonalizationFormData;
@@ -19,11 +20,11 @@ export function CharacteristicsSection(props: CharacteristicsSectionProps) {
     <Section
       title={t('liaPersonalization.sections.characteristics.title')}
       description={t('liaPersonalization.sections.characteristics.description')}
-      icon={MessageSquare}
+      icon={MessageCircleMore}
       isExpanded={props.isExpanded}
       onToggle={props.onToggle}
     >
-      <div className="space-y-4">
+      <div className={styles.toggleList}>
         <ToggleField
           label={t('liaPersonalization.friendlyLabel')}
           description={t('liaPersonalization.friendlyDesc')}

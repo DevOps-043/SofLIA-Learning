@@ -4,6 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { Heart, Send } from "lucide-react";
 
+import styles from "../CommunityExperience.module.css";
 import type { CourseQuestionResponse } from "./types";
 import {
   formatQuestionTimeAgo,
@@ -42,110 +43,93 @@ export function QuestionResponseItem({
   const isLiked = responseReactions[response.id] === "like";
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
+    <motion.article
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      className="group flex gap-3"
+      className={styles.response}
     >
-      {/* Avatar */}
-      <div className="relative w-8 h-8 rounded-xl overflow-hidden bg-gray-100 dark:bg-white/10 flex items-center justify-center flex-shrink-0 text-white">
+      <span className={styles.avatar}>
         {response.user?.profile_picture_url ? (
           <Image
             src={response.user.profile_picture_url}
             alt={getQuestionUserDisplayName(response.user)}
             fill
-            sizes="32px"
+            sizes="38px"
             className="object-cover"
           />
         ) : (
-          <span className="text-gray-500 dark:text-white/50 text-xs font-semibold">
-            {getQuestionUserInitials(response.user)}
-          </span>
+          getQuestionUserInitials(response.user)
         )}
-      </div>
+      </span>
 
-      <div className="flex-1 min-w-0">
-        {/* Header row */}
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className="text-sm font-semibold text-gray-900 dark:text-white/90">
+      <div className={styles.responseBody}>
+        <div className={styles.metaRow}>
+          <span className={styles.author}>
             {getQuestionUserDisplayName(response.user)}
           </span>
-          <span className="text-[10px] text-gray-400 dark:text-white/30">•</span>
-          <span className="text-xs text-gray-400 dark:text-white/35">
+          <span className={styles.timestamp}>
             {formatQuestionTimeAgo(response.created_at)}
           </span>
           {response.is_instructor_answer && (
-            <span
-              className="px-2 py-0.5 text-[10px] font-semibold rounded-full border"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
-                color: 'var(--learn-accent)',
-                borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
-              }}
-            >
-              Instructor
-            </span>
+            <span className={styles.instructorBadge}>Instructor</span>
           )}
         </div>
 
-        {/* Content */}
-        <p className="text-gray-700 dark:text-white/75 text-sm leading-relaxed whitespace-pre-wrap mb-2">
-          {response.content}
-        </p>
+        <p className={styles.responseContent}>{response.content}</p>
 
-        {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className={styles.responseActions}>
           <button
             onClick={() => onReaction(response.id)}
-            className={`flex items-center gap-1.5 text-xs transition-colors ${
-              isLiked
-                ? "text-red-500"
-                : "text-gray-400 dark:text-white/30 hover:text-red-500 dark:hover:text-red-400"
+            className={`${styles.statButton} ${
+              isLiked ? styles.statButtonActive : ""
             }`}
+            aria-label={isLiked ? "Quitar Me gusta" : "Marcar Me gusta"}
+            type="button"
           >
-            <Heart className={`w-3.5 h-3.5 ${isLiked ? "fill-current" : ""}`} />
-            <span>{responseReactionCounts[response.id] ?? response.reaction_count ?? 0}</span>
+            <Heart
+              aria-hidden="true"
+              className={isLiked ? "fill-current" : ""}
+            />
+            {responseReactionCounts[response.id] ??
+              response.reaction_count ??
+              0}
           </button>
 
           {allowReply && (
             <button
               onClick={() => onReplyToggle(response.id)}
-              className="text-xs text-gray-400 dark:text-white/30 hover:text-primary dark:hover:text-accent transition-colors font-medium"
+              className={styles.replyButton}
+              type="button"
             >
-              Responder
+              {isReplying ? "Cancelar" : "Responder"}
             </button>
           )}
         </div>
 
-        {/* Inline reply form */}
         {allowReply && (
-          <AnimatePresence>
+          <AnimatePresence initial={false}>
             {isReplying && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="mt-3 pl-4 border-l-2"
-                style={{ borderLeftColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)' }}
+                className={styles.inlineReply}
               >
-                <div className="flex gap-2">
+                <div className={styles.inlineReplyField}>
                   <textarea
                     value={replyContent}
-                    onChange={(e) => onReplyChange(e.target.value)}
-                    placeholder="Escribe una respuesta..."
+                    onChange={(event) => onReplyChange(event.target.value)}
+                    placeholder="Escribe una respuesta…"
                     rows={1}
-                    className="flex-1 bg-transparent border-0 border-b border-gray-200 dark:border-white/10 px-0 py-1 text-sm text-gray-800 dark:text-white/85 placeholder-gray-400 dark:placeholder-white/25 focus:outline-none focus:border-primary/40 dark:focus:border-accent/40 focus:ring-0 resize-none transition-colors"
                   />
                   <button
                     onClick={() => onSubmitReply(response.id)}
                     disabled={!replyContent.trim() || isSubmitting}
-                    className="p-1.5 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-95"
-                    style={{
-                      backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
-                      color: 'var(--learn-accent)',
-                    }}
+                    className={styles.iconButton}
+                    aria-label="Enviar respuesta"
+                    type="button"
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send aria-hidden="true" />
                   </button>
                 </div>
               </motion.div>
@@ -153,9 +137,8 @@ export function QuestionResponseItem({
           </AnimatePresence>
         )}
 
-        {/* Nested replies */}
         {response.replies && response.replies.length > 0 && (
-          <div className="mt-4 space-y-4 pl-4 border-l border-gray-100 dark:border-white/8">
+          <div className={styles.nestedResponses}>
             {response.replies.map((reply) => (
               <QuestionResponseItem
                 key={reply.id}
@@ -175,6 +158,6 @@ export function QuestionResponseItem({
           </div>
         )}
       </div>
-    </motion.div>
+    </motion.article>
   );
 }

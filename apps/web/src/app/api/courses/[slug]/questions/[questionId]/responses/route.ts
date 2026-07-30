@@ -86,7 +86,7 @@ export async function GET(
       .single();
 
     const currentUser = await SessionService.getCurrentUser();
-    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser);
+    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser, course.id);
 
     if (questionError || !question || !isQuestionInOrgScope(question, orgScope)) {
       return NextResponse.json(
@@ -285,7 +285,7 @@ async function handlePost(
       .eq('course_id', course.id)
       .single();
 
-    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+    const orgScope = await resolveQuestionsOrgScope(supabase, user, course.id);
 
     if (questionError || !question || !isQuestionInOrgScope(question, orgScope)) {
       return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404);

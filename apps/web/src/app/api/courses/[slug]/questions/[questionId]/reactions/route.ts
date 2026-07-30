@@ -45,7 +45,7 @@ async function handlePost(
       .single()
 
     // Sólo se reacciona a preguntas de la propia organización.
-    const orgScope = await resolveQuestionsOrgScope(supabase, user)
+    const orgScope = await resolveQuestionsOrgScope(supabase, user, course.id)
 
     if (questionError || !question || !isQuestionInOrgScope(question, orgScope)) {
       return apiError('QUESTION_NOT_FOUND', 'Pregunta no encontrada.', 404)

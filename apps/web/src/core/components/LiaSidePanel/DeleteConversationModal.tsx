@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { LiaThemeColors, LiaConversationToDelete } from './types';
+import styles from './LiaSidePanel.module.css';
 
 interface DeleteConversationModalProps {
   themeColors: LiaThemeColors;
@@ -13,7 +14,6 @@ interface DeleteConversationModalProps {
 }
 
 export function DeleteConversationModal({
-  themeColors,
   conversationToDelete,
   deletingConversationId,
   handleCancelDelete,
@@ -23,96 +23,48 @@ export function DeleteConversationModal({
 
   return (
     <motion.div
+      className={styles.deleteBackdrop}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={handleCancelDelete}
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(4px)',
-        zIndex: 100000,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-      }}
     >
       <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        className={styles.deleteModal}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="delete-conversation-title"
+        aria-describedby="delete-conversation-description"
+        initial={{ opacity: 0, scale: 0.96, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          backgroundColor: themeColors.panelBg,
-          borderRadius: '16px',
-          padding: '24px',
-          maxWidth: '400px',
-          width: '100%',
-          border: `1px solid ${themeColors.borderColor}`,
-          boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-        }}
+        exit={{ opacity: 0, scale: 0.97, y: 12 }}
+        transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+        onClick={(event) => event.stopPropagation()}
       >
-        <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ color: themeColors.textPrimary, fontSize: '20px', fontWeight: 600, margin: '0 0 8px 0' }}>
-            Eliminar conversación
-          </h3>
-          <p style={{ color: themeColors.textSecondary, fontSize: '14px', margin: 0, lineHeight: '1.5' }}>
-            ¿Estás seguro de que quieres eliminar la conversación "{conversationToDelete.title}"?
-          </p>
-          <p style={{ color: 'var(--color-error)', fontSize: '13px', margin: '8px 0 0 0', fontWeight: 500 }}>
-            Esta acción no se puede deshacer.
-          </p>
-        </div>
+        <p className={styles.deleteEyebrow}>Acción permanente</p>
+        <h3 id="delete-conversation-title" className={styles.deleteTitle}>
+          Eliminar conversación
+        </h3>
+        <p id="delete-conversation-description" className={styles.deleteText}>
+          ¿Quieres eliminar “{conversationToDelete.title}” del historial?
+        </p>
+        <p className={styles.deleteWarning}>
+          Esta acción no se puede deshacer.
+        </p>
 
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+        <div className={styles.modalActions}>
           <button
+            type="button"
             onClick={handleCancelDelete}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: `1px solid ${themeColors.borderColor}`,
-              background: 'transparent',
-              color: themeColors.textPrimary,
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'all 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = themeColors.inputBg;
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
+            className={`${styles.secondaryButton} ${styles.modalButton}`}
           >
             Cancelar
           </button>
           <button
+            type="button"
             onClick={handleConfirmDelete}
             disabled={isDeleting}
-            style={{
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              background: isDeleting ? themeColors.textSecondary : 'var(--color-error)',
-              color: 'white',
-              cursor: isDeleting ? 'wait' : 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              transition: 'all 0.2s',
-              opacity: isDeleting ? 0.7 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isDeleting) e.currentTarget.style.backgroundColor = 'var(--color-legacy-dc2626)';
-            }}
-            onMouseLeave={(e) => {
-              if (!isDeleting) e.currentTarget.style.backgroundColor = 'var(--color-error)';
-            }}
+            className={`${styles.dangerButton} ${styles.modalButton}`}
           >
             {isDeleting ? 'Eliminando...' : 'Eliminar'}
           </button>

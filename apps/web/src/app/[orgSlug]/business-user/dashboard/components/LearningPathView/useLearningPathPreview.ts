@@ -106,7 +106,7 @@ export function useLearningPathPreview(
                 ...current,
                 description: t(
                   'dashboard.learningPaths.previewUnavailable',
-                  'No se pudo generar el analisis con Gemini en este momento.',
+                  'No se pudo generar el análisis con Gemini en este momento.',
                 ),
                 points: [],
                 loading: false,

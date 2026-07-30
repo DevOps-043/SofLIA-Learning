@@ -21,14 +21,12 @@ export function CourseLiaPanelContent(props: CourseLiaProps) {
       themeColors={controller.themeColors}
     >
       <CourseLiaHeader
-        isLightTheme={controller.isLightTheme}
         isSpeaking={controller.isSpeaking}
         isVoiceEnabled={controller.isVoiceEnabled}
         isVoiceTogglePending={controller.isVoiceTogglePending}
         onClearHistory={controller.clearHistory}
         onClose={controller.closeLia}
         onToggleVoice={controller.toggleVoiceEnabled}
-        themeColors={controller.themeColors}
         isMobile={controller.isMobile}
       />
       <CourseLiaMessages
@@ -36,10 +34,9 @@ export function CourseLiaPanelContent(props: CourseLiaProps) {
         editInputRef={controller.editInputRef}
         editingMessageId={controller.editingMessageId}
         editingValue={controller.editingValue}
-        forceDarkText={controller.forceDarkText}
         isDarkMode={controller.isDarkMode}
-        isLightTheme={controller.isLightTheme}
         isLoading={controller.isLoading}
+        lessonTitle={props.lessonTitle}
         messages={controller.messages}
         messagesEndRef={controller.messagesEndRef}
         onCancelEditing={controller.handleCancelEditingMessage}
@@ -56,14 +53,6 @@ export function CourseLiaPanelContent(props: CourseLiaProps) {
       <ChatSuggestionsChips
         suggestions={controller.lessonSuggestions}
         isLoading={controller.isLoadingSuggestions}
-        isLightTheme={controller.isLightTheme || controller.forceDarkText}
-        theme={{
-          accentColor: controller.themeColors.accentColor,
-          borderColor: controller.themeColors.borderColor,
-          inputBg: controller.themeColors.inputBg,
-          textPrimary: controller.themeColors.textPrimary,
-          textSecondary: controller.themeColors.textSecondary,
-        }}
         onSuggestionClick={controller.handleSuggestionClick}
         forceCollapse={controller.currentActivity?.timestamp || false}
       />

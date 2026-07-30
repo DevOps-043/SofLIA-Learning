@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { PremiumLoadingScreen } from '@/core/components/PremiumLoadingScreen/PremiumLoadingScreen';
 import { useAuth } from '@/features/auth/hooks/useAuth';
 import { useQuestionnaireValidation } from '@/features/auth/hooks/useQuestionnaireValidation';
 
@@ -46,16 +47,10 @@ export default function WelcomeClient() {
 
   if (authLoading || isChecking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-slate-900 dark:via-purple-900 dark:to-slate-900 flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 dark:text-white text-lg">Cargando...</p>
-        </motion.div>
-      </div>
+      <PremiumLoadingScreen
+        description="Preparando tu experiencia personalizada."
+        label="Configurando tu espacio"
+      />
     );
   }
 
@@ -145,4 +140,3 @@ export default function WelcomeClient() {
     </div>
   );
 }
-

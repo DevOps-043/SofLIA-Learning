@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Check,
@@ -15,11 +14,12 @@ import {
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { useNoteEnrichment } from '../hooks/useNoteEnrichment'
 import type { NotebookDerivedTask } from '../types'
+import styles from './NotebookEditor.module.css'
 
 interface NoteEnrichmentPanelProps {
   orgSlug: string
   noteId: string
-  onTaskActionError: () => void
+  onError: (message: string) => void
 }
 
 /**
@@ -30,53 +30,49 @@ interface NoteEnrichmentPanelProps {
 export function NoteEnrichmentPanel({
   orgSlug,
   noteId,
-  onTaskActionError,
+  onError,
 }: NoteEnrichmentPanelProps) {
   const { t } = useTranslation('notebook')
   const theme = useBusinessPanelTheme()
-  const { state, isLoading, setTaskStatus, retryEnrichment } = useNoteEnrichment(
-    orgSlug,
-    noteId,
-  )
-  const [isRetrying, setIsRetrying] = useState(false)
+  const { state, isLoading, isRetrying, setTaskStatus, retryEnrichment } =
+    useNoteEnrichment(orgSlug, noteId)
 
   const handleTaskStatus = async (
     taskId: string,
     status: 'open' | 'done' | 'dismissed',
   ) => {
     const ok = await setTaskStatus(taskId, status)
-    if (!ok) onTaskActionError()
+    if (!ok) onError(t('enrichment.taskActionError'))
   }
 
   const handleRetry = async () => {
-    setIsRetrying(true)
-    try {
-      await retryEnrichment()
-    } catch {
-      onTaskActionError()
-    } finally {
-      setIsRetrying(false)
-    }
+    const result = await retryEnrichment()
+    if (!result.ok) onError(result.error ?? t('enrichment.retryError'))
   }
 
   const isProcessing =
     state?.jobStatus === 'pending' || state?.jobStatus === 'processing'
+  const hasFailed = state?.jobStatus === 'failed'
   const enrichment = state?.enrichment ?? null
   const visibleTasks = (state?.tasks ?? []).filter(
     (task) => task.status !== 'dismissed',
   )
+  // El análisis puede terminar sin resultado por varias vías (reintentos
+  // agotados, o el trabajo se descartó porque el apunte cambió o quedó
+  // bloqueado). En todos esos casos la nota se quedaba sin forma de volver a
+  // analizarse, así que la acción se ofrece siempre que no haya nada en curso.
+  const canRequestAnalysis = Boolean(state) && !isProcessing && !enrichment
 
   return (
-    <div
-      className="rounded-2xl border p-4 shadow-sm"
-      style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
-    >
-      <div className="mb-3 flex items-center justify-between">
+    <section className={styles.enrichmentCard}>
+      <div className={styles.enrichmentHeader}>
+        <span className={styles.enrichmentIcon}>
+          <Sparkles />
+        </span>
         <p
-          className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide"
+          className={styles.enrichmentTitle}
           style={{ color: theme.subtextColor }}
         >
-          <Sparkles className="h-3.5 w-3.5" style={{ color: theme.actionColor }} />
           {t('enrichment.title')}
         </p>
         {isProcessing && (
@@ -88,26 +84,24 @@ export function NoteEnrichmentPanel({
       </div>
 
       {isLoading && !state ? (
-        <p className="text-xs" style={{ color: theme.mutedTextColor }}>
+        <p className={styles.enrichmentEmpty} style={{ color: theme.mutedTextColor }}>
           {t('enrichment.loading')}
         </p>
       ) : !enrichment && isProcessing ? (
-        <p className="text-xs" style={{ color: theme.mutedTextColor }}>
+        <p className={styles.enrichmentEmpty} style={{ color: theme.mutedTextColor }}>
           {t('enrichment.processing')}
         </p>
       ) : !enrichment ? (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs" style={{ color: theme.mutedTextColor }}>
-            {state?.jobStatus === 'failed'
-              ? t('enrichment.failed')
-              : t('enrichment.empty')}
+        <div className={styles.enrichmentEmptyState}>
+          <p style={{ color: theme.mutedTextColor }}>
+            {hasFailed ? t('enrichment.failed') : t('enrichment.empty')}
           </p>
-          {state?.jobStatus === 'failed' && (
+          {canRequestAnalysis && (
             <button
               type="button"
               onClick={() => void handleRetry()}
               disabled={isRetrying}
-              className="inline-flex w-fit items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
+              className={styles.enrichmentRetry}
               style={{ borderColor: theme.borderColor, color: theme.actionColor }}
             >
               {isRetrying ? (
@@ -115,14 +109,14 @@ export function NoteEnrichmentPanel({
               ) : (
                 <RotateCcw className="h-3.5 w-3.5" />
               )}
-              {t('enrichment.retry')}
+              {hasFailed ? t('enrichment.retry') : t('enrichment.analyzeNow')}
             </button>
           )}
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div className={styles.enrichmentContent}>
           <span
-            className="inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+            className={styles.knowledgeBadge}
             style={{
               backgroundColor: `${theme.actionColor}1a`,
               color: theme.actionColor,
@@ -132,32 +126,32 @@ export function NoteEnrichmentPanel({
           </span>
 
           {enrichment.summary && (
-            <div>
+            <div className={styles.enrichmentSection}>
               <p
-                className="mb-1 text-[11px] font-semibold uppercase tracking-wide"
+                className={styles.enrichmentSectionLabel}
                 style={{ color: theme.mutedTextColor }}
               >
                 {t('enrichment.summaryLabel')}
               </p>
-              <p className="text-sm leading-relaxed" style={{ color: theme.subtextColor }}>
+              <p className={styles.enrichmentSummary} style={{ color: theme.subtextColor }}>
                 {enrichment.summary}
               </p>
             </div>
           )}
 
           {enrichment.keyConcepts.length > 0 && (
-            <div>
+            <div className={styles.enrichmentSection}>
               <p
-                className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide"
+                className={styles.enrichmentSectionLabel}
                 style={{ color: theme.mutedTextColor }}
               >
                 {t('enrichment.conceptsLabel')}
               </p>
-              <div className="flex flex-wrap gap-1.5">
+              <div className={styles.conceptList}>
                 {enrichment.keyConcepts.map((concept) => (
                   <span
                     key={concept}
-                    className="rounded-full border px-2 py-0.5 text-xs"
+                    className={styles.conceptChip}
                     style={{ borderColor: theme.borderColor, color: theme.subtextColor }}
                   >
                     {concept}
@@ -167,22 +161,22 @@ export function NoteEnrichmentPanel({
             </div>
           )}
 
-          <p className="text-[11px]" style={{ color: theme.mutedTextColor }}>
+          <p className={styles.aiDisclaimer} style={{ color: theme.mutedTextColor }}>
             {t('enrichment.aiDisclaimer')}
           </p>
         </div>
       )}
 
       {visibleTasks.length > 0 && (
-        <div className="mt-4 border-t pt-3" style={{ borderColor: theme.borderColor }}>
+        <div className={styles.enrichmentTasks} style={{ borderColor: theme.borderColor }}>
           <p
-            className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide"
+            className={styles.enrichmentTasksTitle}
             style={{ color: theme.mutedTextColor }}
           >
             <ListTodo className="h-3.5 w-3.5" />
             {t('enrichment.tasksLabel')}
           </p>
-          <ul className="flex flex-col gap-2">
+          <ul className={styles.taskList}>
             {visibleTasks.map((task) => (
               <TaskRow
                 key={task.taskId}
@@ -196,7 +190,7 @@ export function NoteEnrichmentPanel({
           </ul>
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
@@ -216,9 +210,9 @@ function TaskRow({
   const { t } = useTranslation('notebook')
 
   return (
-    <li className="flex items-start gap-2">
+    <li className={styles.taskRow}>
       <span
-        className={`flex-1 text-sm leading-snug ${task.status === 'done' ? 'line-through' : ''}`}
+        className={`${styles.taskText} ${task.status === 'done' ? styles.taskTextDone : ''}`}
         style={{ color: task.status === 'done' ? mutedTextColor : subtextColor }}
       >
         {task.title}
@@ -229,7 +223,7 @@ function TaskRow({
         )}
       </span>
 
-      <span className="flex shrink-0 items-center gap-1">
+      <span className={styles.taskActions}>
         {task.status === 'suggested' && (
           <>
             <button
@@ -237,7 +231,7 @@ function TaskRow({
               onClick={() => void onStatus(task.taskId, 'open')}
               title={t('enrichment.taskConfirm')}
               aria-label={t('enrichment.taskConfirm')}
-              className="rounded-md p-1 transition-opacity hover:opacity-70"
+              className={styles.taskAction}
               style={{ color: actionColor }}
             >
               <Check className="h-4 w-4" />
@@ -247,7 +241,7 @@ function TaskRow({
               onClick={() => void onStatus(task.taskId, 'dismissed')}
               title={t('enrichment.taskDismiss')}
               aria-label={t('enrichment.taskDismiss')}
-              className="rounded-md p-1 text-red-500 transition-opacity hover:opacity-70"
+              className={`${styles.taskAction} ${styles.taskActionDanger}`}
             >
               <X className="h-4 w-4" />
             </button>
@@ -259,7 +253,7 @@ function TaskRow({
             onClick={() => void onStatus(task.taskId, 'done')}
             title={t('enrichment.taskComplete')}
             aria-label={t('enrichment.taskComplete')}
-            className="rounded-md p-1 transition-opacity hover:opacity-70"
+            className={styles.taskAction}
             style={{ color: actionColor }}
           >
             <CircleCheck className="h-4 w-4" />
@@ -271,7 +265,7 @@ function TaskRow({
             onClick={() => void onStatus(task.taskId, 'open')}
             title={t('enrichment.taskReopen')}
             aria-label={t('enrichment.taskReopen')}
-            className="rounded-md p-1 transition-opacity hover:opacity-70"
+            className={styles.taskAction}
             style={{ color: mutedTextColor }}
           >
             <RotateCcw className="h-4 w-4" />

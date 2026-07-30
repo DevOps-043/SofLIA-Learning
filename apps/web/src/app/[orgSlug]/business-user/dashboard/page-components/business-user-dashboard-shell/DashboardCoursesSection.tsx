@@ -2,6 +2,7 @@ import { CourseSectionHeader } from './CourseSectionHeader'
 import { DashboardCourseBody } from './DashboardCourseBody'
 import { LoadMoreCoursesButton } from './LoadMoreCoursesButton'
 import type { DashboardCoursesSectionProps } from './course-section-types'
+import styles from '../BusinessUserDashboard.module.css'
 
 export function DashboardCoursesSection(props: DashboardCoursesSectionProps) {
   const hasCourses = props.assignedCourses.length > 0 || props.learningPaths.length > 0
@@ -13,8 +14,12 @@ export function DashboardCoursesSection(props: DashboardCoursesSectionProps) {
     props.displayedCourses.length < props.assignedCourses.length
 
   return (
-    <section data-tour-id="business-user-dashboard--courses-section">
+    <section
+      data-tour-id="business-user-dashboard--courses-section"
+      className={styles.coursesSection}
+    >
       <CourseSectionHeader
+        courseCount={props.assignedCourses.length}
         courseView={props.courseView}
         disableHeavyEffects={props.disableHeavyEffects}
         hasCourses={hasCourses}

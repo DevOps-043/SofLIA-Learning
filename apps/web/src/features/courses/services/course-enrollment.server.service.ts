@@ -111,6 +111,61 @@ export async function loadCourseEnrollments(
   return (data || []) as CourseEnrollmentRecord[]
 }
 
+/**
+ * Ámbito de inscripción a usar cuando quien llama NO tiene organización en la
+ * petición (endpoints que no viven bajo `[orgSlug]` ni reciben `orgId`).
+ *
+ * `resolveCourseEnrollment(..., null)` filtra por `organization_id IS NULL`, que
+ * era el caso cuando las inscripciones eran personales. Hoy casi todas
+ * pertenecen a una organización, así que ese filtro no encuentra nada y el
+ * llamador concluye —incorrectamente— que el usuario no está inscrito.
+ *
+ * Esto NO concede acceso nuevo: solo reconoce la inscripción que el usuario ya
+ * tiene, sea cual sea su ámbito, eligiendo la usada más recientemente. Si no
+ * hay ninguna, devuelve null y el llamador sigue rechazando la petición.
+ */
+export async function resolveAnyScopeCourseEnrollment(
+  supabase: SupabaseServerClient,
+  userId: string,
+  courseId: string,
+) {
+  const enrollments = await loadCourseEnrollments(supabase, userId, courseId)
+  return sortEnrollmentsByRecency(enrollments)[0] ?? null
+}
+
+/**
+ * Organización por la que un usuario cursa un curso concreto.
+ *
+ * Pensado para las funciones acotadas por empresa (comunidad de preguntas):
+ * descarta las inscripciones heredadas sin organización, porque una inscripción
+ * personal no identifica ninguna comunidad, y devuelve null si el usuario no
+ * tiene ninguna inscripción con empresa. Así el llamador puede decidir su
+ * propio respaldo en lugar de recibir un ámbito silenciosamente equivocado.
+ *
+ * `requestedOrganizationId` desempata cuando el usuario pertenece a varias
+ * empresas y el llamador sabe desde cuál se navega (el `orgId` de la query
+ * string). Solo se acepta si el usuario tiene realmente inscripción en esa
+ * organización: sirve para elegir entre las suyas, nunca para alcanzar otra.
+ */
+export async function resolveCourseOrganizationScope(
+  supabase: SupabaseServerClient,
+  userId: string,
+  courseId: string,
+  requestedOrganizationId?: string | null,
+): Promise<string | null> {
+  const enrollments = (
+    await loadCourseEnrollments(supabase, userId, courseId)
+  ).filter((enrollment) => Boolean(enrollment.organization_id))
+
+  const requested = normalizeCourseOrganizationId(requestedOrganizationId)
+  const requestedMatch = requested
+    ? enrollments.find((enrollment) => enrollment.organization_id === requested)
+    : undefined
+  const chosen = requestedMatch ?? sortEnrollmentsByRecency(enrollments)[0]
+
+  return chosen?.organization_id ?? null
+}
+
 async function hasActiveOrganizationMembership(
   supabase: SupabaseServerClient,
   userId: string,

@@ -1,6 +1,10 @@
 import type { RefObject } from 'react';
+import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 import type { SofLIAMessage } from '@/core/types/lia.types';
+import { LIA_AVATAR_SRC } from '../constants';
+import styles from '../CourseLiaPanel.module.css';
 import type { NormalizedLiaLink } from '../lia-link.utils';
 import type { CourseLiaProps, CourseLiaThemeColors } from '../types';
 
@@ -12,10 +16,9 @@ interface CourseLiaMessagesProps {
   editInputRef: RefObject<HTMLTextAreaElement>;
   editingMessageId: string | null;
   editingValue: string;
-  forceDarkText: boolean;
   isDarkMode: boolean;
-  isLightTheme: boolean;
   isLoading: boolean;
+  lessonTitle?: string;
   messages: SofLIAMessage[];
   messagesEndRef: RefObject<HTMLDivElement>;
   onCancelEditing: () => void;
@@ -31,8 +34,40 @@ interface CourseLiaMessagesProps {
 }
 
 export function CourseLiaMessages(props: CourseLiaMessagesProps) {
+  const { t } = useTranslation('learn');
+  const { t: tc } = useTranslation('common');
+  const isEmpty = props.messages.length === 0 && !props.isLoading;
+
   return (
-    <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className={styles.messages}>
+      {isEmpty ? (
+        <div className={styles.emptyState}>
+          <motion.div
+            className={styles.emptyVisual}
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <img
+              src={LIA_AVATAR_SRC}
+              alt={t('lia.title')}
+              className={styles.emptyAvatar}
+            />
+          </motion.div>
+          <motion.div
+            initial={{ y: 8, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.08, duration: 0.36 }}
+          >
+            <p className={styles.emptyEyebrow}>{tc('lia.header.subtitle')}</p>
+            <h3 className={styles.emptyTitle}>{t('lia.title')}</h3>
+            <p className={styles.emptyText}>{t('lia.subtitle')}</p>
+            {props.lessonTitle ? (
+              <p className={styles.lessonContext}>{props.lessonTitle}</p>
+            ) : null}
+          </motion.div>
+        </div>
+      ) : null}
       {props.messages.map((message, index) => (
         <CourseLiaMessageItem
           key={message.id}
@@ -49,7 +84,7 @@ export function CourseLiaMessages(props: CourseLiaMessagesProps) {
         />
       ))}
       {props.isLoading ? (
-        <CourseLiaTypingIndicator stop={props.stop} themeColors={props.themeColors} />
+        <CourseLiaTypingIndicator stop={props.stop} />
       ) : null}
       <div ref={props.messagesEndRef} />
     </div>

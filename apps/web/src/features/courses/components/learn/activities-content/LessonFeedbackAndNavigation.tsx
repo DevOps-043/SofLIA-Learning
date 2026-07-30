@@ -2,6 +2,7 @@ import { useState } from "react";
 import { CheckCircle2, ChevronRight, Loader2, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
+import styles from "../ActivitiesExperience.module.css";
 import type { ActivitiesData } from "./types";
 
 export function LessonFeedbackAndNavigation(props: {
@@ -13,9 +14,9 @@ export function LessonFeedbackAndNavigation(props: {
   const { t } = useTranslation("learn");
 
   return (
-    <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between pt-4 border-t border-gray-200 dark:border-white/5">
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-gray-500 dark:text-white/40">
+    <div className={styles.footer}>
+      <div className={styles.feedbackGroup}>
+        <span className={styles.feedbackLabel}>
           {t("activities.feedback.useful")}
         </span>
         <FeedbackButton
@@ -63,7 +64,7 @@ function FeedbackButton(props: {
     <button
       onClick={props.onClick}
       disabled={props.disabled}
-      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${props.active ? activeClasses : "text-gray-500 dark:text-white/50 hover:bg-gray-100 dark:hover:bg-white/5"} ${props.disabled ? "opacity-50" : ""}`}
+      className={`${styles.feedbackButton} ${props.active ? activeClasses : ""} ${props.disabled ? "opacity-50" : ""}`}
       style={props.active && props.variant === 'positive' ? {
         backgroundColor: 'color-mix(in srgb, var(--learn-accent) 15%, transparent)',
         color: 'var(--learn-accent)',
@@ -98,8 +99,7 @@ function NavigationButton(props: {
     <button
       onClick={() => void handleClick()}
       disabled={isLoading}
-      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:cursor-wait disabled:opacity-70"
-      style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
+      className={styles.navigationButton}
     >
       {props.label}
       {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Icon className="w-4 h-4" />}

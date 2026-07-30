@@ -1,0 +1,260 @@
+.item {
+  --notification-accent: var(--org-accent-color, var(--color-accent));
+  --notification-surface: rgb(255 255 255 / 0.72);
+  --notification-surface-soft: rgb(246 249 252 / 0.88);
+  --notification-text: var(--color-primary);
+  --notification-muted: rgb(75 94 116);
+  --notification-border: rgb(10 37 64 / 0.1);
+  position: relative;
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 0.72rem;
+  border: 1px solid var(--notification-border);
+  color: var(--notification-text);
+  text-align: left;
+  background: var(--notification-surface);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+:global(.dark) .item {
+  --notification-surface: rgb(255 255 255 / 0.018);
+  --notification-surface-soft: rgb(255 255 255 / 0.045);
+  --notification-text: var(--color-bg-light);
+  --notification-muted: rgb(190 202 215);
+  --notification-border: rgb(255 255 255 / 0.08);
+}
+
+.compact {
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+  padding: 0.78rem 0.9rem;
+}
+
+.comfortable {
+  align-items: center;
+  border-radius: 1rem;
+  padding: 0.9rem;
+}
+
+.item:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--notification-accent) 22%,
+    var(--notification-border)
+  );
+  background: var(--notification-surface-soft);
+}
+
+.unread {
+  background: color-mix(
+    in srgb,
+    var(--notification-accent) 3.5%,
+    var(--notification-surface)
+  );
+}
+
+.unreadRail {
+  position: absolute;
+  top: 0.65rem;
+  bottom: 0.65rem;
+  left: 0;
+  width: 0.18rem;
+  border-radius: 0 999px 999px 0;
+  background: var(--notification-accent);
+}
+
+.iconShell {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--notification-border);
+  border-radius: 0.72rem;
+  padding: 0.52rem;
+}
+
+.content {
+  min-width: 0;
+  flex: 1;
+}
+
+.topline {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.title,
+.message {
+  margin: 0;
+}
+
+.title {
+  overflow: hidden;
+  color: var(--notification-text);
+  font-size: 0.7rem;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: 0.18rem;
+  color: var(--notification-muted);
+  font-size: 0.62rem;
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.time {
+  flex-shrink: 0;
+  color: var(--notification-muted);
+  font-size: 0.55rem;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.45rem;
+}
+
+.priority {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--notification-muted);
+  font-size: 0.56rem;
+  font-weight: 550;
+  text-transform: capitalize;
+}
+
+.priorityDot {
+  width: 0.34rem;
+  height: 0.34rem;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+}
+
+.actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.12rem;
+}
+
+.actionButton {
+  display: inline-flex;
+  width: 1.72rem;
+  height: 1.72rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 0.55rem;
+  color: var(--notification-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.actionButton:hover,
+.actionButton:focus-visible {
+  border-color: var(--notification-border);
+  outline: none;
+  color: var(--notification-text);
+  background: var(--notification-surface-soft);
+}
+
+.actionSuccess:hover,
+.actionSuccess:focus-visible {
+  color: var(--color-success);
+}
+
+.actionDanger:hover,
+.actionDanger:focus-visible {
+  color: var(--color-error);
+}
+
+.confirmDelete {
+  display: inline-flex;
+  gap: 0.1rem;
+  border-radius: 0.62rem;
+  padding: 0.12rem;
+  background: color-mix(in srgb, var(--color-error) 7%, transparent);
+}
+
+.actionArrow {
+  color: var(--notification-muted);
+}
+
+.state {
+  display: flex;
+  min-height: 13rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: var(--notification-text);
+  text-align: center;
+}
+
+.stateComfortable {
+  border: 1px solid var(--notification-border);
+  border-radius: 1rem;
+  background: var(--notification-surface);
+}
+
+.stateIcon {
+  display: inline-flex;
+  width: 3.25rem;
+  height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(
+    in srgb,
+    var(--notification-accent) 18%,
+    var(--notification-border)
+  );
+  border-radius: 1rem;
+  color: var(--notification-accent);
+  background: color-mix(
+    in srgb,
+    var(--notification-accent) 6%,
+    transparent
+  );
+}
+
+.stateTitle {
+  margin: 0.8rem 0 0;
+  font-family: var(--font-system-display);
+  font-size: 1.1rem;
+  font-weight: 350;
+}
+
+.stateDescription {
+  max-width: 22rem;
+  margin: 0.3rem 0 0;
+  color: var(--notification-muted);
+  font-size: 0.65rem;
+  line-height: 1.45;
+}
+
+.loader {
+  color: var(--notification-accent);
+}

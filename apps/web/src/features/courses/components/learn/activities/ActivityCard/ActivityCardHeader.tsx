@@ -3,6 +3,7 @@ import { Activity, BookOpen, ChevronDown, FileText } from 'lucide-react';
 import { ActivityTypeBadge, QuizStatusBadges } from './ActivityCardHeaderBadges';
 import { CompletionBadge } from './CompletionBadge';
 import type { LearnActivity, LessonQuizStatusItem } from '../../types';
+import styles from '../../ActivitiesExperience.module.css';
 
 interface ActivityCardHeaderProps {
   activity: LearnActivity;
@@ -31,12 +32,12 @@ export function ActivityCardHeader({
         event.stopPropagation();
         onToggle(activity.activity_id);
       }}
-      className="flex w-full items-center gap-3 px-4 py-3"
+      className={styles.cardButton}
     >
       <ActivityIcon activity={activity} isQuiz={isQuiz} isSofliaActivity={isSofliaActivity} />
-      <div className="min-w-0 flex-1 text-left">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
+      <div className={styles.cardCopy}>
+        <div className={styles.cardTitleRow}>
+          <span className={styles.cardTitle}>
             {activity.activity_title}
           </span>
           {activity.is_required && <RequiredBadge label={t('activities.required')} />}
@@ -48,7 +49,7 @@ export function ActivityCardHeader({
           />
         </div>
       </div>
-      <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform dark:text-white/30 ${!isCollapsed ? 'rotate-180' : ''}`} />
+      <ChevronDown className={`${styles.chevron} ${!isCollapsed ? styles.chevronOpen : ''}`} />
     </button>
   );
 }
@@ -58,15 +59,11 @@ function ActivityIcon({
   isQuiz,
   isSofliaActivity
 }: Pick<ActivityCardHeaderProps, 'activity' | 'isQuiz' | 'isSofliaActivity'>) {
-  const iconClass = 'h-4 w-4 text-gray-500 dark:text-white/60';
+  const iconClass = 'h-4 w-4';
 
   return (
     <div
-      className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${isSofliaActivity ? 'overflow-hidden border' : 'bg-gray-100 dark:bg-white/5'}`}
-      style={isSofliaActivity ? {
-        borderColor: 'color-mix(in srgb, var(--learn-accent) 25%, transparent)',
-        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
-      } : undefined}
+      className={styles.cardIcon}
     >
       {isSofliaActivity ? (
         <img src="/lia-avatar.webp" alt="SofLIA" className="h-full w-full object-cover" />
@@ -83,7 +80,7 @@ function ActivityIcon({
 
 function RequiredBadge({ label }: { label: string }) {
   return (
-    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+    <span className="rounded-full border border-amber-200 bg-amber-100/70 px-2 py-1 text-[10px] font-medium text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300">
       {label}
     </span>
   );

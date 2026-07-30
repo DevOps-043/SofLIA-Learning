@@ -10,6 +10,7 @@ import { ResetConfirmation } from './ResetConfirmation';
 import { SettingsSections } from './SettingsSections';
 import type { PersonalizationSettingsModalProps } from './types';
 import { usePersonalizationSettingsForm } from './usePersonalizationSettingsForm';
+import styles from './PersonalizationSettings.module.css';
 
 export function PersonalizationSettingsModal(props: PersonalizationSettingsModalProps) {
   const form = usePersonalizationSettingsForm({
@@ -23,34 +24,41 @@ export function PersonalizationSettingsModal(props: PersonalizationSettingsModal
 
   return (
     <>
-    <div className="fixed inset-0 z-[100000] flex items-center justify-center p-4">
-      <div className="absolute inset-0" onClick={props.onClose} />
+    <div className={styles.overlay}>
+      <button
+        type="button"
+        className={styles.backdrop}
+        onClick={props.onClose}
+        aria-label="Cerrar personalización"
+      />
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
+        initial={{ opacity: 0, scale: 0.985, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.985, y: 12 }}
+        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
         onClick={(event) => event.stopPropagation()}
-        className="relative bg-white dark:bg-carbon-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col"
+        className={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="soflia-personalization-title"
       >
         <ModalHeader onClose={props.onClose} title={props.title} />
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className={styles.body}>
           {props.controller.loading && !props.controller.settings ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--org-accent-color, var(--color-accent))' }} />
+            <div className={styles.loading}>
+              <Loader2 className="h-7 w-7 animate-spin" />
             </div>
           ) : props.controller.error ? (
-            <div className="text-center py-20 text-red-500">
+            <div className={styles.error}>
               {props.controller.error}
             </div>
           ) : (
-            <div className="space-y-4">
-              <SettingsSections
-                expandedSections={form.expandedSections}
-                formData={form.formData}
-                setFormData={form.setFormData}
-                toggleSection={form.toggleSection}
-              />
-            </div>
+            <SettingsSections
+              expandedSections={form.expandedSections}
+              formData={form.formData}
+              setFormData={form.setFormData}
+              toggleSection={form.toggleSection}
+            />
           )}
         </div>
         <ResetConfirmation

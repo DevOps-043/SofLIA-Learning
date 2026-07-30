@@ -1,5 +1,8 @@
-import { motion } from 'framer-motion'
-import { AlertCircle, RefreshCw } from 'lucide-react'
+import { ArrowRight, RefreshCw } from 'lucide-react'
+import Link from 'next/link'
+import type { CSSProperties } from 'react'
+import { SystemErrorScene } from '../../../../_components/system-error/SystemErrorScene'
+import errorStyles from '../../../../_components/system-error/SystemErrorScene.module.css'
 import type { BusinessUserDashboardColors } from '../types'
 
 interface BusinessUserDashboardErrorProps {
@@ -13,41 +16,42 @@ export function BusinessUserDashboardError({
   error,
   onRetry,
 }: BusinessUserDashboardErrorProps) {
+  const errorTheme = {
+    '--error-accent': orgColors.accent,
+    '--error-status': orgColors.accent,
+    '--error-page-bg': orgColors.sidebarBg,
+    '--error-page-glow': `color-mix(in srgb, ${orgColors.accent} 12%, transparent)`,
+    '--error-page-secondary-glow': `color-mix(in srgb, ${orgColors.primary} 16%, transparent)`,
+    '--error-surface': orgColors.cardBg,
+    '--error-border': orgColors.border,
+    '--error-divider': orgColors.border,
+    '--error-text': orgColors.text,
+    '--error-muted': orgColors.textSecondary,
+    '--error-faint': orgColors.textMuted,
+    '--error-action': orgColors.primary,
+    '--error-on-action': orgColors.onPrimary,
+  } as CSSProperties
+
   return (
-    <main
-      className="min-h-screen flex items-center justify-center p-6"
-      style={{ background: orgColors.sidebarBg }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center gap-6 max-w-md text-center p-8 rounded-2xl border border-red-500/20 backdrop-blur-xl"
-        style={{ backgroundColor: orgColors.cardBg }}
-      >
-        <div className="p-4 rounded-full bg-red-500/10">
-          <AlertCircle className="w-12 h-12 text-red-400" />
-        </div>
-        <div>
-          <p className="text-red-400 text-xl font-semibold">Error al cargar datos</p>
-          <p className="text-sm mt-2" style={{ color: orgColors.textSecondary }}>
-            {error}
-          </p>
-        </div>
-        <motion.button
-          onClick={onRetry}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium"
-          style={{
-            background: `linear-gradient(135deg, ${orgColors.primary}, ${orgColors.accent})`,
-            boxShadow: `0 4px 20px color-mix(in srgb, ${orgColors.primary} 31.4%, transparent)`,
-            color: 'var(--color-bg-light)',
-          }}
-        >
-          <RefreshCw className="w-4 h-4" />
-          Reintentar
-        </motion.button>
-      </motion.div>
-    </main>
+    <SystemErrorScene
+      code="500"
+      eyebrow="Interrupción temporal"
+      title="No pudimos cargar tu espacio."
+      description="Tu información permanece segura. Intenta cargar nuevamente o vuelve al inicio mientras restablecemos esta vista."
+      detail={error}
+      style={errorTheme}
+      actions={
+        <>
+          <button type="button" onClick={onRetry} className={errorStyles.primaryButton}>
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Intentar de nuevo
+          </button>
+          <Link href="/" className={errorStyles.secondaryButton}>
+            Ir al inicio
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </>
+      }
+    />
   )
 }

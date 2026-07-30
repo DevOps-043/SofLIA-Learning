@@ -1,9 +1,18 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
-import { X, Clock, MoreVertical, Settings, Trash2, Volume2, VolumeX } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  Clock3,
+  MoreHorizontal,
+  Settings2,
+  Trash2,
+  Volume2,
+  VolumeX,
+  X,
+} from 'lucide-react';
 import { LiaThemeColors, LiaMessage } from './types';
+import styles from './LiaSidePanel.module.css';
 
 interface PanelHeaderProps {
   t: (key: string) => string;
@@ -28,8 +37,6 @@ interface PanelHeaderProps {
 
 export function PanelHeader({
   t,
-  themeColors,
-  isLightTheme,
   isSpeaking,
   isVoiceEnabled,
   toggleVoiceEnabled,
@@ -46,316 +53,144 @@ export function PanelHeader({
   closePanel,
   setIsAvatarExpanded,
 }: PanelHeaderProps) {
+  const toggleHistory = () => {
+    if (showHistory) {
+      closeHistory();
+      return;
+    }
+
+    setShowHistory(true);
+  };
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 'calc(20px + env(safe-area-inset-top, 0px)) 24px 20px',
-        borderBottom: `1px solid ${themeColors.borderColor}`,
-        backgroundColor: themeColors.headerBg,
-        flexShrink: 0,
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        {/* Avatar de LIA */}
-        <div style={{ position: 'relative' }}>
-          {/* Anillo pulsante mientras SofLIA habla (modo texto a voz activo) */}
+    <header className={styles.header}>
+      <div className={styles.identity}>
+        <button
+          type="button"
+          className={styles.avatarButton}
+          onClick={() => setIsAvatarExpanded(true)}
+          aria-label="Ampliar avatar de SofLIA"
+        >
           {isSpeaking && (
             <motion.span
+              className={styles.avatarPulse}
               aria-hidden="true"
-              animate={{ scale: [1, 1.35, 1], opacity: [0.55, 0, 0.55] }}
+              animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
               transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
-              style={{
-                position: 'absolute',
-                inset: '-4px',
-                borderRadius: '50%',
-                border: `2px solid ${themeColors.accentColor}`,
-                pointerEvents: 'none',
-                zIndex: 0,
-              }}
             />
           )}
           <motion.img
             layoutId="lia-avatar-header"
             src="/lia-avatar.webp"
-            alt="SofLIA"
-            onClick={() => setIsAvatarExpanded(true)}
-            whileHover={{ scale: 1.05 }}
-            animate={
-              isSpeaking
-                ? {
-                    scale: [1, 1.06, 1],
-                    boxShadow: [
-                      `0 0 0 color-mix(in srgb, ${themeColors.accentColor} 0%, transparent)`,
-                      `0 0 18px color-mix(in srgb, ${themeColors.accentColor} 55%, transparent)`,
-                      `0 0 0 color-mix(in srgb, ${themeColors.accentColor} 0%, transparent)`,
-                    ],
-                  }
-                : { scale: 1, boxShadow: `0 0 0 color-mix(in srgb, ${themeColors.accentColor} 0%, transparent)` }
-            }
-            transition={{ duration: 1.2, repeat: isSpeaking ? Infinity : 0, ease: 'easeInOut' }}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              objectFit: 'cover',
-              border: `2px solid ${themeColors.accentColor}`,
-              cursor: 'zoom-in',
-              position: 'relative',
-              zIndex: 1,
+            alt=""
+            className={styles.avatar}
+            whileHover={{ scale: 1.04 }}
+            animate={isSpeaking ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+            transition={{
+              duration: 1.2,
+              repeat: isSpeaking ? Infinity : 0,
+              ease: 'easeInOut',
             }}
           />
-          <div
-            style={{
-              position: 'absolute',
-              bottom: '-2px',
-              right: '-2px',
-              width: '14px',
-              height: '14px',
-              backgroundColor: 'var(--color-legacy-22c55e)',
-              borderRadius: '50%',
-              border: `2px solid ${themeColors.panelBg}`,
-              zIndex: 2,
-            }}
-          />
-        </div>
+          <span className={styles.presence} aria-hidden="true" />
+        </button>
 
-        <div>
-          <h2 style={{ color: themeColors.textPrimary, fontSize: '16px', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>
-            {t('lia.header.title')}
-          </h2>
-          <p
-            aria-live="polite"
-            style={{ color: themeColors.accentColor, fontSize: '12px', fontWeight: 500, margin: 0 }}
-          >
+        <div className={styles.identityCopy}>
+          <h2 className={styles.identityTitle}>{t('lia.header.title')}</h2>
+          <p className={styles.identityStatus} aria-live="polite">
             {isSpeaking ? t('lia.header.speaking') : t('lia.header.subtitle')}
           </p>
         </div>
       </div>
 
-      {/* Acciones: voz, historial, opciones, cerrar */}
-      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-        {/* Botón de voz: activa/desactiva el modo de voz (TTS) de SofLIA */}
+      <div className={styles.headerActions}>
         <button
+          type="button"
+          className={`${styles.iconButton} ${isVoiceEnabled ? styles.iconButtonActive : ''}`}
           onClick={toggleVoiceEnabled}
           disabled={isVoiceTogglePending}
           title={isVoiceEnabled ? t('lia.voice.disable') : t('lia.voice.enable')}
           aria-label={isVoiceEnabled ? t('lia.voice.disable') : t('lia.voice.enable')}
           aria-pressed={isVoiceEnabled}
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: isVoiceEnabled
-              ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)')
-              : 'transparent',
-            border: 'none',
-            cursor: isVoiceTogglePending ? 'wait' : 'pointer',
-            opacity: isVoiceTogglePending ? 0.6 : 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (!isVoiceEnabled) {
-              e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isVoiceEnabled) {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }
-          }}
         >
-          {isVoiceEnabled ? (
-            <Volume2 style={{ width: '18px', height: '18px' }} color={themeColors.accentColor} />
-          ) : (
-            <VolumeX style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />
-          )}
+          {isVoiceEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
         </button>
 
-        {/* Botón de historial */}
         <button
-          onClick={() => {
-            if (showHistory) {
-              closeHistory();
-            } else {
-              setShowHistory(true);
-            }
-          }}
-          title={showHistory ? 'Volver al chat' : 'Historial'}
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: showHistory ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)') : 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)')}
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = showHistory
-              ? isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)'
-              : 'transparent')
-          }
+          type="button"
+          className={`${styles.iconButton} ${showHistory ? styles.iconButtonActive : ''}`}
+          onClick={toggleHistory}
+          title={showHistory ? 'Volver al chat' : 'Ver historial'}
+          aria-label={showHistory ? 'Volver al chat' : 'Ver historial'}
+          aria-pressed={showHistory}
         >
-          <Clock style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />
+          <Clock3 size={16} />
         </button>
 
-        {/* Menú de opciones */}
-        <div ref={optionsMenuRef} style={{ position: 'relative' }}>
+        <div ref={optionsMenuRef} className={styles.optionsWrap}>
           <button
+            type="button"
+            className={`${styles.iconButton} ${isOptionsMenuOpen ? styles.iconButtonActive : ''}`}
             onClick={() => setIsOptionsMenuOpen(!isOptionsMenuOpen)}
             title="Opciones"
-            style={{
-              width: '32px',
-              height: '32px',
-              borderRadius: '8px',
-              backgroundColor: isOptionsMenuOpen ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)') : 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'background-color 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              if (!isOptionsMenuOpen) {
-                e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isOptionsMenuOpen) {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }
-            }}
+            aria-label="Abrir opciones de SofLIA"
+            aria-expanded={isOptionsMenuOpen}
+            aria-haspopup="menu"
           >
-            <MoreVertical style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />
+            <MoreHorizontal size={17} />
           </button>
 
-          {isOptionsMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              style={{
-                position: 'fixed',
-                right: 'max(12px, env(safe-area-inset-right, 0px))',
-                top: 'calc(72px + env(safe-area-inset-top, 0px))',
-                backgroundColor: isLightTheme ? 'var(--color-bg-light)' : 'var(--color-gray-800)',
-                border: `1px solid ${isLightTheme ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'}`,
-                borderRadius: '12px',
-                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-                overflowY: 'auto',
-                overscrollBehavior: 'contain',
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                zIndex: 100000,
-                minWidth: 'min(200px, calc(100vw - 24px))',
-                maxWidth: 'calc(100vw - 24px)',
-                maxHeight: 'calc(var(--soflia-viewport-height, 100dvh) - 88px - env(safe-area-inset-bottom, 0px))',
-              }}
-            >
-              <div style={{ padding: '8px 0' }}>
+          <AnimatePresence>
+            {isOptionsMenuOpen && (
+              <motion.div
+                className={styles.optionsMenu}
+                role="menu"
+                initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -5, scale: 0.98 }}
+                transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              >
                 <button
+                  type="button"
+                  className={styles.optionButton}
+                  role="menuitem"
                   onClick={() => {
                     setIsPersonalizationOpen(true);
                     setIsOptionsMenuOpen(false);
                   }}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '12px 16px',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    color: isLightTheme ? 'var(--color-primary)' : 'var(--color-bg-light)',
-                    fontSize: '14px',
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = isLightTheme ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
                 >
-                  <Settings style={{ width: '16px', height: '16px' }} color={isLightTheme ? 'var(--color-gray-500)' : 'var(--color-legacy-9ca3af)'} />
+                  <Settings2 size={15} aria-hidden="true" />
                   <span>Personalización</span>
                 </button>
 
                 <button
+                  type="button"
+                  className={`${styles.optionButton} ${styles.optionButtonDanger}`}
+                  role="menuitem"
                   onClick={() => {
                     clearHistory();
                     setIsOptionsMenuOpen(false);
                   }}
                   disabled={messages.length === 0}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '12px 16px',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    cursor: messages.length > 0 ? 'pointer' : 'not-allowed',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    color: isLightTheme ? 'var(--color-error)' : 'var(--color-legacy-f87171)',
-                    fontSize: '14px',
-                    opacity: messages.length > 0 ? 1 : 0.5,
-                    transition: 'all 0.15s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (messages.length > 0) {
-                      e.currentTarget.style.backgroundColor = isLightTheme
-                        ? 'rgba(239, 68, 68, 0.05)'
-                        : 'rgba(239, 68, 68, 0.1)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
                 >
-                  <Trash2 style={{ width: '16px', height: '16px' }} color={isLightTheme ? 'var(--color-error)' : 'var(--color-legacy-f87171)'} />
+                  <Trash2 size={15} aria-hidden="true" />
                   <span>{t('lia.chat.cleanHistory')}</span>
                 </button>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Botón cerrar */}
         <button
+          type="button"
+          className={styles.iconButton}
           onClick={closePanel}
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: 'transparent',
-            border: 'none',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isLightTheme ? 'var(--color-gray-200)' : 'var(--color-legacy-1e2a35)')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+          title="Cerrar SofLIA"
+          aria-label="Cerrar panel de SofLIA"
         >
-          <X style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />
+          <X size={17} />
         </button>
       </div>
-    </div>
+    </header>
   );
 }

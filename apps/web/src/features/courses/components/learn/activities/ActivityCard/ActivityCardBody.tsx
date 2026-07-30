@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next';
 import { ActivityPromptsSection } from './ActivityPromptsSection';
 import { ActivityRendererSwitch } from './ActivityRendererSwitch';
 import type { LearnActivity, LessonQuizStatusItem } from '../../types';
+import styles from '../../ActivitiesExperience.module.css';
 
 interface ActivityCardBodyProps {
   activity: LearnActivity;
@@ -37,15 +38,15 @@ export function ActivityCardBody(props: ActivityCardBodyProps) {
   const { activity, shouldShowActivityCard, t } = props;
 
   return (
-    <div className="border-t border-gray-100 px-4 pb-4 dark:border-white/5">
+    <div className={styles.cardBody}>
       {activity.activity_description && (
-        <p className="mb-3 mt-3 text-xs leading-relaxed text-gray-500 dark:text-white/40">
+        <p className={styles.description}>
           {activity.activity_description}
         </p>
       )}
 
       {shouldShowActivityCard && (
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-white/5 dark:bg-white/[0.02]">
+        <div className={styles.contentSurface}>
           <ActivityRendererSwitch {...props} />
         </div>
       )}

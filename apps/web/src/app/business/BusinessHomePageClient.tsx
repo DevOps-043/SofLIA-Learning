@@ -11,10 +11,10 @@ import { BusinessUseCasesSection } from './business-home/UseCasesSection'
 import { useBusinessHomeContent } from './business-home/useBusinessHomeContent'
 
 export function BusinessHomePageClient() {
-  const { content, loading, error, particles } = useBusinessHomeContent()
+  const { content, loading, error } = useBusinessHomeContent()
 
   if (loading) {
-    return <BusinessLoadingState particles={particles} />
+    return <BusinessLoadingState />
   }
 
   if (error || !content) {

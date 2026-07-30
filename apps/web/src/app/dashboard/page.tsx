@@ -5,6 +5,7 @@ import { LogOut } from 'lucide-react'
 import Image from 'next/image'
 import { ThemeToggle } from '../../core/components/ThemeToggle/ThemeToggle'
 import { UserDropdown } from '../../core/components/UserDropdown'
+import { PremiumLoadingScreen } from '../../core/components/PremiumLoadingScreen/PremiumLoadingScreen'
 import { useAuth } from '../../features/auth/hooks/useAuth'
 import {
   OnboardingChoiceScreen,
@@ -40,12 +41,10 @@ export default function DashboardPage() {
 
   if (loading || statusLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 rounded-full border-2 border-teal-500 border-t-transparent animate-spin" />
-          <p className="text-gray-500 dark:text-gray-400">Cargando...</p>
-        </div>
-      </div>
+      <PremiumLoadingScreen
+        description="Sincronizando tu cuenta y el espacio de tu organización."
+        label="Preparando tu espacio"
+      />
     )
   }
 

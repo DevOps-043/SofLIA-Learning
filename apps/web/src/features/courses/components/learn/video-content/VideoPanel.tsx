@@ -6,6 +6,7 @@ import type { LearnLesson } from "../types";
 import type { VideoNavigationState } from "./video-content.types";
 import { VideoNavigationOverlay } from "./VideoNavigationOverlay";
 import { VideoPlayer } from "./VideoPlayerDynamic";
+import styles from "./VideoPanel.module.css";
 
 interface VideoPanelProps {
   enrollmentId?: string | null;
@@ -40,14 +41,17 @@ export function VideoPanel({
   const primaryAction = navigationState.isLastLesson ? handleCompletionAction : handleAdvanceAction;
 
   return (
-    <div className="relative w-full">
+    <div className={styles.stage}>
       {hasVideo ? (
-        <div data-tour-id="course-learn--video-player" className="aspect-video w-full max-h-[calc(100dvh-13rem)] rounded-xl overflow-hidden border relative bg-gray-900" style={{ borderColor: 'var(--learn-card-border)' }}>
+        <div
+          data-tour-id="course-learn--video-player"
+          className={styles.videoFrame}
+        >
           <VideoPlayer
             videoProvider={lesson.video_provider!}
             videoProviderId={lesson.video_provider_id!}
             title={lesson.lesson_title}
-            className="w-full h-full"
+            className={styles.player}
             lessonId={lesson.lesson_id}
             enrollmentId={enrollmentId}
             organizationId={organizationId}
@@ -58,13 +62,16 @@ export function VideoPanel({
           <VideoNavigationOverlay {...navigationState} finishLabel={finishLabel} nextLabel={nextLabel} onNavigatePrevious={onNavigatePrevious} onPrimaryAction={primaryAction} previousLabel={previousLabel} />
         </div>
       ) : (
-        <div data-tour-id="course-learn--video-player" className="aspect-video w-full max-h-[calc(100dvh-13rem)] bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl flex items-center justify-center border border-gray-200 dark:border-gray-500/30 relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/10 to-accent/10 animate-pulse" />
-          <div className="text-center relative z-10">
-            <div className="w-20 h-20 bg-primary rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-primary/90 transition-all transform group-hover:scale-110">
-              <Play className="w-10 h-10 text-white ml-1" />
+        <div
+          data-tour-id="course-learn--video-player"
+          className={`${styles.videoFrame} ${styles.unavailableFrame}`}
+        >
+          <div className={styles.unavailableGlow} aria-hidden="true" />
+          <div className={styles.unavailableContent}>
+            <div className={styles.unavailableIcon}>
+              <Play aria-hidden="true" />
             </div>
-            <p className="text-gray-700 dark:text-white/70">{unavailableLabel}</p>
+            <p className={styles.unavailableText}>{unavailableLabel}</p>
           </div>
           <VideoNavigationOverlay {...navigationState} finishLabel={finishLabel} nextLabel={nextLabel} onNavigatePrevious={onNavigatePrevious} onPrimaryAction={primaryAction} previousLabel={previousLabel} />
         </div>

@@ -2,8 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { useCourseAccess } from '../hooks/useCourseAccess';
-import { Loader2, Lock, AlertCircle } from 'lucide-react';
+import { Lock, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/features/auth/hooks/useAuth';
+import { PremiumLoadingScreen } from '@/core/components/PremiumLoadingScreen/PremiumLoadingScreen';
 
 interface CourseAccessGuardProps {
     courseSlug: string;
@@ -22,12 +23,10 @@ export function CourseAccessGuard({ courseSlug, children }: CourseAccessGuardPro
     // Mostrar loader mientras verifica el acceso
     if (isLoading || hasAccess === null) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-carbon-900">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-accent animate-spin mx-auto mb-4" />
-                    <p className="text-white/70">Verificando acceso al curso...</p>
-                </div>
-            </div>
+            <PremiumLoadingScreen
+                description="Confirmando tu inscripción y permisos de aprendizaje."
+                label="Verificando acceso"
+            />
         );
     }
 

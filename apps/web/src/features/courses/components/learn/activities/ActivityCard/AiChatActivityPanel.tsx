@@ -25,14 +25,14 @@ export function AiChatActivityPanel({
   t
 }: AiChatActivityPanelProps) {
   return (
-    <div className="p-4 text-center">
-      <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-white/5">
-        <MessageCircle className="h-5 w-5 text-gray-500 dark:text-white/50" />
+    <div className="px-3 py-6 text-center sm:px-6">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)', color: 'var(--learn-accent)' }}>
+        <MessageCircle className="h-5 w-5" />
       </div>
-      <h4 className="mb-1 text-sm font-medium text-gray-900 dark:text-white">
+      <h4 className="mb-1 text-base font-semibold text-gray-900 dark:text-white">
         {t('activities.aiChatActivity')}
       </h4>
-      <p className="mb-4 text-xs text-gray-500 dark:text-white/40">
+      <p className="mx-auto mb-5 max-w-lg text-xs leading-relaxed text-gray-500 dark:text-white/45">
         {t('activities.aiChatDescription')}
       </p>
       <button
@@ -41,8 +41,8 @@ export function AiChatActivityPanel({
           event.stopPropagation();
           onStartAiChat(activity, markAiChatActivityCompleted);
         }}
-        className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-        style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
+        className="inline-flex min-h-10 items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60"
+        style={{ backgroundColor: 'var(--learn-action)', borderColor: 'color-mix(in srgb, var(--learn-action) 28%, transparent)', boxShadow: '0 0.55rem 1.25rem color-mix(in srgb, var(--learn-action) 14%, transparent)', color: 'var(--learn-on-action)' }}
       >
         {aiCompletionSaving ? (
           <Loader2 className="h-4 w-4 animate-spin" />

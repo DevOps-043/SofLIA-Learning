@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Gauge } from 'lucide-react'
 import {
   Radar,
   RadarChart,
@@ -14,6 +15,7 @@ import {
 import type { BusinessUserAnalyticsQuality } from '@/features/business-panel/types/business-user-analytics.types'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { performanceLevel, PERFORMANCE_COLORS, PERFORMANCE_LABELS } from '../shared/dashboard-utils'
+import styles from '../BusinessUserAnalytics.module.css'
 
 interface QualityRadarChartProps {
   quality: BusinessUserAnalyticsQuality
@@ -48,21 +50,25 @@ export function QualityRadarChart({ quality }: QualityRadarChartProps) {
   return (
     <section
       aria-label="Perfil de calidad"
-      className="rounded-2xl border p-6 shadow-sm"
-      style={{ backgroundColor: 'var(--dash-card)', borderColor: 'var(--dash-border)' }}
+      className={`${styles.sectionCard} ${styles.sectionPadding}`}
     >
       {/* Header */}
-      <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Perfil de calidad</h2>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionHeading}>
+          <span className={styles.sectionIcon} aria-hidden="true">
+            <Gauge className="h-4 w-4" />
+          </span>
+          <div>
+          <h2 className={styles.sectionTitle}>Perfil de calidad</h2>
+          <p className={styles.sectionSubtitle}>
             Evaluación de tu desempeño en cada dimensión de aprendizaje.
           </p>
+          </div>
         </div>
-        <div className="text-right shrink-0">
-          <p className="text-3xl font-bold tracking-tight tabular-nums text-gray-900 dark:text-white">
+        <div className={styles.qualityScore}>
+          <p className={styles.qualityValue}>
             {Math.round(quality.overallScore)}
-            <span className="ml-0.5 text-lg font-normal text-gray-400">/100</span>
+            <span className={styles.qualityScale}>/100</span>
           </p>
           <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${colors.badge}`}>
             {PERFORMANCE_LABELS[level]}
@@ -70,9 +76,9 @@ export function QualityRadarChart({ quality }: QualityRadarChartProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <div className={styles.qualityGrid}>
         {/* Radar chart */}
-        <div className="flex h-64 items-center justify-center">
+        <div className={styles.radarWrap}>
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} margin={{ top: 10, right: 28, bottom: 10, left: 28 }}>
               <PolarGrid
@@ -96,11 +102,11 @@ export function QualityRadarChart({ quality }: QualityRadarChartProps) {
               <Radar
                 name="Puntuación"
                 dataKey="value"
-                stroke={theme.actionColor}
-                fill={theme.actionColor}
+                stroke="var(--analytics-action)"
+                fill="var(--analytics-action)"
                 fillOpacity={0.18}
                 strokeWidth={2}
-                dot={{ r: 4, fill: theme.actionColor, strokeWidth: 0 }}
+                dot={{ r: 4, fill: 'var(--analytics-action)', strokeWidth: 0 }}
               />
               <Tooltip
                 formatter={(val: unknown) => [`${val as number}/100`, 'Puntuación']}
@@ -118,19 +124,16 @@ export function QualityRadarChart({ quality }: QualityRadarChartProps) {
         </div>
 
         {/* Dimension bars */}
-        <div className="flex flex-col justify-center gap-3.5">
+        <div className={styles.dimensionList}>
           {quality.radar.map((item) => {
             const dimLevel = performanceLevel(item.value)
             const dimColors = PERFORMANCE_COLORS[dimLevel]
             return (
-              <div key={item.key} className="flex items-center gap-3">
-                <span className="w-28 shrink-0 text-xs font-semibold text-gray-500 dark:text-gray-400">
+              <div key={item.key} className={styles.dimensionRow}>
+                <span className={styles.dimensionLabel}>
                   {dimensionLabel(item.key, item.label)}
                 </span>
-                <div
-                  className="h-1.5 flex-1 overflow-hidden rounded-full"
-                  style={{ backgroundColor: theme.borderColor }}
-                >
+                <div className={styles.track}>
                   <div
                     className={`h-full rounded-full transition-all duration-700 ${
                       dimLevel === 'excellent'
@@ -142,7 +145,7 @@ export function QualityRadarChart({ quality }: QualityRadarChartProps) {
                     style={{ width: `${Math.min(100, Math.max(0, item.value))}%` }}
                   />
                 </div>
-                <span className={`w-10 shrink-0 text-right text-xs font-bold tabular-nums ${dimColors.text}`}>
+                <span className={`${styles.dimensionValue} ${dimColors.text}`}>
                   {Math.round(item.value)}
                 </span>
               </div>

@@ -2,8 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
-
-const ORG_ACCENT = 'var(--org-accent-color, var(--color-accent))';
+import styles from './PersonalizationSettings.module.css';
 
 interface SelectOption {
   description?: string;
@@ -43,28 +42,24 @@ export function PersonalizationSelect({ onChange, options, value }: Personalizat
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className={styles.selectWrap}>
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-900 text-primary dark:text-white flex items-center justify-between gap-3 transition-all duration-200 focus:outline-none"
-        style={isOpen ? { borderColor: ORG_ACCENT, boxShadow: `0 0 0 2px color-mix(in srgb, ${ORG_ACCENT} 20%, transparent)` } : undefined}
+        className={styles.selectTrigger}
+        aria-expanded={isOpen}
       >
-        <span className="text-sm">{selectedOption?.label}</span>
+        <span>{selectedOption?.label}</span>
         <ChevronDown
-          className="w-4 h-4 flex-shrink-0 transition-transform duration-200"
+          className={styles.selectChevron}
           style={{
-            color: ORG_ACCENT,
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
           }}
         />
       </button>
 
       {isOpen && (
-        <div
-          className="absolute top-full left-0 right-0 mt-1 rounded-xl border border-gray-200 dark:border-gray-500/30 bg-white dark:bg-carbon-900 overflow-hidden shadow-xl z-[999999]"
-          style={{ backdropFilter: 'blur(12px)' }}
-        >
+        <div className={styles.selectMenu}>
           {options.map((option) => {
             const isSelected = option.value === value;
             return (
@@ -75,24 +70,20 @@ export function PersonalizationSelect({ onChange, options, value }: Personalizat
                   onChange(option.value);
                   setIsOpen(false);
                 }}
-                className="w-full px-4 py-3 text-left text-sm flex items-center justify-between gap-3 transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-white/5"
-                style={isSelected ? { backgroundColor: `color-mix(in srgb, ${ORG_ACCENT} 12%, transparent)` } : undefined}
+                className={`${styles.selectOption} ${isSelected ? styles.selectOptionSelected : ''}`}
               >
-                <div className="flex flex-col min-w-0">
-                  <span
-                    className="font-medium"
-                    style={{ color: isSelected ? ORG_ACCENT : undefined }}
-                  >
+                <div className={styles.selectOptionCopy}>
+                  <span className={styles.selectOptionTitle}>
                     {option.label}
                   </span>
                   {option.description && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                    <span className={styles.selectOptionDescription}>
                       {option.description}
                     </span>
                   )}
                 </div>
                 {isSelected && (
-                  <Check className="w-4 h-4 flex-shrink-0" style={{ color: ORG_ACCENT }} />
+                  <Check className={styles.selectCheck} />
                 )}
               </button>
             );

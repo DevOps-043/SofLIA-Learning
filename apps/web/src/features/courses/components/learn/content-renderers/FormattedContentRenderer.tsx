@@ -37,11 +37,25 @@ function StaticChecklistItem({ checked, content }: { checked: boolean; content: 
   );
 }
 
-function HtmlContentRenderer({ html }: { html: string }) {
+function HtmlContentRenderer({
+  html,
+  presentation,
+}: {
+  html: string;
+  presentation: "card" | "editorial";
+}) {
   const sanitized = sanitizeRichHtml(html);
+  const isEditorial = presentation === "editorial";
 
   return (
-    <div className="rounded-xl border p-8 shadow-sm" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
+    <div
+      className={
+        isEditorial
+          ? "mx-auto max-w-6xl px-2 py-4 sm:px-5"
+          : "rounded-xl border p-8 shadow-sm"
+      }
+      style={isEditorial ? undefined : { background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}
+    >
       <article
         className={[
           "prose prose-slate max-w-none overflow-x-auto text-primary",
@@ -151,6 +165,7 @@ function renderFormattedItem(item: FormattedItem): ReactNode {
 interface FormattedContentRendererProps {
   content: unknown;
   activityId?: string;
+  presentation?: "card" | "editorial";
   /** Optional read-along highlighting driven by the audio player's clock. */
   currentTime?: number;
   duration?: number;
@@ -162,13 +177,14 @@ export function FormattedContentRenderer({
   currentTime = 0,
   duration = 0,
   isAudioActive = false,
+  presentation = "card",
 }: FormattedContentRendererProps) {
   const readingContent = normalizeContentForRenderer(content);
 
   if (!readingContent.trim()) return null;
 
   if (isHtmlReadingContent(readingContent)) {
-    return <HtmlContentRenderer html={readingContent} />;
+    return <HtmlContentRenderer html={readingContent} presentation={presentation} />;
   }
 
   const formattedContent = buildFormattedContent(readingContent);
@@ -183,7 +199,14 @@ export function FormattedContentRenderer({
     : -1;
 
   return (
-    <div className="rounded-xl border p-8 shadow-sm" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
+    <div
+      className={
+        presentation === "editorial"
+          ? "mx-auto max-w-6xl px-2 py-4 sm:px-5"
+          : "rounded-xl border p-8 shadow-sm"
+      }
+      style={presentation === "editorial" ? undefined : { background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}
+    >
       <article className="space-y-5">
         {formattedContent.map((item, index) => (
           <div

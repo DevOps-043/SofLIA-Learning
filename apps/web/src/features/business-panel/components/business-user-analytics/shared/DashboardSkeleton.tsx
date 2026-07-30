@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import styles from '../BusinessUserAnalytics.module.css'
 
 const BONE_BASE: CSSProperties = { backgroundColor: 'var(--dash-card-inner)' }
 const CARD_STYLE: CSSProperties = { backgroundColor: 'var(--dash-card)', borderColor: 'var(--dash-border)' }
@@ -6,7 +7,7 @@ const CARD_STYLE: CSSProperties = { backgroundColor: 'var(--dash-card)', borderC
 function Bone({ className, style }: { className?: string; style?: CSSProperties }) {
   return (
     <div
-      className={`animate-pulse rounded-xl ${className ?? ''}`}
+      className={`${styles.skeleton} ${className ?? ''}`}
       style={{ ...BONE_BASE, ...style }}
     />
   )
@@ -14,9 +15,9 @@ function Bone({ className, style }: { className?: string; style?: CSSProperties 
 
 export function DashboardSkeleton() {
   return (
-    <div className="flex flex-col gap-8">
+    <div className={styles.content}>
       {/* Section 1 – 4 KPI cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={styles.skeletonGrid}>
         <Bone className="h-36 sm:col-span-2 xl:col-span-1" />
         <Bone className="h-36" />
         <Bone className="h-36" />
@@ -24,7 +25,7 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Section 2 – Course progress bars */}
-      <div className="rounded-2xl border p-6" style={CARD_STYLE}>
+      <div className={`${styles.sectionCard} ${styles.sectionPadding}`} style={CARD_STYLE}>
         <Bone className="mb-6 h-6 w-48 rounded-lg" />
         <div className="space-y-5">
           {[100, 75, 60, 40].map((w) => (
@@ -43,14 +44,14 @@ export function DashboardSkeleton() {
       <Bone className="h-72 rounded-2xl" />
 
       {/* Section 4 – Performance cards */}
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className={styles.skeletonGrid}>
         <Bone className="h-52" />
         <Bone className="h-52" />
         <Bone className="h-52" />
       </div>
 
       {/* Section 5 – Goals */}
-      <div className="rounded-2xl border p-6" style={CARD_STYLE}>
+      <div className={`${styles.sectionCard} ${styles.sectionPadding}`} style={CARD_STYLE}>
         <Bone className="mb-5 h-6 w-40 rounded-lg" />
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (

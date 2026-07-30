@@ -16,6 +16,7 @@ import { cn } from '@/utils/cn'
 import type { NotebookSelection } from '../hooks/useNotebookTree'
 import type { NotebookTree as NotebookTreeData } from '../types'
 import { GenerationStatusBadge } from './GenerationStatusBadge'
+import styles from './NotebookExperience.module.css'
 
 interface NotebookTreeProps {
   tree: NotebookTreeData
@@ -56,20 +57,18 @@ export function NotebookTree({
   const { t } = useTranslation('notebook')
 
   return (
-    <nav className="flex flex-col gap-1 p-2" aria-label={t('tree.aria')}>
+    <nav className={styles.treeNav} aria-label={t('tree.aria')}>
       <button
         type="button"
         onClick={() => onSelect({ type: 'all' })}
         className={cn(
-          'flex items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors',
-          selection.type === 'all'
-            ? 'bg-[var(--color-accent)]/15 text-[var(--color-primary)] dark:text-[var(--color-accent)]'
-            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/5',
+          styles.treeAll,
+          selection.type === 'all' && styles.treeActive,
         )}
       >
         <Layers className="h-4 w-4 shrink-0" />
-        <span className="flex-1 truncate">{t('tree.allNotes')}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
+        <span className={styles.treeLabel}>{t('tree.allNotes')}</span>
+        <span className={styles.treeCount}>
           {tree.totalNotes}
         </span>
       </button>
@@ -77,19 +76,17 @@ export function NotebookTree({
       {tree.courses.map((course) => {
         const expanded = expandedCourses.has(course.courseId)
         return (
-          <div key={course.courseId} className="flex flex-col">
+          <div key={course.courseId} className={styles.treeCourse}>
             <div
               className={cn(
-                'flex items-center gap-1 rounded-lg pr-2 transition-colors',
-                isCourseActive(selection, course.courseId)
-                  ? 'bg-[var(--color-accent)]/10'
-                  : 'hover:bg-gray-100 dark:hover:bg-white/5',
+                styles.courseRow,
+                isCourseActive(selection, course.courseId) && styles.treeActive,
               )}
             >
               <button
                 type="button"
                 onClick={() => onToggleCourse(course.courseId)}
-                className="flex h-8 w-7 shrink-0 items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                className={styles.treeExpander}
                 aria-label={expanded ? t('tree.collapse') : t('tree.expand')}
                 aria-expanded={expanded}
               >
@@ -104,40 +101,33 @@ export function NotebookTree({
                 onClick={() =>
                   onSelect({ type: 'course', courseId: course.courseId })
                 }
-                className="flex min-w-0 flex-1 items-center gap-2 py-2 text-left text-sm"
+                className={styles.courseButton}
               >
-                <BookOpen className="h-4 w-4 shrink-0 text-gray-400" />
-                <span
-                  className={cn(
-                    'flex-1 truncate font-medium',
-                    isCourseActive(selection, course.courseId)
-                      ? 'text-[var(--color-primary)] dark:text-[var(--color-accent)]'
-                      : 'text-gray-700 dark:text-gray-200',
-                  )}
-                >
+                <BookOpen className="h-4 w-4 shrink-0" />
+                <span className={styles.treeLabel}>
                   {course.title}
                 </span>
-                <span className="shrink-0 rounded-full bg-gray-100 px-1.5 py-0.5 text-[11px] font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
+                <span className={styles.treeCount}>
                   {course.totalNotes}
                 </span>
               </button>
             </div>
 
             {expanded && (
-              <div className="ml-7 flex flex-col gap-0.5 border-l border-gray-200 pl-2 dark:border-white/10">
+              <div className={styles.treeBranch}>
                 {(course.compendium || course.generationState) && (() => {
                   const state = course.compendium?.generationState ?? course.generationState
                   const isRetrying = retryingCourseId === course.courseId
                   return (
-                    <div className="flex items-center gap-1 rounded-md px-1 py-1 text-[var(--color-primary)] dark:text-[var(--color-accent)]">
+                    <div className={styles.compendiumRow}>
                       <button
                         type="button"
                         disabled={!course.compendium}
                         onClick={() => course.compendium && onOpenNote(course.compendium.noteId)}
-                        className="flex min-w-0 flex-1 items-center gap-2 rounded-md px-1 py-1 text-left text-sm font-medium transition-colors enabled:hover:bg-[var(--color-accent)]/10 disabled:cursor-default"
+                        className={styles.treeCompendium}
                       >
                         <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                        <span className="min-w-0 flex-1 truncate">{t('compendium.label')}</span>
+                        <span className={styles.treeLabel}>{t('compendium.label')}</span>
                         {state && <GenerationStatusBadge status={state.status} compact />}
                       </button>
                       {state?.retryable && (state.status === 'failed' || state.status === 'partial' || state.status === 'stale') && (
@@ -145,7 +135,7 @@ export function NotebookTree({
                           type="button"
                           disabled={isRetrying}
                           onClick={() => onRetryCompendium(course.courseId)}
-                          className="rounded-md p-1.5 transition-colors hover:bg-[var(--color-accent)]/10 disabled:opacity-50"
+                          className={styles.retryIcon}
                           title={t('generation.retry')}
                           aria-label={t('generation.retry')}
                         >
@@ -167,15 +157,13 @@ export function NotebookTree({
                       })
                     }
                     className={cn(
-                      'flex items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors',
-                      isLessonActive(selection, lesson.lessonId)
-                        ? 'bg-[var(--color-accent)]/15 text-[var(--color-primary)] dark:text-[var(--color-accent)]'
-                        : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5',
+                      styles.treeLesson,
+                      isLessonActive(selection, lesson.lessonId) && styles.treeActive,
                     )}
                   >
-                    <FileText className="h-3.5 w-3.5 shrink-0 text-gray-400" />
-                    <span className="flex-1 truncate">{lesson.title}</span>
-                    <span className="shrink-0 text-[11px] text-gray-400">
+                    <FileText className="h-3.5 w-3.5 shrink-0" />
+                    <span className={styles.treeLabel}>{lesson.title}</span>
+                    <span className={styles.treeCount}>
                       {lesson.notes.length}
                     </span>
                   </button>

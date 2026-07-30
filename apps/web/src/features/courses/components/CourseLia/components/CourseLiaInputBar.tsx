@@ -1,5 +1,6 @@
-import type { RefObject } from 'react';
+import type { CSSProperties, RefObject } from 'react';
 
+import styles from '../CourseLiaPanel.module.css';
 import type { CourseLiaThemeColors, PrimaryActionMode } from '../types';
 
 import { PrimaryActionButton } from './PrimaryActionButton';
@@ -29,9 +30,7 @@ export function CourseLiaInputBar({
   inputRef,
   inputValue,
   isInteractionBlocked,
-  isLightTheme,
   isListening,
-  isMobile,
   onInputChange,
   onKeyDown,
   onPrimaryAction,
@@ -40,8 +39,17 @@ export function CourseLiaInputBar({
   primaryActionMode,
   themeColors,
 }: CourseLiaInputBarProps) {
+  const themeVariables = {
+    '--course-lia-accent': themeColors.accentColor,
+    '--course-lia-text': themeColors.textPrimary,
+    '--course-lia-muted': themeColors.textSecondary,
+    '--course-lia-input': themeColors.inputBg,
+    '--course-lia-input-border': themeColors.inputBorder,
+    '--course-lia-primary': themeColors.primaryAction,
+  } as CSSProperties;
+
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '2%' : '9px', backgroundColor: themeColors.inputBg, borderRadius: '20px', padding: isMobile ? '5px 3%' : '5px 9px 5px 14px', border: `1px solid ${themeColors.inputBorder}`, overflow: 'hidden', minWidth: 0 }}>
+    <div className={styles.composer} style={themeVariables}>
       {isListening && !inputValue ? (
         <div style={{ flexShrink: 0 }}>
           <VoiceWaveformBars color={themeColors.accentColor} count={5} size={18} />
@@ -59,13 +67,11 @@ export function CourseLiaInputBar({
         placeholder={placeholder}
         disabled={isInteractionBlocked}
         rows={1}
-        style={{ flex: 1, minHeight: '20px', maxHeight: '120px', resize: 'none', backgroundColor: 'transparent', border: 'none', outline: 'none', color: themeColors.textPrimary, caretColor: themeColors.textPrimary, WebkitTextFillColor: themeColors.textPrimary, fontSize: '14px', lineHeight: '20px', padding: 0, overflowY: 'hidden', display: 'block' }}
+        className={`${inputClassName} ${styles.textarea}`}
         id={inputId}
-        className={inputClassName}
       />
       <PrimaryActionButton
         disabled={isInteractionBlocked}
-        isLightTheme={isLightTheme}
         isListening={isListening}
         label={primaryActionLabel}
         mode={primaryActionMode}

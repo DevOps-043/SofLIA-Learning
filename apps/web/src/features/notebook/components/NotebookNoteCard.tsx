@@ -5,11 +5,11 @@ import { AnimatePresence } from 'framer-motion'
 import { BookOpen, FileText, Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
-import { cn } from '@/utils/cn'
 import type { NotebookFlatNote } from '../hooks/useNotebookTree'
 import type { NotebookNoteDetail } from '../types'
 import { NoteHoverPreview } from './NoteHoverPreview'
 import { GenerationStatusBadge } from './GenerationStatusBadge'
+import styles from './NotebookExperience.module.css'
 
 interface NotebookNoteCardProps {
   item: NotebookFlatNote
@@ -69,23 +69,23 @@ export function NotebookNoteCard({
 
   return (
     <div
-      className="relative"
+      className={styles.noteWrapper}
       onMouseEnter={handleEnter}
       onMouseLeave={handleLeave}
     >
       <button
         type="button"
         onClick={() => onOpen(item.note.noteId)}
-        className="flex h-full w-full flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-[var(--color-accent)]/40 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]/40 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-[var(--color-accent)]/40"
+        className={styles.noteCard}
       >
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="line-clamp-2 flex-1 text-sm font-semibold text-gray-900 dark:text-white">
+        <div className={styles.cardTop}>
+          <h3 className={styles.noteTitle}>
             {item.note.title}
           </h3>
           {isAi && (
             <span
               title={t(`source.${item.note.source}`)}
-              className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--color-accent)]/15 px-2 py-0.5 text-[10px] font-semibold text-[var(--color-primary)] dark:text-[var(--color-accent)]"
+              className={styles.aiBadge}
             >
               <Sparkles className="h-3 w-3" />
               {t(`source.${item.note.source}`)}
@@ -93,31 +93,31 @@ export function NotebookNoteCard({
           )}
         </div>
 
-        <div className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400">
-          <span className="flex items-center gap-1.5">
+        <div className={styles.cardPath}>
+          <span className={styles.pathItem}>
             <BookOpen className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">{item.courseTitle}</span>
+            <span className={styles.pathText}>{item.courseTitle}</span>
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className={styles.pathItem}>
             <FileText className="h-3.5 w-3.5 shrink-0" />
-            <span className="truncate">
+            <span className={styles.pathText}>
               {isCompendium ? t('compendium.label') : item.lessonTitle}
             </span>
           </span>
         </div>
 
         {item.note.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+          <div className={styles.tagList}>
             {item.note.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300"
+                className={styles.tag}
               >
                 {tag}
               </span>
             ))}
             {item.note.tags.length > 3 && (
-              <span className="text-[10px] text-gray-400">
+              <span className={styles.tagMore}>
                 +{item.note.tags.length - 3}
               </span>
             )}
@@ -128,7 +128,7 @@ export function NotebookNoteCard({
           <GenerationStatusBadge status={generationStatus} className="w-fit" />
         )}
 
-        <p className="mt-auto text-[11px] text-gray-400">
+        <p className={styles.updated}>
           {t('card.updatedAt', {
             date: formatDate(item.note.updatedAt, i18n.language),
           })}

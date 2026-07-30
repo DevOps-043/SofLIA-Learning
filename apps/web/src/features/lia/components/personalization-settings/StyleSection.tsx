@@ -1,10 +1,11 @@
-import { Sparkles } from 'lucide-react';
+import { WandSparkles } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { getBaseStyles } from './constants';
 import { PersonalizationSelect } from './PersonalizationSelect';
 import { Section } from './Section';
 import type { PersonalizationBaseStyle, PersonalizationFormData } from './types';
+import styles from './PersonalizationSettings.module.css';
 
 interface StyleSectionProps {
   formData: PersonalizationFormData;
@@ -21,11 +22,11 @@ export function StyleSection(props: StyleSectionProps) {
     <Section
       title={t('liaPersonalization.sections.style.title')}
       description={t('liaPersonalization.sections.style.description')}
-      icon={Sparkles}
+      icon={WandSparkles}
       isExpanded={props.isExpanded}
       onToggle={props.onToggle}
     >
-      <label className="block text-sm font-medium mb-2 text-primary dark:text-white">
+      <label className={styles.fieldLabel}>
         {t('liaPersonalization.styleLabel')}
       </label>
       <PersonalizationSelect
@@ -38,7 +39,7 @@ export function StyleSection(props: StyleSectionProps) {
         }
         options={baseStyles}
       />
-      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+      <p className={styles.fieldHint}>
         {baseStyles.find((style) => style.value === props.formData.base_style)?.description}
       </p>
     </Section>

@@ -1,4 +1,4 @@
-import { CheckCircle, X } from "lucide-react";
+import { CheckCircle2, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isQuizAnswerCorrect, type QuizQuestion } from "@/features/courses/components/learn/quiz.utils";
 
@@ -33,17 +33,23 @@ export function QuizOption({
   const showGrading = showResults && answerKeyKnown;
 
   return (
-    <label className={`flex items-center gap-3 px-3 py-2.5 rounded-md cursor-pointer transition-all ${
+    <label
+      className={`flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-3 transition-all ${
       showGrading
         ? isSelected && isCorrectOption
-          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+          ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-400"
           : isSelected && !isCorrectOption
-            ? "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400"
-            : "bg-transparent text-gray-500 dark:text-white/50"
+            ? "border-red-300 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-400"
+            : "border-transparent bg-transparent text-gray-500 dark:text-white/50"
         : isSelected
-          ? "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white shadow-sm"
-          : "bg-transparent text-gray-600 dark:text-white/60 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white/80"
-    }`}>
+          ? "text-gray-900 shadow-sm dark:text-white"
+          : "border-gray-200/70 bg-white/45 text-gray-600 hover:border-[color-mix(in_srgb,var(--learn-accent)_24%,transparent)] hover:bg-[color-mix(in_srgb,var(--learn-accent)_4%,transparent)] hover:text-gray-900 dark:border-white/10 dark:bg-white/[0.015] dark:text-white/60 dark:hover:text-white/85"
+      }`}
+      style={!showGrading && isSelected ? {
+        borderColor: 'color-mix(in srgb, var(--learn-accent) 38%, transparent)',
+        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)',
+      } : undefined}
+    >
       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
         showGrading
           ? isSelected && isCorrectOption
@@ -52,7 +58,7 @@ export function QuizOption({
               ? "border-red-500 dark:border-red-400 bg-red-500 dark:bg-red-400"
               : "border-gray-300 dark:border-white/20"
           : isSelected
-            ? "border-gray-900 dark:border-white bg-gray-900 dark:bg-white"
+            ? "border-[var(--learn-action)] bg-[var(--learn-action)]"
             : "border-gray-300 dark:border-white/20"
       }`}>
         {((showGrading && (isCorrectOption || (isSelected && !isCorrectOption))) || (!showGrading && isSelected)) && (
@@ -63,7 +69,7 @@ export function QuizOption({
       <span className="text-xs font-medium opacity-60 dark:opacity-50 mr-1">({optionLetter})</span>
       <span className="text-sm flex-1">{option}</span>
       {showGrading && isSelected && isCorrectOption && (
-        <CheckCircle
+        <CheckCircle2
           aria-label={t("activities.quiz.correct")}
           className="w-4 h-4 text-emerald-500 dark:text-emerald-400 flex-shrink-0"
         />

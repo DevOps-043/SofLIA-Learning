@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { CheckCheck, Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface QuizSubmitButtonProps {
@@ -19,11 +19,12 @@ export function QuizSubmitButton({
   const { t } = useTranslation("learn");
 
   return (
-    <div className={noBorder ? "flex justify-end" : "flex justify-end pt-3 border-t border-gray-200 dark:border-white/5"}>
+    <div className={noBorder ? "flex justify-end" : "flex justify-end border-t border-gray-200/70 pt-3 dark:border-white/10"}>
       <button
         onClick={onSubmit}
         disabled={selectedAnswerCount < totalQuestions || isSubmitting}
-        className="px-4 py-2 rounded-md text-sm font-medium bg-primary hover:bg-primary/90 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+        className="flex min-h-10 items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold transition-all hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40"
+        style={{ backgroundColor: 'var(--learn-action)', borderColor: 'color-mix(in srgb, var(--learn-action) 28%, transparent)', color: 'var(--learn-on-action)', boxShadow: '0 0.55rem 1.25rem color-mix(in srgb, var(--learn-action) 14%, transparent)' }}
       >
         {isSubmitting ? (
           <>
@@ -31,7 +32,10 @@ export function QuizSubmitButton({
             {t("activities.quiz.saving")}
           </>
         ) : (
-          t("activities.quiz.submit")
+          <>
+            <CheckCheck className="h-4 w-4" />
+            {t("activities.quiz.submit")}
+          </>
         )}
       </button>
     </div>

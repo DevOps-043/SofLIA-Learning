@@ -90,7 +90,7 @@ export async function GET(
     // alcance del usuario actual ANTES de consultar para no traer nunca filas
     // de otras empresas (ver `_lib/question-org-scope.ts`).
     const currentUser = await SessionService.getCurrentUser();
-    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser);
+    const orgScope = await resolveQuestionsOrgScope(supabase, currentUser, course.id);
 
     // Construir query base
     let query = applyQuestionsOrgScope(
@@ -274,7 +274,7 @@ async function handlePost(
     // La pregunta se sella con la organización del autor: es la clave con la que
     // el resto de endpoints filtra la comunidad. Sin organización activa no hay
     // comunidad a la que publicar.
-    const orgScope = await resolveQuestionsOrgScope(supabase, user);
+    const orgScope = await resolveQuestionsOrgScope(supabase, user, course.id);
     if (!orgScope.organizationId) {
       return apiError(
         'ORGANIZATION_REQUIRED',

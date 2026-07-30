@@ -261,7 +261,14 @@ export const AI_MODEL_PURPOSES = [
   {
     capabilities: ALL_CAPABILITIES,
     defaults: {
-      maxOutputTokens: 1_024,
+      // Los modelos gemini-3.x descuentan el razonamiento de este mismo
+      // presupuesto y su consumo varía por apunte (se han medido entre ~490 y
+      // ~1.420 tokens de razonamiento). Con 1.024 el modelo se quedaba sin
+      // espacio para el JSON, devolvía finishReason MAX_TOKENS y el
+      // enriquecimiento fallaba con AI_INVALID_JSON_RESPONSE. La respuesta útil
+      // ocupa ~200-300 tokens: 2.048 deja margen sin encarecer la llamada
+      // (solo se paga lo generado).
+      maxOutputTokens: 2_048,
       model: PLATFORM_DEFAULT_GEMINI_MODEL,
       temperature: 0.2,
       thinkingLevel: 'default',

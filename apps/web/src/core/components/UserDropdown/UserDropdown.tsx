@@ -6,6 +6,7 @@ import { UserAvatar } from './UserAvatar'
 import { UserDropdownPortal } from './UserDropdownPortal'
 import type { UserDropdownProps } from './types'
 import { useUserDropdownLogic } from './useUserDropdownLogic'
+import styles from './UserDropdown.module.css'
 
 export const UserDropdown = React.memo(function UserDropdown({
   certificatesCount = 0,
@@ -25,14 +26,17 @@ export const UserDropdown = React.memo(function UserDropdown({
   })
 
   return (
-    <div className={`relative ${className}`} ref={logic.dropdownRef}>
+    <div className={`${styles.root} ${className}`} ref={logic.dropdownRef}>
       <motion.button
+        type="button"
         onClick={() => { logic.setIsOpen(!logic.isOpen); logic.setActiveSubmenu(null) }}
-        className="flex items-center justify-center p-1 rounded-full transition-all duration-300 hover:bg-black/5 dark:hover:bg-white/5"
+        className={styles.trigger}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
+        aria-expanded={logic.isOpen}
+        aria-controls="global-user-dropdown-menu"
       >
-        <div className="relative">
+        <div className={styles.triggerAvatar}>
           <UserAvatar
             accentColor={logic.accentColor}
             imageError={logic.imageError}
@@ -43,7 +47,7 @@ export const UserDropdown = React.memo(function UserDropdown({
             onImageError={() => logic.setImageError(true)}
             primaryColor={logic.primaryColor}
           />
-          <div className="absolute bottom-0.5 right-0.5 w-2.5 h-2.5 bg-success rounded-full border-2 border-white dark:border-carbon-900 shadow-sm" />
+          <span className={styles.presence} aria-hidden="true" />
         </div>
       </motion.button>
       <UserDropdownPortal logic={logic} />

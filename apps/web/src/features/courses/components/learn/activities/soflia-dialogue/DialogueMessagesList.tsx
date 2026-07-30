@@ -26,7 +26,7 @@ export function DialogueMessagesList({
   const { t } = useTranslation("learn");
 
   return (
-    <div className="max-h-[420px] space-y-3 overflow-y-auto px-4 py-4">
+    <div className="max-h-[34rem] space-y-3 overflow-y-auto px-4 py-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-5">
       {session?.messages.length ? (
         session.messages.map(message => (
           <DialogueMessageBubble
@@ -38,7 +38,7 @@ export function DialogueMessagesList({
           />
         ))
       ) : (
-        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50/70 px-4 py-6 text-center dark:border-white/10 dark:bg-white/[0.03]">
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white/55 px-4 py-8 text-center dark:border-white/10 dark:bg-white/[0.025]">
           <Sparkles className="mx-auto h-5 w-5 text-accent" />
           <p className="mt-2 text-sm font-medium text-gray-900 dark:text-white">{t("activities.dialogue.emptyTitle")}</p>
           <p className="mt-1 text-xs text-gray-500 dark:text-white/40">{t("activities.dialogue.emptyDescription")}</p>

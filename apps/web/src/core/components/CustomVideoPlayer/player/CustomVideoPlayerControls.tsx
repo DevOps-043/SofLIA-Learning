@@ -7,16 +7,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Gauge,
-  Maximize,
-  Minimize,
+  Maximize2,
+  Minimize2,
+  MonitorCog,
   Pause,
   PictureInPicture2,
   Play,
-  Settings,
-  Sliders,
+  RotateCcw,
+  RotateCw,
+  Settings2,
   Volume2,
   VolumeX,
 } from 'lucide-react';
+import styles from './CustomVideoPlayerControls.module.css';
 import type { CustomVideoPlayerController } from './types';
 
 type SettingsPanel = 'main' | 'quality' | 'speed';
@@ -30,7 +33,6 @@ export function CustomVideoPlayerControls({
 }: CustomVideoPlayerControlsProps) {
   const [settingsPanel, setSettingsPanel] = useState<SettingsPanel>('main');
 
-  // Reset to main panel whenever the dropdown closes
   useEffect(() => {
     if (!controller.showSettings) {
       setSettingsPanel('main');
@@ -39,34 +41,38 @@ export function CustomVideoPlayerControls({
 
   const speedLabel =
     controller.playbackRate === 1 ? 'Normal' : `${controller.playbackRate}×`;
-
   const qualityLabel =
     controller.quality.selectedHeight === null
       ? 'Auto'
       : `${controller.quality.selectedHeight}p`;
-
   const hasQualitySelector =
     controller.quality.isHls &&
     !controller.quality.isNativeHls &&
     controller.quality.availableRenditions.length > 0;
+  const progressPercentage =
+    controller.duration > 0
+      ? (controller.currentTime / controller.duration) * 100
+      : 0;
+  const volumePercentage =
+    (controller.isMuted ? 0 : controller.volume) * 100;
 
   return (
     <>
       {controller.isLoading && (
         <div
-          className="absolute inset-0 flex items-center justify-center bg-carbon-900/80 backdrop-blur-sm z-30"
+          className={styles.loadingOverlay}
           data-video-loading-indicator="true"
         >
-          <div className="w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
+          <div className={styles.spinner} />
         </div>
       )}
 
       {controller.isBuffering && controller.isPlaying && (
         <div
-          className="absolute inset-0 flex items-center justify-center bg-carbon-900/50 z-20"
+          className={styles.bufferingOverlay}
           data-video-buffering-indicator="true"
         >
-          <div className="w-12 h-12 border-4 border-accent/20 border-t-accent rounded-full animate-spin" />
+          <div className={styles.spinner} />
         </div>
       )}
 
@@ -74,61 +80,59 @@ export function CustomVideoPlayerControls({
         {controller.showControls && (
           <motion.div
             animate={{ opacity: 1 }}
-            className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-40 pointer-events-none"
+            className={styles.controlsOverlay}
             exit={{ opacity: 0 }}
             initial={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.18 }}
           >
-            <div className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
+            <div className={styles.skipControls}>
               <button
-                className="p-1.5 sm:p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-lg transition-all duration-200 group/btn"
+                type="button"
+                className={styles.skipButton}
                 onClick={() => controller.skip(-10)}
-                title="Retroceder 10s"
+                title="Retroceder 10 segundos"
+                aria-label="Retroceder 10 segundos"
               >
-                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover/btn:scale-110 transition-transform" />
-                <span className="absolute -bottom-7 sm:-bottom-8 left-1/2 -translate-x-1/2 text-[10px] sm:text-xs text-white bg-black/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">
-                  10s
-                </span>
+                <RotateCcw aria-hidden="true" />
+                <span className={styles.skipValue}>10</span>
               </button>
               <button
-                className="p-1.5 sm:p-2 bg-black/60 hover:bg-black/80 backdrop-blur-md rounded-lg transition-all duration-200 group/btn disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:bg-black/60"
+                type="button"
+                className={styles.skipButton}
                 disabled={controller.isSeekingLocked}
                 onClick={() => controller.skip(10)}
-                title="Avanzar 10s"
+                title="Adelantar 10 segundos"
+                aria-label="Adelantar 10 segundos"
               >
-                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover/btn:scale-110 transition-transform" />
-                <span className="absolute -bottom-7 sm:-bottom-8 left-1/2 -translate-x-1/2 text-[10px] sm:text-xs text-white bg-black/80 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity whitespace-nowrap">
-                  10s
-                </span>
+                <span className={styles.skipValue}>10</span>
+                <RotateCw aria-hidden="true" />
               </button>
             </div>
 
             {!controller.isPlaying && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+              <div className={styles.centerPlay}>
                 <motion.button
+                  type="button"
                   animate={{ opacity: 1, scale: 1 }}
-                  className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-full flex items-center justify-center transition-all duration-200 pointer-events-auto group"
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  className={styles.playButton}
+                  exit={{ opacity: 0, scale: 0.88 }}
+                  initial={{ opacity: 0, scale: 0.88 }}
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
                     void controller.togglePlay();
                   }}
+                  aria-label="Reproducir video"
                 >
-                  <Play className="w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-white group-hover:scale-110 transition-transform ml-0.5" />
+                  <Play aria-hidden="true" />
                 </motion.button>
               </div>
             )}
 
-            <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 md:p-4 pointer-events-auto">
+            <div className={styles.controlDock}>
               <div
-                className={`w-full h-1 sm:h-1.5 bg-white/20 rounded-full mb-2 sm:mb-3 md:mb-4 group/progress transition-all duration-200 ${
-                  controller.isDraggingProgress ? 'h-2' : ''
-                } ${
-                  controller.isSeekingLocked
-                    ? 'cursor-not-allowed'
-                    : 'cursor-pointer hover:h-2'
+                className={`${styles.progressHitArea} ${
+                  controller.isDraggingProgress ? styles.progressDragging : ''
                 }`}
                 onClick={controller.handleProgressClick}
                 onMouseDown={controller.handleProgressMouseDown}
@@ -143,63 +147,59 @@ export function CustomVideoPlayerControls({
                 ref={controller.progressBarRef}
                 style={{ userSelect: 'none' }}
               >
-                <motion.div
-                  className="h-full bg-gradient-to-r from-accent to-accent rounded-full relative"
-                  initial={false}
-                  style={{
-                    width: `${
-                      controller.duration > 0
-                        ? (controller.currentTime / controller.duration) * 100
-                        : 0
-                    }%`,
-                  }}
-                >
-                  <div
-                    className={`absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-white rounded-full transition-opacity shadow-lg ${
-                      controller.isDraggingProgress || controller.isHovering
-                        ? 'opacity-100'
-                        : 'opacity-0 group-hover/progress:opacity-100'
-                    }`}
-                  />
-                </motion.div>
+                <div className={styles.progressTrack}>
+                  <motion.div
+                    className={styles.progressFill}
+                    initial={false}
+                    style={{ width: `${progressPercentage}%` }}
+                  >
+                    <span className={styles.progressThumb} />
+                  </motion.div>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between gap-2 sm:gap-3 md:gap-4">
-                <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+              <div className={styles.controlRow}>
+                <div className={styles.controlGroup}>
                   <button
-                    className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    type="button"
+                    className={styles.iconButton}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
                       void controller.togglePlay();
                     }}
                     title={controller.isPlaying ? 'Pausar' : 'Reproducir'}
+                    aria-label={controller.isPlaying ? 'Pausar' : 'Reproducir'}
                   >
                     {controller.isPlaying ? (
-                      <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+                      <Pause aria-hidden="true" />
                     ) : (
-                      <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+                      <Play aria-hidden="true" />
                     )}
                   </button>
 
                   <div
-                    className="relative"
+                    className={styles.volumeWrapper}
                     onMouseEnter={() => controller.setShowVolumeControl(true)}
                     onMouseLeave={() => controller.setShowVolumeControl(false)}
                   >
                     <button
-                      className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
+                      type="button"
+                      className={styles.iconButton}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
                         controller.toggleMute();
                       }}
                       title={controller.isMuted ? 'Activar sonido' : 'Silenciar'}
+                      aria-label={
+                        controller.isMuted ? 'Activar sonido' : 'Silenciar'
+                      }
                     >
                       {controller.isMuted || controller.volume === 0 ? (
-                        <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+                        <VolumeX aria-hidden="true" />
                       ) : (
-                        <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+                        <Volume2 aria-hidden="true" />
                       )}
                     </button>
 
@@ -207,12 +207,13 @@ export function CustomVideoPlayerControls({
                       {controller.showVolumeControl && (
                         <motion.div
                           animate={{ opacity: 1, y: 0 }}
-                          className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 p-2 bg-black/80 backdrop-blur-md rounded-lg"
-                          exit={{ opacity: 0, y: 10 }}
-                          initial={{ opacity: 0, y: 10 }}
+                          className={styles.volumePopover}
+                          exit={{ opacity: 0, y: 6 }}
+                          initial={{ opacity: 0, y: 6 }}
+                          transition={{ duration: 0.14 }}
                         >
                           <div
-                            className="w-2 h-20 bg-white/20 rounded-full cursor-pointer relative"
+                            className={styles.volumeTrack}
                             onClick={controller.handleVolumeClick}
                             onMouseDown={controller.handleVolumeMouseDown}
                             onMouseLeave={controller.handleVolumeMouseUp}
@@ -223,13 +224,12 @@ export function CustomVideoPlayerControls({
                             onTouchStart={controller.handleVolumeTouchStart}
                             ref={controller.volumeBarRef}
                             style={{ userSelect: 'none' }}
+                            aria-label="Volumen"
                           >
                             <motion.div
-                              className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-accent to-accent rounded-full"
+                              className={styles.volumeFill}
                               initial={false}
-                              style={{
-                                height: `${(controller.isMuted ? 0 : controller.volume) * 100}%`,
-                              }}
+                              style={{ height: `${volumePercentage}%` }}
                             />
                           </div>
                         </motion.div>
@@ -237,89 +237,102 @@ export function CustomVideoPlayerControls({
                     </AnimatePresence>
                   </div>
 
-                  <div className="text-white text-xs sm:text-sm font-medium tabular-nums">
-                    {controller.formatTime(controller.currentTime)} /{' '}
-                    {controller.formatTime(controller.duration)}
+                  <div className={styles.timecode}>
+                    <span>{controller.formatTime(controller.currentTime)}</span>
+                    <span className={styles.timeSeparator}>/</span>
+                    <span>{controller.formatTime(controller.duration)}</span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 sm:gap-2">
-                  {/* Settings */}
-                  <div className="relative">
+                <div className={styles.controlGroup}>
+                  <div className={styles.settingsWrapper}>
                     <button
-                      className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
+                      type="button"
+                      className={styles.iconButton}
                       onClick={() =>
                         controller.setShowSettings((current) => !current)
                       }
                       title="Configuración"
+                      aria-label="Abrir configuración del video"
+                      aria-expanded={controller.showSettings}
                     >
-                      <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+                      <Settings2 aria-hidden="true" />
                     </button>
 
                     <AnimatePresence>
                       {controller.showSettings && (
                         <motion.div
                           animate={{ opacity: 1, scale: 1, y: 0 }}
-                          className="absolute bottom-full right-0 mb-2 w-56 rounded-xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.85)] border border-white/[0.07]"
-                          exit={{ opacity: 0, scale: 0.97, y: 4 }}
-                          initial={{ opacity: 0, scale: 0.97, y: 4 }}
-                          style={{ background: '#212121' }}
-                          transition={{ duration: 0.12 }}
+                          className={styles.settingsMenu}
+                          exit={{ opacity: 0, scale: 0.98, y: 5 }}
+                          initial={{ opacity: 0, scale: 0.98, y: 5 }}
+                          transition={{ duration: 0.14 }}
                         >
                           <AnimatePresence mode="wait" initial={false}>
                             {settingsPanel === 'main' && (
                               <motion.div
                                 key="main"
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -12 }}
-                                initial={{ opacity: 0, x: 12 }}
+                                className={styles.menuList}
+                                exit={{ opacity: 0, x: -10 }}
+                                initial={{ opacity: 0, x: 10 }}
                                 transition={{ duration: 0.1 }}
-                                className="py-1"
                               >
-                                {/* Playback speed */}
                                 <button
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                  type="button"
+                                  className={styles.menuItem}
                                   onClick={() => setSettingsPanel('speed')}
                                 >
-                                  <Gauge className="w-4 h-4 text-white/50 flex-shrink-0" />
-                                  <span className="text-[13px] text-white flex-1 text-left">
+                                  <span className={styles.menuIcon}>
+                                    <Gauge aria-hidden="true" />
+                                  </span>
+                                  <span className={styles.menuLabel}>
                                     Velocidad
                                   </span>
-                                  <span className="text-[12px] text-white/40 mr-1">
+                                  <span className={styles.menuValue}>
                                     {speedLabel}
                                   </span>
-                                  <ChevronRight className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+                                  <ChevronRight
+                                    className={styles.menuChevron}
+                                    aria-hidden="true"
+                                  />
                                 </button>
 
-                                {/* Quality (HLS only) */}
                                 {hasQualitySelector && (
                                   <button
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                    type="button"
+                                    className={styles.menuItem}
                                     onClick={() => setSettingsPanel('quality')}
                                   >
-                                    <Sliders className="w-4 h-4 text-white/50 flex-shrink-0" />
-                                    <span className="text-[13px] text-white flex-1 text-left">
+                                    <span className={styles.menuIcon}>
+                                      <MonitorCog aria-hidden="true" />
+                                    </span>
+                                    <span className={styles.menuLabel}>
                                       Calidad
                                     </span>
-                                    <span className="text-[12px] text-white/40 mr-1">
+                                    <span className={styles.menuValue}>
                                       {qualityLabel}
                                     </span>
-                                    <ChevronRight className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+                                    <ChevronRight
+                                      className={styles.menuChevron}
+                                      aria-hidden="true"
+                                    />
                                   </button>
                                 )}
 
-                                {/* Divider before PiP */}
-                                <div className="mx-4 my-1 border-t border-white/[0.06]" />
+                                <div className={styles.menuDivider} />
 
-                                {/* Picture in Picture */}
                                 <button
-                                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                  type="button"
+                                  className={styles.menuItem}
                                   onClick={() => {
                                     void controller.togglePictureInPicture();
                                   }}
                                 >
-                                  <PictureInPicture2 className="w-4 h-4 text-white/50 flex-shrink-0" />
-                                  <span className="text-[13px] text-white flex-1 text-left">
+                                  <span className={styles.menuIcon}>
+                                    <PictureInPicture2 aria-hidden="true" />
+                                  </span>
+                                  <span className={styles.menuLabel}>
                                     Imagen en imagen
                                   </span>
                                 </button>
@@ -330,51 +343,54 @@ export function CustomVideoPlayerControls({
                               <motion.div
                                 key="speed"
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 12 }}
-                                initial={{ opacity: 0, x: -12 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                initial={{ opacity: 0, x: -10 }}
                                 transition={{ duration: 0.1 }}
                               >
-                                {/* Subpanel header */}
-                                <div className="flex items-center gap-1 px-2 py-2 border-b border-white/[0.07]">
+                                <div className={styles.menuHeader}>
                                   <button
-                                    className="p-1.5 rounded-lg hover:bg-white/[0.07] transition-colors"
+                                    type="button"
+                                    className={styles.backButton}
                                     onClick={() => setSettingsPanel('main')}
+                                    aria-label="Volver a configuración"
                                   >
-                                    <ChevronLeft className="w-4 h-4 text-white" />
+                                    <ChevronLeft aria-hidden="true" />
                                   </button>
-                                  <span className="text-[13px] font-medium text-white">
+                                  <span className={styles.menuHeading}>
                                     Velocidad de reproducción
                                   </span>
                                 </div>
 
-                                <div className="py-1">
-                                  {controller.playbackRates.map((rate) => (
-                                    <button
-                                      key={rate}
-                                      className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
-                                      onClick={() => {
-                                        controller.changePlaybackRate(rate);
-                                        setSettingsPanel('main');
-                                      }}
-                                    >
-                                      <Check
-                                        className={`w-4 h-4 flex-shrink-0 transition-opacity ${
-                                          controller.playbackRate === rate
-                                            ? 'text-[var(--color-accent)] opacity-100'
-                                            : 'opacity-0'
+                                <div className={styles.menuList}>
+                                  {controller.playbackRates.map((rate) => {
+                                    const isActive =
+                                      controller.playbackRate === rate;
+                                    return (
+                                      <button
+                                        type="button"
+                                        key={rate}
+                                        className={`${styles.menuItem} ${
+                                          isActive ? styles.optionActive : ''
                                         }`}
-                                      />
-                                      <span
-                                        className={`text-[13px] ${
-                                          controller.playbackRate === rate
-                                            ? 'text-[var(--color-accent)] font-medium'
-                                            : 'text-white/80'
-                                        }`}
+                                        onClick={() => {
+                                          controller.changePlaybackRate(rate);
+                                          setSettingsPanel('main');
+                                        }}
                                       >
-                                        {rate === 1 ? 'Normal' : `${rate}×`}
-                                      </span>
-                                    </button>
-                                  ))}
+                                        <Check
+                                          className={`${styles.optionCheck} ${
+                                            isActive
+                                              ? styles.optionCheckVisible
+                                              : ''
+                                          }`}
+                                          aria-hidden="true"
+                                        />
+                                        <span className={styles.optionLabel}>
+                                          {rate === 1 ? 'Normal' : `${rate}×`}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
                                 </div>
                               </motion.div>
                             )}
@@ -383,86 +399,86 @@ export function CustomVideoPlayerControls({
                               <motion.div
                                 key="quality"
                                 animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 12 }}
-                                initial={{ opacity: 0, x: -12 }}
+                                exit={{ opacity: 0, x: 10 }}
+                                initial={{ opacity: 0, x: -10 }}
                                 transition={{ duration: 0.1 }}
                               >
-                                {/* Subpanel header */}
-                                <div className="flex items-center gap-1 px-2 py-2 border-b border-white/[0.07]">
+                                <div className={styles.menuHeader}>
                                   <button
-                                    className="p-1.5 rounded-lg hover:bg-white/[0.07] transition-colors"
+                                    type="button"
+                                    className={styles.backButton}
                                     onClick={() => setSettingsPanel('main')}
+                                    aria-label="Volver a configuración"
                                   >
-                                    <ChevronLeft className="w-4 h-4 text-white" />
+                                    <ChevronLeft aria-hidden="true" />
                                   </button>
-                                  <span className="text-[13px] font-medium text-white">
+                                  <span className={styles.menuHeading}>
                                     Calidad
                                   </span>
                                 </div>
 
-                                <div className="py-1">
-                                  {/* Auto */}
+                                <div className={styles.menuList}>
                                   <button
-                                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
+                                    type="button"
+                                    className={`${styles.menuItem} ${
+                                      controller.quality.selectedHeight === null
+                                        ? styles.optionActive
+                                        : ''
+                                    }`}
                                     onClick={() => {
                                       controller.quality.setQualityLevel(null);
                                       setSettingsPanel('main');
                                     }}
                                   >
                                     <Check
-                                      className={`w-4 h-4 flex-shrink-0 transition-opacity ${
+                                      className={`${styles.optionCheck} ${
                                         controller.quality.selectedHeight === null
-                                          ? 'text-[var(--color-accent)] opacity-100'
-                                          : 'opacity-0'
+                                          ? styles.optionCheckVisible
+                                          : ''
                                       }`}
+                                      aria-hidden="true"
                                     />
-                                    <span
-                                      className={`text-[13px] flex-1 text-left ${
-                                        controller.quality.selectedHeight === null
-                                          ? 'text-[var(--color-accent)] font-medium'
-                                          : 'text-white/80'
-                                      }`}
-                                    >
+                                    <span className={styles.optionLabel}>
                                       Auto
                                     </span>
-                                    <span className="text-[11px] text-white/25">
+                                    <span className={styles.optionHint}>
                                       adaptativo
                                     </span>
                                   </button>
 
-                                  {/* Renditions */}
                                   {controller.quality.availableRenditions.map(
-                                    (rendition) => (
-                                      <button
-                                        key={rendition.height}
-                                        className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.06] transition-colors duration-100"
-                                        onClick={() => {
-                                          controller.quality.setQualityLevel(
-                                            rendition.height,
-                                          );
-                                          setSettingsPanel('main');
-                                        }}
-                                      >
-                                        <Check
-                                          className={`w-4 h-4 flex-shrink-0 transition-opacity ${
-                                            controller.quality.selectedHeight ===
-                                            rendition.height
-                                              ? 'text-[var(--color-accent)] opacity-100'
-                                              : 'opacity-0'
+                                    (rendition) => {
+                                      const isActive =
+                                        controller.quality.selectedHeight ===
+                                        rendition.height;
+                                      return (
+                                        <button
+                                          type="button"
+                                          key={rendition.height}
+                                          className={`${styles.menuItem} ${
+                                            isActive ? styles.optionActive : ''
                                           }`}
-                                        />
-                                        <span
-                                          className={`text-[13px] ${
-                                            controller.quality.selectedHeight ===
-                                            rendition.height
-                                              ? 'text-[var(--color-accent)] font-medium'
-                                              : 'text-white/80'
-                                          }`}
+                                          onClick={() => {
+                                            controller.quality.setQualityLevel(
+                                              rendition.height,
+                                            );
+                                            setSettingsPanel('main');
+                                          }}
                                         >
-                                          {rendition.label}
-                                        </span>
-                                      </button>
-                                    ),
+                                          <Check
+                                            className={`${styles.optionCheck} ${
+                                              isActive
+                                                ? styles.optionCheckVisible
+                                                : ''
+                                            }`}
+                                            aria-hidden="true"
+                                          />
+                                          <span className={styles.optionLabel}>
+                                            {rendition.label}
+                                          </span>
+                                        </button>
+                                      );
+                                    },
                                   )}
                                 </div>
                               </motion.div>
@@ -474,10 +490,11 @@ export function CustomVideoPlayerControls({
                   </div>
 
                   <button
-                    className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-all duration-200 group"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
+                    type="button"
+                    className={styles.iconButton}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
                       void controller.toggleFullscreen();
                     }}
                     title={
@@ -485,11 +502,16 @@ export function CustomVideoPlayerControls({
                         ? 'Salir de pantalla completa'
                         : 'Pantalla completa'
                     }
+                    aria-label={
+                      controller.isFullscreen
+                        ? 'Salir de pantalla completa'
+                        : 'Pantalla completa'
+                    }
                   >
                     {controller.isFullscreen ? (
-                      <Minimize className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+                      <Minimize2 aria-hidden="true" />
                     ) : (
-                      <Maximize className="w-4 h-4 sm:w-5 sm:h-5 text-white group-hover:scale-110 transition-transform" />
+                      <Maximize2 aria-hidden="true" />
                     )}
                   </button>
                 </div>

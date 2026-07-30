@@ -42,6 +42,35 @@ export function buildCoursePreviewContent(
   }
 }
 
+export function buildStandaloneCoursePreviewContent(
+  course: AssignedCourse,
+  t: LearningPathTranslator,
+): InfoHoverCardContent {
+  const progress = clampProgress(course.progress)
+  const displayStatus: AssignedCourse['status'] =
+    progress <= 0 && course.status !== 'Completado' ? 'No iniciado' : course.status
+
+  return {
+    key: `course:${course.course_id}`,
+    kind: 'course',
+    targetId: course.course_id,
+    title: course.title,
+    meta: course.instructor
+      ? formatTranslation(
+          t,
+          'dashboard.learningPaths.standaloneCoursePreviewMeta',
+          'Curso impartido por {{instructor}}',
+          { instructor: course.instructor },
+        )
+      : t('dashboard.learningPaths.standaloneCoursePreviewFallback', 'Curso asignado'),
+    description: '',
+    points: [],
+    progress,
+    status: translateCourseStatus(displayStatus, t),
+    loading: false,
+  }
+}
+
 export function buildLearningPathPreviewContent(
   learningPath: AssignedLearningPath,
   t: LearningPathTranslator,

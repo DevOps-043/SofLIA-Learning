@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, type CSSProperties } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useProfilePageLogic } from '../../hooks/useProfilePageLogic'
@@ -9,6 +9,7 @@ import { ProfilePageHeader } from './ProfilePageHeader'
 import { ProfilePersonalTab } from './ProfilePersonalTab'
 import { ProfileSecurityTab } from './ProfileSecurityTab'
 import { ProfileTabs } from './ProfileTabs'
+import styles from './ProfileExperience.module.css'
 
 type ProfilePageLogic = ReturnType<typeof useProfilePageLogic>
 
@@ -62,12 +63,29 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
     return null
   }
 
+  const profileTheme = {
+    '--profile-primary': colors.primary,
+    '--profile-accent': colors.accent,
+    '--profile-on-primary': colors.onPrimary,
+    '--profile-on-accent': colors.onAccent,
+    '--profile-success': colors.success,
+    '--profile-warning': colors.warning,
+    '--profile-error': colors.error,
+    '--profile-canvas': colors.bgPrimary,
+    '--profile-surface': colors.bgSecondary,
+    '--profile-surface-alt': colors.bgTertiary,
+    '--profile-text': colors.text,
+    '--profile-muted': colors.textSecondary,
+    '--profile-border': colors.border,
+    colorScheme: colors.isLightMode ? 'light' : 'dark',
+  } as CSSProperties
+
   return (
     <>
-      <div className="min-h-screen" style={{ background: colors.bgPrimary }}>
-        <ProfilePageHeader colors={colors} saving={saving} goBack={goBack} handleSave={handleSave} />
+      <div className={styles.page} style={profileTheme}>
+        <ProfilePageHeader saving={saving} goBack={goBack} handleSave={handleSave} />
 
-        <main className="pt-16 min-h-screen">
+        <main className={styles.main}>
           <ProfileHero
             profile={profile}
             stats={stats}
@@ -80,14 +98,12 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
             formatDate={formatDate}
           />
 
-          <ProfileTabs activeTab={activeTab} canEditCredentials={canEditCredentials} setActiveTab={setActiveTab} colors={colors} />
+          <ProfileTabs activeTab={activeTab} canEditCredentials={canEditCredentials} setActiveTab={setActiveTab} />
 
-          <div className="px-6 lg:px-12 py-10">
+          <div className={styles.contentCard}>
             <AnimatePresence initial={false}>
               {activeTab === 'personal' || !canEditCredentials ? (
-                <div>
-                  <ProfilePersonalTab formData={formData} handleInputChange={handleInputChange} colors={colors} />
-                </div>
+                <ProfilePersonalTab formData={formData} handleInputChange={handleInputChange} colors={colors} />
               ) : (
                 <ProfileSecurityTab
                   profile={profile}
@@ -110,11 +126,6 @@ export function ProfilePageContent(logic: ProfilePageLogic) {
             </AnimatePresence>
           </div>
         </main>
-
-        <style>{`
-          .hide-scrollbar::-webkit-scrollbar { display: none; }
-          .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        `}</style>
       </div>
       <ToastNotification
         isOpen={toast.isOpen}

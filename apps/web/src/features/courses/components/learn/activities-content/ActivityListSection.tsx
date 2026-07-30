@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { ActivityCard } from "../activities/ActivityCard";
 import { sortActivitiesByDisplayOrder } from "../activities/utils";
+import styles from "../ActivitiesExperience.module.css";
 import { SectionCountHeader } from "./SectionCountHeader";
 import type { ActivitiesData, LearnActivity } from "./types";
 
@@ -34,13 +35,13 @@ export function ActivityListSection(props: {
   }
 
   return (
-    <div data-tour-id="course-learn--activity-list">
+    <section data-tour-id="course-learn--activity-list" className={styles.group}>
       <SectionCountHeader
         count={orderedActivities.length}
         icon={Activity}
         label={t("activities.title")}
       />
-      <div className="space-y-2">
+      <div className={styles.stack}>
         {orderedActivities.map((activity) => (
           <ActivityCard
             key={activity.activity_id}
@@ -57,6 +58,6 @@ export function ActivityListSection(props: {
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

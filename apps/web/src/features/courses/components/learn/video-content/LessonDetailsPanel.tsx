@@ -1,5 +1,6 @@
 import { ExpandableText } from "@/core/components/ExpandableText";
 import { LessonSupplementaryContent } from "../LessonSupplementaryContent";
+import styles from "../LessonSupplementaryContent.module.css";
 import type { LearnLesson } from "../types";
 
 interface LessonDetailsPanelProps {
@@ -24,27 +25,34 @@ export function LessonDetailsPanel({
   transcriptContent,
 }: LessonDetailsPanelProps) {
   return (
-    <div data-tour-id="course-learn--lesson-details" className="rounded-xl border p-6" style={{ background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}>
-      <div className="space-y-4">
+    <section
+      data-tour-id="course-learn--lesson-details"
+      className={styles.detailsPanel}
+    >
+      <header className={styles.lessonHeader}>
         <div>
-          <h2 className="text-2xl font-bold text-primary dark:text-white" style={{ fontFamily: "var(--font-system-ui)", fontWeight: 700 }}>
+          <h2 className={styles.lessonTitle}>
             {lesson.lesson_title}
           </h2>
           {lesson.lesson_description && (
-            <ExpandableText text={lesson.lesson_description} maxLines={2} className="mt-2" />
+            <ExpandableText
+              text={lesson.lesson_description}
+              maxLines={2}
+              className={styles.lessonDescription}
+            />
           )}
         </div>
-        <LessonSupplementaryContent
-          lesson={lesson}
-          slug={slug}
-          transcriptContent={transcriptContent}
-          summaryContent={summaryContent}
-          isTranscriptLoading={isTranscriptLoading}
-          isSummaryLoading={isSummaryLoading}
-          onNoteCreated={onNoteCreated}
-          onStatsUpdate={onStatsUpdate}
-        />
-      </div>
-    </div>
+      </header>
+      <LessonSupplementaryContent
+        lesson={lesson}
+        slug={slug}
+        transcriptContent={transcriptContent}
+        summaryContent={summaryContent}
+        isTranscriptLoading={isTranscriptLoading}
+        isSummaryLoading={isSummaryLoading}
+        onNoteCreated={onNoteCreated}
+        onStatsUpdate={onStatsUpdate}
+      />
+    </section>
   );
 }

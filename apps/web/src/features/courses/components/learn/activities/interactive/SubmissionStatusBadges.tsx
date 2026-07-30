@@ -13,7 +13,7 @@ export function SubmissionStatusBadges(props: {
     <div className="flex flex-wrap items-center gap-2">
       {summary && <SubmissionStatusBadge activity={props.activity} />}
       {validation?.enabled && (
-        <span className="rounded-full bg-fuchsia-100 px-2.5 py-1 text-[11px] font-medium text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300">
+        <span className="rounded-full border px-2.5 py-1 text-[11px] font-medium" style={{ borderColor: 'color-mix(in srgb, var(--learn-accent) 22%, transparent)', backgroundColor: 'color-mix(in srgb, var(--learn-accent) 8%, transparent)', color: 'var(--learn-accent)' }}>
           SofLIA disponible
         </span>
       )}

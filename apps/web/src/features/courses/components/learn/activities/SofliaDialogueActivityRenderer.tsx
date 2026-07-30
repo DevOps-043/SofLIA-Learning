@@ -9,6 +9,7 @@ import { DialogueMessagesList } from "./soflia-dialogue/DialogueMessagesList";
 import { getUserDisplayName, getUserInitials } from "./soflia-dialogue/dialogue-user";
 import type { SofliaDialogueActivityRendererProps } from "./soflia-dialogue/dialogue.types";
 import { useSofliaDialogueSession } from "./soflia-dialogue/useSofliaDialogueSession";
+import styles from "../ActivitiesExperience.module.css";
 
 export function SofliaDialogueActivityRenderer({
   activity,
@@ -32,9 +33,7 @@ export function SofliaDialogueActivityRenderer({
   }
 
   return (
-    // `-m-3` cancela el padding de la tarjeta contenedora (ActivityCardBody) para que
-    // el diálogo la llene de borde a borde: una sola capa, sin "card dentro de card".
-    <div className="-m-3 overflow-hidden rounded-lg">
+    <div className={styles.dialogueSurface}>
       <DialogueHeader
         canPracticeAgain={dialogue.canPracticeAgain}
         canRetry={dialogue.canRetry}

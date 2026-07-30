@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import type React from 'react';
+import styles from './PersonalizationSettings.module.css';
 
 interface SectionProps {
   children: React.ReactNode;
@@ -20,23 +21,30 @@ export function Section({
   title,
 }: SectionProps) {
   return (
-    <div className="border border-gray-200 dark:border-gray-500/30 rounded-xl overflow-hidden">
+    <div className={`${styles.section} ${isExpanded ? styles.sectionExpanded : ''}`}>
       <button
+        type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+        className={styles.sectionButton}
+        aria-expanded={isExpanded}
       >
-        <div className="flex items-center gap-3">
-          <Icon className="w-5 h-5 text-primary" style={{ color: 'var(--org-accent-color, var(--color-accent))' }} />
-          <div className="text-left">
-            <h3 className="font-semibold text-primary dark:text-white">{title}</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{description}</p>
+        <div className={styles.sectionIdentity}>
+          <span className={styles.sectionIcon} aria-hidden="true">
+            <Icon className="h-4 w-4" />
+          </span>
+          <div className={styles.sectionCopy}>
+            <h3 className={styles.sectionTitle}>{title}</h3>
+            <p className={styles.sectionDescription}>{description}</p>
           </div>
         </div>
-        {isExpanded ? (
-          <ChevronUp className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-        )}
+        <motion.span
+          className={styles.chevron}
+          animate={{ rotate: isExpanded ? 180 : 0 }}
+          transition={{ duration: 0.18 }}
+          aria-hidden="true"
+        >
+          <ChevronDown className="h-4 w-4" />
+        </motion.span>
       </button>
       <AnimatePresence>
         {isExpanded && (
@@ -47,7 +55,7 @@ export function Section({
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <div className="p-4 border-t border-gray-200 dark:border-gray-500/30">
+            <div className={styles.sectionContent}>
               {children}
             </div>
           </motion.div>

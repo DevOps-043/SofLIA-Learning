@@ -2,27 +2,22 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 import type { LessonSuggestionItem } from '@/app/api/lia/lesson-suggestions/lesson-suggestions.types'
 
+import styles from '../CourseLiaPanel.module.css'
 import { ChatSuggestionChip } from './ChatSuggestionChip'
 import { ChatSuggestionsSkeleton } from './ChatSuggestionsSkeleton'
-import type { ChatSuggestionsVisualProps } from './types'
 
-interface ChatSuggestionsListProps extends ChatSuggestionsVisualProps {
-  chipHoverBg: string
+interface ChatSuggestionsListProps {
   isExpanded: boolean
   isLoading: boolean
   onSuggestionClick: (suggestion: LessonSuggestionItem) => void
-  skeletonBg: string
   suggestions: LessonSuggestionItem[]
 }
 
 export function ChatSuggestionsList({
-  chipHoverBg,
   isExpanded,
   isLoading,
   onSuggestionClick,
-  skeletonBg,
   suggestions,
-  theme,
 }: ChatSuggestionsListProps) {
   return (
     <AnimatePresence>
@@ -33,18 +28,16 @@ export function ChatSuggestionsList({
           exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
           transition={{ duration: 0.25, ease: 'easeInOut' }}
         >
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
+          <div className={styles.suggestionsGrid}>
             {isLoading ? (
-              <ChatSuggestionsSkeleton skeletonBg={skeletonBg} theme={theme} />
+              <ChatSuggestionsSkeleton />
             ) : (
               <AnimatePresence initial={false}>
                 {suggestions.map((suggestion) => (
                   <ChatSuggestionChip
                     key={suggestion.id}
-                    chipHoverBg={chipHoverBg}
                     onSuggestionClick={onSuggestionClick}
                     suggestion={suggestion}
-                    theme={theme}
                   />
                 ))}
               </AnimatePresence>

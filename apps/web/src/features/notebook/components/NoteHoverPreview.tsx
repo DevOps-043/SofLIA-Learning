@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import type { NotebookNoteSource } from '../types'
 import { NoteContentView } from './NoteContentView'
+import styles from './NotebookExperience.module.css'
 
 interface NoteHoverPreviewProps {
   title: string
@@ -35,21 +36,19 @@ export function NoteHoverPreview({
       exit={{ opacity: 0, y: 6 }}
       transition={{ duration: 0.15 }}
       role="tooltip"
-      className="absolute left-0 right-0 top-full z-30 pt-2"
+      className={styles.previewAnchor}
     >
-      <div className="flex max-h-80 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl ring-1 ring-black/5 dark:border-white/10 dark:bg-[var(--color-gray-800)] dark:ring-white/10">
-        <div className="flex items-center gap-2 border-b border-gray-100 px-4 py-2.5 dark:border-white/10">
-          <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--color-accent)]" />
-          <p className="truncate text-xs font-semibold text-gray-700 dark:text-gray-200">
-            {title}
-          </p>
+      <div className={styles.previewPopover}>
+        <div className={styles.previewHeader}>
+          <span className={styles.previewDot} />
+          <p className={styles.previewTitle}>{title}</p>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3 text-sm text-gray-700 dark:text-gray-200">
+        <div className={styles.previewBody}>
           {isLoading || content === undefined ? (
-            <div className="flex items-center gap-2 py-2 text-gray-400">
+            <div className={styles.previewLoading}>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-xs">{t('preview.loading')}</span>
+              <span>{t('preview.loading')}</span>
             </div>
           ) : (
             <NoteContentView
@@ -60,7 +59,7 @@ export function NoteHoverPreview({
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 border-t border-gray-100 px-4 py-2 text-[11px] text-gray-400 dark:border-white/10">
+        <div className={styles.previewFooter}>
           <Pencil className="h-3 w-3" />
           {t('preview.openHint')}
         </div>

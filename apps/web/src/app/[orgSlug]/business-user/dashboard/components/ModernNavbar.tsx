@@ -1,5 +1,6 @@
 'use client';
 
+import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useThemeStore } from '../../../../../core/stores/themeStore';
 import { ModernNavbarBrand } from './modern-navbar/ModernNavbarBrand';
@@ -9,6 +10,7 @@ import type { ModernNavbarProps } from './modern-navbar/types';
 import { useModernNavbar } from './modern-navbar/useModernNavbar';
 import { NotificationBell } from '@/core/components/NotificationBell';
 import { TourTriggerButton } from '@/features/tours';
+import dashboardStyles from '../page-components/BusinessUserDashboard.module.css';
 
 export function ModernNavbar({
   organization,
@@ -42,25 +44,19 @@ export function ModernNavbar({
     <>
       <nav
         data-tour-id="business-user-dashboard--top-nav"
-        className={`sticky top-0 z-[120] w-full ${disableHeavyEffects ? '' : 'backdrop-blur-xl'}`}
-        style={{
-          backgroundColor: colors.navBg,
-        }}
+        data-motion={disableHeavyEffects ? 'reduced' : 'full'}
+        className={dashboardStyles.navShell}
       >
         <div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{
-            background: `linear-gradient(90deg, transparent, color-mix(in srgb, ${colors.accent} 18.8%, transparent), color-mix(in srgb, ${colors.primary} 18.8%, transparent), transparent)`,
-          }}
-        />
-
-        <div className="w-full max-w-[1920px] mx-auto pl-2 pr-4 sm:pl-4 sm:pr-6 lg:pl-6 lg:pr-8">
-          <div className="flex h-16 items-center justify-between">
+          className={dashboardStyles.navBar}
+          style={{ '--dashboard-nav-bg': colors.navBg } as CSSProperties}
+        >
+          <div className={dashboardStyles.navInner}>
             <ModernNavbarBrand colors={colors} organization={organization} t={t} />
 
             <div
               data-tour-id="business-user-dashboard--account-actions"
-              className="flex items-center gap-2 sm:gap-4"
+              className="flex items-center gap-1.5 sm:gap-2"
             >
               <div data-tour-id="business-user-dashboard--notifications">
                 <NotificationBell />

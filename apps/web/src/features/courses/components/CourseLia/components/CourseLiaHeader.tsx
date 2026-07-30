@@ -1,65 +1,72 @@
-import { Trash2, Volume2, VolumeX, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { RotateCcw, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { COURSE_LIA_COLORS, LIA_AVATAR_SRC } from '../constants';
-import type { CourseLiaThemeColors } from '../types';
+import { LIA_AVATAR_SRC } from '../constants';
+import styles from '../CourseLiaPanel.module.css';
 
 interface CourseLiaHeaderProps {
-  isLightTheme: boolean;
   isSpeaking: boolean;
   isVoiceEnabled: boolean;
   isVoiceTogglePending: boolean;
   onClearHistory: () => void;
   onClose: () => void;
   onToggleVoice: () => void;
-  themeColors: CourseLiaThemeColors;
   isMobile?: boolean;
 }
 
 export function CourseLiaHeader({
-  isLightTheme,
   isSpeaking,
   isVoiceEnabled,
   isVoiceTogglePending,
   onClearHistory,
   onClose,
   onToggleVoice,
-  themeColors,
   isMobile = false,
 }: CourseLiaHeaderProps) {
   const { t } = useTranslation('learn');
   const { t: tc } = useTranslation('common');
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: isMobile
-        ? 'calc(16px + env(safe-area-inset-top, 0px)) 20px 16px'
-        : '16px 20px',
-      borderBottom: `1px solid ${themeColors.borderColor}`,
-      backgroundColor: themeColors.headerBg
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ position: 'relative' }}>
-          <img src={LIA_AVATAR_SRC} alt={t('lia.title')} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: `2px solid ${themeColors.accentColor}` }} />
-          <div style={{ position: 'absolute', bottom: '-2px', right: '-2px', width: '14px', height: '14px', backgroundColor: COURSE_LIA_COLORS.success, borderRadius: '50%', border: `2px solid ${themeColors.panelBg}` }} />
+    <header className={`${styles.header} ${isMobile ? styles.headerMobile : ''}`}>
+      <div className={styles.identity}>
+        <div className={styles.avatarWrap}>
+          {isSpeaking ? (
+            <motion.span
+              className={styles.avatarPulse}
+              aria-hidden="true"
+              animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          ) : null}
+          <motion.img
+            src={LIA_AVATAR_SRC}
+            alt={t('lia.title')}
+            className={styles.avatar}
+            animate={isSpeaking ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+            transition={{
+              duration: 1.2,
+              repeat: isSpeaking ? Infinity : 0,
+              ease: 'easeInOut',
+            }}
+          />
+          <span className={styles.presence} aria-hidden="true" />
         </div>
-        <div>
-          <h2 className="lia-header-title" style={{ color: themeColors.textPrimary, fontSize: '16px', fontWeight: 600, margin: 0, lineHeight: 1.2 }}>
+
+        <div className={styles.identityCopy}>
+          <h2 className={`lia-header-title ${styles.identityTitle}`}>
             {t('lia.title')}
           </h2>
-          {isSpeaking && (
-            <p aria-live="polite" style={{ color: themeColors.accentColor, fontSize: '12px', fontWeight: 500, margin: 0 }}>
-              {tc('lia.header.speaking')}
-            </p>
-          )}
+          <p
+            aria-live="polite"
+            className={`${styles.identityStatus} ${isSpeaking ? styles.identityStatusSpeaking : ''}`}
+          >
+            {isSpeaking ? tc('lia.header.speaking') : tc('lia.header.subtitle')}
+          </p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        {/* Botón de voz: activa/desactiva el modo de voz (TTS) de SofLIA */}
+      <div className={styles.headerActions}>
         <button
           type="button"
           onClick={onToggleVoice}
@@ -67,47 +74,35 @@ export function CourseLiaHeader({
           title={isVoiceEnabled ? tc('lia.voice.disable') : tc('lia.voice.enable')}
           aria-label={isVoiceEnabled ? tc('lia.voice.disable') : tc('lia.voice.enable')}
           aria-pressed={isVoiceEnabled}
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '8px',
-            backgroundColor: isVoiceEnabled
-              ? (isLightTheme ? 'var(--color-gray-200)' : 'rgba(255,255,255,0.1)')
-              : 'transparent',
-            border: 'none',
-            cursor: isVoiceTogglePending ? 'wait' : 'pointer',
-            opacity: isVoiceTogglePending ? 0.6 : 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'background-color 0.2s',
-          }}
+          className={`${styles.iconButton} ${isVoiceEnabled ? styles.iconButtonActive : ''}`}
         >
           {isVoiceEnabled ? (
-            <Volume2 style={{ width: '18px', height: '18px' }} color={themeColors.accentColor} />
+            <Volume2 size={16} aria-hidden="true" />
           ) : (
-            <VolumeX style={{ width: '18px', height: '18px' }} color={themeColors.textSecondary} />
+            <VolumeX size={16} aria-hidden="true" />
           )}
         </button>
+
         <button
           type="button"
           onClick={onClearHistory}
           title={t('lia.resetConversation')}
           aria-label={t('lia.resetConversation')}
-          style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className={styles.iconButton}
         >
-          <Trash2 style={{ width: '18px', height: '18px' }} color={isLightTheme ? COURSE_LIA_COLORS.error : COURSE_LIA_COLORS.errorLight} />
+          <RotateCcw size={16} aria-hidden="true" />
         </button>
+
         <button
           type="button"
           onClick={onClose}
           title={tc('actions.close')}
           aria-label={tc('actions.close')}
-          style={{ width: '32px', height: '32px', borderRadius: '8px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          className={styles.iconButton}
         >
-          <X style={{ width: '18px', height: '18px' }} color={isLightTheme ? COURSE_LIA_COLORS.textLight : themeColors.textSecondary} />
+          <X size={17} aria-hidden="true" />
         </button>
       </div>
-    </div>
+    </header>
   );
 }

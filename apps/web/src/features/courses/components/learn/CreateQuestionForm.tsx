@@ -1,12 +1,22 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
-import { Loader2, MessageCircle, Send, X, Tag } from "lucide-react";
-import { FormEvent, useEffect, useState } from "react";
+import {
+  LoaderCircle,
+  MessageCircleMore,
+  Plus,
+  Send,
+  Tag,
+  X,
+} from "lucide-react";
+import { type FormEvent, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import styles from "./CommunityExperience.module.css";
 import type { CourseQuestion } from "./questions/types";
 import { createClient } from "@/lib/supabase/client";
+import { logger as techDebtLogger } from "@/lib/utils/logger";
 
 type CreateQuestionFormProps = {
   lessonId: string;
@@ -28,7 +38,7 @@ export function CreateQuestionForm({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<CourseQuestion["user"] | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -36,27 +46,30 @@ export function CreateQuestionForm({
     const loadUser = async () => {
       try {
         const supabase = createClient();
-        const { data: { user: authUser } } = await supabase.auth.getUser();
-        if (authUser) {
-          const { data: profile } = await supabase
-            .from("users")
-            .select("id, username, display_name, first_name, last_name, profile_picture_url")
-            .eq("id", authUser.id)
-            .single();
-          if (profile) {
-            setUser(profile);
-          }
+        const {
+          data: { user: authUser },
+        } = await supabase.auth.getUser();
+        if (!authUser) return;
+
+        const { data: profile } = await supabase
+          .from("users")
+          .select(
+            "id, username, display_name, first_name, last_name, profile_picture_url",
+          )
+          .eq("id", authUser.id)
+          .single();
+
+        if (profile) {
+          setUser(profile);
         }
-      } catch (err) {
-        console.error("Error loading user profile on client:", err);
+      } catch (error) {
+        techDebtLogger.error("Error loading user profile on client:", error);
       }
     };
 
     void loadUser();
 
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
-    };
+    const checkMobile = () => setIsMobile(window.innerWidth < 640);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -80,23 +93,18 @@ export function CreateQuestionForm({
   const handleAddTag = () => {
     const trimmed = tagInput.trim().toLowerCase().replace(/#/g, "");
     if (trimmed && !tags.includes(trimmed)) {
-      setTags([...tags, trimmed]);
+      setTags((currentTags) => [...currentTags, trimmed]);
     }
     setTagInput("");
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter((t) => t !== tagToRemove));
-  };
-
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!content.trim()) {
-      return;
-    }
+    if (!content.trim()) return;
 
     try {
       setIsSubmitting(true);
+      setSubmitError(null);
       const response = await fetch(`/api/courses/${slug}/questions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,7 +112,7 @@ export function CreateQuestionForm({
           title: null,
           content: content.trim(),
           lesson_id: lessonId,
-          tags: tags,
+          tags,
         }),
       });
 
@@ -116,10 +124,15 @@ export function CreateQuestionForm({
         return;
       }
 
-      // `apiError` devuelve `{ error: <código>, message: <texto legible> }`:
-      // se prioriza `message` para no mostrarle al usuario un código interno.
-      const errorData = (await response.json()) as { error?: string; message?: string };
-      setSubmitError(errorData.message || errorData.error || "No se pudo crear la pregunta");
+      const errorData = (await response.json()) as {
+        error?: string;
+        message?: string;
+      };
+      setSubmitError(
+        errorData.message ||
+          errorData.error ||
+          "No se pudo crear la pregunta",
+      );
     } catch {
       setSubmitError("Error al crear la pregunta");
     } finally {
@@ -127,127 +140,133 @@ export function CreateQuestionForm({
     }
   };
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
-  // Animation values based on responsive breakpoint
-  const animationInitial = isMobile ? { y: "100%", opacity: 0.8 } : { scale: 0.95, opacity: 0 };
-  const animationAnimate = isMobile ? { y: 0, opacity: 1 } : { scale: 1, opacity: 1 };
-  const animationExit = isMobile ? { y: "100%", opacity: 0.8 } : { scale: 0.95, opacity: 0 };
+  const animationInitial = isMobile
+    ? { y: "100%", opacity: 0.85 }
+    : { scale: 0.97, y: 10, opacity: 0 };
+  const animationAnimate = isMobile
+    ? { y: 0, opacity: 1 }
+    : { scale: 1, y: 0, opacity: 1 };
+  const animationExit = isMobile
+    ? { y: "100%", opacity: 0.85 }
+    : { scale: 0.97, y: 8, opacity: 0 };
+  const displayName =
+    user?.display_name ||
+    `${user?.first_name || ""} ${user?.last_name || ""}`.trim() ||
+    user?.username ||
+    "Tu perfil";
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4"
+      className={styles.modalBackdrop}
       onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="create-question-title"
     >
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className={styles.modalScrim}
       />
 
       <motion.div
         initial={animationInitial}
         animate={animationAnimate}
         exit={animationExit}
-        transition={{ type: "spring", damping: 25, stiffness: 220 }}
-        className="relative w-full sm:max-w-xl max-h-[90vh] sm:max-h-[85vh] flex flex-col bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl border-t sm:border border-gray-200/80 dark:border-white/10 shadow-2xl dark:shadow-black/60 overflow-hidden"
+        transition={{ type: "spring", damping: 28, stiffness: 260 }}
+        className={styles.modal}
         onClick={(event) => event.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-question-title"
+        aria-describedby="create-question-description"
       >
-        {/* Pull tab for mobile drawer */}
-        <div className="w-12 h-1 bg-gray-300 dark:bg-white/10 rounded-full mx-auto my-3 sm:hidden shrink-0" />
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 sm:px-6 sm:py-5 border-b border-gray-100 dark:border-white/5 shrink-0 bg-gray-50/50 dark:bg-white/[0.01]">
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center border"
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
-                borderColor: 'color-mix(in srgb, var(--learn-accent) 20%, transparent)',
-              }}
-            >
-              <MessageCircle className="w-4 h-4" style={{ color: 'var(--learn-accent)' }} />
-            </div>
-            <div>
-              <h3
-                id="create-question-title"
-                className="text-gray-900 dark:text-white font-semibold text-base sm:text-lg leading-none"
-                style={{ fontFamily: "var(--font-system-ui)", fontWeight: 600 }}
-              >
+        <header className={styles.modalHeader}>
+          <div className={styles.modalHeading}>
+            <span className={styles.headerIcon} aria-hidden="true">
+              <MessageCircleMore />
+            </span>
+            <div className="min-w-0">
+              <h3 id="create-question-title" className={styles.modalTitle}>
                 Nueva pregunta
               </h3>
-              <p className="text-[11px] text-gray-500 dark:text-white/40 mt-1">
-                Pregunta a la comunidad del taller
+              <p
+                id="create-question-description"
+                className={styles.modalSubtitle}
+              >
+                Comparte una duda clara con tu comunidad.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
-            title="Cerrar"
+            className={styles.iconButton}
+            aria-label="Cerrar"
+            type="button"
           >
-            <X className="w-5 h-5" />
+            <X aria-hidden="true" />
           </button>
-        </div>
+        </header>
 
-        {/* Body content (scrollable) */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
-          {/* User profile section */}
-          <div className="flex items-center gap-3 pb-4 border-b border-gray-100 dark:border-white/5">
-            {user?.profile_picture_url ? (
-              <img
-                src={user.profile_picture_url}
-                alt={user.display_name || ""}
-                className="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-white/10"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-semibold uppercase shadow-inner">
-                {user ? (user.first_name?.[0] || user.username?.[0] || "U").toUpperCase() : "U"}
-              </div>
-            )}
+        <div className={styles.modalBody}>
+          <div className={styles.profile}>
+            <span className={styles.avatar}>
+              {user?.profile_picture_url ? (
+                <Image
+                  src={user.profile_picture_url}
+                  alt={displayName}
+                  fill
+                  sizes="38px"
+                  className="object-cover"
+                />
+              ) : (
+                (
+                  user?.first_name?.[0] ||
+                  user?.username?.[0] ||
+                  "U"
+                ).toUpperCase()
+              )}
+            </span>
             <div>
-              <span className="block text-sm font-semibold text-gray-900 dark:text-white leading-tight">
-                {user ? (user.display_name || `${user.first_name} ${user.last_name}`.trim() || user.username) : "Cargando..."}
-              </span>
-              <span className="block text-[11px] text-gray-500 dark:text-white/40">
-                Publicando en el taller
-              </span>
+              <span className={styles.profileEyebrow}>Publicar como</span>
+              <span className={styles.profileName}>{displayName}</span>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} id="create-question-form" className="space-y-4">
-            {/* Content field */}
-            <div className="space-y-1.5">
-              <label className="block text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">
-                Contenido <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="Describe tu duda o comentario en detalle..."
-                required
-                rows={isMobile ? 4 : 6}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:outline-none focus:border-primary/40 dark:focus:border-accent/50 focus:ring-1 focus:ring-primary/15 dark:focus:ring-accent/20 transition-all resize-none leading-relaxed text-sm"
-              />
-              <div className="flex justify-between items-center text-[10px] text-gray-400 dark:text-white/30 px-1">
-                <span>Por favor, sé descriptivo y conciso.</span>
-                <span>{content.length} caracteres</span>
-              </div>
-            </div>
+          <form
+            onSubmit={handleSubmit}
+            id="create-question-form"
+            className={styles.form}
+          >
+            <label className={styles.field}>
+              <span className={styles.label}>Tu pregunta</span>
+              <span className={styles.textareaFrame}>
+                <textarea
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
+                  placeholder="Explica qué intentaste y en qué parte necesitas apoyo…"
+                  required
+                  rows={isMobile ? 5 : 7}
+                  maxLength={1200}
+                  className={styles.modalTextarea}
+                  autoFocus={!isMobile}
+                />
+                <span className={styles.fieldHint}>
+                  <span>Sé clara y añade el contexto necesario.</span>
+                  <span>{content.length}/1200</span>
+                </span>
+              </span>
+            </label>
 
-            {/* Tags field */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider">
-                <Tag className="w-3.5 h-3.5 text-gray-400" />
-                Etiquetas <span className="text-[10px] text-gray-400 dark:text-white/20 lowercase font-normal">(opcional)</span>
-              </label>
-              <div className="flex gap-2">
+            <div className={styles.field}>
+              <div className={styles.labelRow}>
+                <span className={styles.label}>
+                  <Tag aria-hidden="true" />
+                  Etiquetas
+                </span>
+                <span className={styles.optionalLabel}>Opcional</span>
+              </div>
+              <div className={styles.tagComposer}>
                 <input
                   type="text"
                   value={tagInput}
@@ -258,54 +277,53 @@ export function CreateQuestionForm({
                       handleAddTag();
                     }
                   }}
-                  placeholder="Ej. api, css, bug"
-                  className="flex-1 px-4 py-2 bg-gray-50 dark:bg-white/[0.02] border border-gray-200 dark:border-white/10 rounded-xl text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-white/20 focus:outline-none focus:border-primary/40 dark:focus:border-accent/50 focus:ring-1 focus:ring-primary/15 dark:focus:ring-accent/20 transition-all text-sm"
+                  placeholder="Evaluación, ejercicio…"
+                  className={styles.tagInput}
                 />
                 <button
                   type="button"
                   onClick={handleAddTag}
-                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-white rounded-xl text-xs font-semibold transition-colors border border-gray-200 dark:border-white/10 shrink-0"
+                  className={styles.secondaryButton}
+                  disabled={!tagInput.trim()}
                 >
-                  Añadir
+                  <Plus aria-hidden="true" />
+                  <span>Añadir</span>
                 </button>
               </div>
 
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 pt-2">
+                <div className={styles.tagList}>
                   {tags.map((tag) => (
-                    <span
+                    <button
                       key={tag}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-full border transition-all hover:bg-red-50 hover:text-red-500 hover:border-red-200 group/tag cursor-pointer"
-                      style={{
-                        backgroundColor: 'color-mix(in srgb, var(--learn-accent) 5%, transparent)',
-                        color: 'var(--learn-accent)',
-                        borderColor: 'color-mix(in srgb, var(--learn-accent) 10%, transparent)',
-                      }}
-                      onClick={() => handleRemoveTag(tag)}
-                      title="Haz clic para eliminar"
+                      className={styles.tagButton}
+                      onClick={() =>
+                        setTags((currentTags) =>
+                          currentTags.filter(
+                            (currentTag) => currentTag !== tag,
+                          ),
+                        )
+                      }
+                      title="Quitar etiqueta"
+                      type="button"
                     >
                       #{tag}
-                      <span className="text-[9px] font-bold opacity-45 group-hover/tag:opacity-100 transition-opacity ml-0.5">
-                        ×
-                      </span>
-                    </span>
+                      <X className="h-3 w-3" aria-hidden="true" />
+                    </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {submitError && (
-              <p className="text-xs text-red-500 dark:text-red-400 pt-1 font-medium">{submitError}</p>
-            )}
+            {submitError && <p className={styles.error}>{submitError}</p>}
           </form>
         </div>
 
-        {/* Footer actions */}
-        <div className="px-5 py-4 sm:px-6 sm:py-4 border-t border-gray-100 dark:border-white/5 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3 bg-gray-50/30 dark:bg-white/[0.005] shrink-0">
+        <footer className={styles.modalFooter}>
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl transition-all text-sm font-semibold"
+            className={styles.secondaryButton}
           >
             Cancelar
           </button>
@@ -313,24 +331,18 @@ export function CreateQuestionForm({
             type="submit"
             form="create-question-form"
             disabled={isSubmitting || !content.trim()}
-            className="px-6 py-2.5 rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:brightness-95 text-sm font-semibold flex items-center justify-center gap-2"
-            style={{ backgroundColor: 'var(--learn-action)', color: 'var(--learn-on-action)' }}
+            className={styles.primaryButton}
           >
             {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Publicando...</span>
-              </>
+              <LoaderCircle className="animate-spin" aria-hidden="true" />
             ) : (
-              <>
-                <Send className="w-4 h-4" />
-                <span>Publicar pregunta</span>
-              </>
+              <Send aria-hidden="true" />
             )}
+            {isSubmitting ? "Publicando…" : "Publicar pregunta"}
           </button>
-        </div>
+        </footer>
       </motion.div>
     </div>,
-    document.body
+    document.body,
   );
 }
