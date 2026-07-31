@@ -19,6 +19,7 @@ import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import { getHierarchyTypeLabel } from './hierarchy-labels'
 import styles from './HierarchyExperience.module.css'
 
 type NodeRowVariables = CSSProperties & {
@@ -110,7 +111,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
           </div>
 
           <div className={styles.nodeMeta}>
-            <span className={styles.nodeType}>{t(`hierarchy.types.${node.type}`)}</span>
+            <span className={styles.nodeType}>{getHierarchyTypeLabel(node.type, t)}</span>
             {node.manager ? (
               <span className={styles.nodeMetaItem}>
                 <User aria-hidden="true" />

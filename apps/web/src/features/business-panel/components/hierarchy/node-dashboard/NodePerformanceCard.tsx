@@ -2,6 +2,7 @@
 
 import { TrendingUp } from 'lucide-react'
 import type { NodeDashboardCommonProps } from './node-dashboard.types'
+import { getHierarchyTypeLabel } from '../hierarchy-labels'
 import styles from '../HierarchyExperience.module.css'
 
 export function NodePerformanceCard({ state, t }: NodeDashboardCommonProps) {
@@ -12,7 +13,7 @@ export function NodePerformanceCard({ state, t }: NodeDashboardCommonProps) {
         <header className={styles.cardHeader}>
           <div>
             <h2 className={styles.cardTitle}>{t('hierarchy.dashboard.performance.title')}</h2>
-            <p className={styles.cardDescription}>{t('hierarchy.dashboard.performance.subtitle', { type: node?.type })}</p>
+            <p className={styles.cardDescription}>{t('hierarchy.dashboard.performance.subtitle', { type: getHierarchyTypeLabel(node?.type, t) })}</p>
           </div>
           <div className={styles.sectionIcon}><TrendingUp aria-hidden="true" /></div>
         </header>

@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { Edit2, MapPin } from 'lucide-react'
 import type { NodeDashboardCommonProps } from './node-dashboard.types'
+import { getHierarchyTypeLabel } from '../hierarchy-labels'
 import styles from '../HierarchyExperience.module.css'
 
 export function NodeDetailsCard({ state, t }: NodeDashboardCommonProps) {
@@ -26,7 +27,7 @@ export function NodeDetailsCard({ state, t }: NodeDashboardCommonProps) {
           <div className={styles.detailItem}>
             <span className={styles.detailLabel}>{t('hierarchy.dashboard.details.type')}</span>
             <span className={styles.detailValue}>
-              {t(`hierarchy.types.${node.type}`)}{' '}
+              {getHierarchyTypeLabel(node.type, t)}{' '}
               <span className={`${styles.statusBadge} ${isActive ? styles.statusActive : ''}`}>
                 {isActive ? t('hierarchy.dashboard.details.status.active') : t('hierarchy.dashboard.details.status.inactive')}
               </span>

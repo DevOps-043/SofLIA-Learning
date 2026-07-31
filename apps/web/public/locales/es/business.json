@@ -1754,7 +1754,9 @@
       "topPerformer": "Mejor desempeño"
     },
     "dashboard": {
-      "loading": "Cargando información del nodo...",
+      "loading": "Preparando la vista del nodo",
+      "loadingDescription": "Estamos reuniendo sus detalles, miembros, estructura y actividad en un solo espacio.",
+      "loadingStatus": "Sincronizando estructura",
       "error": {
         "title": "Error",
         "notFound": "No se encontró el nodo"
@@ -1770,13 +1772,13 @@
         "title": "Responsable",
         "subtitle": "Líder asignado a esta unidad",
         "change": "Cambiar responsable",
-        "roleLabel": "Líder de {{type}}",
+        "roleLabel": "Responsable · {{type}}",
         "notAssigned": "Sin responsable asignado",
         "assign": "Asignar Responsable"
       },
       "performance": {
         "title": "Rendimiento",
-        "subtitle": "Progreso general del {{type}}",
+        "subtitle": "Progreso general · {{type}}",
         "avgProgress": "Progreso Promedio",
         "completedCourses": "Cursos Completados",
         "learningHours": "Tiempo de Aprendizaje",

@@ -10,6 +10,7 @@ import { NodeDashboardContent } from './node-dashboard/NodeDashboardContent'
 import { NodeDashboardModals } from './node-dashboard/NodeDashboardModals'
 import { NodeDashboardErrorState, NodeDashboardLoadingState } from './node-dashboard/NodeDashboardStates'
 import { NodeDashboardTabs } from './node-dashboard/NodeDashboardTabs'
+import { getHierarchyTypeLabel } from './hierarchy-labels'
 import styles from './HierarchyExperience.module.css'
 
 type HierarchyVariables = CSSProperties & Record<`--hierarchy-${string}`, string>
@@ -59,7 +60,7 @@ export function NodeDashboard({ nodeId }: NodeDashboardProps) {
           <div className={styles.heroRingSmall} aria-hidden="true" />
           <div className={styles.heroDot} aria-hidden="true" />
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}>{t(`hierarchy.types.${node.type}`)}</p>
+            <p className={styles.eyebrow}>{getHierarchyTypeLabel(node.type, t)}</p>
             <h1 id="node-dashboard-title" className={styles.heroTitle}>{node.name}</h1>
             <div className={styles.nodeHeroMeta}>
               <span><Network aria-hidden="true" />{t('hierarchy.dashboard.details.path')}</span>

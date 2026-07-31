@@ -1753,7 +1753,9 @@
       "topPerformer": "Top Performer"
     },
     "dashboard": {
-      "loading": "Loading node information...",
+      "loading": "Preparing the node view",
+      "loadingDescription": "We are bringing its details, members, structure, and activity together in one place.",
+      "loadingStatus": "Syncing structure",
       "error": {
         "title": "Error",
         "notFound": "Node not found"
@@ -1769,13 +1771,13 @@
         "title": "Manager",
         "subtitle": "Leader assigned to this unit",
         "change": "Change manager",
-        "roleLabel": "{{type}} Leader",
+        "roleLabel": "Unit lead · {{type}}",
         "notAssigned": "No manager assigned",
         "assign": "Assign Manager"
       },
       "performance": {
         "title": "Performance",
-        "subtitle": "General progress for the {{type}}",
+        "subtitle": "Overall progress · {{type}}",
         "avgProgress": "Average Progress",
         "completedCourses": "Completed Courses",
         "learningHours": "Learning Time",

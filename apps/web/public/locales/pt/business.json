@@ -1754,7 +1754,9 @@
       "topPerformer": "Melhor desempenho"
     },
     "dashboard": {
-      "loading": "Carregando informações do nó...",
+      "loading": "Preparando a visualização do nó",
+      "loadingDescription": "Estamos reunindo detalhes, membros, estrutura e atividade em um só lugar.",
+      "loadingStatus": "Sincronizando estrutura",
       "error": {
         "title": "Erro",
         "notFound": "Nó não encontrado"
@@ -1770,13 +1772,13 @@
         "title": "Responsável",
         "subtitle": "Líder atribuído a esta unidade",
         "change": "Alterar responsável",
-        "roleLabel": "Líder de {{type}}",
+        "roleLabel": "Responsável · {{type}}",
         "notAssigned": "Sem responsável atribuído",
         "assign": "Atribuir Responsável"
       },
       "performance": {
         "title": "Desempenho",
-        "subtitle": "Progresso geral do {{type}}",
+        "subtitle": "Progresso geral · {{type}}",
         "avgProgress": "Progresso Médio",
         "completedCourses": "Cursos Concluídos",
         "learningHours": "Tempo de Aprendizagem",

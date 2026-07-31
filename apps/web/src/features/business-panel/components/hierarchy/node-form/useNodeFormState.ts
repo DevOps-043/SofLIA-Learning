@@ -92,7 +92,7 @@ export function useNodeFormState(
 
     if (mode === 'edit' && nodeToEdit) {
       setName(nodeToEdit.name)
-      if (['region', 'zone', 'team'].includes(nodeToEdit.type)) {
+      if (['root', 'region', 'zone', 'team'].includes(nodeToEdit.type.toLocaleLowerCase())) {
         setType(nodeToEdit.type)
         setCustomType('')
       } else {

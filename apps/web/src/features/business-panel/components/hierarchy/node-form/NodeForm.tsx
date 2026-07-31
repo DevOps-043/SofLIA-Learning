@@ -8,6 +8,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
 import styles from '../HierarchyExperience.module.css'
+import { getHierarchyTypeLabel } from '../hierarchy-labels'
 import { useHierarchyDialog } from '../useHierarchyDialog'
 import { ManagerSelector } from './ManagerSelector'
 import { PropertiesFormBuilder } from './PropertiesFormBuilder'
@@ -75,9 +76,8 @@ export function NodeForm({
   const description = mode === 'create'
     ? t('hierarchy.nodeForm.sideTitle.create')
     : t('hierarchy.nodeForm.sideTitle.edit')
-  const selectedTypeLabel = form.type === 'custom'
-    ? t('hierarchy.nodeForm.types.custom')
-    : t(`hierarchy.types.${form.type}`)
+  const isRootNode = mode === 'edit' && nodeToEdit?.type.toLocaleLowerCase() === 'root'
+  const selectedTypeLabel = getHierarchyTypeLabel(form.type, t)
 
   const handleSubmit = (event: FormEvent) => {
     setIsTypeMenuOpen(false)
@@ -97,10 +97,12 @@ export function NodeForm({
       >
         <motion.div
           ref={dialogRef}
-          className={styles.dialogWide}
+          className={`${styles.dialogWide} ${styles.nodeFormDialog}`}
           role="dialog"
           aria-modal="true"
           aria-labelledby="node-form-title"
+          aria-describedby="node-form-description"
+          data-testid="node-form-dialog"
           initial={{ opacity: 0, scale: 0.975, y: 18 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.975, y: 18 }}
@@ -111,15 +113,15 @@ export function NodeForm({
             <div className={styles.dialogHeading}>
               <p className={styles.dialogKicker}>{t('hierarchy.nodeForm.architecture')}</p>
               <h2 id="node-form-title" className={styles.dialogTitle}>{title}</h2>
-              <p className={styles.dialogDescription}>{description} · {t('hierarchy.nodeForm.sideDescription')}</p>
+              <p id="node-form-description" className={styles.dialogDescription}>{description} · {t('hierarchy.nodeForm.sideDescription')}</p>
             </div>
             <button type="button" onClick={onClose} disabled={form.loading} className={styles.iconButton} aria-label={tc('actions.close')}>
               <X aria-hidden="true" />
             </button>
           </header>
 
-          <form onSubmit={handleSubmit} className="contents">
-            <div className={styles.dialogBody}>
+          <form onSubmit={handleSubmit} className={styles.dialogForm}>
+            <div className={styles.dialogBody} data-testid="node-form-scroll-region">
               <div className={styles.formStack}>
                 <section className={styles.formStack} aria-labelledby="node-basic-data-title">
                   <h3 id="node-basic-data-title" className={styles.formSectionTitle}>
@@ -148,18 +150,17 @@ export function NodeForm({
                           data-open={isTypeMenuOpen}
                           aria-haspopup="listbox"
                           aria-expanded={isTypeMenuOpen}
+                          disabled={isRootNode}
                           onClick={() => setIsTypeMenuOpen(current => !current)}
                         >
                           <Building2 aria-hidden="true" />
                           <span className={styles.selectValue}>{selectedTypeLabel}</span>
                           <ChevronDown aria-hidden="true" />
                         </button>
-                        {isTypeMenuOpen ? (
+                        {isTypeMenuOpen && !isRootNode ? (
                           <div className={styles.selectMenu} role="listbox">
                             {NODE_TYPES.map(type => {
-                              const label = type === 'custom'
-                                ? t('hierarchy.nodeForm.types.custom')
-                                : t(`hierarchy.types.${type}`)
+                              const label = getHierarchyTypeLabel(type, t)
                               return (
                                 <button
                                   key={type}
@@ -255,7 +256,7 @@ export function NodeForm({
               </div>
             </div>
 
-            <footer className={styles.dialogFooter}>
+            <footer className={styles.dialogFooter} data-testid="node-form-footer">
               <button type="button" onClick={onClose} disabled={form.loading} className={styles.secondaryButton}>
                 {tc('actions.close')}
               </button>

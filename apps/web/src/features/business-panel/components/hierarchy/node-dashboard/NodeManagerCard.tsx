@@ -2,6 +2,7 @@
 
 import { Edit2, User } from 'lucide-react'
 import type { NodeDashboardCommonProps } from './node-dashboard.types'
+import { getHierarchyTypeLabel } from '../hierarchy-labels'
 import styles from '../HierarchyExperience.module.css'
 
 export function NodeManagerCard({ state, t }: NodeDashboardCommonProps) {
@@ -33,7 +34,7 @@ export function NodeManagerCard({ state, t }: NodeDashboardCommonProps) {
             <p className={styles.managerEmail}>{node.manager.email}</p>
             <span className={styles.managerRole}>
               <User aria-hidden="true" />
-              {t('hierarchy.dashboard.manager.roleLabel', { type: node.type })}
+              {t('hierarchy.dashboard.manager.roleLabel', { type: getHierarchyTypeLabel(node.type, t) })}
             </span>
           </div>
         ) : (

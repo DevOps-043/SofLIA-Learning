@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 import type { NodeDashboardCommonProps } from './node-dashboard.types'
+import { getHierarchyTypeLabel } from '../hierarchy-labels'
 import styles from '../HierarchyExperience.module.css'
 
 export function NodeChildrenCard({ state, t }: NodeDashboardCommonProps) {
@@ -22,7 +23,7 @@ export function NodeChildrenCard({ state, t }: NodeDashboardCommonProps) {
               <Link key={child.id} href={`/${state.orgSlug}/business-panel/hierarchy/node/${child.id}`} className={styles.childLink}>
                 <span>
                   <strong>{child.name}</strong>
-                  <small>{t(`hierarchy.types.${child.type}`)}</small>
+                  <small>{getHierarchyTypeLabel(child.type, t)}</small>
                 </span>
                 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </Link>

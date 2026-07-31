@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { Region, Team, Zone } from '../../../types/hierarchy.types';
+import { getHierarchyTypeLabel } from '../hierarchy-labels';
 import { DescriptionBlock, ManagerCard } from './DetailsPanelProfile';
 import { DetailsPanelAuditInfo } from './DetailsPanelAuditInfo';
 import { DetailsPanelHeader } from './DetailsPanelHeader';
@@ -29,7 +30,7 @@ export function DetailsPanel({ data, isOpen, onClose, onEdit, type }: DetailsPan
           onEdit={onEdit}
           statusLabels={{ active: t('hierarchy.statusActive'), inactive: t('hierarchy.statusInactive') }}
           type={type}
-          typeLabel={t(`hierarchy.types.${type}`)}
+          typeLabel={getHierarchyTypeLabel(type, t)}
         />
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           <DescriptionBlock description={data.description} label={t('hierarchy.description')} />

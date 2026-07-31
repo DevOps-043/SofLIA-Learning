@@ -21,18 +21,29 @@ export function PremiumSelect({
   const [open, setOpen] = useState(false)
   const { interfaceTransition } = useMotionSafe()
 
+  const isLight = Boolean(colors?.isLightMode)
+  const surfaceBg = isLight ? '#FFFFFF' : '#1A212B'
+  const textColor = isLight ? '#1E293B' : '#F8FAFC'
+  const borderColor = isLight ? '#E2E8F0' : 'rgba(255, 255, 255, 0.14)'
+  const shadowStyle = isLight
+    ? '0 1.25rem 3.5rem rgba(2, 12, 23, 0.15)'
+    : '0 1.25rem 3.5rem rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05)'
+
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
       className={styles.field}
-      data-color-mode={colors.isLightMode ? 'light' : 'dark'}
+      data-color-mode={isLight ? 'light' : 'dark'}
       initial={{ opacity: 0, y: 12 }}
       transition={interfaceTransition}
     >
-      <Select.Root value={value || EMPTY_SELECT_VALUE} onValueChange={nextValue => onChange(nextValue === EMPTY_SELECT_VALUE ? '' : nextValue)} open={open} onOpenChange={setOpen}>
-        <Select.Trigger
-          className={styles.selectTrigger}
-        >
+      <Select.Root
+        value={value || EMPTY_SELECT_VALUE}
+        onValueChange={nextValue => onChange(nextValue === EMPTY_SELECT_VALUE ? '' : nextValue)}
+        open={open}
+        onOpenChange={setOpen}
+      >
+        <Select.Trigger className={styles.selectTrigger}>
           <span className={styles.selectLabel}>{label}</span>
           <span className={styles.selectValue}>
             <Select.Value placeholder={placeholder} />
@@ -46,7 +57,14 @@ export function PremiumSelect({
             position="popper"
             sideOffset={8}
             className={styles.selectContent}
-            style={{ minWidth: 'var(--radix-select-trigger-width)' }}
+            data-color-mode={isLight ? 'light' : 'dark'}
+            style={{
+              minWidth: 'var(--radix-select-trigger-width)',
+              backgroundColor: surfaceBg,
+              color: textColor,
+              borderColor,
+              boxShadow: shadowStyle,
+            }}
           >
             <Select.Viewport>
               <Select.Item value={EMPTY_SELECT_VALUE} className={styles.selectItem}>
