@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { InviteLinkCard } from './InviteLinkCard'
 import { InviteLinkRow } from './InviteLinkRow'
 import { ManagementTabEmptyState } from './ManagementTabEmptyState'
+import styles from './UsersPanel.module.css'
 import type { BusinessUsersPageLogic, BusinessUsersTheme } from './users-page.types'
 
 interface InviteLinksPanelProps {
@@ -24,21 +25,21 @@ export function InviteLinksPanel({ logic, theme }: InviteLinksPanelProps) {
         theme={theme}
         icon={<Link2 className="h-16 w-16" />}
         title="No hay enlaces activos"
-        description="Crea enlaces de invitacion masiva para compartir con grupos grandes."
+        description="Los enlaces compartidos aparecerán aquí con su vigencia y uso disponible."
       />
     )
   }
 
   if (logic.viewMode === 'cards') {
     return (
-      <motion.div key="grid-links" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <motion.div animate={{ opacity: 1 }} className={styles.cardGrid} exit={{ opacity: 0 }} initial={{ opacity: 0 }} key="grid-links">
         {logic.filteredInviteLinks.map((link, index) => (
           <InviteLinkCard
+            index={index}
             key={link.id}
             link={link}
-            index={index}
-            onToggleStatus={() => toggleLink(logic, link)}
             onDelete={() => logic.deleteInviteLink(link.id)}
+            onToggleStatus={() => toggleLink(logic, link)}
           />
         ))}
       </motion.div>
@@ -46,20 +47,21 @@ export function InviteLinksPanel({ logic, theme }: InviteLinksPanelProps) {
   }
 
   return (
-    <motion.div key="list-links" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
-      <div className="hidden grid-cols-5 gap-4 px-4 py-2 text-xs font-medium uppercase tracking-wider opacity-50 lg:grid">
-        <div>{t('users.list.link', 'Enlace')}</div>
-        <div>{t('users.list.usage', 'Uso / Disponibles')}</div>
-        <div>{t('users.list.expires', 'Vencimiento')}</div>
-        <div className="text-right">Acciones</div>
+    <motion.div animate={{ opacity: 1 }} className={styles.managementList} exit={{ opacity: 0 }} initial={{ opacity: 0 }} key="list-links">
+      <div className={`${styles.managementListHeader} ${styles.linkListHeader}`}>
+        <span>{t('users.list.link', 'Enlace')}</span>
+        <span>{t('users.list.usage', 'Uso')}</span>
+        <span>{t('users.list.expires', 'Vencimiento')}</span>
+        <span>{t('users.list.status', 'Estado')}</span>
+        <span>Acciones</span>
       </div>
       {logic.filteredInviteLinks.map((link, index) => (
         <InviteLinkRow
+          index={index}
           key={link.id}
           link={link}
-          index={index}
-          onToggleStatus={() => toggleLink(logic, link)}
           onDelete={() => logic.deleteInviteLink(link.id)}
+          onToggleStatus={() => toggleLink(logic, link)}
         />
       ))}
     </motion.div>

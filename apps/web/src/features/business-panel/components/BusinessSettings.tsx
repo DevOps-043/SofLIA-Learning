@@ -1,9 +1,16 @@
 'use client'
 
-import { AlertCircle, RefreshCw, Settings as SettingsIcon, XCircle } from 'lucide-react'
-import Image from 'next/image'
+import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import {
+  AlertCircle,
+  ArrowRight,
+  Building2,
+  Palette,
+  RefreshCw,
+  Settings2,
+  ShieldCheck,
+} from 'lucide-react'
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
 import { useTour } from '@/features/tours'
 import { businessPanelSettingsTour } from '@/features/tours/config/business-panel-settings.tour'
@@ -12,10 +19,10 @@ import { BrandingTab } from './BrandingTab'
 import { LoginPersonalizadoSection } from './LoginPersonalizadoSection'
 import { OrganizationTab } from './OrganizationTab'
 import { useBusinessSettingsLogic } from './hooks/useBusinessSettingsLogic'
+import styles from './BusinessSettings.module.css'
 
 export function BusinessSettings() {
   const theme = useBusinessPanelTheme()
-  const { t } = useTranslation('business')
   const { autoStartIfNeeded } = useTour(businessPanelSettingsTour)
   const {
     data,
@@ -35,229 +42,171 @@ export function BusinessSettings() {
   } = useBusinessSettingsLogic()
 
   useEffect(() => {
-    if (!isLoading) {
-      return autoStartIfNeeded()
-    }
+    if (!isLoading) return autoStartIfNeeded()
   }, [autoStartIfNeeded, isLoading])
+
+  const cssVariables = {
+    '--settings-page': theme.panelBg,
+    '--settings-card': theme.cardBg,
+    '--settings-input': theme.inputBg,
+    '--settings-hover': theme.hoverBg,
+    '--settings-text': theme.textColor,
+    '--settings-muted': theme.subtextColor,
+    '--settings-soft': theme.mutedTextColor,
+    '--settings-border': theme.borderColor,
+    '--settings-divider': theme.dividerColor,
+    '--settings-accent': theme.actionColor,
+    '--settings-on-accent': theme.onActionColor,
+    '--settings-accent-soft': theme.actionSurface,
+    '--settings-hero': theme.heroBackground,
+    '--settings-hero-text': theme.inverseTextColor,
+    '--settings-hero-muted': theme.inverseSubtextColor,
+    '--settings-danger': theme.dangerColor,
+    '--settings-warning': theme.warningColor,
+    '--settings-success': theme.successColor,
+  } as CSSProperties
 
   if (isLoading) {
     return (
-      <div className="min-h-screen p-6 lg:p-8">
-        <div className="flex items-center justify-center py-32">
-          <div
-            className="w-16 h-16 border-4 rounded-full animate-spin"
-            style={{
-              borderTopColor: theme.actionColor,
-              borderRightColor: theme.actionSurface,
-              borderBottomColor: theme.actionSurface,
-              borderLeftColor: theme.actionSurface,
-            }}
-          />
+      <main className={styles.statePage} style={cssVariables}>
+        <div className={styles.loadingMark} aria-label="Cargando configuración">
+          <Settings2 aria-hidden="true" />
         </div>
-      </div>
+        <p>Preparando la configuración</p>
+      </main>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen p-6 lg:p-8">
-        <div className="text-center py-20">
-          <XCircle
-            className="w-20 h-20 mx-auto mb-6"
-            style={{ color: theme.dangerColor }}
-          />
-          <p
-            className="text-xl font-semibold mb-4"
-            style={{ color: theme.dangerColor }}
-          >
-            {error}
-          </p>
-          <button
-            onClick={refetch}
-            className="px-6 py-3 rounded-xl font-medium transition-all shadow-lg inline-flex items-center gap-2 hover:scale-[1.03] active:scale-[0.97]"
-            style={{
-              backgroundColor: theme.actionColor,
-              color: theme.onActionColor,
-              boxShadow: `0 8px 30px color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
-            }}
-          >
-            <RefreshCw className="w-4 h-4" />
-            Reintentar
-          </button>
+      <main className={styles.statePage} style={cssVariables}>
+        <div className={styles.errorMark}>
+          <AlertCircle aria-hidden="true" />
         </div>
-      </div>
+        <h1>No pudimos abrir la configuración</h1>
+        <p>{error}</p>
+        <button type="button" className={styles.primaryButton} onClick={refetch}>
+          <RefreshCw aria-hidden="true" />
+          Reintentar
+        </button>
+      </main>
     )
   }
 
+  const activeDescriptor = tabs.find((tab) => tab.id === activeTab)
+  const ActiveIcon = activeDescriptor?.icon ?? Building2
+
   return (
     <>
-    <div className="min-h-screen p-6 lg:p-8 space-y-8">
-      <div>
-      <div
-        id="tour-settings-hero"
-        className="relative overflow-hidden rounded-3xl p-8 shadow-xl border"
-        style={{
-          background: theme.heroBackground,
-          borderColor: theme.heroBorderColor,
-        }}
-      >
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/images/teams-header.webp"
-            alt="Header de configuración"
-            fill
-            className="object-cover"
-            style={{ opacity: theme.isDark ? 0.18 : 0.12 }}
-            priority
-          />
-        </div>
-
-        <div
-          className="absolute inset-0 opacity-10 z-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.85) 1px, transparent 0)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div
-              className="p-2.5 rounded-xl backdrop-blur-md border shadow-inner"
-              style={{
-                backgroundColor: theme.inverseSurface,
-                borderColor: theme.inverseBorderColor,
-              }}
-            >
-              <SettingsIcon
-                className="w-5 h-5"
-                style={{ color: theme.inverseTextColor }}
-              />
-            </div>
-            <span
-              className="text-sm font-bold tracking-widest uppercase"
-              style={{ color: theme.inverseSubtextColor }}
-            >
-              Panel de Control
+      <main className={styles.page} style={cssVariables}>
+        <header id="tour-settings-hero" className={styles.hero}>
+          <div className={styles.heroCopy}>
+            <span className={styles.eyebrow}>
+              <Settings2 aria-hidden="true" />
+              Configuración de la organización
+            </span>
+            <h1>Un espacio claro para administrar tu operación.</h1>
+            <p>
+              Identidad, acceso y marca organizados por intención, sin ruido visual.
+            </p>
+          </div>
+          <div className={styles.heroStatus}>
+            <ShieldCheck aria-hidden="true" />
+            <span>
+              <strong>Configuración protegida</strong>
+              Los cambios se aplican únicamente a esta organización.
             </span>
           </div>
+        </header>
 
-          <h1
-            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 tracking-tight"
-            style={{ color: theme.inverseTextColor }}
-          >
-            Configuración
-          </h1>
-
-          <p
-            className="text-base max-w-2xl leading-relaxed"
-            style={{ color: theme.inverseSubtextColor }}
-          >
-            Gestiona la configuración de tu organización desde un solo lugar.
-          </p>
-        </div>
-      </div>
-      </div>
-
-      <div
-        id="tour-settings-tabs"
-        className="rounded-2xl border overflow-hidden backdrop-blur-xl"
-        style={{
-          backgroundColor: theme.cardBg,
-          borderColor: theme.borderColor,
-        }}
-      >
-        <div
-          className="flex border-b overflow-x-auto"
-          style={{ borderColor: theme.dividerColor }}
-        >
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
-
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="relative px-6 py-5 font-medium transition-colors duration-200 whitespace-nowrap flex items-center gap-3"
-                style={{
-                  color: isActive ? tab.color : theme.subtextColor,
-                  backgroundColor: isActive ? `color-mix(in srgb, ${tab.color} 6.3%, transparent)` : 'transparent',
-                }}
-              >
-                {isActive && (
-                  <div
-                    className="absolute bottom-0 left-0 right-0 h-0.5"
-                    style={{ backgroundColor: tab.color }}
-                  />
-                )}
-
-                <Icon className="w-5 h-5" />
-
-                <span className={isActive ? 'font-semibold' : 'font-medium'}>
-                  {tab.label}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="p-8">
-          {activeTab === 'organization' && (
-            <>
-              <OrganizationTab
-                organization={data.organization}
-                updateOrganization={updateOrganization}
-                branding={branding}
-                updateBranding={updateBranding}
-                showToast={showToast}
-              />
-
-              {data.organization && (
-                <div className="mt-8">
-                  <LoginPersonalizadoSection
-                    organization={data.organization}
-                    updateOrganization={updateOrganization}
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          {activeTab === 'branding' && canUseBranding && <BrandingTab />}
-
-          {activeTab === 'branding' && !canUseBranding && (
-            <div className="text-center py-20">
-              <AlertCircle
-                className="w-20 h-20 mx-auto mb-6"
-                style={{ color: theme.warningColor }}
-              />
-              <p
-                className="text-xl font-semibold mb-3"
-                style={{ color: theme.warningColor }}
-              >
-                Branding corporativo no disponible
-              </p>
-              <p
-                className="text-base max-w-md mx-auto"
-                style={{ color: theme.subtextColor }}
-              >
-                Esta función solo está disponible en Enterprise. Actualiza tu plan
-                para acceder a esta funcionalidad.
-              </p>
+        <div id="tour-settings-tabs" className={styles.workspace}>
+          <nav className={styles.rail} aria-label="Secciones de configuración">
+            <div className={styles.railHeading}>
+              <span>Áreas</span>
+              <small>{tabs.length.toString().padStart(2, '0')}</small>
             </div>
-          )}
+            <div className={styles.railItems}>
+              {tabs.map((tab, index) => {
+                const Icon = tab.icon
+                const isActive = tab.id === activeTab
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    aria-current={isActive ? 'page' : undefined}
+                    className={styles.railItem}
+                    data-active={isActive}
+                    onClick={() => setActiveTab(tab.id)}
+                  >
+                    <span className={styles.railIndex}>
+                      {(index + 1).toString().padStart(2, '0')}
+                    </span>
+                    <span className={styles.railIcon}>
+                      <Icon aria-hidden="true" />
+                    </span>
+                    <span className={styles.railCopy}>
+                      <strong>{tab.label}</strong>
+                      <small>{tab.description}</small>
+                    </span>
+                    <ArrowRight className={styles.railArrow} aria-hidden="true" />
+                  </button>
+                )
+              })}
+            </div>
+            {!canUseBranding && (
+              <div className={styles.planNote}>
+                <Palette aria-hidden="true" />
+                <span>
+                  <strong>Marca visual</strong>
+                  Disponible con Enterprise.
+                </span>
+              </div>
+            )}
+          </nav>
+
+          <section className={styles.canvas} aria-labelledby="settings-section-title">
+            <div className={styles.canvasHeader}>
+              <span className={styles.canvasIcon}>
+                <ActiveIcon aria-hidden="true" />
+              </span>
+              <div>
+                <span className={styles.canvasKicker}>Área activa</span>
+                <h2 id="settings-section-title">{activeDescriptor?.label}</h2>
+                <p>{activeDescriptor?.description}</p>
+              </div>
+            </div>
+
+            <div className={styles.canvasBody}>
+              {activeTab === 'organization' && (
+                <OrganizationTab
+                  organization={data.organization}
+                  updateOrganization={updateOrganization}
+                  branding={branding}
+                  updateBranding={updateBranding}
+                  showToast={showToast}
+                />
+              )}
+
+              {activeTab === 'access' && data.organization && (
+                <LoginPersonalizadoSection
+                  organization={data.organization}
+                  updateOrganization={updateOrganization}
+                />
+              )}
+
+              {activeTab === 'branding' && canUseBranding && <BrandingTab />}
+            </div>
+          </section>
         </div>
-      </div>
-    </div>
-    <ToastNotification
-      isOpen={toast.isOpen}
-      onClose={hideToast}
-      message={toast.message}
-      type={toast.type}
-      position="top-right"
-    />
+      </main>
+
+      <ToastNotification
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+        position="top-right"
+      />
     </>
   )
 }

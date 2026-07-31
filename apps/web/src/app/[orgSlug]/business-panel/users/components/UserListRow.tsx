@@ -1,25 +1,29 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import {
-  Edit,
-  Trash,
-  Mail,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Crown,
-  MapPin,
-  Building2,
-  Network,
+  BadgeCheck,
   BarChart3,
-  ChevronRight,
+  Building2,
+  CircleAlert,
+  CircleOff,
+  Crown,
+  Mail,
+  MapPin,
+  Network,
+  PencilLine,
+  Send,
+  Trash2,
 } from 'lucide-react'
+import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
+
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
-import { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
+import type { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
 import { formatDate } from '@/shared/utils/date-formatter'
+
+import styles from './UsersPanel.module.css'
 
 interface UserListRowProps {
   user: BusinessUser
@@ -33,165 +37,155 @@ interface UserListRowProps {
 function UserListRow({ user, index, onEdit, onDelete, onStats, onResend }: UserListRowProps) {
   const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
-
-  const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
-
-  const getRoleConfig = (role: string) => {
-    const { roleColors } = theme
-    switch (role) {
-      case 'owner': return { label: t('users.roles.owner'), color: roleColors.owner.text, bg: roleColors.owner.bg }
-      case 'admin': return { label: t('users.roles.admin'), color: roleColors.admin.text, bg: roleColors.admin.bg }
-      default:      return { label: t('users.roles.member'), color: theme.successColor,   bg: `color-mix(in srgb, ${theme.successColor} 14.5%, transparent)` }
-    }
-  }
-
-  const getStatusConfig = (status: string) => {
-    const { statusColors } = theme
-    switch (status) {
-      case 'active':    return { label: t('users.status.active'),    color: statusColors.active,    icon: CheckCircle }
-      case 'invited':   return { label: t('users.status.invited'),   color: statusColors.invited,   icon: Mail }
-      case 'suspended': return { label: t('users.status.suspended'), color: statusColors.suspended, icon: XCircle }
-      default:          return { label: t('users.status.removed'),   color: statusColors.removed,   icon: AlertCircle }
-    }
-  }
-
-  const roleConfig = getRoleConfig(user.org_role || 'member')
-  const statusConfig = getStatusConfig(user.org_status || 'active')
+  const displayName =
+    user.display_name ||
+    `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+    user.username
+  const roleConfig = getRoleConfig(user.org_role || 'member', theme, t)
+  const statusConfig = getStatusConfig(user.org_status || 'active', theme, t)
   const StatusIcon = statusConfig.icon
+  const statusStyle = { '--status-color': statusConfig.color } as CSSProperties
+  const hierarchy = [
+    { value: user.region_name, icon: MapPin },
+    { value: user.zone_name, icon: Building2 },
+    { value: user.team_name, icon: Network },
+  ].filter((item) => item.value)
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.02 }}
-      className="flex items-center gap-4 p-4 rounded-xl border border-white/5 hover:border-white/10 hover:bg-white/5 transition-all group"
-      style={{ backgroundColor: theme.cardBg }}
+    <motion.article
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.025, 0.14), duration: 0.22 }}
+      className={styles.listRow}
+      style={statusStyle}
     >
-      {/* Avatar */}
-      {user.profile_picture_url ? (
-        <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
-          <Image src={user.profile_picture_url} alt={displayName} width={40} height={40} className="object-cover w-full h-full" />
-        </div>
-      ) : (
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold flex-shrink-0"
-          style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 18.8%, transparent)`, color: theme.isDark ? 'var(--color-bg-light)' : theme.primaryColor }}
-        >
-          {displayName.charAt(0).toUpperCase()}
-        </div>
-      )}
-
-      {/* Info */}
-      <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 items-center">
-        {/* Name & Email */}
-        <div className="min-w-0 col-span-1 sm:col-span-1 lg:col-span-2">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-sm truncate" style={{ color: theme.textColor }}>
-              {displayName}
-            </span>
-            {user.org_role === 'owner' && <Crown className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />}
-          </div>
-          <p className="text-xs opacity-50 truncate">{user.email}</p>
-        </div>
-
-        {/* Hierarchy */}
-        <div className="hidden lg:flex items-center gap-1 text-xs opacity-60 min-w-0">
-          {user.region_name && (
-            <span className="truncate flex items-center gap-1">
-              <MapPin className="w-3 h-3 flex-shrink-0" />
-              {user.region_name}
-            </span>
-          )}
-          {user.zone_name && (
-            <span className="truncate flex items-center gap-1 ml-2">
-              <Building2 className="w-3 h-3 flex-shrink-0" />
-              {user.zone_name}
-            </span>
-          )}
-          {user.team_name && (
-            <span className="truncate flex items-center gap-1 ml-2">
-              <Network className="w-3 h-3 flex-shrink-0" />
-              {user.team_name}
-            </span>
-          )}
-          {!user.region_name && !user.zone_name && !user.team_name && (
-            <span className="text-xs opacity-40">—</span>
+      <div className={styles.listIdentity}>
+        <div className={styles.listAvatar}>
+          {user.profile_picture_url ? (
+            <Image src={user.profile_picture_url} alt="" width={48} height={48} />
+          ) : (
+            <span aria-hidden="true">{displayName.charAt(0).toUpperCase()}</span>
           )}
         </div>
-
-        {/* Role & Status */}
-        <div className="flex items-center gap-2">
-          <span
-            className="px-2 py-0.5 rounded-full text-xs font-medium"
-            style={{ backgroundColor: roleConfig.bg, color: roleConfig.color }}
-          >
-            {roleConfig.label}
-          </span>
-          <span
-            className="px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1"
-            style={{ backgroundColor: `color-mix(in srgb, ${statusConfig.color} 12.5%, transparent)`, color: statusConfig.color }}
-          >
-            <StatusIcon className="w-3 h-3" />
-            {statusConfig.label}
-          </span>
-        </div>
-
-        {/* Last Access */}
-        <div className="hidden sm:block text-xs opacity-50 text-right">
-          {user.last_activity_at || user.last_login_at
-            ? formatDate((user.last_activity_at ?? user.last_login_at) as string, i18n.language, { day: '2-digit', month: 'short' })
-            : '—'}
+        <div className={styles.identity}>
+          <p className={styles.listName}>
+            {displayName}
+            {user.org_role === 'owner' ? <Crown aria-label={roleConfig.label} /> : null}
+          </p>
+          <p className={styles.listEmail}>{user.email}</p>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        {user.org_status === 'invited' && onResend && (
-          <button
-            onClick={(e) => { e.stopPropagation(); onResend() }}
-            className={`p-1.5 rounded-lg transition-colors border border-amber-500/20 ${theme.isDark ? 'bg-amber-500/10 hover:bg-amber-500/20' : 'bg-amber-500/5 hover:bg-amber-500/10'}`}
-            title={t('users.card.resendInvite')}
-          >
-            <Mail className="w-4 h-4 text-amber-500" />
-          </button>
+      <div className={styles.listHierarchy}>
+        {hierarchy.length > 0 ? (
+          hierarchy.map(({ value, icon: Icon }) => (
+            <span key={value}>
+              <Icon aria-hidden="true" />
+              {value}
+            </span>
+          ))
+        ) : (
+          <span aria-label={t('users.card.noHierarchy', 'Sin jerarquía')}>—</span>
         )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            const tab = user.org_status === 'invited' ? 'invitations' : 'users'
-            window.dispatchEvent(new CustomEvent('change-user-tab', { detail: tab }))
-          }}
-          className="p-1.5 rounded-lg transition-colors hover:opacity-80"
-          style={{ color: theme.actionColor }}
-          title={t('users.card.manage')}
+      </div>
+
+      <div className={styles.listBadges}>
+        <span
+          className={styles.roleBadge}
+          style={{ backgroundColor: roleConfig.bg, color: roleConfig.text }}
         >
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          {roleConfig.label}
+        </span>
+        <span className={styles.statusBadge}>
+          <StatusIcon aria-hidden="true" />
+          <span>{statusConfig.label}</span>
+        </span>
+      </div>
+
+      <p className={styles.listMuted}>
+        {user.last_activity_at || user.last_login_at
+          ? formatDate(
+              (user.last_activity_at ?? user.last_login_at) as string,
+              i18n.language,
+              { day: '2-digit', month: 'short' },
+            )
+          : '—'}
+      </p>
+
+      <div className={styles.listActions}>
+        {user.org_status === 'invited' && onResend ? (
+          <button
+            type="button"
+            onClick={onResend}
+            className={styles.iconAction}
+            title={t('users.card.resendInvite')}
+            aria-label={t('users.card.resendInvite')}
+          >
+            <Send aria-hidden="true" />
+          </button>
+        ) : null}
         <button
+          type="button"
           onClick={onStats}
-          className="p-1.5 rounded-lg transition-colors hover:opacity-80"
-          style={{ color: theme.actionColor }}
+          className={styles.iconAction}
           title={t('users.card.viewStats')}
+          aria-label={t('users.card.viewStats')}
         >
-          <BarChart3 className="w-4 h-4" />
+          <BarChart3 aria-hidden="true" />
         </button>
         <button
+          type="button"
           onClick={onEdit}
-          className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-white/10' : 'hover:bg-black/10'}`}
+          className={styles.iconAction}
           title={t('users.card.edit')}
+          aria-label={t('users.card.edit')}
         >
-          <Edit className="w-4 h-4 opacity-70" style={{ color: theme.textColor }} />
+          <PencilLine aria-hidden="true" />
         </button>
         <button
+          type="button"
           onClick={onDelete}
-          className={`p-1.5 rounded-lg transition-colors ${theme.isDark ? 'hover:bg-red-500/20' : 'hover:bg-red-500/10'}`}
+          className={`${styles.iconAction} ${styles.dangerAction}`}
           title={t('users.card.delete')}
+          aria-label={t('users.card.delete')}
         >
-          <Trash className="w-4 h-4 text-red-400" />
+          <Trash2 aria-hidden="true" />
         </button>
       </div>
-    </motion.div>
+    </motion.article>
   )
+}
+
+function getRoleConfig(
+  role: string,
+  theme: ReturnType<typeof useBusinessPanelTheme>,
+  t: ReturnType<typeof useTranslation>['t'],
+) {
+  switch (role) {
+    case 'owner':
+      return { label: t('users.roles.owner'), ...theme.roleColors.owner }
+    case 'admin':
+      return { label: t('users.roles.admin'), ...theme.roleColors.admin }
+    default:
+      return { label: t('users.roles.member'), ...theme.roleColors.member }
+  }
+}
+
+function getStatusConfig(
+  status: string,
+  theme: ReturnType<typeof useBusinessPanelTheme>,
+  t: ReturnType<typeof useTranslation>['t'],
+) {
+  switch (status) {
+    case 'active':
+      return { label: t('users.status.active'), color: theme.statusColors.active, icon: BadgeCheck }
+    case 'invited':
+      return { label: t('users.status.invited'), color: theme.statusColors.invited, icon: Mail }
+    case 'suspended':
+      return { label: t('users.status.suspended'), color: theme.statusColors.suspended, icon: CircleOff }
+    default:
+      return { label: t('users.status.removed'), color: theme.statusColors.removed, icon: CircleAlert }
+  }
 }
 
 export { UserListRow }

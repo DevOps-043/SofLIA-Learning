@@ -1,0 +1,457 @@
+.page,
+.statePage {
+  color: var(--settings-text);
+  background: var(--settings-page);
+  font-family: var(--font-ui, 'Inter Tight', sans-serif);
+}
+
+.page {
+  min-height: 100vh;
+  padding: clamp(1rem, 2vw, 2rem);
+}
+
+.hero {
+  position: relative;
+  display: flex;
+  min-height: 12.5rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  overflow: hidden;
+  padding: clamp(1.5rem, 3vw, 2.75rem);
+  border: 1px solid color-mix(in srgb, var(--settings-accent) 40%, transparent);
+  border-radius: 2rem;
+  color: var(--settings-hero-text);
+  background: var(--settings-hero);
+  box-shadow: 0 24px 70px color-mix(in srgb, var(--settings-text) 13%, transparent);
+}
+
+.hero::before {
+  position: absolute;
+  top: -10rem;
+  right: -5rem;
+  width: 25rem;
+  height: 25rem;
+  border: 1px solid color-mix(in srgb, var(--settings-accent) 34%, transparent);
+  border-radius: 50%;
+  content: '';
+}
+
+.hero::after {
+  position: absolute;
+  right: 2rem;
+  bottom: 1.5rem;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--settings-accent);
+  box-shadow: 0 0 28px var(--settings-accent);
+  content: '';
+}
+
+.heroCopy,
+.heroStatus {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow,
+.canvasKicker,
+.railHeading,
+.fieldLabel {
+  font-family: var(--font-label, 'IBM Plex Sans', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 1rem;
+  color: var(--settings-hero-muted);
+}
+
+.eyebrow svg {
+  width: 1rem;
+}
+
+.hero h1 {
+  max-width: 49rem;
+  margin: 0;
+  font-family: var(--font-display, 'Newsreader', serif);
+  font-size: clamp(2.1rem, 4vw, 4rem);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+}
+
+.heroCopy > p {
+  max-width: 44rem;
+  margin: 1rem 0 0;
+  color: var(--settings-hero-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.heroStatus {
+  display: flex;
+  width: min(21rem, 100%);
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, var(--settings-hero-text) 18%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--settings-hero-text) 7%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.heroStatus svg {
+  width: 1.25rem;
+  flex: 0 0 auto;
+  color: var(--settings-accent);
+}
+
+.heroStatus span {
+  display: grid;
+  gap: 0.15rem;
+  color: var(--settings-hero-muted);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+.heroStatus strong {
+  color: var(--settings-hero-text);
+  font-size: 0.8rem;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(15rem, 18rem) minmax(0, 1fr);
+  gap: clamp(1rem, 2vw, 1.5rem);
+  margin-top: 1.5rem;
+}
+
+.rail,
+.canvas {
+  border: 1px solid var(--settings-border);
+  border-radius: 1.5rem;
+  background: var(--settings-card);
+  box-shadow: 0 18px 48px color-mix(in srgb, var(--settings-text) 7%, transparent);
+}
+
+.rail {
+  align-self: start;
+  position: sticky;
+  top: 6.5rem;
+  padding: 0.75rem;
+}
+
+.railHeading {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 0.8rem 0.9rem;
+  color: var(--settings-soft);
+}
+
+.railHeading small {
+  font-size: inherit;
+}
+
+.railItems {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.railItem {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid transparent;
+  border-radius: 1rem;
+  color: var(--settings-muted);
+  background: transparent;
+  text-align: left;
+  transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.railItem:hover {
+  transform: translateX(2px);
+  color: var(--settings-text);
+  background: var(--settings-hover);
+}
+
+.railItem[data-active='true'] {
+  border-color: color-mix(in srgb, var(--settings-accent) 32%, var(--settings-border));
+  color: var(--settings-text);
+  background: var(--settings-accent-soft);
+}
+
+.railIndex {
+  color: var(--settings-soft);
+  font-family: var(--font-label, 'IBM Plex Sans', sans-serif);
+  font-size: 0.62rem;
+}
+
+.railIcon,
+.canvasIcon,
+.errorMark,
+.loadingMark {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--settings-border);
+  color: var(--settings-accent);
+  background: var(--settings-card);
+}
+
+.railIcon {
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 0.78rem;
+}
+
+.railIcon svg,
+.railArrow {
+  width: 1rem;
+}
+
+.railCopy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.railCopy strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.railCopy small {
+  overflow: hidden;
+  color: var(--settings-soft);
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.railArrow {
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.railItem[data-active='true'] .railArrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.planNote {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  border-top: 1px solid var(--settings-divider);
+  color: var(--settings-soft);
+}
+
+.planNote svg {
+  width: 1rem;
+}
+
+.planNote span {
+  display: grid;
+  font-size: 0.66rem;
+}
+
+.planNote strong {
+  color: var(--settings-muted);
+}
+
+.canvas {
+  min-width: 0;
+  overflow: visible;
+}
+
+.canvasHeader {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.35rem clamp(1.1rem, 2vw, 2rem);
+  border-bottom: 1px solid var(--settings-divider);
+}
+
+.canvasIcon {
+  width: 2.8rem;
+  height: 2.8rem;
+  flex: 0 0 auto;
+  border-radius: 0.9rem;
+  background: var(--settings-accent-soft);
+}
+
+.canvasIcon svg {
+  width: 1.15rem;
+}
+
+.canvasKicker {
+  color: var(--settings-accent);
+}
+
+.canvasHeader h2 {
+  margin: 0.15rem 0 0;
+  font-family: var(--font-display, 'Newsreader', serif);
+  font-size: clamp(1.55rem, 2vw, 2rem);
+  font-weight: 400;
+}
+
+.canvasHeader p {
+  margin: 0.2rem 0 0;
+  color: var(--settings-muted);
+  font-size: 0.78rem;
+}
+
+.canvasBody {
+  padding: clamp(1rem, 2.3vw, 2rem);
+}
+
+.statePage {
+  display: grid;
+  min-height: 65vh;
+  place-content: center;
+  justify-items: center;
+  gap: 0.8rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.statePage h1,
+.statePage p {
+  margin: 0;
+}
+
+.statePage h1 {
+  font-family: var(--font-display, 'Newsreader', serif);
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.statePage p {
+  max-width: 32rem;
+  color: var(--settings-muted);
+}
+
+.loadingMark,
+.errorMark {
+  width: 3.6rem;
+  height: 3.6rem;
+  border-radius: 1.1rem;
+}
+
+.loadingMark {
+  animation: settings-pulse 1.4s ease-in-out infinite;
+}
+
+.errorMark {
+  color: var(--settings-danger);
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.75rem;
+  padding: 0 1.15rem;
+  border: 0;
+  border-radius: 0.9rem;
+  color: var(--settings-on-accent);
+  background: var(--settings-accent);
+  font-weight: 600;
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--settings-accent) 22%, transparent);
+}
+
+.primaryButton svg {
+  width: 1rem;
+}
+
+@keyframes settings-pulse {
+  50% {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 32px color-mix(in srgb, var(--settings-accent) 18%, transparent);
+  }
+}
+
+@media (max-width: 900px) {
+  .hero {
+    min-height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .heroStatus {
+    width: 100%;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .rail {
+    position: static;
+    overflow-x: auto;
+  }
+
+  .railHeading,
+  .planNote {
+    display: none;
+  }
+
+  .railItems {
+    display: flex;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .railItem {
+    min-width: 13.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 0.75rem;
+  }
+
+  .hero {
+    border-radius: 1.4rem;
+  }
+
+  .hero h1 {
+    font-size: 2.25rem;
+  }
+
+  .rail,
+  .canvas {
+    border-radius: 1.2rem;
+  }
+
+  .canvasHeader {
+    align-items: flex-start;
+  }
+
+  .canvasBody {
+    padding: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .railItem,
+  .railArrow,
+  .loadingMark {
+    animation: none;
+    transition: none;
+  }
+}

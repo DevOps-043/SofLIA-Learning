@@ -1,6 +1,8 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef } from 'react'
+import type { CSSProperties } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowUpRight, BellRing, CheckCheck, X } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -41,6 +43,24 @@ const dateLocales = {
   pt,
 }
 
+const NOTIFICATION_MOBILE_QUERY = '(max-width: 40rem)'
+const NOTIFICATION_EDGE_GAP = 12
+const NOTIFICATION_MIN_HEIGHT = 200
+const NOTIFICATION_MAX_HEIGHT = 560
+
+interface NotificationPanelGeometry {
+  isMobile: boolean
+  maxHeight: number
+  right: number
+  top: number
+}
+
+type NotificationPortalStyle = CSSProperties & {
+  '--org-accent-color'?: string
+  '--org-on-action-color'?: string
+  '--org-primary-color'?: string
+}
+
 export function NotificationBell({
   className,
   iconSize = 'md',
@@ -62,15 +82,35 @@ export function NotificationBell({
   const { language } = useLanguage()
   const router = useRouter()
   const containerRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
+  const [isMounted, setIsMounted] = useState(false)
+  const [panelGeometry, setPanelGeometry] = useState<NotificationPanelGeometry>(
+    {
+      isMobile: false,
+      maxHeight: 560,
+      right: NOTIFICATION_EDGE_GAP,
+      top: 72,
+    },
+  )
+  const [portalTheme, setPortalTheme] = useState<NotificationPortalStyle>({})
   const currentLocale = dateLocales[language as keyof typeof dateLocales] || es
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
   useEffect(() => {
     if (!isDropdownOpen) return
 
     const closeOnOutsideClick = (event: MouseEvent) => {
       const target = event.target as Node
-      if (!containerRef.current?.contains(target)) {
-        setIsDropdownOpen(false)
-      }
+      if (
+        containerRef.current?.contains(target) ||
+        panelRef.current?.contains(target)
+      )
+        return
+
+      setIsDropdownOpen(false)
     }
 
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -79,12 +119,59 @@ export function NotificationBell({
       }
     }
 
+    const syncPanelGeometry = () => {
+      const root = containerRef.current
+      if (!root) return
+
+      const rect = root.getBoundingClientRect()
+      const isMobile = window.matchMedia(NOTIFICATION_MOBILE_QUERY).matches
+      const top = Math.max(NOTIFICATION_EDGE_GAP, rect.bottom + 10)
+
+      setPanelGeometry({
+        isMobile,
+        top,
+        right: isMobile
+          ? NOTIFICATION_EDGE_GAP
+          : Math.max(NOTIFICATION_EDGE_GAP, window.innerWidth - rect.right),
+        maxHeight: Math.max(
+          NOTIFICATION_MIN_HEIGHT,
+          Math.min(
+            NOTIFICATION_MAX_HEIGHT,
+            window.innerHeight - top - NOTIFICATION_EDGE_GAP,
+          ),
+        ),
+      })
+
+      const computedStyles = window.getComputedStyle(root)
+      const accentColor = computedStyles
+        .getPropertyValue('--org-accent-color')
+        .trim()
+      const onActionColor = computedStyles
+        .getPropertyValue('--org-on-action-color')
+        .trim()
+      const primaryColor = computedStyles
+        .getPropertyValue('--org-primary-color')
+        .trim()
+      const nextTheme: NotificationPortalStyle = {}
+
+      if (accentColor) nextTheme['--org-accent-color'] = accentColor
+      if (onActionColor) nextTheme['--org-on-action-color'] = onActionColor
+      if (primaryColor) nextTheme['--org-primary-color'] = primaryColor
+
+      setPortalTheme(nextTheme)
+    }
+
+    syncPanelGeometry()
     document.addEventListener('mousedown', closeOnOutsideClick)
     document.addEventListener('keydown', closeOnEscape)
+    window.addEventListener('resize', syncPanelGeometry)
+    window.addEventListener('scroll', syncPanelGeometry, true)
 
     return () => {
       document.removeEventListener('mousedown', closeOnOutsideClick)
       document.removeEventListener('keydown', closeOnEscape)
+      window.removeEventListener('resize', syncPanelGeometry)
+      window.removeEventListener('scroll', syncPanelGeometry, true)
     }
   }, [isDropdownOpen, setIsDropdownOpen])
 
@@ -129,6 +216,7 @@ export function NotificationBell({
         whileTap={{ scale: 0.97 }}
         aria-label={t('actions.notificationsPage.title')}
         aria-expanded={isDropdownOpen}
+        aria-controls="global-notification-panel"
       >
         <BellRing className={iconSizes[iconSize]} />
 
@@ -143,102 +231,128 @@ export function NotificationBell({
         )}
       </motion.button>
 
-      <AnimatePresence>
-        {isDropdownOpen && (
-          <>
-            <motion.button
-              type="button"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className={styles.backdrop}
-              onClick={() => setIsDropdownOpen(false)}
-              aria-label={t('actions.close')}
-            />
-
-            <motion.section
-              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -8, scale: 0.98 }}
-              transition={{ duration: 0.16 }}
-              className={styles.panel}
-              role="dialog"
-              aria-label={t('actions.notificationsPage.title')}
-            >
-              <header className={styles.header}>
-                <div className={styles.heading}>
-                  <h2 className={styles.title}>
-                    {t('actions.notificationsPage.title')}
-                  </h2>
-                  <p className={styles.subtitle}>{unreadLabel}</p>
-                </div>
-
-                <div className={styles.headerActions}>
-                  {unreadCount > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void runAction(markAllAsRead)
-                      }}
-                      disabled={isLoading}
-                      className={`${styles.iconButton} ${styles.iconButtonSuccess}`}
-                      title={t('actions.notificationsPage.markAllRead')}
-                      aria-label={t('actions.notificationsPage.markAllRead')}
-                    >
-                      <CheckCheck className="h-4 w-4" />
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => setIsDropdownOpen(false)}
-                    className={styles.iconButton}
-                    title={t('actions.close')}
-                    aria-label={t('actions.close')}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </header>
-
-              <div className={styles.viewport}>
-                {isLoading && notifications.length === 0 ? (
-                  <NotificationLoadingState label={t('actions.notificationsPage.loading')} compact />
-                ) : notifications.length === 0 ? (
-                  <NotificationEmptyState
-                    title={t('actions.notificationsPage.emptyTitle')}
-                    description={t('actions.notificationsPage.emptyDefault')}
-                    compact
-                  />
-                ) : (
-                  notifications.map((notification) => (
-                    <NotificationListItem
-                      key={notification.notification_id}
-                      notification={notification}
-                      formattedTime={formatTime(notification.created_at)}
-                      layout="compact"
-                      onOpen={openNotification}
-                      onMarkAsRead={markAsRead}
-                      onArchive={archiveNotification}
-                      onDelete={deleteNotification}
-                    />
-                  ))
-                )}
-              </div>
-
-              <footer className={styles.footer}>
-                <Link
-                  href="/dashboard/notifications"
+      {isMounted &&
+        createPortal(
+          <AnimatePresence>
+            {isDropdownOpen && (
+              <>
+                <motion.button
+                  type="button"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className={styles.backdrop}
                   onClick={() => setIsDropdownOpen(false)}
-                  className={styles.viewAll}
+                  aria-label={t('actions.close')}
+                />
+
+                <motion.section
+                  ref={panelRef}
+                  id="global-notification-panel"
+                  initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={{ duration: 0.16 }}
+                  className={`${styles.panel} ${styles.portalTheme}`}
+                  style={{
+                    ...portalTheme,
+                    top: panelGeometry.top,
+                    right: panelGeometry.right,
+                    left: panelGeometry.isMobile
+                      ? NOTIFICATION_EDGE_GAP
+                      : 'auto',
+                    maxHeight: panelGeometry.maxHeight,
+                  }}
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label={t('actions.notificationsPage.title')}
                 >
-                  {t('actions.notificationsPage.viewAll')}
-                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Link>
-              </footer>
-            </motion.section>
-          </>
+                  <header className={styles.header}>
+                    <div className={styles.heading}>
+                      <h2 className={styles.title}>
+                        {t('actions.notificationsPage.title')}
+                      </h2>
+                      <p className={styles.subtitle}>{unreadLabel}</p>
+                    </div>
+
+                    <div className={styles.headerActions}>
+                      {unreadCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void runAction(markAllAsRead)
+                          }}
+                          disabled={isLoading}
+                          className={`${styles.iconButton} ${styles.iconButtonSuccess}`}
+                          title={t('actions.notificationsPage.markAllRead')}
+                          aria-label={t(
+                            'actions.notificationsPage.markAllRead',
+                          )}
+                        >
+                          <CheckCheck className="h-4 w-4" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setIsDropdownOpen(false)}
+                        className={styles.iconButton}
+                        title={t('actions.close')}
+                        aria-label={t('actions.close')}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </header>
+
+                  <div className={styles.viewport}>
+                    {isLoading && notifications.length === 0 ? (
+                      <NotificationLoadingState
+                        label={t('actions.notificationsPage.loading')}
+                        compact
+                      />
+                    ) : notifications.length === 0 ? (
+                      <NotificationEmptyState
+                        title={t('actions.notificationsPage.emptyTitle')}
+                        description={t(
+                          'actions.notificationsPage.emptyDefault',
+                        )}
+                        compact
+                      />
+                    ) : (
+                      notifications.map((notification) => (
+                        <NotificationListItem
+                          key={notification.notification_id}
+                          notification={notification}
+                          formattedTime={formatTime(notification.created_at)}
+                          layout="compact"
+                          onOpen={openNotification}
+                          onMarkAsRead={markAsRead}
+                          onArchive={archiveNotification}
+                          onDelete={deleteNotification}
+                        />
+                      ))
+                    )}
+                  </div>
+
+                  <footer className={styles.footer}>
+                    <Link
+                      href="/dashboard/notifications"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className={styles.viewAll}
+                    >
+                      {t('actions.notificationsPage.viewAll')}
+                      <ArrowUpRight
+                        className="h-3.5 w-3.5"
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  </footer>
+                </motion.section>
+              </>
+            )}
+          </AnimatePresence>,
+          document.body,
         )}
-      </AnimatePresence>
     </div>
   )
 }

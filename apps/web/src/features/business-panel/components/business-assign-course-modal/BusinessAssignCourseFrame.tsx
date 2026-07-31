@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
+import modalStyles from '../ContentModal.module.css';
 import type { BusinessAssignCourseModalState, BusinessAssignCourseTheme } from './view-types';
 
 interface BusinessAssignCourseFrameProps {
@@ -9,26 +10,42 @@ interface BusinessAssignCourseFrameProps {
 }
 
 export function BusinessAssignCourseFrame({ children, modal, theme }: BusinessAssignCourseFrameProps) {
+  const modalVariables = {
+    '--modal-accent': theme.accentColor,
+    '--modal-action': theme.actionColor,
+    '--modal-on-action': theme.onActionColor,
+    '--modal-card': theme.cardBg,
+    '--modal-surface': theme.panelBg,
+    '--modal-text': theme.textColor,
+    '--modal-muted': theme.subtextColor,
+    '--modal-border': theme.borderColor,
+    '--modal-input': theme.inputBg,
+    '--modal-divider': theme.dividerColor,
+    '--modal-danger': theme.dangerColor,
+  } as CSSProperties;
+
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 isolate flex h-app-dynamic items-center justify-center overflow-hidden p-0 sm:p-4" style={{ zIndex: 99999 }}>
+      <div className={modalStyles.overlay}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={modal.handleClose}
-          className="absolute inset-0"
+          className={modalStyles.backdrop}
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden bg-transparent shadow-2xl sm:h-[min(calc(var(--soflia-viewport-height)-3rem),850px)] sm:max-h-[850px] sm:rounded-[2.5rem]"
+          aria-labelledby="assign-course-title"
+          aria-modal="true"
+          className={`${modalStyles.dialog} ${modalStyles.dialogWide}`}
           onClick={(event) => event.stopPropagation()}
+          role="dialog"
+          style={modalVariables}
         >
-          <div className="flex flex-col h-full overflow-hidden border" style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor }}>
-            {children}
-          </div>
+          {children}
         </motion.div>
       </div>
     </AnimatePresence>

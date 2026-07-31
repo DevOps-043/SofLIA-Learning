@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
-import { Building2, Palette } from 'lucide-react'
+import { Building2, KeyRound, Palette } from 'lucide-react'
 import type { ToastType } from '@/core/components/ToastNotification/ToastNotification'
 import { useBusinessSettings } from '../../hooks/useBusinessSettings'
 import { useSubscriptionFeatures } from '../../hooks/useSubscriptionFeatures'
@@ -19,7 +19,7 @@ export function useBusinessSettingsLogic() {
   const orgSlug = params?.orgSlug as string | undefined
   const theme = useBusinessPanelTheme()
 
-  const [activeTab, setActiveTab] = useState<'organization' | 'branding'>('organization')
+  const [activeTab, setActiveTab] = useState<'organization' | 'access' | 'branding'>('organization')
   const [toast, setToast] = useState<{ isOpen: boolean; message: string; type: ToastType }>(
     { isOpen: false, message: '', type: 'success' }
   )
@@ -49,9 +49,25 @@ export function useBusinessSettingsLogic() {
   }, [refetchSubscription, refetch])
 
   const tabs = [
-    { id: 'organization' as const, label: 'Datos de la Empresa', icon: Building2, color: theme.actionColor },
+    {
+      id: 'organization' as const,
+      label: 'Identidad y contexto',
+      description: 'Información esencial de la organización',
+      icon: Building2,
+    },
+    {
+      id: 'access' as const,
+      label: 'Acceso y autenticación',
+      description: 'Enlaces de ingreso y proveedores SSO',
+      icon: KeyRound,
+    },
     ...(canUseBranding
-      ? [{ id: 'branding' as const, label: 'Branding', icon: Palette, color: theme.isDark ? theme.secondaryColor : 'var(--color-secondary)' }]
+      ? [{
+          id: 'branding' as const,
+          label: 'Marca visual',
+          description: 'Logotipo, color y vista previa',
+          icon: Palette,
+        }]
       : []),
   ]
 

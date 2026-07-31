@@ -1,6 +1,9 @@
 'use client'
 
-import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import { Download } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
+import styles from '../AdministrativeModal.module.css'
 import type { ImportUsersModalState } from './import-users.types'
 import { ImportUsersDropZone } from './ImportUsersDropZone'
 import { ImportUsersErrorAlert } from './ImportUsersErrorAlert'
@@ -8,17 +11,25 @@ import { ImportUsersFormatInfo } from './ImportUsersFormatInfo'
 import { ImportUsersResult } from './ImportUsersResult'
 
 export function ImportUsersContent({ state }: { state: ImportUsersModalState }) {
-  const theme = useBusinessPanelTheme()
+  const { t } = useTranslation('business')
 
   return (
-    <div className="flex-1 p-4 lg:p-6 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: `${theme.borderColor} transparent` }}>
+    <div className={styles.importContent}>
       <ImportUsersErrorAlert error={state.error} onDismiss={() => state.setError(null)} />
       {state.importResult ? (
         <ImportUsersResult importResult={state.importResult} />
       ) : (
-        <div className="space-y-4">
+        <div>
           <ImportUsersDropZone state={state} />
           <ImportUsersFormatInfo />
+          <button
+            className={styles.mobileTemplateButton}
+            onClick={() => void state.handleDownloadTemplate()}
+            type="button"
+          >
+            <Download aria-hidden="true" />
+            {t('users.modals.import.downloadTemplate')}
+          </button>
         </div>
       )}
     </div>

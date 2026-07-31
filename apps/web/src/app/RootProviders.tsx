@@ -1,3 +1,5 @@
+'use client'
+
 import type { ReactNode } from 'react'
 import { AutomationSignalsReporter } from '@/components/security/AutomationSignalsReporter'
 import { ContentWrapper } from '../core/components/ContentWrapper'

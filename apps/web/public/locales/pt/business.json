@@ -1512,6 +1512,7 @@
     "errorDisable": "Erro ao desativar hierarquia",
     "loadingConfig": "Carregando Configuração...",
     "types": {
+      "root": "Organização",
       "region": "Região",
       "zone": "Zona",
       "team": "Equipe"
@@ -1653,6 +1654,33 @@
     "pageKicker": "Estrutura",
     "pageTitle": "Hierarquia",
     "pageSubtitle": "Gerencie os níveis organizacionais, equipes e regiões da sua empresa.",
+    "summary": {
+      "label": "Resumo da estrutura",
+      "structures": "Estruturas",
+      "levels": "Níveis",
+      "members": "Membros",
+      "leaders": "Responsáveis"
+    },
+    "workspace": {
+      "controlKicker": "Centro da estrutura",
+      "controlTitle": "Arquitetura organizacional",
+      "controlDescription": "Selecione uma estrutura e gerencie seus níveis em um só lugar.",
+      "currentStructure": "Estrutura em uso",
+      "noStructure": "Nenhuma estrutura selecionada",
+      "mapKicker": "Mapa organizacional",
+      "mapDescription": "Visualize relações, responsáveis e membros de cada nível.",
+      "getStarted": "Comece aqui",
+      "noStructuresTitle": "Crie sua primeira estrutura",
+      "noStructuresDescription": "Crie uma arquitetura clara para organizar equipes, responsáveis e acesso às informações.",
+      "steps": {
+        "structureTitle": "Crie a estrutura",
+        "structureDescription": "Defina o modelo que organizará sua empresa.",
+        "levelsTitle": "Construa os níveis",
+        "levelsDescription": "Adicione regiões, zonas, áreas ou equipes.",
+        "peopleTitle": "Atribua sua equipe",
+        "peopleDescription": "Vincule responsáveis e membros a cada nível."
+      }
+    },
     "tabs": {
       "treeView": "Vista em árvore",
       "settings": "Configuração"
@@ -2010,7 +2038,10 @@
       "allRegions": "Todas as regiões",
       "allZones": "Todas as zonas",
       "allTeams": "Todas as áreas/equipes",
-      "moreFilters": "Mais filtros"
+      "moreFilters": "Mais filtros",
+      "activeFilters": "Filtros ativos",
+      "removeFilter": "Remover filtro",
+      "panelLabel": "Filtros do relatório"
     },
     "granularity": {
       "day": "Dia",
@@ -2097,7 +2128,47 @@
       "plannerInsights": "Planejador de estudos",
       "plannerInsightsSubtitle": "Aderência às sessões de estudo e comparativo de tempo planejado vs. real.",
       "notesComposition": "Notas e anotações",
-      "notesCompositionSubtitle": "Adoção do caderno de notas e composição: manuais vs. geradas automaticamente."
+      "notesCompositionSubtitle": "Adoção do caderno de notas e composição: manuais vs. geradas automaticamente.",
+      "progressOverview": "Progresso geral",
+      "progressOverviewSubtitle": "Consulte o progresso de cada usuário e filtre por curso ou etapa de conclusão."
+    },
+    "groups": {
+      "learningEyebrow": "Panorama",
+      "learningTitle": "Progresso da aprendizagem",
+      "learningDescription": "Distribuição, saúde organizacional e pontos de abandono em uma visão unificada.",
+      "riskEyebrow": "Acompanhamento",
+      "riskTitle": "Risco e conformidade",
+      "riskDescription": "Pessoas, áreas e cursos que exigem intervenção ou acompanhamento prioritário.",
+      "performanceEyebrow": "Desempenho",
+      "performanceTitle": "Evolução e aproveitamento",
+      "performanceDescription": "Compare tendências, equipes e segmentos sem alterar os gráficos operacionais.",
+      "qualityEyebrow": "Adoção",
+      "qualityTitle": "Qualidade da aprendizagem",
+      "qualityDescription": "Resultados acadêmicos, uso do SofLIA e hábitos de anotações no período.",
+      "intelligenceEyebrow": "Inteligência",
+      "intelligenceTitle": "Insights e qualidade dos dados",
+      "intelligenceDescription": "Transforme indicadores em decisões e melhore a confiabilidade da análise."
+    },
+    "progressOverview": {
+      "summary": "Resumo por status de progresso",
+      "userFilter": "Usuário",
+      "searchPlaceholder": "Buscar por nome, e-mail ou cargo",
+      "completionFilter": "Conclusão",
+      "allStatuses": "Todos os progressos",
+      "results": "usuários",
+      "learningScope": "Curso / contexto",
+      "paginationLabel": "Paginação do progresso geral",
+      "page": "Página",
+      "of": "de",
+      "previous": "Anterior",
+      "next": "Próxima",
+      "emptyTitle": "Nenhum usuário corresponde aos filtros",
+      "emptyDescription": "Ajuste a busca, o curso ou o status de conclusão.",
+      "status": {
+        "completed": "Concluído",
+        "in_progress": "Em andamento",
+        "not_started": "Não iniciado"
+      }
     },
     "metrics": {
       "totalConversations": "Conversas",

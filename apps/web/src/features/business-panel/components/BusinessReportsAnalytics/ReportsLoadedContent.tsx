@@ -7,13 +7,15 @@ import { DataQualityPanel } from './DataQualityPanel'
 import { ExecutiveKpiGrid } from './ExecutiveKpiGrid'
 import { LearningFunnelChart } from './LearningFunnelChart'
 import { NotesCompositionPanel } from './NotesCompositionPanel'
+import { ProgressOverviewTable } from './ProgressOverviewTable'
 import { RankingTablesPanel } from './RankingTablesPanel'
 import { RiskPrioritiesTable } from './RiskPrioritiesTable'
 import { SegmentPerformancePanel } from './SegmentPerformancePanel'
 import { SofLIAQualityPanel } from './SofLIAQualityPanel'
+import styles from './ReportsAnalytics.module.css'
 import type { ReportsAnalyticsLocale, ReportsAnalyticsT, ThemeTokens } from './types'
 
-const ChartSkeleton = () => <div className="h-80 animate-pulse rounded-lg bg-gray-100 dark:bg-gray-800" />
+const ChartSkeleton = () => <div className={styles.chartSkeleton} aria-hidden="true" />
 
 const LearningTrendChart = dynamic(
   () => import('./LearningTrendChart').then((m) => ({ default: m.LearningTrendChart })),
@@ -47,6 +49,7 @@ export function ReportsLoadedContent({
   isGeneratingInsights,
   theme,
   t,
+  onCourseFilterChange,
   onExportInsightsPdf,
   onGenerateInsights,
 }: {
@@ -57,98 +60,153 @@ export function ReportsLoadedContent({
   locale: ReportsAnalyticsLocale
   theme: ThemeTokens
   t: ReportsAnalyticsT
+  onCourseFilterChange: (courseId: string) => void
   onExportInsightsPdf: () => void
   onGenerateInsights: () => void
 }) {
   return (
-    <div className="flex flex-col gap-6">
-      {/* 1. KPIs ejecutivos */}
+    <div className={styles.contentStack}>
       <div id="tour-reports-kpi">
-        <ExecutiveKpiGrid data={data} theme={theme} t={t} />
+        <ExecutiveKpiGrid data={data} t={t} />
       </div>
 
-      {/* 2. Estado de la fuerza laboral */}
-      <div id="tour-reports-workforce">
-        <WorkforceStatusPanel data={data} theme={theme} t={t} />
-      </div>
+      <ProgressOverviewTable
+        data={data}
+        t={t}
+        onCourseChange={onCourseFilterChange}
+      />
 
-      {/* 3. Radar multidimensional de salud org */}
-      <div id="tour-reports-radar">
-        <OrgRadarChart data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 4. Cumplimiento por área */}
-      <div id="tour-reports-compliance">
-        <ComplianceBarChart data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 5. Usuarios en riesgo */}
-      <div id="tour-reports-risk-users">
-        <RiskPrioritiesTable priorityUsers={data.priorityUsers} theme={theme} t={t} />
-      </div>
-
-      {/* 6. Embudo de aprendizaje */}
-      <div id="tour-reports-funnel">
-        <LearningFunnelChart data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 7. Riesgo por curso */}
-      <div id="tour-reports-course-risk">
-        <CourseRiskTable courses={data.courses} theme={theme} t={t} />
-      </div>
-
-      {/* 8. Mapa de posicionamiento de equipos */}
-      <div id="tour-reports-scatter">
-        <TeamScatterChart data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 9. Clasificación de aprovechamiento */}
-      <div id="tour-reports-ranking">
-        <RankingTablesPanel data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 10. Desempeño por segmento */}
-      <div id="tour-reports-segments">
-        <SegmentPerformancePanel data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 11. Tendencia en el tiempo */}
-      <div id="tour-reports-trend">
-        <LearningTrendChart data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 12. Rendimiento académico */}
-      <div id="tour-reports-academic">
-        <AcademicPerformanceCards data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 13. Calidad SofLIA */}
-      <div id="tour-reports-soflia-quality">
-        <SofLIAQualityPanel data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 14. Planificador de estudio */}
-
-      {/* 15. Notas y apuntes */}
-      <div id="tour-reports-notes">
-        <NotesCompositionPanel data={data} theme={theme} t={t} />
-      </div>
-
-      {/* 16. Análisis IA */}
-      <div id="tour-reports-insights">
-        <AiInsightsPanel
-          insights={insights}
-          isExportingPdf={isExportingInsightsPdf}
-          isGenerating={isGeneratingInsights}
-          theme={theme}
-          t={t}
-          onExportPdf={onExportInsightsPdf}
-          onGenerate={onGenerateInsights}
+      <section className={styles.sectionBlock} aria-labelledby="reports-learning-overview-title">
+        <SectionIntro
+          id="reports-learning-overview-title"
+          title={t('reportsAnalytics.groups.learningTitle')}
+          description={t('reportsAnalytics.groups.learningDescription')}
         />
-      </div>
 
-      {/* 17. Calidad de datos */}
-      <DataQualityPanel data={data} theme={theme} t={t} />
+        <div className={styles.twoColumnGrid}>
+          <div id="tour-reports-workforce" className={styles.surfaceFrame}>
+            <WorkforceStatusPanel data={data} theme={theme} t={t} />
+          </div>
+          <div id="tour-reports-radar" className={styles.surfaceFrame}>
+            <OrgRadarChart data={data} theme={theme} t={t} />
+          </div>
+        </div>
+
+        <div id="tour-reports-funnel" className={styles.surfaceFrame}>
+          <LearningFunnelChart data={data} theme={theme} t={t} />
+        </div>
+      </section>
+
+      <section className={styles.sectionBlock} aria-labelledby="reports-risk-title">
+        <SectionIntro
+          id="reports-risk-title"
+          title={t('reportsAnalytics.groups.riskTitle')}
+          description={t('reportsAnalytics.groups.riskDescription')}
+        />
+
+        <div id="tour-reports-risk-users" className={styles.surfaceFrame}>
+          <RiskPrioritiesTable priorityUsers={data.priorityUsers} theme={theme} t={t} />
+        </div>
+
+        <div id="tour-reports-compliance" className={styles.surfaceFrame}>
+          <ComplianceBarChart data={data} theme={theme} t={t} />
+        </div>
+
+        <div id="tour-reports-course-risk" className={styles.surfaceFrame}>
+          <CourseRiskTable courses={data.courses} theme={theme} t={t} />
+        </div>
+      </section>
+
+      <section className={styles.sectionBlock} aria-labelledby="reports-performance-title">
+        <SectionIntro
+          id="reports-performance-title"
+          title={t('reportsAnalytics.groups.performanceTitle')}
+          description={t('reportsAnalytics.groups.performanceDescription')}
+        />
+
+        <div className={styles.balancedGrid}>
+          <div id="tour-reports-scatter" className={styles.surfaceFrame}>
+            <TeamScatterChart data={data} theme={theme} t={t} />
+          </div>
+          <div id="tour-reports-trend" className={styles.surfaceFrame}>
+            <LearningTrendChart data={data} theme={theme} t={t} />
+          </div>
+        </div>
+
+        <div id="tour-reports-ranking" className={styles.surfaceFrame}>
+          <RankingTablesPanel data={data} theme={theme} t={t} />
+        </div>
+
+        <div id="tour-reports-segments" className={styles.surfaceFrame}>
+          <SegmentPerformancePanel data={data} theme={theme} t={t} />
+        </div>
+      </section>
+
+      <section className={styles.sectionBlock} aria-labelledby="reports-quality-title">
+        <SectionIntro
+          id="reports-quality-title"
+          title={t('reportsAnalytics.groups.qualityTitle')}
+          description={t('reportsAnalytics.groups.qualityDescription')}
+        />
+
+        <div id="tour-reports-academic" className={styles.surfaceFrame}>
+          <AcademicPerformanceCards data={data} theme={theme} t={t} />
+        </div>
+
+        <div id="tour-reports-soflia-quality" className={styles.surfaceFrame}>
+          <SofLIAQualityPanel data={data} theme={theme} t={t} />
+        </div>
+
+        <div id="tour-reports-notes" className={styles.surfaceFrame}>
+          <NotesCompositionPanel data={data} theme={theme} t={t} />
+        </div>
+      </section>
+
+      <section className={styles.sectionBlock} aria-labelledby="reports-intelligence-title">
+        <SectionIntro
+          id="reports-intelligence-title"
+          title={t('reportsAnalytics.groups.intelligenceTitle')}
+          description={t('reportsAnalytics.groups.intelligenceDescription')}
+        />
+
+        <div id="tour-reports-insights" className={styles.surfaceFrame}>
+          <AiInsightsPanel
+            insights={insights}
+            isExportingPdf={isExportingInsightsPdf}
+            isGenerating={isGeneratingInsights}
+            theme={theme}
+            t={t}
+            onExportPdf={onExportInsightsPdf}
+            onGenerate={onGenerateInsights}
+          />
+        </div>
+
+        <div className={styles.surfaceFrame}>
+          <DataQualityPanel data={data} theme={theme} t={t} />
+        </div>
+      </section>
     </div>
+  )
+}
+
+function SectionIntro({
+  id,
+  eyebrow,
+  title,
+  description,
+}: {
+  id: string
+  eyebrow?: string
+  title: string
+  description: string
+}) {
+  return (
+    <header className={styles.sectionHeader}>
+      <div>
+        {eyebrow ? <p className={styles.sectionEyebrow}>{eyebrow}</p> : null}
+        <h2 id={id} className={styles.sectionTitle}>{title}</h2>
+        <p className={styles.sectionDescription}>{description}</p>
+      </div>
+    </header>
   )
 }

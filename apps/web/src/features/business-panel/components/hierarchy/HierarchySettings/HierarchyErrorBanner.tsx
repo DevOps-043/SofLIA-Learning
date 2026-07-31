@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { AlertTriangle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import styles from '../HierarchyExperience.module.css'
 
 export function HierarchyErrorBanner({
   error,
@@ -16,13 +17,15 @@ export function HierarchyErrorBanner({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/10 p-4"
+      className={`${styles.alert} ${styles.alertError}`}
+      role="alert"
     >
-      <AlertTriangle className="h-5 w-5 flex-shrink-0 text-red-400" />
-      <p className="flex-1 text-sm text-red-400">{error}</p>
+      <AlertTriangle aria-hidden="true" />
+      <p className={styles.alertCopy}>{error}</p>
       <button
+        type="button"
         onClick={onClose}
-        className="rounded-lg px-2 py-1 text-xs text-red-400 transition-colors hover:bg-red-500/10 hover:text-red-300"
+        className={styles.compactButton}
       >
         {tc('actions.close')}
       </button>

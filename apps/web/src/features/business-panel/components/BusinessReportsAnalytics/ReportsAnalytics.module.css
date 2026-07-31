@@ -1,0 +1,1380 @@
+.page {
+  --reports-accent: var(--org-accent-color, var(--color-accent));
+  --reports-action: var(--org-action-color, var(--color-primary));
+  --reports-on-action: var(--org-on-action-color, var(--color-bg-light));
+  --reports-card: var(--org-card-background, var(--color-surface));
+  --reports-text: var(--org-text-color, var(--color-contrast));
+  --reports-muted: var(--org-text-secondary, var(--color-muted));
+  --reports-border: var(
+    --org-border-color,
+    color-mix(in srgb, var(--reports-text) 10%, transparent)
+  );
+
+  width: min(100%, 92rem);
+  margin-inline: auto;
+  color: var(--reports-text);
+  font-family: var(--font-system-ui);
+}
+
+.pageStack,
+.contentStack {
+  display: grid;
+}
+
+.pageStack {
+  gap: 1.35rem;
+}
+
+.contentStack {
+  gap: 1.75rem;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, auto);
+  min-height: 10.5rem;
+  align-items: center;
+  gap: 2rem;
+  overflow: hidden;
+  border: 1px solid;
+  border-radius: 2rem;
+  padding: 2rem 3rem;
+  color: #ffffff;
+  box-shadow:
+    0 1.4rem 3.5rem rgb(2 12 23 / 0.14),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  isolation: isolate;
+}
+
+.heroAtmosphere {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 88% 8%, rgb(255 255 255 / 0.13), transparent 18rem),
+    linear-gradient(110deg, rgb(2 12 23 / 0.08), transparent 55%);
+  pointer-events: none;
+}
+
+.heroRingLarge,
+.heroRingSmall {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.heroRingLarge {
+  top: -10.5rem;
+  right: -5rem;
+  width: 24rem;
+  height: 24rem;
+}
+
+.heroRingSmall {
+  top: -6.2rem;
+  right: -0.5rem;
+  width: 15rem;
+  height: 15rem;
+  opacity: 0.72;
+}
+
+.heroDot {
+  position: absolute;
+  right: 1.65rem;
+  bottom: 1.55rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--reports-accent);
+  box-shadow: 0 0 1.2rem color-mix(in srgb, var(--reports-accent) 66%, transparent);
+  pointer-events: none;
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 43rem;
+}
+
+.eyebrow,
+.filterLabel,
+.sectionEyebrow,
+.tableLabel,
+.metricLabel,
+.statusLabel {
+  font-family: var(--font-system-label);
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  color: rgb(255 255 255 / 0.85) !important;
+  font-size: 0.61rem;
+  line-height: 1.3;
+}
+
+.eyebrow::before {
+  width: 1.55rem;
+  height: 1px;
+  background: var(--reports-accent);
+  content: "";
+}
+
+.heroTitle {
+  max-width: 39rem;
+  margin: 0.58rem 0 0;
+  color: #ffffff !important;
+  font-family: var(--font-system-display);
+  font-size: clamp(2.4rem, 3.4vw, 3.15rem);
+  font-weight: 300;
+  letter-spacing: -0.038em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.heroDescription {
+  max-width: 38rem;
+  margin: 0.7rem 0 0;
+  color: rgb(255 255 255 / 0.82) !important;
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.heroActions {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+  width: min(100%, 29rem);
+  justify-self: end;
+}
+
+.heroButton,
+.heroPrimaryButton,
+.filterAction,
+.filterActionPrimary,
+.selectTrigger,
+.granularityButton,
+.paginationButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+  border-radius: 0.86rem;
+  padding: 0.66rem 0.88rem;
+  font-family: var(--font-system-ui);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.heroButton {
+  border: 1px solid rgb(255 255 255 / 0.2);
+  color: #ffffff;
+  background: rgb(255 255 255 / 0.075);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(0.8rem) saturate(120%);
+}
+
+.heroPrimaryButton {
+  grid-column: 1 / -1;
+  border: 1px solid var(--reports-action);
+  color: var(--reports-on-action);
+  background: var(--reports-action);
+  box-shadow: 0 0.85rem 2rem color-mix(in srgb, var(--reports-action) 20%, transparent);
+}
+
+.heroButton:hover,
+.heroPrimaryButton:hover,
+.filterAction:hover,
+.filterActionPrimary:hover,
+.paginationButton:hover {
+  transform: translateY(-1px);
+}
+
+.heroButton:hover {
+  border-color: rgb(255 255 255 / 0.32);
+  background: rgb(255 255 255 / 0.12);
+}
+
+.heroPrimaryButton:hover {
+  box-shadow: 0 1rem 2.4rem color-mix(in srgb, var(--reports-action) 28%, transparent);
+}
+
+.heroButton:disabled,
+.heroPrimaryButton:disabled,
+.filterAction:disabled,
+.filterActionPrimary:disabled,
+.paginationButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.44;
+  transform: none;
+  box-shadow: none;
+}
+
+.heroButton svg,
+.heroPrimaryButton svg,
+.filterAction svg,
+.filterActionPrimary svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.8;
+}
+
+.filtersSurface {
+  position: relative;
+  z-index: 30;
+  display: grid;
+  gap: 0.8rem;
+  border: 1px solid var(--reports-border);
+  border-radius: 1.35rem;
+  padding: 0.8rem;
+  background:
+    radial-gradient(
+      circle at 98% 0%,
+      color-mix(in srgb, var(--reports-accent) 5%, transparent),
+      transparent 15rem
+    ),
+    color-mix(in srgb, var(--reports-card) 97%, transparent);
+  box-shadow:
+    0 0.7rem 1.8rem rgb(2 12 23 / 0.045),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.filtersPrimary,
+.filtersSecondary {
+  display: grid;
+  align-items: end;
+  gap: 0.6rem;
+}
+
+.filtersPrimary {
+  grid-template-columns:
+    minmax(9.5rem, 0.82fr)
+    minmax(9.5rem, 0.82fr)
+    minmax(10rem, 1fr)
+    minmax(10rem, 1fr)
+    minmax(10rem, 1fr)
+    auto;
+}
+
+.filtersSecondary {
+  grid-template-columns: repeat(6, minmax(9.5rem, 1fr));
+  border-top: 1px solid var(--reports-divider, var(--reports-border));
+  padding-top: 0.8rem;
+}
+
+.filterField,
+.selectRoot {
+  display: grid;
+  min-width: 0;
+  gap: 0.38rem;
+}
+
+.filterLabel {
+  color: var(--reports-muted);
+  font-size: 0.57rem;
+  line-height: 1.3;
+}
+
+.moreFilters {
+  min-width: max-content;
+}
+
+.moreFilters[data-active="true"] {
+  border-color: color-mix(in srgb, var(--reports-action) 40%, var(--reports-border));
+  color: var(--reports-action);
+  background: color-mix(in srgb, var(--reports-action) 7%, transparent);
+}
+
+.filterCount {
+  display: inline-grid;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  place-items: center;
+  border-radius: 999px;
+  padding-inline: 0.28rem;
+  color: var(--reports-on-action);
+  background: var(--reports-action);
+  font-family: var(--font-system-label);
+  font-size: 0.56rem;
+  font-weight: 600;
+}
+
+.activeChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.activeChip {
+  display: inline-flex;
+  min-height: 1.75rem;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid color-mix(in srgb, var(--reports-accent) 24%, var(--reports-border));
+  border-radius: 999px;
+  padding: 0.35rem 0.5rem 0.35rem 0.65rem;
+  color: var(--reports-text);
+  background: color-mix(in srgb, var(--reports-accent) 6%, transparent);
+  font-family: var(--font-system-label);
+  font-size: 0.61rem;
+}
+
+.chipRemove {
+  display: grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--reports-muted);
+  background: transparent;
+}
+
+.chipRemove:hover {
+  color: var(--reports-text);
+  background: color-mix(in srgb, var(--reports-text) 6%, transparent);
+}
+
+.filtersFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--reports-divider, var(--reports-border));
+  padding: 0.8rem 0.1rem 0;
+}
+
+.filterActions {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.filterAction,
+.filterActionPrimary {
+  min-height: 2.55rem;
+  border: 1px solid var(--reports-border);
+  color: var(--reports-text);
+  background: var(--reports-input, transparent);
+}
+
+.filterActionPrimary {
+  border-color: color-mix(in srgb, var(--reports-action) 22%, var(--reports-border));
+  color: var(--reports-action);
+  background: color-mix(in srgb, var(--reports-action) 7%, transparent);
+}
+
+.selectTrigger {
+  width: 100%;
+  justify-content: space-between;
+  overflow: hidden;
+  border: 1px solid var(--reports-border);
+  color: var(--reports-text);
+  background: var(--reports-input, transparent);
+  text-align: left;
+}
+
+.selectTrigger[data-selected="true"],
+.selectTrigger[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--reports-action) 45%, var(--reports-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--reports-accent) 8%, transparent);
+}
+
+.selectValue {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selectMenu {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 0.38rem);
+  right: 0;
+  left: 0;
+  max-height: 15rem;
+  overflow-y: auto;
+  border: 1px solid var(--reports-border);
+  border-radius: 0.95rem;
+  padding: 0.35rem;
+  background: color-mix(in srgb, var(--reports-card) 97%, transparent);
+  box-shadow: 0 1.4rem 3.5rem rgb(2 12 23 / 0.18);
+  backdrop-filter: blur(1rem) saturate(125%);
+  overscroll-behavior: contain;
+}
+
+.selectOption {
+  display: flex;
+  width: 100%;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  border-radius: 0.68rem;
+  padding: 0.58rem 0.68rem;
+  color: var(--reports-muted);
+  background: transparent;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-align: left;
+}
+
+.selectOption:hover,
+.selectOption[data-selected="true"] {
+  color: var(--reports-action);
+  background: color-mix(in srgb, var(--reports-accent) 7%, transparent);
+}
+
+.granularity {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.granularityGroup {
+  display: inline-flex;
+  border: 1px solid var(--reports-border);
+  border-radius: 0.9rem;
+  padding: 0.2rem;
+  background: var(--reports-input, transparent);
+}
+
+.granularityButton {
+  min-height: 2.2rem;
+  border: 0;
+  border-radius: 0.68rem;
+  padding: 0.55rem 0.8rem;
+  color: var(--reports-muted);
+  background: transparent;
+}
+
+.granularityButton[data-active="true"] {
+  color: var(--reports-on-action);
+  background: var(--reports-action);
+  box-shadow: 0 0.45rem 1.2rem color-mix(in srgb, var(--reports-action) 16%, transparent);
+}
+
+.statsSurface {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--reports-border);
+  border-radius: 1.35rem;
+  background:
+    radial-gradient(
+      circle at 96% 0%,
+      color-mix(in srgb, var(--reports-accent) 6%, transparent),
+      transparent 13rem
+    ),
+    color-mix(in srgb, var(--reports-card) 97%, transparent);
+  box-shadow:
+    0 0.75rem 2rem rgb(2 12 23 / 0.055),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.metricItem {
+  --metric-color: var(--reports-action);
+
+  display: grid;
+  grid-template-columns: 2.55rem minmax(0, 1fr);
+  min-height: 6.35rem;
+  align-items: center;
+  gap: 0.78rem;
+  border-right: 1px solid var(--reports-divider, var(--reports-border));
+  padding: 0.9rem 1rem;
+  background: transparent;
+}
+
+.metricItem:last-child {
+  border-right: 0;
+}
+
+.metricItem[data-status="danger"] {
+  --metric-color: var(--reports-danger, var(--color-error));
+
+  background: color-mix(in srgb, var(--reports-danger, var(--color-error)) 5%, transparent);
+}
+
+.metricItem[data-status="danger"] .metricValue {
+  color: var(--metric-color);
+}
+
+.metricItem[data-status="warning"] {
+  --metric-color: var(--reports-warning, var(--color-warning));
+}
+
+.metricItem[data-status="success"] {
+  --metric-color: var(--reports-success, var(--color-success));
+}
+
+.metricIcon {
+  display: grid;
+  width: 2.55rem;
+  height: 2.55rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--metric-color) 22%, var(--reports-border));
+  border-radius: 0.82rem;
+  color: var(--metric-color);
+  background: color-mix(in srgb, var(--metric-color) 7%, transparent);
+}
+
+.metricIcon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  stroke-width: 1.75;
+}
+
+.metricCopy {
+  min-width: 0;
+}
+
+.metricLabel {
+  overflow: hidden;
+  margin: 0;
+  color: var(--reports-muted);
+  font-size: 0.55rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricValue {
+  display: block;
+  margin-top: 0.28rem;
+  color: var(--reports-text);
+  font-family: var(--font-system-ui), var(--font-system-label), sans-serif;
+  font-size: 1.55rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.metricSubtitle {
+  overflow: hidden;
+  margin: 0.32rem 0 0;
+  color: var(--reports-muted);
+  font-size: 0.62rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sectionBlock {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-inline: 0.15rem;
+}
+
+.sectionEyebrow {
+  margin: 0;
+  color: var(--reports-action);
+  font-size: 0.57rem;
+}
+
+.sectionTitle {
+  margin: 0.28rem 0 0;
+  color: var(--reports-text);
+  font-family: var(--font-system-display);
+  font-size: clamp(1.45rem, 2vw, 1.85rem);
+  font-weight: 400;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+
+.sectionDescription {
+  max-width: 42rem;
+  margin: 0.35rem 0 0;
+  color: var(--reports-muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.twoColumnGrid,
+.balancedGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.twoColumnGrid > .surfaceFrame,
+.balancedGrid > .surfaceFrame,
+.twoColumnGrid > .surfaceFrame > *,
+.balancedGrid > .surfaceFrame > * {
+  height: 100%;
+}
+
+.surfaceFrame {
+  min-width: 0;
+  height: auto;
+}
+
+.surfaceFrame:empty {
+  display: none;
+}
+
+.surfaceFrame > * {
+  height: auto;
+  min-height: 100%;
+  border-radius: 1.35rem;
+  box-shadow:
+    0 0.75rem 2rem rgb(2 12 23 / 0.055),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.surfaceFrame :global(h2) {
+  font-family: var(--font-system-display);
+  font-weight: 400;
+  letter-spacing: -0.018em;
+}
+
+.surfaceFrame :global(th) {
+  font-family: var(--font-system-label);
+  font-size: 0.57rem;
+  letter-spacing: 0.1em;
+}
+
+.surfaceFrame :global(button) {
+  font-family: var(--font-system-ui);
+}
+
+.chartSkeleton {
+  min-height: 23rem;
+  border: 1px solid var(--reports-border);
+  border-radius: 1.35rem;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--reports-muted) 10%, transparent),
+      transparent
+    ),
+    color-mix(in srgb, var(--reports-card) 92%, transparent);
+  background-size: 200% 100%;
+  animation: reports-skeleton-sweep 1.4s infinite linear;
+}
+
+.statePanel {
+  min-height: 9rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--reports-border);
+  border-radius: 1.35rem;
+  padding: 1.25rem;
+  box-shadow:
+    0 0.75rem 2rem rgb(2 12 23 / 0.055),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.statePanelContent {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: min(100%, 34rem);
+}
+
+.statePanelIcon {
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.9rem;
+}
+
+.statePanelTitle {
+  margin: 0;
+  font-family: var(--font-system-ui);
+  font-size: 0.95rem;
+  font-weight: 650;
+  letter-spacing: -0.012em;
+}
+
+.statePanelMessage {
+  margin: 0.22rem 0 0;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.progressPanel {
+  overflow: hidden;
+  border: 1px solid var(--reports-border);
+  border-radius: 1.35rem;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--reports-accent) 6%, transparent),
+      transparent 16rem
+    ),
+    color-mix(in srgb, var(--reports-card) 97%, transparent);
+  box-shadow:
+    0 0.75rem 2rem rgb(2 12 23 / 0.055),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.progressHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.2rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--reports-divider, var(--reports-border));
+}
+
+.progressHeaderCopy {
+  min-width: 0;
+}
+
+.progressHeader h2 {
+  margin: 0;
+  color: var(--reports-text);
+  font-family: var(--font-system-display);
+  font-size: 1.55rem;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+.progressHeader p {
+  max-width: 45rem;
+  margin: 0.35rem 0 0;
+  color: var(--reports-muted);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.progressSummary {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.summaryPill,
+.statusBadge {
+  --status-color: var(--reports-muted);
+
+  display: inline-flex;
+  min-height: 1.7rem;
+  align-items: center;
+  gap: 0.34rem;
+  border: 1px solid color-mix(in srgb, var(--status-color) 25%, transparent);
+  border-radius: 999px;
+  padding: 0.34rem 0.52rem;
+  color: var(--status-color);
+  background: color-mix(in srgb, var(--status-color) 7%, transparent);
+  font-family: var(--font-system-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.summaryPill::before,
+.statusBadge::before {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.statusCompleted {
+  --status-color: var(--reports-success, var(--color-success));
+}
+
+.statusInProgress {
+  --status-color: var(--reports-warning, var(--color-warning));
+}
+
+.statusNotStarted {
+  --status-color: var(--reports-muted);
+}
+
+.progressToolbar {
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) minmax(12rem, 0.7fr) minmax(11rem, 0.55fr) auto;
+  align-items: end;
+  gap: 0.6rem;
+  padding: 0.8rem;
+  border-bottom: 1px solid var(--reports-divider, var(--reports-border));
+}
+
+.searchField {
+  position: relative;
+}
+
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 0.88rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--reports-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 1px solid var(--reports-border);
+  border-radius: 0.86rem;
+  padding: 0.68rem 0.85rem 0.68rem 2.5rem;
+  color: var(--reports-text);
+  background: var(--reports-input, transparent);
+  font-family: var(--font-system-ui);
+  font-size: 0.78rem;
+}
+
+.searchInput::placeholder {
+  color: var(--reports-muted);
+  opacity: 0.86;
+}
+
+.searchInput:focus {
+  border-color: color-mix(in srgb, var(--reports-accent) 48%, var(--reports-border));
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--reports-accent) 9%, transparent);
+}
+
+.resultsCount {
+  align-self: center;
+  color: var(--reports-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.63rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.tableViewport {
+  overflow-x: auto;
+}
+
+.progressTable {
+  width: 100%;
+  min-width: 53rem;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+
+.progressTable th {
+  padding: 0.72rem 0.9rem;
+  color: var(--reports-muted);
+  background: color-mix(in srgb, var(--reports-text) 3%, transparent);
+  text-align: left;
+}
+
+.progressTable td {
+  padding: 0.78rem 0.9rem;
+  border-top: 1px solid var(--reports-divider, var(--reports-border));
+  color: var(--reports-text);
+  vertical-align: middle;
+}
+
+.progressTable tbody tr {
+  transition: background 170ms ease;
+}
+
+.progressTable tbody tr:hover {
+  background: color-mix(in srgb, var(--reports-accent) 4%, transparent);
+}
+
+.userCell {
+  display: grid;
+  grid-template-columns: 2.2rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 13rem;
+}
+
+.userAvatar {
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--reports-accent) 24%, var(--reports-border));
+  border-radius: 0.72rem;
+  color: var(--reports-action);
+  background: color-mix(in srgb, var(--reports-accent) 7%, transparent);
+  font-family: var(--font-system-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.userName {
+  overflow: hidden;
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userMeta {
+  overflow: hidden;
+  margin: 0.18rem 0 0;
+  color: var(--reports-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.58rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.courseContext {
+  max-width: 16rem;
+  color: var(--reports-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.62rem;
+  line-height: 1.35;
+}
+
+.progressCell {
+  display: grid;
+  grid-template-columns: minmax(5rem, 1fr) 2.5rem;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 8rem;
+}
+
+.progressTrack {
+  height: 0.36rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--reports-text) 7%, transparent);
+}
+
+.progressFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--reports-action), var(--reports-accent));
+  transition: width 500ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.progressValue,
+.numericValue {
+  color: var(--reports-text);
+  font-family: var(--font-system-label);
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.emptyProgress {
+  display: grid;
+  min-height: 12rem;
+  place-content: center;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  width: 2.8rem;
+  height: 2.8rem;
+  place-items: center;
+  border: 1px solid var(--reports-border);
+  border-radius: 0.9rem;
+  color: var(--reports-action);
+  background: color-mix(in srgb, var(--reports-accent) 7%, transparent);
+}
+
+.emptyIcon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.emptyProgress h3,
+.emptyProgress p {
+  margin: 0;
+}
+
+.emptyProgress h3 {
+  font-family: var(--font-system-display);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.emptyProgress p {
+  color: var(--reports-muted);
+  font-size: 0.72rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--reports-divider, var(--reports-border));
+  padding: 0.75rem 0.8rem 0.75rem 1rem;
+}
+
+.paginationSummary {
+  margin: 0;
+  color: var(--reports-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.63rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.paginationActions {
+  display: flex;
+  gap: 0.42rem;
+}
+
+.paginationButton {
+  min-height: 2.35rem;
+  border: 1px solid var(--reports-border);
+  color: var(--reports-text);
+  background: var(--reports-input, transparent);
+}
+
+.heroButton:focus-visible,
+.heroPrimaryButton:focus-visible,
+.filterAction:focus-visible,
+.filterActionPrimary:focus-visible,
+.selectTrigger:focus-visible,
+.selectOption:focus-visible,
+.granularityButton:focus-visible,
+.searchInput:focus-visible,
+.paginationButton:focus-visible,
+.chipRemove:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--reports-accent) 16%, transparent);
+}
+
+@keyframes reports-skeleton-sweep {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 78rem) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 1.35rem;
+    padding: 1.75rem 2rem;
+  }
+
+  .heroActions {
+    width: min(100%, 36rem);
+    justify-self: start;
+  }
+
+  .filtersPrimary {
+    grid-template-columns: repeat(3, minmax(10rem, 1fr));
+  }
+
+  .filtersSecondary {
+    grid-template-columns: repeat(3, minmax(10rem, 1fr));
+  }
+
+  .statsSurface {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .metricItem:nth-child(3n) {
+    border-right: 0;
+  }
+
+  .metricItem:nth-child(-n + 3) {
+    border-bottom: 1px solid var(--reports-divider, var(--reports-border));
+  }
+
+  .progressToolbar {
+    grid-template-columns: minmax(15rem, 1fr) minmax(12rem, 0.7fr) minmax(11rem, 0.55fr);
+  }
+
+  .resultsCount {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 64rem) {
+  .pageStack {
+    gap: 1rem;
+  }
+
+  .contentStack {
+    gap: 1.35rem;
+  }
+
+  .filtersPrimary,
+  .filtersSecondary {
+    grid-template-columns: repeat(2, minmax(10rem, 1fr));
+  }
+
+  .filtersFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filterActions {
+    justify-content: flex-end;
+  }
+
+  .statsSurface {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metricItem,
+  .metricItem:nth-child(3n) {
+    border-right: 1px solid var(--reports-divider, var(--reports-border));
+    border-bottom: 1px solid var(--reports-divider, var(--reports-border));
+  }
+
+  .metricItem:nth-child(even) {
+    border-right: 0;
+  }
+
+  .metricItem:nth-last-child(-n + 2) {
+    border-bottom: 0;
+  }
+
+  .twoColumnGrid,
+  .balancedGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .progressHeader {
+    flex-direction: column;
+  }
+
+  .progressSummary {
+    justify-content: flex-start;
+  }
+
+  .progressToolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .progressToolbar > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .resultsCount {
+    grid-column: auto;
+    justify-self: end;
+  }
+}
+
+@media (max-width: 40rem) {
+  .hero {
+    min-height: auto;
+    border-radius: 1.5rem;
+    padding: 1.35rem 1.2rem;
+  }
+
+  .heroTitle {
+    font-size: clamp(2rem, 11vw, 2.55rem);
+  }
+
+  .heroDescription {
+    font-size: 0.78rem;
+  }
+
+  .heroActions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .heroPrimaryButton {
+    grid-column: 1 / -1;
+  }
+
+  .filtersSurface,
+  .progressPanel,
+  .surfaceFrame > * {
+    border-radius: 1.15rem;
+  }
+
+  .filtersPrimary,
+  .filtersSecondary {
+    grid-template-columns: 1fr;
+  }
+
+  .filtersFooter {
+    gap: 0.75rem;
+  }
+
+  .granularity {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .granularityGroup {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .filterActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .statsSurface {
+    grid-template-columns: 1fr;
+    border-radius: 1.15rem;
+  }
+
+  .metricItem,
+  .metricItem:nth-child(even),
+  .metricItem:nth-child(3n),
+  .metricItem:nth-last-child(-n + 2) {
+    min-height: 4.9rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--reports-divider, var(--reports-border));
+  }
+
+  .metricItem:last-child {
+    border-bottom: 0;
+  }
+
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .progressHeader {
+    padding: 1rem;
+  }
+
+  .progressToolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .progressToolbar > :first-child,
+  .resultsCount {
+    grid-column: auto;
+  }
+
+  .resultsCount {
+    justify-self: start;
+  }
+
+  .tableViewport {
+    overflow: visible;
+  }
+
+  .progressTable,
+  .progressTable tbody,
+  .progressTable tr,
+  .progressTable td {
+    display: block;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .progressTable thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .progressTable tbody {
+    display: grid;
+    gap: 0.65rem;
+    padding: 0.65rem;
+  }
+
+  .progressTable tbody tr {
+    overflow: hidden;
+    border: 1px solid var(--reports-border);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--reports-card) 98%, transparent);
+  }
+
+  .progressTable td {
+    display: grid;
+    grid-template-columns: minmax(6.5rem, 0.7fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+    border-top: 1px solid var(--reports-divider, var(--reports-border));
+    padding: 0.68rem 0.75rem;
+  }
+
+  .progressTable td:first-child {
+    display: block;
+    border-top: 0;
+    padding: 0.8rem;
+  }
+
+  .progressTable td:not(:first-child)::before {
+    color: var(--reports-muted);
+    content: attr(data-label);
+    font-family: var(--font-system-label);
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .courseContext {
+    max-width: none;
+  }
+
+  .progressCell {
+    min-width: 0;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .paginationActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroButton,
+  .heroPrimaryButton,
+  .filterAction,
+  .filterActionPrimary,
+  .selectTrigger,
+  .selectOption,
+  .granularityButton,
+  .paginationButton,
+  .progressTable tbody tr,
+  .progressFill {
+    transition-duration: 1ms;
+  }
+
+  .chartSkeleton {
+    animation: none;
+  }
+}

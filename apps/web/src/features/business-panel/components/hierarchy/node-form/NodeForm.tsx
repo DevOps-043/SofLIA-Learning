@@ -1,12 +1,14 @@
 'use client'
 
-import React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Building2, ChevronDown, Plus, Sparkles, X } from 'lucide-react'
+import { Building2, ChevronDown, Loader2, Plus, X } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import type { FormEvent } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useBusinessPanelTheme } from '../../../hooks/useBusinessPanelTheme'
 import type { OrganizationNode, OrganizationNodeProperties } from '../../../types/dynamicHierarchy.types'
+import styles from '../HierarchyExperience.module.css'
+import { useHierarchyDialog } from '../useHierarchyDialog'
 import { ManagerSelector } from './ManagerSelector'
 import { PropertiesFormBuilder } from './PropertiesFormBuilder'
 import { useGeocoding } from './useGeocoding'
@@ -21,20 +23,23 @@ export interface NodeFormProps {
   nodeToEdit?: OrganizationNode
 }
 
-export const NodeForm: React.FC<NodeFormProps> = ({
+const NODE_TYPES = ['region', 'zone', 'team', 'custom'] as const
+
+export function NodeForm({
   isOpen,
   onClose,
   onSave,
   mode,
   parentNode,
   nodeToEdit,
-}) => {
-  const theme = useBusinessPanelTheme()
+}: NodeFormProps) {
   const { t } = useTranslation('business')
   const { t: tc } = useTranslation('common')
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
+  const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false)
   const form = useNodeFormState(isOpen, mode, onSave, onClose, parentNode, nodeToEdit)
+  const dialogRef = useHierarchyDialog({ isOpen, onClose, preventClose: form.loading })
 
   const { handleGeocode, handleReverseGeocode, isGeocoding, geocodeError } = useGeocoding(
     {
@@ -62,213 +67,161 @@ export const NodeForm: React.FC<NodeFormProps> = ({
     orgSlug,
   )
 
-  if (!isOpen) {
-    return null
-  }
+  if (!isOpen) return null
 
   const title = mode === 'create'
     ? t('hierarchy.nodeForm.title.create', { parent: parentNode?.name })
     : t('hierarchy.nodeForm.title.edit')
+  const description = mode === 'create'
+    ? t('hierarchy.nodeForm.sideTitle.create')
+    : t('hierarchy.nodeForm.sideTitle.edit')
+  const selectedTypeLabel = form.type === 'custom'
+    ? t('hierarchy.nodeForm.types.custom')
+    : t(`hierarchy.types.${form.type}`)
 
-  const sideTitle = mode === 'create' ? t('hierarchy.nodeForm.sideTitle.create') : t('hierarchy.nodeForm.sideTitle.edit')
-  const sideDescription = t('hierarchy.nodeForm.sideDescription')
-
-  const fieldClassName =
-    'w-full rounded-2xl border-2 px-6 py-4 text-sm font-bold outline-none transition-all'
+  const handleSubmit = (event: FormEvent) => {
+    setIsTypeMenuOpen(false)
+    void form.handleSubmit(event)
+  }
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+      <motion.div
+        className={styles.overlay}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onMouseDown={event => {
+          if (event.target === event.currentTarget && !form.loading) onClose()
+        }}
+      >
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="absolute inset-0"
-          onClick={onClose}
-        />
-
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 30 }}
+          ref={dialogRef}
+          className={styles.dialogWide}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="node-form-title"
+          initial={{ opacity: 0, scale: 0.975, y: 18 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 30 }}
-          className="relative flex max-h-[90vh] w-full max-w-4xl overflow-hidden rounded-[2.5rem] border shadow-2xl"
-          style={{
-            backgroundColor: theme.cardBg,
-            borderColor: theme.borderColor,
-          }}
+          exit={{ opacity: 0, scale: 0.975, y: 18 }}
+          transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="hidden w-72 shrink-0 border-r p-10 lg:flex lg:flex-col" style={{ borderColor: theme.borderColor, background: theme.heroBackground }}>
-            <div className="space-y-8">
-              <div
-                className="flex h-16 w-16 items-center justify-center rounded-2xl shadow-inner"
-                style={{ backgroundColor: theme.actionSurface }}
-              >
-                <Building2 className="h-8 w-8" style={{ color: theme.actionColor }} />
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-3 w-3" style={{ color: theme.actionColor }} />
-                  <span
-                    className="text-[10px] font-black uppercase tracking-[0.2em]"
-                    style={{ color: theme.actionColor }}
-                  >
-                    {t('hierarchy.nodeForm.architecture')}
-                  </span>
-                </div>
-                <h2
-                  className="text-2xl font-black uppercase italic leading-tight tracking-tighter"
-                  style={{ color: theme.inverseTextColor }}
-                >
-                  {sideTitle}
-                </h2>
-                <p
-                  className="text-xs font-semibold uppercase tracking-wide leading-relaxed"
-                  style={{ color: theme.inverseMutedTextColor }}
-                >
-                  {sideDescription}
-                </p>
-              </div>
-
-              <div className="space-y-3 pt-8">
-                {['Datos básicos', 'Gestión SofLIA', 'Localización'].map(item => (
-                  <div key={item} className="flex items-center gap-3" style={{ color: theme.inverseMutedTextColor }}>
-                    <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: theme.actionColor }} />
-                    <span className="text-[10px] font-black uppercase tracking-widest leading-none">
-                      {t(`hierarchy.nodeForm.sections.${item === 'Datos básicos' ? 'basicData' : item === 'Gestión SofLIA' ? 'sofliaManagement' : 'location'}`)}
-                    </span>
-                  </div>
-                ))}
-              </div>
+          <header className={styles.dialogHeader}>
+            <div className={styles.dialogIcon}><Building2 aria-hidden="true" /></div>
+            <div className={styles.dialogHeading}>
+              <p className={styles.dialogKicker}>{t('hierarchy.nodeForm.architecture')}</p>
+              <h2 id="node-form-title" className={styles.dialogTitle}>{title}</h2>
+              <p className={styles.dialogDescription}>{description} · {t('hierarchy.nodeForm.sideDescription')}</p>
             </div>
-          </div>
+            <button type="button" onClick={onClose} disabled={form.loading} className={styles.iconButton} aria-label={tc('actions.close')}>
+              <X aria-hidden="true" />
+            </button>
+          </header>
 
-          <div className="flex flex-1 flex-col overflow-hidden">
-            <div
-              className="z-10 flex shrink-0 items-center justify-between border-b px-8 py-6"
-              style={{ borderColor: theme.borderColor, backgroundColor: theme.cardBg }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: theme.actionColor }} />
-                <h3
-                  className="text-[11px] font-black uppercase tracking-[0.25em]"
-                  style={{ color: theme.textColor }}
-                >
-                  {title}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl p-2.5 transition-colors"
-                style={{ color: theme.subtextColor }}
-                onMouseEnter={event => {
-                  event.currentTarget.style.backgroundColor = theme.hoverBg
-                }}
-                onMouseLeave={event => {
-                  event.currentTarget.style.backgroundColor = 'transparent'
-                }}
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={form.handleSubmit} className="custom-scrollbar flex-1 space-y-12 overflow-y-auto p-8">
-              <div className="space-y-8">
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <label className="ml-1 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: theme.mutedTextColor }}>
-                      {t('hierarchy.nodeForm.fields.name')}
-                    </label>
-                    <div className="group relative">
-                      <Building2
-                        className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors"
-                        style={{ color: theme.mutedTextColor }}
-                      />
+          <form onSubmit={handleSubmit} className="contents">
+            <div className={styles.dialogBody}>
+              <div className={styles.formStack}>
+                <section className={styles.formStack} aria-labelledby="node-basic-data-title">
+                  <h3 id="node-basic-data-title" className={styles.formSectionTitle}>
+                    <Building2 aria-hidden="true" />
+                    {t('hierarchy.nodeForm.sections.basicData')}
+                  </h3>
+                  <div className={styles.formGrid}>
+                    <label className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>{t('hierarchy.nodeForm.fields.name')}</span>
                       <input
+                        autoFocus
                         type="text"
                         value={form.name}
                         onChange={event => form.setName(event.target.value)}
                         placeholder={t('hierarchy.nodeForm.placeholders.name')}
-                        className={fieldClassName}
-                        style={{
-                          backgroundColor: theme.inputBg,
-                          borderColor: theme.borderColor,
-                          color: theme.textColor,
-                        }}
-                        autoFocus
+                        className={styles.input}
                       />
+                    </label>
+
+                    <div className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>{t('hierarchy.nodeForm.fields.type')}</span>
+                      <div className={styles.selectRoot}>
+                        <button
+                          type="button"
+                          className={styles.selectTrigger}
+                          data-open={isTypeMenuOpen}
+                          aria-haspopup="listbox"
+                          aria-expanded={isTypeMenuOpen}
+                          onClick={() => setIsTypeMenuOpen(current => !current)}
+                        >
+                          <Building2 aria-hidden="true" />
+                          <span className={styles.selectValue}>{selectedTypeLabel}</span>
+                          <ChevronDown aria-hidden="true" />
+                        </button>
+                        {isTypeMenuOpen ? (
+                          <div className={styles.selectMenu} role="listbox">
+                            {NODE_TYPES.map(type => {
+                              const label = type === 'custom'
+                                ? t('hierarchy.nodeForm.types.custom')
+                                : t(`hierarchy.types.${type}`)
+                              return (
+                                <button
+                                  key={type}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={form.type === type}
+                                  className={`${styles.selectOption} ${form.type === type ? styles.selectOptionActive : ''}`}
+                                  onClick={() => {
+                                    form.setType(type)
+                                    setIsTypeMenuOpen(false)
+                                  }}
+                                >
+                                  <span>{label}</span>
+                                  {form.type === type ? <span className={styles.selectOptionDot} aria-hidden="true" /> : null}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        ) : null}
+                      </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <label className="ml-1 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: theme.mutedTextColor }}>
-                      {t('hierarchy.nodeForm.fields.type')}
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={form.type}
-                        onChange={event => form.setType(event.target.value)}
-                        className={`${fieldClassName} appearance-none cursor-pointer pl-6 pr-10`}
-                        style={{
-                          backgroundColor: theme.inputBg,
-                          borderColor: theme.borderColor,
-                          color: theme.textColor,
-                        }}
-                      >
-                        <option value="region">{t('hierarchy.types.region')}</option>
-                        <option value="zone">{t('hierarchy.types.zone')}</option>
-                        <option value="team">{t('hierarchy.types.team')}</option>
-                        <option value="custom">{t('hierarchy.nodeForm.types.custom')}</option>
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: theme.subtextColor }} />
-                    </div>
-                  </div>
-                </div>
+                  {form.type === 'custom' ? (
+                    <motion.label initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className={styles.fieldGroup}>
+                      <span className={styles.fieldLabel}>{t('hierarchy.nodeForm.fields.specifyType')}</span>
+                      <input
+                        type="text"
+                        value={form.customType}
+                        onChange={event => form.setCustomType(event.target.value)}
+                        placeholder={t('hierarchy.nodeForm.placeholders.specifyType')}
+                        className={styles.input}
+                      />
+                    </motion.label>
+                  ) : null}
+                </section>
 
-                {form.type === 'custom' ? (
-                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                    <label className="ml-1 block text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: theme.mutedTextColor }}>
-                      {t('hierarchy.nodeForm.fields.specifyType')}
-                    </label>
-                    <input
-                      type="text"
-                      value={form.customType}
-                      onChange={event => form.setCustomType(event.target.value)}
-                      placeholder={t('hierarchy.nodeForm.placeholders.specifyType')}
-                      className={fieldClassName}
-                      style={{
-                        backgroundColor: theme.inputBg,
-                        borderColor: theme.borderColor,
-                        color: theme.textColor,
-                      }}
-                    />
-                  </motion.div>
-                ) : null}
-              </div>
+                <section className={styles.formSection} aria-labelledby="node-management-title">
+                  <h3 id="node-management-title" className={styles.formSectionTitle}>
+                    <Building2 aria-hidden="true" />
+                    {t('hierarchy.nodeForm.sections.sofliaManagement')}
+                  </h3>
+                  <ManagerSelector
+                    selectedManager={form.selectedManager}
+                    managerSearch={form.managerSearch}
+                    managerResults={form.managerResults}
+                    isSearchingManager={form.isSearchingManager}
+                    onSearchChange={form.setManagerSearch}
+                    onSelectManager={user => {
+                      form.setSelectedManager(user)
+                      form.setManagerId(user.id)
+                      form.setManagerSearch('')
+                      form.setManagerResults([])
+                    }}
+                    onClearManager={() => {
+                      form.setSelectedManager(null)
+                      form.setManagerId(null)
+                      form.setManagerSearch('')
+                    }}
+                  />
+                </section>
 
-              <div className="pt-4">
-                <ManagerSelector
-                  selectedManager={form.selectedManager}
-                  managerSearch={form.managerSearch}
-                  managerResults={form.managerResults}
-                  isSearchingManager={form.isSearchingManager}
-                  onSearchChange={form.setManagerSearch}
-                  onSelectManager={user => {
-                    form.setSelectedManager(user)
-                    form.setManagerId(user.id)
-                    form.setManagerSearch('')
-                    form.setManagerResults([])
-                  }}
-                  onClearManager={() => {
-                    form.setSelectedManager(null)
-                    form.setManagerId(null)
-                    form.setManagerSearch('')
-                  }}
-                />
-              </div>
-
-              <div className="border-t pt-4" style={{ borderColor: theme.borderColor }}>
                 <PropertiesFormBuilder
                   street={form.street}
                   externalNumber={form.externalNumber}
@@ -295,56 +248,25 @@ export const NodeForm: React.FC<NodeFormProps> = ({
                   onGeocode={handleGeocode}
                   onReverseGeocode={handleReverseGeocode}
                 />
-                {geocodeError && (
-                  <p className="mt-2 text-xs text-red-500">{geocodeError}</p>
-                )}
-              </div>
-            </form>
 
-            <div
-              className="flex shrink-0 items-center justify-end gap-4 border-t px-8 py-6"
-              style={{ borderColor: theme.borderColor, backgroundColor: theme.cardBg }}
-            >
-              {form.saveError && (
-                <p className="mr-auto text-xs text-red-500">{form.saveError}</p>
-              )}
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-xl px-6 py-4 text-[10px] font-black uppercase tracking-widest transition-colors"
-                style={{ color: theme.subtextColor }}
-                disabled={form.loading}
-              >
+                {geocodeError || form.saveError ? (
+                  <p className={styles.formError}>{geocodeError || form.saveError}</p>
+                ) : null}
+              </div>
+            </div>
+
+            <footer className={styles.dialogFooter}>
+              <button type="button" onClick={onClose} disabled={form.loading} className={styles.secondaryButton}>
                 {tc('actions.close')}
               </button>
-              <button
-                type="button"
-                onClick={form.handleSubmit}
-                disabled={form.loading || !form.name.trim()}
-                className="flex items-center gap-3 rounded-2xl px-12 py-4 text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50"
-                style={{
-                  backgroundColor: theme.actionColor,
-                  color: theme.onActionColor,
-                  boxShadow: `0 16px 30px color-mix(in srgb, ${theme.actionColor} 14.1%, transparent)`,
-                }}
-              >
-                {form.loading ? (
-                  <div
-                    className="h-4 w-4 animate-spin rounded-full border-2"
-                    style={{
-                      borderColor: `color-mix(in srgb, ${theme.onActionColor} 30.2%, transparent)`,
-                      borderTopColor: theme.onActionColor,
-                    }}
-                  />
-                ) : (
-                  <Plus className="h-4 w-4" strokeWidth={3} />
-                )}
-                <span>{form.loading ? tc('actions.saving') : tc('actions.saveChanges')}</span>
+              <button type="submit" disabled={form.loading || !form.name.trim()} className={styles.primaryButton}>
+                {form.loading ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Plus aria-hidden="true" />}
+                {form.loading ? tc('actions.saving') : tc('actions.saveChanges')}
               </button>
-            </div>
-          </div>
+            </footer>
+          </form>
         </motion.div>
-      </div>
+      </motion.div>
     </AnimatePresence>
   )
 }

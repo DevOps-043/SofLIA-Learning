@@ -1,8 +1,46 @@
 import React from 'react';
-import * as LucideIcons from 'lucide-react';
+import {
+  Award,
+  BarChart,
+  BookOpen,
+  DollarSign,
+  GraduationCap,
+  Headphones,
+  Link,
+  Settings,
+  Shield,
+  TrendingUp,
+  User,
+  Users,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react';
 import { cn } from '../../utils/cn';
 
-export type IconName = keyof typeof LucideIcons;
+/**
+ * Registro explícito de iconos compartidos.
+ *
+ * Evita importar `* as LucideIcons`, que obliga a Webpack a evaluar el índice
+ * completo de `lucide-react` y puede dejar referencias de módulo indefinidas
+ * durante cargas dinámicas o Hot Module Replacement.
+ */
+const iconRegistry = {
+  Award,
+  BarChart,
+  BookOpen,
+  DollarSign,
+  GraduationCap,
+  Headphones,
+  Link,
+  Settings,
+  Shield,
+  TrendingUp,
+  User,
+  Users,
+  Wrench,
+} satisfies Record<string, LucideIcon>;
+
+export type IconName = keyof typeof iconRegistry;
 
 export interface IconProps extends React.SVGAttributes<SVGElement> {
   name: IconName;
@@ -28,10 +66,9 @@ function Icon({
   animate = false,
   ...props 
 }: IconProps) {
-  const IconComponent = LucideIcons[name] as React.ComponentType<React.SVGAttributes<SVGElement>>;
+  const IconComponent = iconRegistry[name];
   
   if (!IconComponent) {
-    // console.warn(`Icon "${name}" not found`);
     return null;
   }
 

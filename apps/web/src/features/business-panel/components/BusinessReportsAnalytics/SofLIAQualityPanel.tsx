@@ -7,7 +7,7 @@ function StatChip({ label, value, theme }: { label: string; value: string | numb
   return (
     <div className="rounded-lg border p-3" style={{ borderColor: theme.borderColor, backgroundColor: theme.inputBg }}>
       <p className="text-xs uppercase tracking-wide" style={{ color: theme.mutedTextColor }}>{label}</p>
-      <p className="mt-1 text-xl font-bold" style={{ color: theme.textColor }}>{value}</p>
+      <p className="mt-1 text-xl font-bold tabular-nums" style={{ color: theme.textColor, fontFamily: 'var(--font-system-ui), sans-serif' }}>{value}</p>
     </div>
   )
 }
@@ -18,7 +18,7 @@ function QualityBar({ label, value, color, theme }: { label: string; value: numb
     <div>
       <div className="mb-1 flex items-center justify-between">
         <span className="text-xs" style={{ color: theme.subtextColor }}>{label}</span>
-        <span className="text-xs font-semibold" style={{ color: theme.textColor }}>{pct.toFixed(1)}%</span>
+        <span className="text-xs font-semibold tabular-nums" style={{ color: theme.textColor, fontFamily: 'var(--font-system-ui), sans-serif' }}>{pct.toFixed(1)}%</span>
       </div>
       <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ backgroundColor: theme.hoverBg }}>
         <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
@@ -38,7 +38,7 @@ function ContextBar({ label, value, maxValue, theme }: { label: string; value: n
         <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ backgroundColor: theme.hoverBg }}>
           <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: theme.actionColor + 'CC' }} />
         </div>
-        <span className="w-10 text-right text-xs font-semibold" style={{ color: theme.textColor }}>{value}</span>
+        <span className="w-10 text-right text-xs font-semibold tabular-nums" style={{ color: theme.textColor, fontFamily: 'var(--font-system-ui), sans-serif' }}>{value}</span>
       </div>
     </div>
   )

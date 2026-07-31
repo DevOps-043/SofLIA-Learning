@@ -30,41 +30,35 @@ export interface ProcessedResponse {
   } | null;
 }
 
-export interface ProcessAIResponseOptions {
-  allowBugReportDraft?: boolean;
-}
-
+/**
+ * El bloque oculto emitido por el modelo es la unica senal que decide si el
+ * turno abre un borrador de reporte.
+ *
+ * Antes existia ademas un filtro por palabras clave sobre el mensaje del
+ * usuario (`allowBugReportDraft`): si ese filtro no reconocia la frase, el
+ * borrador que el modelo SI habia generado se borraba del historial y el flujo
+ * de confirmacion quedaba muerto — el usuario confirmaba y el reporte nunca
+ * llegaba a `reportes_problemas`. La deteccion semantica del modelo no puede
+ * quedar subordinada a un regex de intencion.
+ */
 export async function processAIResponse(
   finalContent: string,
   body: LiaChatProcessingBody,
   requestContext: ChatRequest['context'],
   _request: { headers: { get: (key: string) => string | null } },
-  previousDraft?: BugReportDraftTokenPayload | null,
-  options: ProcessAIResponseOptions = {}
+  previousDraft?: BugReportDraftTokenPayload | null
 ): Promise<ProcessedResponse> {
-  let clientContent = finalContent;
-  let assistantContentToPersist = finalContent;
+  const preparedDraftResponse = await prepareDraftResponseForPersistence({
+    finalContent,
+    body,
+    requestContext,
+    previousDraft,
+  });
 
-  const allowBugReportDraft =
-    options.allowBugReportDraft ?? Boolean(previousDraft || body.isBugReport);
-  const preparedDraftResponse = allowBugReportDraft
-    ? await prepareDraftResponseForPersistence({
-        finalContent,
-        body,
-        requestContext,
-        previousDraft,
-      })
-    : null;
-
-  if (!allowBugReportDraft) {
-    clientContent = stripBugReportTokens(finalContent);
-    assistantContentToPersist = clientContent;
-  }
-
-  if (preparedDraftResponse) {
-    clientContent = preparedDraftResponse.clientContent;
-    assistantContentToPersist = preparedDraftResponse.assistantContentToPersist;
-  }
+  const clientContent =
+    preparedDraftResponse?.clientContent ?? stripBugReportTokens(finalContent);
+  const assistantContentToPersist =
+    preparedDraftResponse?.assistantContentToPersist ?? clientContent;
 
   if (body.conversationId && !isValidUUID(body.conversationId)) {
     techDebtLogger.warn(

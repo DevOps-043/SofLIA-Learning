@@ -1,15 +1,32 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, User, Mail, Shield, Lock, UserPlus, Camera, Sparkles, Briefcase, ChevronRight, Info, AlertCircle } from 'lucide-react'
+import type { CSSProperties, ChangeEvent, FormEvent } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Image from 'next/image'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  AlertCircle,
+  ArrowRight,
+  Camera,
+  Shield,
+  UserRound,
+  UserPlus,
+  X,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+
 import {
   USER_GENDER_VALUES,
   type UserGender,
 } from '../../../lib/schemas/user-demographics.schema'
+import {
+  PremiumDateTimePicker,
+  PremiumSelect,
+  type PremiumControlPalette,
+} from '@/shared/components/premium-form-controls'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import styles from './AdministrativeModal.module.css'
 
 interface BusinessAddUserModalProps {
   isOpen: boolean
@@ -29,34 +46,32 @@ interface BusinessAddUserModalProps {
   }) => Promise<void>
 }
 
-export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUserModalProps) {
+type OrganizationRole = 'owner' | 'admin' | 'member'
+
+const initialFormData = {
+  username: '',
+  email: '',
+  password: '',
+  first_name: '',
+  last_name: '',
+  display_name: '',
+  date_of_birth: '',
+  gender: '' as UserGender | '',
+  job_title: '',
+  org_role: 'member' as OrganizationRole,
+  profile_picture_url: '',
+}
+
+export function BusinessAddUserModal({
+  isOpen,
+  onClose,
+  onSave,
+}: BusinessAddUserModalProps) {
   const { t } = useTranslation('business')
   const { t: tc } = useTranslation('common')
   const theme = useBusinessPanelTheme()
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const primaryColor = theme.primaryColor
-  const accentColor = theme.accentColor
-  const textColor = theme.textColor
-  const mutedText = theme.mutedTextColor
-  const borderColor = theme.borderColor
-  const inputBg = theme.inputBg
-  const surfaceColor = theme.panelBg
-  const onPrimaryColor = theme.onPrimaryColor
-
-  const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    first_name: '',
-    last_name: '',
-    display_name: '',
-    date_of_birth: '',
-    gender: '' as UserGender | '',
-    job_title: '',
-    org_role: 'member' as 'owner' | 'admin' | 'member',
-    profile_picture_url: ''
-  })
+  const [formData, setFormData] = useState(initialFormData)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [previewImage, setPreviewImage] = useState<string | null>(null)
@@ -64,41 +79,44 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
 
   useEffect(() => {
     const fullName = `${formData.first_name} ${formData.last_name}`.trim()
-    setFormData(prev => {
-      if (prev.display_name === fullName) return prev
-      return { ...prev, display_name: fullName }
-    })
+    setFormData((current) =>
+      current.display_name === fullName
+        ? current
+        : { ...current, display_name: fullName },
+    )
   }, [formData.first_name, formData.last_name])
 
   useEffect(() => {
     if (!isOpen) {
-      setFormData({
-        username: '',
-        email: '',
-        password: '',
-        first_name: '',
-        last_name: '',
-        display_name: '',
-        date_of_birth: '',
-        gender: '',
-        job_title: '',
-        org_role: 'member',
-        profile_picture_url: ''
-      })
+      setFormData(initialFormData)
       setError(null)
       setPreviewImage(null)
       setPendingFile(null)
+      return
     }
-  }, [isOpen])
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isLoading) onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isLoading, isOpen, onClose])
+
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target
+    setFormData((current) => ({ ...current, [name]: value }))
   }
 
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (!file) return
+
     const reader = new FileReader()
     reader.onloadend = () => setPreviewImage(reader.result as string)
     reader.readAsDataURL(file)
@@ -106,21 +124,27 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
     setError(null)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault()
     setIsLoading(true)
     setError(null)
+
     try {
       let profilePictureUrl = formData.profile_picture_url
       if (pendingFile) {
-        const formDataUpload = new FormData()
-        formDataUpload.append('file', pendingFile)
-        const response = await fetch('/api/business/users/upload-picture', { method: 'POST', body: formDataUpload, credentials: 'include' })
+        const upload = new FormData()
+        upload.append('file', pendingFile)
+        const response = await fetch('/api/business/users/upload-picture', {
+          method: 'POST',
+          body: upload,
+          credentials: 'include',
+        })
         if (response.ok) {
           const { imageUrl } = await response.json()
           profilePictureUrl = imageUrl
         }
       }
+
       await onSave({
         ...formData,
         date_of_birth: formData.date_of_birth || null,
@@ -128,127 +152,346 @@ export function BusinessAddUserModal({ isOpen, onClose, onSave }: BusinessAddUse
         profile_picture_url: profilePictureUrl || undefined,
       })
       onClose()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error.')
+    } catch (caughtError) {
+      setError(caughtError instanceof Error ? caughtError.message : 'No fue posible crear el usuario.')
     } finally {
       setIsLoading(false)
     }
   }
 
-  if (!isOpen) return null
+  if (!isOpen || typeof document === 'undefined') return null
 
-  const roleLabels = {
-    member: { label: t('users.roles.member'), desc: t('users.modals.add.roleDesc.member') },
-    admin: { label: t('users.roles.admin'), desc: t('users.modals.add.roleDesc.admin') },
-    owner: { label: t('users.roles.owner'), desc: t('users.modals.add.roleDesc.owner') }
+  const roleLabels: Record<
+    OrganizationRole,
+    { label: string; description: string }
+  > = {
+    member: {
+      label: t('users.roles.member'),
+      description: t('users.modals.add.roleDesc.member'),
+    },
+    admin: {
+      label: t('users.roles.admin'),
+      description: t('users.modals.add.roleDesc.admin'),
+    },
+    owner: {
+      label: t('users.roles.owner'),
+      description: t('users.modals.add.roleDesc.owner'),
+    },
   }
-  const maxDateOfBirth = new Date().toISOString().slice(0, 10)
+  const modalStyle = {
+    '--admin-modal-accent': theme.accentColor,
+    '--admin-modal-border': theme.borderColor,
+    '--admin-modal-danger': theme.dangerColor,
+    '--admin-modal-input': theme.inputBg,
+    '--admin-modal-muted': theme.mutedTextColor,
+    '--admin-modal-on-primary': theme.onPrimaryColor,
+    '--admin-modal-primary': theme.primaryColor,
+    '--admin-modal-surface': theme.panelBg,
+    '--admin-modal-text': theme.textColor,
+    '--admin-modal-width': '64rem',
+    '--admin-modal-height': '46rem',
+  } as CSSProperties
+  const controlPalette: PremiumControlPalette = {
+    accentColor: theme.accentColor,
+    borderColor: theme.borderColor,
+    inputBg: theme.inputBg,
+    menuBg: theme.panelBg,
+    mutedText: theme.mutedTextColor,
+    onPrimaryColor: theme.onPrimaryColor,
+    primaryColor: theme.primaryColor,
+    surfaceColor: theme.panelBg,
+    textColor: theme.textColor,
+  }
 
-  return (
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 isolate flex h-app-dynamic items-end justify-center overflow-hidden p-0 sm:items-center sm:p-4" style={{ zIndex: 99999 }}>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-transparent" />
-        <motion.div
-           initial={{ opacity: 0, scale: 0.95, y: 20 }}
-           animate={{ opacity: 1, scale: 1, y: 0 }}
-           exit={{ opacity: 0, scale: 0.95, y: 20 }}
+      <motion.div
+        animate={{ opacity: 1 }}
+        className={styles.overlay}
+        exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }}
+        onMouseDown={() => {
+          if (!isLoading) onClose()
+        }}
+        style={modalStyle}
+      >
+        <motion.section
+          aria-labelledby="business-add-user-title"
+          aria-modal="true"
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className={styles.dialog}
           data-testid="business-add-user-modal-panel"
-          className="relative flex h-full w-full max-w-5xl flex-col overflow-hidden bg-transparent shadow-2xl sm:h-[min(calc(var(--soflia-viewport-height)-3rem),750px)] sm:max-h-[750px] sm:rounded-[2.5rem]"
-           onClick={(e) => e.stopPropagation()}
+          exit={{ opacity: 0, scale: 0.985, y: 12 }}
+          initial={{ opacity: 0, scale: 0.975, y: 18 }}
+          onMouseDown={(event) => event.stopPropagation()}
+          role="dialog"
+          transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="flex flex-col h-full overflow-hidden border" style={{ backgroundColor: surfaceColor, borderColor }}>
-            <div className="relative shrink-0 border-b px-4 pb-4 pt-6 sm:px-6 lg:px-12" style={{ borderColor }}>
-               <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-center sm:gap-8">
-                  <div className="relative shrink-0 group pointer-events-auto">
-                    <div onClick={() => fileInputRef.current?.click()} className="w-16 h-16 rounded-[1.5rem] flex items-center justify-center shadow-2xl border-4 cursor-pointer overflow-hidden relative" style={{ background: previewImage ? 'transparent' : `linear-gradient(135deg, ${primaryColor}, ${accentColor})`, borderColor }}>
-                       {previewImage ? <Image src={previewImage} alt="Preview" fill className="object-cover" /> : <UserPlus className="w-8 h-8" style={{ color: onPrimaryColor }} strokeWidth={2.5} />}
-                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"><Camera className="w-5 h-5 text-white" /></div>
-                    </div>
-                    <input ref={fileInputRef} type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-                  </div>
-                  <div className="min-w-0 flex-1 text-center sm:text-left">
-                     <h2 className="text-2xl font-black tracking-tight mb-1" style={{ color: textColor }}>{formData.display_name || t('users.modals.add.title')}</h2>
-                     <div className="px-3 py-1 rounded-xl border text-[10px] font-black uppercase tracking-widest inline-flex items-center gap-2" style={{ backgroundColor: inputBg, borderColor, color: mutedText }}><Info className="w-3.5 h-3.5" /><span>{t('users.modals.add.userInfoSubtitle')}</span></div>
-                  </div>
-                  <button onClick={onClose} className="p-3 rounded-2xl border transition-all" style={{ backgroundColor: inputBg, borderColor, color: mutedText }}><X className="w-5 h-5" /></button>
-               </div>
+          <header className={styles.header}>
+            <button
+              aria-label="Seleccionar fotografía de perfil"
+              className={styles.contextButton}
+              onClick={() => fileInputRef.current?.click()}
+              title="Fotografía opcional"
+              type="button"
+            >
+              {previewImage ? (
+                <Image
+                  alt=""
+                  className={styles.contextPreview}
+                  fill
+                  sizes="48px"
+                  src={previewImage}
+                />
+              ) : (
+                <UserPlus aria-hidden="true" />
+              )}
+              <Camera aria-hidden="true" />
+            </button>
+            <input
+              ref={fileInputRef}
+              accept="image/*"
+              hidden
+              onChange={handleImageChange}
+              type="file"
+            />
+
+            <div className={styles.heading}>
+              <p className={styles.eyebrow}>Gestión de acceso</p>
+              <h2 className={styles.title} id="business-add-user-title">
+                Nuevo usuario
+              </h2>
+              <p className={styles.subtitle}>
+                {formData.display_name || 'Completa los datos y define el nivel de acceso.'}
+              </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex-1 flex flex-col overflow-hidden">
-               <div className="flex-1 overflow-y-auto px-4 pb-8 pt-6 sm:px-6 lg:px-12 lg:pb-12 space-y-8" style={{ scrollbarWidth: 'thin', scrollbarColor: `${borderColor} transparent` }}>
-                  {error ? (
-                    <div className="p-4 rounded-xl border flex items-center gap-3" style={{ backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 6.3%, transparent)`, borderColor: `color-mix(in srgb, ${theme.dangerColor} 12.5%, transparent)` }}>
-                      <AlertCircle className="w-5 h-5 shrink-0" style={{ color: theme.dangerColor }} />
-                      <span className="text-[10px] font-black uppercase flex-1" style={{ color: theme.dangerColor }}>{error}</span>
-                    </div>
-                  ) : null}
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                     <div className="space-y-6">
-                        <label className="text-[10px] font-black uppercase tracking-widest px-1 block" style={{ color: mutedText }}>Información Personal</label>
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="first_name" value={formData.first_name} onChange={handleChange} placeholder="Nombre" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
-                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="last_name" value={formData.last_name} onChange={handleChange} placeholder="Apellido" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
-                        </div>
-                        <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="username" value={formData.username} onChange={handleChange} required placeholder="Nombre de usuario" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="date_of_birth" value={formData.date_of_birth} onChange={handleChange} type="date" max={maxDateOfBirth} aria-label={tc('demographics.dateOfBirth')} style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
-                           <select className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="gender" value={formData.gender} onChange={handleChange} aria-label={tc('demographics.gender.label')} style={{ backgroundColor: inputBg, borderColor, color: textColor }}>
-                              <option value="">{tc('demographics.gender.placeholder')}</option>
-                              {USER_GENDER_VALUES.map((gender) => (
-                                <option key={gender} value={gender}>
-                                  {tc(`demographics.gender.options.${gender}`)}
-                                </option>
-                              ))}
-                           </select>
-                        </div>
-                     </div>
-                     <div className="space-y-6">
-                        <label className="text-[10px] font-black uppercase tracking-widest px-1 block" style={{ color: mutedText }}>Credenciales y Cargo</label>
-                        <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="email" value={formData.email} onChange={handleChange} required type="email" placeholder="Correo electrónico" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="password" value={formData.password} onChange={handleChange} required type="password" placeholder="Contraseña" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
-                           <input className="w-full px-5 py-4 rounded-2xl border bg-transparent focus:outline-none transition-all text-sm font-medium" name="job_title" value={formData.job_title} onChange={handleChange} required placeholder="Cargo / Puesto" style={{ backgroundColor: inputBg, borderColor, color: textColor }} />
-                        </div>
-                     </div>
-                  </div>
-                  <div className="space-y-4">
-                     <label className="text-[10px] font-black uppercase tracking-widest px-1 block" style={{ color: mutedText }}>Permisos en la Organización</label>
-                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        {(['member', 'admin', 'owner'] as const).map((role) => {
-                           const isActive = formData.org_role === role;
-                           return (
-                              <button key={role} type="button" onClick={() => setFormData(prev => ({ ...prev, org_role: role }))} className={`relative p-5 rounded-[1.8rem] text-left transition-all border ${isActive ? 'scale-[1.02] shadow-2xl' : 'opacity-60 grayscale hover:opacity-100'}`} style={{ backgroundColor: isActive ? primaryColor : inputBg, borderColor: isActive ? primaryColor : borderColor }}>
-                                 <div className="flex items-center gap-2 mb-2 min-w-0">
-                                    <Shield className="w-5 h-5 shrink-0" style={{ color: isActive ? onPrimaryColor : mutedText }} strokeWidth={2.5} />
-                                    <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-tight sm:tracking-widest truncate" style={{ color: isActive ? onPrimaryColor : textColor }}>{roleLabels[role].label}</span>
-                                 </div>
-                                 <p className="text-[10px] opacity-60 leading-tight hidden sm:block truncate" style={{ color: isActive ? onPrimaryColor : mutedText }}>{roleLabels[role].desc}</p>
-                              </button>
-                           );
-                        })}
-                     </div>
-                  </div>
-               </div>
-               <div className="sticky bottom-0 flex shrink-0 flex-col gap-4 border-t bg-inherit p-4 sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-5" style={{ backgroundColor: surfaceColor, borderColor }}>
-                  <div className="hidden sm:flex items-center gap-2 opacity-30 select-none"><UserPlus className="w-5 h-5" style={{ color: textColor }} /><span className="text-[9px] font-black uppercase tracking-widest" style={{ color: textColor }}>Registrar Miembro</span></div>
-                  <div className="flex w-full items-center gap-3 sm:w-auto">
-                     <button type="button" onClick={onClose} disabled={isLoading} className="flex-1 sm:flex-none px-5 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all" style={{ color: mutedText, backgroundColor: inputBg, borderColor }}>{t('users.buttons.cancel')}</button>
-                     <motion.button type="submit" disabled={isLoading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-[2] sm:flex-none px-8 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3" style={{ backgroundColor: primaryColor, color: onPrimaryColor }}>
-                        {isLoading ? (
-                          <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: `color-mix(in srgb, ${onPrimaryColor} 30.2%, transparent)`, borderTopColor: onPrimaryColor }} />
-                        ) : (
-                          <>
-                            <span className="font-black">{t('users.buttons.create')}</span>
-                            <ChevronRight className="w-4 h-4" strokeWidth={3} />
-                          </>
+            <button
+              aria-label={t('users.buttons.close', 'Cerrar')}
+              className={styles.closeButton}
+              disabled={isLoading}
+              onClick={onClose}
+              type="button"
+            >
+              <X aria-hidden="true" />
+            </button>
+          </header>
+
+          <form className={styles.form} onSubmit={handleSubmit}>
+            <div className={styles.formBody}>
+              {error && (
+                <div className={styles.alert} role="alert">
+                  <AlertCircle aria-hidden="true" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className={styles.columns}>
+                <section className={styles.section}>
+                  <h3 className={styles.sectionLabel}>Información personal</h3>
+                  <div className={styles.fieldGrid}>
+                    <Field
+                      label="Nombre"
+                      name="first_name"
+                      onChange={handleChange}
+                      placeholder="Nombre"
+                      value={formData.first_name}
+                    />
+                    <Field
+                      label="Apellido"
+                      name="last_name"
+                      onChange={handleChange}
+                      placeholder="Apellido"
+                      value={formData.last_name}
+                    />
+                    <Field
+                      label="Nombre de usuario"
+                      name="username"
+                      onChange={handleChange}
+                      placeholder="usuario"
+                      required
+                      value={formData.username}
+                      wide
+                    />
+                    <label className={styles.field}>
+                      <span className={styles.fieldLabel}>
+                        Fecha de nacimiento
+                      </span>
+                      <PremiumDateTimePicker
+                        ariaLabel={tc('demographics.dateOfBirth')}
+                        max={new Date().toISOString().slice(0, 10)}
+                        onChange={(dateOfBirth) =>
+                          setFormData((current) => ({
+                            ...current,
+                            date_of_birth: dateOfBirth,
+                          }))
+                        }
+                        palette={controlPalette}
+                        placeholder="Selecciona una fecha"
+                        value={formData.date_of_birth}
+                      />
+                    </label>
+                    <label className={styles.field}>
+                      <span className={styles.fieldLabel}>Género</span>
+                      <PremiumSelect
+                        ariaLabel={tc('demographics.gender.label')}
+                        icon={UserRound}
+                        onChange={(gender) =>
+                          setFormData((current) => ({
+                            ...current,
+                            gender: gender as UserGender | '',
+                          }))
+                        }
+                        options={USER_GENDER_VALUES.map((gender) => ({
+                          label: tc(
+                            `demographics.gender.options.${gender}`,
+                          ),
+                          value: gender,
+                        }))}
+                        palette={controlPalette}
+                        placeholder={tc(
+                          'demographics.gender.placeholder',
                         )}
-                     </motion.button>
+                        value={formData.gender}
+                      />
+                    </label>
                   </div>
-               </div>
-            </form>
-          </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+                </section>
+
+                <section className={styles.section}>
+                  <h3 className={styles.sectionLabel}>Credenciales y cargo</h3>
+                  <div className={styles.fieldGrid}>
+                    <Field
+                      label="Correo electrónico"
+                      name="email"
+                      onChange={handleChange}
+                      placeholder="nombre@empresa.com"
+                      required
+                      type="email"
+                      value={formData.email}
+                      wide
+                    />
+                    <Field
+                      label="Contraseña temporal"
+                      name="password"
+                      onChange={handleChange}
+                      placeholder="Mínimo 6 caracteres"
+                      required
+                      type="password"
+                      value={formData.password}
+                    />
+                    <Field
+                      label="Cargo o puesto"
+                      name="job_title"
+                      onChange={handleChange}
+                      placeholder="Ej. Gerente de ventas"
+                      required
+                      value={formData.job_title}
+                    />
+                  </div>
+                </section>
+              </div>
+
+              <section className={styles.section}>
+                <h3 className={styles.sectionLabel}>Permisos en la organización</h3>
+                <div className={styles.roleGrid}>
+                  {(['member', 'admin', 'owner'] as const).map((role) => {
+                    const isActive = formData.org_role === role
+                    return (
+                      <button
+                        aria-pressed={isActive}
+                        className={isActive ? styles.roleCardActive : styles.roleCard}
+                        key={role}
+                        onClick={() =>
+                          setFormData((current) => ({ ...current, org_role: role }))
+                        }
+                        type="button"
+                      >
+                        <span className={styles.roleIcon}>
+                          <Shield aria-hidden="true" />
+                        </span>
+                        <span>
+                          <span className={styles.roleName}>{roleLabels[role].label}</span>
+                          <span className={styles.roleDescription}>
+                            {roleLabels[role].description}
+                          </span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+            </div>
+
+            <footer className={styles.footer}>
+              <span className={styles.footerHint}>
+                <UserPlus aria-hidden="true" />
+                Registro individual
+              </span>
+              <div className={styles.footerActions}>
+                <button
+                  className={styles.secondaryButton}
+                  disabled={isLoading}
+                  onClick={onClose}
+                  type="button"
+                >
+                  {t('users.buttons.cancel')}
+                </button>
+                <button
+                  className={styles.primaryButton}
+                  disabled={isLoading}
+                  type="submit"
+                >
+                  {isLoading ? 'Creando…' : t('users.buttons.create')}
+                  {!isLoading && <ArrowRight aria-hidden="true" />}
+                </button>
+              </div>
+            </footer>
+          </form>
+        </motion.section>
+      </motion.div>
+    </AnimatePresence>,
+    document.body,
+  )
+}
+
+function Field({
+  ariaLabel,
+  label,
+  max,
+  name,
+  onChange,
+  placeholder,
+  required,
+  type = 'text',
+  value,
+  wide = false,
+}: {
+  ariaLabel?: string
+  label: string
+  max?: string
+  name: string
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  required?: boolean
+  type?: string
+  value: string
+  wide?: boolean
+}) {
+  return (
+    <label className={wide ? styles.fieldWide : styles.field}>
+      <span className={styles.fieldLabel}>{label}</span>
+      <input
+        aria-label={ariaLabel}
+        className={styles.input}
+        max={max}
+        name={name}
+        onChange={onChange}
+        placeholder={placeholder}
+        required={required}
+        type={type}
+        value={value}
+      />
+    </label>
   )
 }

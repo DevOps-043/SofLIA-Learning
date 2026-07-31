@@ -13,6 +13,7 @@ import type {
 } from './types'
 import { buildDraftRuntimeContext } from './runtime-context'
 import { normalizeBugCategory, normalizeBugPriority, readString } from './parsing'
+import { serializeDraftToken } from './token-markers'
 
 export async function submitConfirmedBugReport(params: {
   draft: BugReportDraftTokenPayload
@@ -21,38 +22,59 @@ export async function submitConfirmedBugReport(params: {
   request: { headers: { get: (key: string) => string | null } }
 }): Promise<ConfirmedBugReportResult> {
   const { draft, body, requestContext, request } = params
+  const userId = requestContext?.userId
 
-  if (!requestContext?.userId) {
+  if (!userId) {
+    const unauthenticatedMessage =
+      'Puedo dejar listo el reporte tecnico, pero para enviarlo necesito que estes autenticado en tu cuenta.'
+
     return {
       bugReportSaved: false,
-      clientContent: 'Puedo dejar listo el reporte tecnico, pero para enviarlo necesito que estes autenticado en tu cuenta.',
+      clientContent: unauthenticatedMessage,
+      assistantContentToPersist: unauthenticatedMessage,
     }
   }
 
   const runtimeContext =
     draft.runtimeContext || (await buildDraftRuntimeContext(body, requestContext))
-  const reportPayload = buildReportPayload({ draft, body, request, requestContext, runtimeContext })
+  const reportPayload = buildReportPayload({ draft, body, request, userId, runtimeContext })
   const supabase = await createClient()
   const { error } = await supabase.from('reportes_problemas').insert(reportPayload)
 
   if (error) {
     techDebtLogger.error('Error guardando el reporte confirmado de SofLIA:', error)
+
+    const failureMessage =
+      'Hubo un problema tecnico al enviar tu reporte. El borrador sigue listo; puedes intentar confirmarlo de nuevo en unos segundos.'
+
+    // El borrador viaja de vuelta al historial: sin el bloque oculto el turno
+    // siguiente ya no encontraria nada que confirmar y el reintento que se le
+    // ofrece al usuario seria imposible.
     return {
       bugReportSaved: false,
-      clientContent: 'Hubo un problema tecnico al enviar tu reporte. El borrador sigue listo; puedes intentar confirmarlo de nuevo en unos segundos.',
+      clientContent: failureMessage,
+      assistantContentToPersist: `${failureMessage}\n\n${serializeDraftToken({
+        ...draft,
+        runtimeContext,
+      })}`,
     }
   }
 
+  const confirmationMessage = buildBugConfirmationMessage(
+    runtimeContext.attachments.length > 0,
+  )
+
   return {
     bugReportSaved: true,
-    clientContent: buildBugConfirmationMessage(runtimeContext.attachments.length > 0),
+    clientContent: confirmationMessage,
+    assistantContentToPersist: confirmationMessage,
   }
 }
 
 function buildReportPayload(params: {
   draft: BugReportDraftTokenPayload
   body: LiaChatProcessingBody
-  requestContext: ChatRequest['context']
+  userId: string
   request: { headers: { get: (key: string) => string | null } }
   runtimeContext: Awaited<ReturnType<typeof buildDraftRuntimeContext>>
 }): ReportProblemInsert {
@@ -60,7 +82,7 @@ function buildReportPayload(params: {
   const userAgent = request.headers.get('user-agent')
 
   return {
-    user_id: params.requestContext!.userId,
+    user_id: params.userId,
     titulo: readString(draft.title) || 'Reporte tecnico desde SofLIA',
     descripcion: readString(draft.description) || runtimeContext.originalUserMessage,
     categoria: normalizeBugCategory(readString(draft.category)),
@@ -82,6 +104,7 @@ function buildReportPayload(params: {
         clientContext: { userAgent, screenResolution: runtimeContext.screenResolution, browser: runtimeContext.browser },
         liaContext: {
           conversationId: body.conversationId || null,
+          hasSessionRecording: false,
           detectedAsBug: true,
           aiGeneratedTitle: readString(draft.title),
           chatMessageContent: runtimeContext.originalUserMessage,

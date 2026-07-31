@@ -26,9 +26,9 @@ export function SidebarNavigation(props: SidebarNavigationProps) {
     <nav
       id="tour-sidebar-nav"
       data-tour-id="business-panel-dashboard--sidebar-nav"
-      className="flex-1 overflow-y-auto overflow-x-hidden py-6 px-3 custom-scrollbar relative"
+      className="custom-scrollbar relative flex-1 overflow-x-hidden overflow-y-auto px-3 py-5"
     >
-      <ul className="space-y-1.5">
+      <ul className="space-y-1">
         {props.navigation.map(item => (
           <SidebarNavigationLink key={item.name} item={item} {...props} />
         ))}
@@ -64,10 +64,10 @@ function SidebarNavigationLink({
           onSectionChange(item.href.split('/').pop() || '')
           if (!isMobile && isCollapsed && !isPinned && isHovered) setIsHovered(false)
         }}
-        className={`group relative flex items-center px-3 py-3 rounded-xl transition-all duration-300 ease-out ${!expanded ? 'justify-center' : 'justify-start gap-3'}`}
+        className={`group relative flex min-h-11 items-center rounded-[0.82rem] px-3 py-2.5 transition-all duration-300 ease-out ${!expanded ? 'justify-center' : 'justify-start gap-3'}`}
         style={{
           backgroundColor: isActive ? theme.primaryColor : 'transparent',
-          boxShadow: isActive ? `0 4px 20px -5px color-mix(in srgb, ${theme.primaryColor} 37.6%, transparent)` : 'none',
+          boxShadow: isActive ? `0 12px 26px -16px color-mix(in srgb, ${theme.primaryColor} 55%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-bg-light) 8%, transparent)` : 'none',
           color: isActive ? theme.onPrimaryColor : theme.textColor,
           opacity: isActive ? 1 : 0.78,
         }}
@@ -85,7 +85,7 @@ function SidebarNavigationLink({
         }}
         title={!expanded ? item.name : undefined}
       >
-        <Icon className={`w-5 h-5 flex-shrink-0 transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+        <Icon className={`h-[1.05rem] w-[1.05rem] flex-shrink-0 transition-transform duration-300 ${isActive ? 'scale-105' : 'group-hover:scale-105'}`} strokeWidth={1.7} />
         {expanded ? <NavigationLabel name={item.name} /> : null}
         {!expanded && isActive ? <div className="absolute inset-0 rounded-xl blur-md -z-10 opacity-60" style={{ background: theme.primaryColor }} /> : null}
       </a>
@@ -100,7 +100,8 @@ function NavigationLabel({ name }: { name: string }) {
       animate={{ opacity: 1, width: 'auto' }}
       exit={{ opacity: 0, width: 0 }}
       transition={{ duration: 0.2 }}
-      className="text-sm font-medium whitespace-nowrap overflow-hidden"
+      className="overflow-hidden whitespace-nowrap text-[0.78rem] font-medium tracking-[-0.01em]"
+      style={{ fontFamily: 'var(--font-system-ui)' }}
     >
       {name}
     </motion.span>

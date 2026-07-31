@@ -1,6 +1,6 @@
-import { motion } from 'framer-motion';
 import { ChevronRight, UserCheck } from 'lucide-react';
 import type { TFunction } from 'i18next';
+import modalStyles from '../ContentModal.module.css';
 import type { BusinessAssignCourseModalState, BusinessAssignCourseTheme } from './view-types';
 
 interface BusinessAssignCourseFooterProps {
@@ -13,31 +13,28 @@ export function BusinessAssignCourseFooter({ modal, t, theme }: BusinessAssignCo
   const isDisabled = modal.isAssigning || resolveIsDisabled(modal)
 
   return (
-    <div className="shrink-0 p-5 px-8 flex items-center justify-between gap-4 border-t" style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor }}>
-      <div className="hidden sm:flex items-center gap-2 opacity-30 select-none">
-        <UserCheck className="w-5 h-5" style={{ color: theme.textColor }} />
-        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.textColor }}>Asignar Contenido</span>
-      </div>
-      <div className="flex items-center gap-3 w-full sm:w-auto">
+    <footer className={modalStyles.footer}>
+      <p className={modalStyles.footerNote}>
+        <UserCheck aria-hidden="true" className="mr-2 inline h-4 w-4" />
+        Las asignaciones solo se aplican a integrantes activos de esta empresa.
+      </p>
+      <div className={modalStyles.footerActions}>
         <button
           type="button"
           onClick={modal.handleClose}
-          className="flex-1 sm:flex-none px-6 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all"
-          style={{ color: theme.mutedTextColor, backgroundColor: theme.inputBg, borderColor: theme.borderColor }}
+          className={modalStyles.secondaryButton}
         >
           {t('users.buttons.cancel')}
         </button>
-        <motion.button
+        <button
+          type="button"
           onClick={modal.handleAssign}
           disabled={isDisabled}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex-[2] sm:flex-none px-10 py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-3 transition-all disabled:opacity-50 disabled:grayscale"
-          style={{ backgroundColor: theme.primaryColor, color: theme.onPrimaryColor }}
+          className={modalStyles.primaryButton}
         >
           {modal.isAssigning ? (
             <div
-              className="w-5 h-5 border-2 rounded-full animate-spin"
+              className="h-4 w-4 animate-spin rounded-full border-2"
               style={{
                 borderTopColor: theme.onPrimaryColor,
                 borderRightColor: `color-mix(in srgb, ${theme.onPrimaryColor} 30.2%, transparent)`,
@@ -51,9 +48,9 @@ export function BusinessAssignCourseFooter({ modal, t, theme }: BusinessAssignCo
               <ChevronRight className="w-4 h-4" strokeWidth={3} />
             </>
           )}
-        </motion.button>
+        </button>
       </div>
-    </div>
+    </footer>
   );
 }
 

@@ -1,18 +1,18 @@
 import { motion } from 'framer-motion'
-import type { ThemeTokens } from './types'
+import styles from './ReportsAnalytics.module.css'
 
 export function PremiumSelectOptions({
   allLabel,
   hasSelection,
+  id,
   options,
-  theme,
   value,
   onChange,
 }: {
   allLabel: string
   hasSelection: boolean
+  id: string
   options: Array<{ value: string; label: string }>
-  theme: ThemeTokens
   value: string
   onChange: (value: string) => void
 }) {
@@ -22,16 +22,16 @@ export function PremiumSelectOptions({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -8, scale: 0.97 }}
       transition={{ duration: 0.15 }}
-      className="absolute left-0 right-0 top-full z-50 mt-1.5 max-h-56 overflow-y-auto rounded-xl border shadow-2xl"
-      style={{ backgroundColor: theme.cardBg, borderColor: theme.dividerColor }}
+      className={styles.selectMenu}
+      id={id}
+      role="listbox"
     >
-      <SelectOptionButton label={allLabel} isSelected={!hasSelection} theme={theme} onClick={() => onChange('')} />
+      <SelectOptionButton label={allLabel} isSelected={!hasSelection} onClick={() => onChange('')} />
       {options.map((option) => (
         <SelectOptionButton
           key={option.value}
           label={option.label}
           isSelected={value === option.value}
-          theme={theme}
           onClick={() => onChange(option.value)}
         />
       ))}
@@ -42,22 +42,20 @@ export function PremiumSelectOptions({
 function SelectOptionButton({
   label,
   isSelected,
-  theme,
   onClick,
 }: {
   label: string
   isSelected: boolean
-  theme: ThemeTokens
   onClick: () => void
 }) {
   return (
     <button
       type="button"
+      role="option"
+      aria-selected={isSelected}
       onClick={onClick}
-      className="w-full px-4 py-2.5 text-left text-sm transition-colors"
-      style={{ backgroundColor: isSelected ? `color-mix(in srgb, ${theme.actionColor} 14.5%, transparent)` : 'transparent', color: isSelected ? theme.actionColor : theme.subtextColor }}
-      onMouseEnter={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = theme.hoverBg }}
-      onMouseLeave={(e) => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent' }}
+      className={styles.selectOption}
+      data-selected={isSelected}
     >
       {label}
     </button>

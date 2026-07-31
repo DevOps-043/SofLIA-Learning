@@ -1,6 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { BusinessAssignCourseModal } from '../../../../../features/business-panel/components/BusinessAssignCourseModal'
@@ -21,11 +22,19 @@ import { useBusinessCourseDetailPageLogic } from '../../../../../features/busine
 import { useBusinessPanelTheme } from '../../../../../features/business-panel/hooks/useBusinessPanelTheme'
 import { useTour } from '@/features/tours'
 import { businessPanelCourseDetailTour } from '@/features/tours/config/business-panel-courses.tour'
+import styles from '../../../../../features/business-panel/components/business-course-detail/BusinessCourseDetail.module.css'
+
+type DetailVariables = CSSProperties & Record<`--detail-${string}`, string>
 
 export default function BusinessCourseDetailPage() {
   const logic = useBusinessCourseDetailPageLogic()
   const theme = useBusinessPanelTheme()
   const { autoStartIfNeeded } = useTour(businessPanelCourseDetailTour)
+
+  useEffect(() => {
+    const scrollContainer = document.getElementById('main-scroll-container')
+    scrollContainer?.scrollTo({ top: 0, behavior: 'auto' })
+  }, [logic.courseId])
 
   useEffect(() => {
     if (!logic.loading && !logic.error && logic.course) {
@@ -34,7 +43,7 @@ export default function BusinessCourseDetailPage() {
   }, [autoStartIfNeeded, logic.loading, logic.error, logic.course])
 
   if (logic.loading) {
-    return <BusinessCourseDetailLoadingState cardBackground={logic.cardBackground} />
+    return <BusinessCourseDetailLoadingState />
   }
 
   if (logic.error || !logic.course) {
@@ -42,38 +51,41 @@ export default function BusinessCourseDetailPage() {
       <BusinessCourseDetailErrorState
         error={logic.error || 'Curso no encontrado'}
         courseId={logic.courseId}
-        primaryColor={logic.primaryColor}
-        cardBackground={logic.cardBackground}
-        borderColor={logic.borderColor}
-        textColor={logic.textColor}
         onBack={() => logic.router.push(`/${logic.params.orgSlug}/business-panel/courses`)}
       />
     )
+  }
+
+  const detailVariables: DetailVariables = {
+    '--detail-accent': theme.accentColor,
+    '--detail-action': theme.actionColor,
+    '--detail-border': theme.borderColor,
+    '--detail-card': theme.cardBg,
+    '--detail-divider': theme.dividerColor,
+    '--detail-input': theme.inputBg,
+    '--detail-muted': theme.subtextColor,
+    '--detail-on-action': theme.onActionColor,
+    '--detail-text': theme.textColor,
   }
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="lg:p-8 min-h-screen"
-      style={{ backgroundColor: theme.panelBg }}
+      className={styles.page}
+      style={detailVariables}
     >
-      {/* Top Navigation */}
-      <div className="flex items-center justify-between mb-8 px-8">
-          <motion.button
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            onClick={() => logic.router.back()}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 transition-all hover:bg-white/10 active:scale-95 shrink-0"
-            style={{ color: theme.textColor }}
-          >
-            <ArrowLeft className="w-4 h-4 shrink-0" />
-            <span className="font-black uppercase tracking-widest text-[9px] whitespace-nowrap">Cursos</span>
-          </motion.button>
-      </div>
+      <div className={styles.pageStack}>
+        <motion.button
+          initial={{ opacity: 0, x: -12 }}
+          animate={{ opacity: 1, x: 0 }}
+          onClick={() => logic.router.back()}
+          className={styles.backButton}
+        >
+          <ArrowLeft aria-hidden="true" />
+          Volver a cursos
+        </motion.button>
 
-      {/* Unified Main Section */}
-      <div className="max-w-[1550px] mx-auto px-6 lg:px-8 space-y-4 lg:space-y-8">
         <div data-tour-id="business-panel-course-detail--hero">
           <BusinessCourseDetailHero
             course={logic.course}
@@ -87,93 +99,84 @@ export default function BusinessCourseDetailPage() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Main Content Area */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-6">
-            <motion.div
-              data-tour-id="business-panel-course-detail--tabs-container"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="rounded-[2rem] border overflow-hidden shadow-2xl"
-              style={{
-                backgroundColor: logic.cardBackground,
-                borderColor: logic.borderColor
-              }}
-            >
-              <BusinessCourseDetailTabs
-                activeTab={logic.activeTab}
-                setActiveTab={logic.setActiveTab}
-                isDark={logic.isDark}
-                textColor={logic.textColor}
-                borderColor={logic.borderColor}
-                accentColor={logic.accentColor}
-              />
+        <div className={styles.detailGrid}>
+          <motion.section
+            data-tour-id="business-panel-course-detail--tabs-container"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.12 }}
+            className={styles.tabSurface}
+          >
+            <BusinessCourseDetailTabs
+              activeTab={logic.activeTab}
+              setActiveTab={logic.setActiveTab}
+              isDark={logic.isDark}
+              textColor={logic.textColor}
+              borderColor={logic.borderColor}
+              accentColor={logic.accentColor}
+            />
 
-              <div className="p-6 lg:p-10">
-                <AnimatePresence mode="wait">
-                  {logic.activeTab === 'info' ? (
-                    <BusinessCourseInfoTab
-                      key="tab-info"
-                      course={logic.course}
-                      textColor={logic.textColor}
-                      borderColor={logic.borderColor}
-                      primaryColor={logic.primaryColor}
-                      accentColor={logic.accentColor}
-                      isDark={logic.isDark}
-                      formatDuration={logic.formatDuration}
-                    />
-                  ) : null}
+            <div className={styles.tabContent}>
+              <AnimatePresence mode="wait">
+                {logic.activeTab === 'info' ? (
+                  <BusinessCourseInfoTab
+                    key="tab-info"
+                    course={logic.course}
+                    textColor={logic.textColor}
+                    borderColor={logic.borderColor}
+                    primaryColor={logic.primaryColor}
+                    accentColor={logic.accentColor}
+                    isDark={logic.isDark}
+                    formatDuration={logic.formatDuration}
+                  />
+                ) : null}
 
-                  {logic.activeTab === 'content' ? (
-                    <BusinessCourseContentTab
-                      key="tab-content"
-                      course={logic.course}
-                      expandedModules={logic.expandedModules}
-                      toggleModule={logic.toggleModule}
-                      textColor={logic.textColor}
-                      mutedTextColor={logic.mutedTextColor}
-                      borderColor={logic.borderColor}
-                      primaryColor={logic.primaryColor}
-                      onPrimaryColor={logic.onPrimaryColor}
-                      formatDuration={logic.formatDuration}
-                      formatDurationSeconds={logic.formatDurationSeconds}
-                    />
-                  ) : null}
+                {logic.activeTab === 'content' ? (
+                  <BusinessCourseContentTab
+                    key="tab-content"
+                    course={logic.course}
+                    expandedModules={logic.expandedModules}
+                    toggleModule={logic.toggleModule}
+                    textColor={logic.textColor}
+                    mutedTextColor={logic.mutedTextColor}
+                    borderColor={logic.borderColor}
+                    primaryColor={logic.primaryColor}
+                    onPrimaryColor={logic.onPrimaryColor}
+                    formatDuration={logic.formatDuration}
+                    formatDurationSeconds={logic.formatDurationSeconds}
+                  />
+                ) : null}
 
-                  {logic.activeTab === 'reviews' ? (
-                    <BusinessCourseReviewsTab
-                      key="tab-reviews"
-                      course={logic.course}
-                      textColor={logic.textColor}
-                      primaryColor={logic.primaryColor}
-                      borderColor={logic.borderColor}
-                      onPrimaryColor={logic.onPrimaryColor}
-                      mutedTextColor={logic.mutedTextColor}
-                      successColor={logic.successColor}
-                      formatDate={logic.formatDate}
-                    />
-                  ) : null}
+                {logic.activeTab === 'reviews' ? (
+                  <BusinessCourseReviewsTab
+                    key="tab-reviews"
+                    course={logic.course}
+                    textColor={logic.textColor}
+                    primaryColor={logic.primaryColor}
+                    borderColor={logic.borderColor}
+                    onPrimaryColor={logic.onPrimaryColor}
+                    mutedTextColor={logic.mutedTextColor}
+                    successColor={logic.successColor}
+                    formatDate={logic.formatDate}
+                  />
+                ) : null}
 
-                  {logic.activeTab === 'instructor' ? (
-                    <BusinessCourseInstructorTab
-                      key="tab-instructor"
-                      course={logic.course}
-                      textColor={logic.textColor}
-                      primaryColor={logic.primaryColor}
-                      accentColor={logic.accentColor}
-                      onPrimaryColor={logic.onPrimaryColor}
-                      mutedTextColor={logic.mutedTextColor}
-                    />
-                  ) : null}
+                {logic.activeTab === 'instructor' ? (
+                  <BusinessCourseInstructorTab
+                    key="tab-instructor"
+                    course={logic.course}
+                    textColor={logic.textColor}
+                    primaryColor={logic.primaryColor}
+                    accentColor={logic.accentColor}
+                    onPrimaryColor={logic.onPrimaryColor}
+                    mutedTextColor={logic.mutedTextColor}
+                  />
+                ) : null}
+              </AnimatePresence>
+            </div>
+          </motion.section>
 
-                </AnimatePresence>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Sidebar Area */}
-          <div className="lg:col-span-5 xl:col-span-4 sticky top-6" data-tour-id="business-panel-course-detail--sidebar">
+          <aside data-tour-id="business-panel-course-detail--sidebar">
             <BusinessCourseDetailSidebar
               course={logic.course}
               setIsAssignModalOpen={logic.setIsAssignModalOpen}
@@ -194,7 +197,7 @@ export default function BusinessCourseDetailPage() {
               onPurchase={logic.handlePurchase}
               formatDate={logic.formatDate}
             />
-          </div>
+          </aside>
         </div>
       </div>
 

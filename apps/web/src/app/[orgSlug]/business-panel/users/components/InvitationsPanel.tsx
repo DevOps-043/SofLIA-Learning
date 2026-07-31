@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { InvitationCard } from './InvitationCard'
 import { InvitationListRow } from './InvitationListRow'
 import { ManagementTabEmptyState } from './ManagementTabEmptyState'
+import styles from './UsersPanel.module.css'
 import type { BusinessUsersPageLogic, BusinessUsersTheme } from './users-page.types'
 
 interface InvitationsPanelProps {
@@ -24,19 +25,19 @@ export function InvitationsPanel({ logic, theme }: InvitationsPanelProps) {
         theme={theme}
         icon={<Mail className="h-16 w-16" />}
         title="No hay invitaciones pendientes"
-        description="Todas tus invitaciones han sido aceptadas o no has enviado ninguna recientemente."
+        description="Las invitaciones activas aparecerán aquí para que puedas darles seguimiento."
       />
     )
   }
 
   if (logic.viewMode === 'cards') {
     return (
-      <motion.div key="grid-invitations" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <motion.div animate={{ opacity: 1 }} className={styles.cardGrid} exit={{ opacity: 0 }} initial={{ opacity: 0 }} key="grid-invitations">
         {logic.filteredInvitations.map((invitation, index) => (
           <InvitationCard
-            key={invitation.id}
-            invitation={invitation}
             index={index}
+            invitation={invitation}
+            key={invitation.id}
             onResend={() => logic.handleResendIndividualInvitation(invitation.id)}
             onRevoke={() => logic.handleRevokeInvitation(invitation.id)}
           />
@@ -46,18 +47,19 @@ export function InvitationsPanel({ logic, theme }: InvitationsPanelProps) {
   }
 
   return (
-    <motion.div key="list-invitations" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
-      <div className="hidden grid-cols-5 gap-4 px-4 py-2 text-xs font-medium uppercase tracking-wider opacity-50 lg:grid">
-        <div className="col-span-2">{t('users.list.invitation', 'Invitacion')}</div>
-        <div>{t('users.list.sent', 'Enviada')}</div>
-        <div>{t('users.list.status', 'Estado')}</div>
-        <div className="text-right">Acciones</div>
+    <motion.div animate={{ opacity: 1 }} className={styles.managementList} exit={{ opacity: 0 }} initial={{ opacity: 0 }} key="list-invitations">
+      <div className={`${styles.managementListHeader} ${styles.invitationListHeader}`}>
+        <span>{t('users.list.invitation', 'Invitación')}</span>
+        <span>{t('users.list.sent', 'Enviada')}</span>
+        <span>{t('users.list.expires', 'Vencimiento')}</span>
+        <span>{t('users.list.status', 'Estado')}</span>
+        <span>Acciones</span>
       </div>
       {logic.filteredInvitations.map((invitation, index) => (
         <InvitationListRow
-          key={invitation.id}
-          invitation={invitation}
           index={index}
+          invitation={invitation}
+          key={invitation.id}
           onResend={() => logic.handleResendIndividualInvitation(invitation.id)}
           onRevoke={() => logic.handleRevokeInvitation(invitation.id)}
         />

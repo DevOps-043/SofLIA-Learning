@@ -1,0 +1,413 @@
+.form {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.body {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  gap: 1.15rem;
+  overflow-y: auto;
+  padding: 1.15rem 1.35rem 1.4rem;
+  scrollbar-width: none;
+}
+
+.body::-webkit-scrollbar {
+  display: none;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.48rem;
+}
+
+.label {
+  display: block;
+  padding-inline: 0.12rem;
+  font-family: var(--font-system-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.optional {
+  margin-left: 0.3rem;
+  opacity: 0.52;
+}
+
+.required {
+  color: #fb7185;
+}
+
+.controlWrap {
+  position: relative;
+}
+
+.controlWrap > svg,
+.textareaWrap > svg {
+  position: absolute;
+  z-index: 1;
+  left: 0.9rem;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--invite-muted);
+  stroke-width: 1.75;
+  pointer-events: none;
+}
+
+.controlWrap > svg {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.control {
+  width: 100%;
+  min-height: 2.95rem;
+  border: 1px solid var(--invite-border);
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.85rem 0.7rem 2.55rem;
+  color: var(--invite-text);
+  background: var(--invite-input);
+  font-family: var(--font-system-ui);
+  font-size: 0.78rem;
+  font-weight: 450;
+  transition:
+    border-color 170ms ease,
+    box-shadow 170ms ease,
+    background 170ms ease;
+}
+
+.control::placeholder,
+.textarea::placeholder {
+  color: var(--invite-muted);
+  opacity: 0.76;
+}
+
+.control:focus,
+.textarea:focus {
+  border-color: color-mix(in srgb, var(--invite-accent) 48%, var(--invite-border));
+  outline: none;
+  background: color-mix(in srgb, var(--invite-surface) 96%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--invite-accent) 12%, transparent);
+}
+
+.control:disabled,
+.textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+.roleSection {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.role,
+.roleActive {
+  display: grid;
+  min-height: 4.35rem;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.62rem;
+  border: 1px solid var(--invite-border);
+  border-radius: 0.9rem;
+  padding: 0.65rem;
+  text-align: left;
+  background: var(--invite-input);
+  transition:
+    border-color 170ms ease,
+    background 170ms ease,
+    box-shadow 170ms ease,
+    transform 170ms ease;
+}
+
+.role:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--invite-accent) 30%, var(--invite-border));
+}
+
+.roleActive {
+  border-color: color-mix(in srgb, var(--invite-primary) 62%, var(--invite-border));
+  background: color-mix(in srgb, var(--invite-primary) 9%, var(--invite-input));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--invite-primary) 9%, transparent);
+}
+
+.roleIcon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid var(--invite-border);
+  border-radius: 0.62rem;
+  color: var(--invite-muted);
+  background: color-mix(in srgb, var(--invite-surface) 76%, transparent);
+}
+
+.roleActive .roleIcon {
+  color: var(--invite-primary);
+  border-color: color-mix(in srgb, var(--invite-primary) 30%, var(--invite-border));
+  background: color-mix(in srgb, var(--invite-primary) 8%, transparent);
+}
+
+.roleIcon svg {
+  width: 0.86rem;
+  height: 0.86rem;
+  stroke-width: 1.8;
+}
+
+.roleCopy {
+  min-width: 0;
+}
+
+.roleCopy strong {
+  display: block;
+  overflow: hidden;
+  color: var(--invite-text);
+  font-size: 0.69rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roleCopy span {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.16rem;
+  color: var(--invite-muted);
+  font-size: 0.58rem;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textareaWrap {
+  position: relative;
+}
+
+.textareaWrap > svg {
+  top: 0.95rem;
+}
+
+.textarea {
+  width: 100%;
+  min-height: 6.2rem;
+  resize: vertical;
+  border: 1px solid var(--invite-border);
+  border-radius: 0.9rem;
+  padding: 0.85rem 3.1rem 0.85rem 2.55rem;
+  color: var(--invite-text);
+  background: var(--invite-input);
+  font-family: var(--font-system-ui);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.counter {
+  position: absolute;
+  right: 0.78rem;
+  bottom: 0.72rem;
+  color: var(--invite-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.56rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hint,
+.error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  border: 1px solid var(--invite-border);
+  border-radius: 0.9rem;
+  padding: 0.75rem 0.82rem;
+}
+
+.hint {
+  color: var(--invite-muted);
+  background: color-mix(in srgb, var(--invite-accent) 4%, var(--invite-input));
+}
+
+.error {
+  color: #fb7185;
+  border-color: color-mix(in srgb, #fb7185 30%, var(--invite-border));
+  background: color-mix(in srgb, #fb7185 7%, var(--invite-input));
+}
+
+.hint svg,
+.error svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  flex: 0 0 auto;
+  margin-top: 0.08rem;
+  stroke-width: 1.8;
+}
+
+.hint p,
+.error span {
+  margin: 0;
+  font-size: 0.67rem;
+  line-height: 1.5;
+}
+
+.footer {
+  display: flex;
+  min-height: 4.8rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--invite-border);
+  padding: 0.7rem 1.35rem;
+  background: color-mix(in srgb, var(--invite-surface) 95%, transparent);
+  backdrop-filter: blur(1rem);
+}
+
+.footerMode {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--invite-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.footerMode span:first-child {
+  display: grid;
+  width: 1.85rem;
+  height: 1.85rem;
+  place-items: center;
+  border: 1px solid var(--invite-border);
+  border-radius: 0.58rem;
+  color: var(--invite-accent);
+  background: var(--invite-input);
+}
+
+.footerMode svg {
+  width: 0.82rem;
+  height: 0.82rem;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.secondaryButton,
+.primaryButton {
+  display: inline-flex;
+  min-height: 2.7rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.46rem;
+  border-radius: 0.86rem;
+  padding: 0.64rem 0.88rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  transition:
+    transform 170ms ease,
+    border-color 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.secondaryButton {
+  border: 1px solid var(--invite-border);
+  color: var(--invite-text);
+  background: var(--invite-input);
+}
+
+.primaryButton {
+  border: 1px solid var(--invite-primary);
+  color: var(--invite-on-primary);
+  background: var(--invite-primary);
+  box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--invite-primary) 18%, transparent);
+}
+
+.secondaryButton:hover,
+.primaryButton:hover {
+  transform: translateY(-1px);
+}
+
+.primaryButton svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.spinner {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid color-mix(in srgb, var(--invite-on-primary) 30%, transparent);
+  border-top-color: var(--invite-on-primary);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 42rem) {
+  .body {
+    padding: 1rem 0.9rem 1.15rem;
+  }
+
+  .fieldGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .roleGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .role,
+  .roleActive {
+    min-height: 3.8rem;
+  }
+
+  .footer {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 0.7rem 0.9rem max(0.7rem, env(safe-area-inset-bottom));
+  }
+
+  .footerMode {
+    display: none;
+  }
+
+  .footerActions {
+    display: grid;
+    grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role,
+  .roleActive,
+  .secondaryButton,
+  .primaryButton {
+    transition-duration: 1ms;
+  }
+}

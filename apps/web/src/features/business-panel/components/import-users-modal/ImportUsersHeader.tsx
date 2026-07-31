@@ -1,8 +1,9 @@
 'use client'
 
-import { X } from 'lucide-react'
+import { FileUp, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+
+import styles from '../AdministrativeModal.module.css'
 import type { ImportResult } from './import-users.types'
 
 export function ImportUsersHeader({
@@ -13,21 +14,33 @@ export function ImportUsersHeader({
   onClose: () => void
 }) {
   const { t } = useTranslation('business')
-  const theme = useBusinessPanelTheme()
 
   return (
-    <div className="flex items-center justify-between p-4 lg:p-6 border-b shrink-0" style={{ borderColor: theme.borderColor }}>
-      <div>
-        <h3 className="text-lg font-semibold" style={{ color: theme.textColor }}>
-          {importResult ? t('users.modals.import.resultTitle') : t('users.modals.import.uploadTitle')}
-        </h3>
-        <p className="text-sm mt-0.5" style={{ color: theme.mutedTextColor }}>
-          {importResult ? t('users.modals.import.resultSubtitle') : t('users.modals.import.uploadSubtitle')}
+    <header className={styles.header}>
+      <span aria-hidden="true" className={styles.contextIcon}>
+        <FileUp />
+      </span>
+      <div className={styles.heading}>
+        <p className={styles.eyebrow}>Carga administrada</p>
+        <h2 className={styles.title} id="business-import-users-title">
+          {importResult
+            ? t('users.modals.import.resultTitle')
+            : t('users.modals.import.uploadTitle')}
+        </h2>
+        <p className={styles.subtitle}>
+          {importResult
+            ? t('users.modals.import.resultSubtitle')
+            : 'Selecciona o arrastra un archivo CSV compatible.'}
         </p>
       </div>
-      <button onClick={onClose} className="p-2 rounded-lg transition-colors">
-        <X className="w-5 h-5" style={{ color: theme.mutedTextColor }} />
+      <button
+        aria-label={t('users.buttons.close', 'Cerrar')}
+        className={styles.closeButton}
+        onClick={onClose}
+        type="button"
+      >
+        <X aria-hidden="true" />
       </button>
-    </div>
+    </header>
   )
 }

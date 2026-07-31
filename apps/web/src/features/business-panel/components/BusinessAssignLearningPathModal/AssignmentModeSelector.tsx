@@ -1,7 +1,8 @@
 import { Building2, GitBranch, Users } from 'lucide-react'
 import type { AssignmentMode, BusinessPanelTheme, BusinessT } from './types'
+import modalStyles from '../ContentModal.module.css'
 
-export function AssignmentModeSelector({ assignmentMode, setAssignmentMode, t, theme }: {
+export function AssignmentModeSelector({ assignmentMode, setAssignmentMode, t }: {
   assignmentMode: AssignmentMode
   setAssignmentMode: (mode: AssignmentMode) => void
   t: BusinessT
@@ -14,13 +15,13 @@ export function AssignmentModeSelector({ assignmentMode, setAssignmentMode, t, t
   ]
 
   return (
-    <div className="mb-4 grid gap-2 sm:grid-cols-3">
+    <div aria-label="Modo de asignación" className={modalStyles.modeTabs} role="tablist">
       {items.map((item) => {
         const Icon = item.icon
         const isActive = assignmentMode === item.mode
         return (
-          <button key={item.mode} type="button" onClick={() => setAssignmentMode(item.mode)} className="flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-xs font-black uppercase tracking-wider" style={{ backgroundColor: isActive ? theme.actionSurface : theme.inputBg, borderColor: isActive ? theme.primaryColor : theme.borderColor, color: theme.textColor }}>
-            <Icon className="h-4 w-4" />
+          <button aria-selected={isActive} className={`${modalStyles.modeTab} ${isActive ? modalStyles.modeTabActive : ''}`} key={item.mode} onClick={() => setAssignmentMode(item.mode)} role="tab" type="button">
+            <Icon aria-hidden="true" />
             {item.label}
           </button>
         )

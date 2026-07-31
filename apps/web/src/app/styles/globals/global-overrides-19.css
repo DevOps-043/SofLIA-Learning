@@ -39,18 +39,18 @@
   background: rgba(var(--org-card-background-rgb, 255, 255, 255), var(--org-card-opacity, 1)) !important;
 }
 
-/* Texto en modo claro */
-.light .business-panel-content h1,
-.light .business-panel-content h2,
-.light .business-panel-content h3,
-.light .business-panel-content h4,
-.light .business-panel-content label,
-.light .business-panel-content p,
-.light .business-panel-layout h1,
-.light .business-panel-layout h2,
-.light .business-panel-layout h3,
-.light .business-panel-layout h4,
-.light .business-panel-layout label {
+/* Texto en modo claro (excluye elementos dentro de hero banners oscuros) */
+.light .business-panel-content h1:not([class*="hero"]),
+.light .business-panel-content h2:not([class*="hero"]),
+.light .business-panel-content h3:not([class*="hero"]),
+.light .business-panel-content h4:not([class*="hero"]),
+.light .business-panel-content label:not([class*="hero"]),
+.light .business-panel-content p:not([class*="hero"]),
+.light .business-panel-layout h1:not([class*="hero"]),
+.light .business-panel-layout h2:not([class*="hero"]),
+.light .business-panel-layout h3:not([class*="hero"]),
+.light .business-panel-layout h4:not([class*="hero"]),
+.light .business-panel-layout label:not([class*="hero"]) {
   color: var(--org-text-color, var(--color-legacy-1e293b));
 }
 

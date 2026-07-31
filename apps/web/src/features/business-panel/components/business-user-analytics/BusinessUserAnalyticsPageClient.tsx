@@ -46,6 +46,8 @@ export interface BusinessUserAnalyticsPageClientProps {
    *  contenedor ya provee su propio botón (p. ej. BusinessUserStatsModal). */
   showEmbeddedPdfButton?: boolean
   onAnalyticsLoaded?: (data: BusinessUserAnalyticsResponse) => void
+  /** Rango activo del panel. Lo necesita quien exporta el PDF desde fuera. */
+  onRangeChange?:     (range: BusinessUserAnalyticsRange) => void
   onInsightsLoaded?:  (insights: BusinessUserAnalyticsInsights) => void
   /** When true, renders only OverviewKPIs + PerformanceCards (no charts, no AI insights) */
   compactMode?:       boolean
@@ -70,6 +72,7 @@ export function BusinessUserAnalyticsPageClient({
   pdfExport,
   showEmbeddedPdfButton = false,
   onAnalyticsLoaded,
+  onRangeChange,
   onInsightsLoaded,
   compactMode    = false,
   viewerUserId,
@@ -157,6 +160,10 @@ export function BusinessUserAnalyticsPageClient({
     if (data) onAnalyticsLoaded?.(data)
   }, [data, onAnalyticsLoaded])
 
+  useEffect(() => {
+    onRangeChange?.(range)
+  }, [range, onRangeChange])
+
   // Reset insights when range changes (stale AI analysis for a different period)
   useEffect(() => {
     setInsights(null)
@@ -205,32 +212,31 @@ export function BusinessUserAnalyticsPageClient({
   // In embedded mode (admin master panel) the full header is hidden, so a
   // compact toolbar with the export button is rendered instead (see below).
 
+  // El informe lo genera el servidor, que guarda uno por día y devuelve el ya
+  // generado si vuelven a pedirlo la misma jornada; así una segunda descarga no
+  // vuelve a gastar análisis de SofLIA.
   const handleExportPdf = useCallback(async () => {
     if (!data || !pdfExport) return
 
     setIsPdfExporting(true)
     try {
-      const { generateUserStatsPdf } = await import(
-        '../../services/business-user-analytics/pdf/generate-user-stats-pdf'
+      const { downloadUserStatsPdf } = await import(
+        '../../services/business-user-analytics/download-user-stats-pdf'
       )
-      const blob = await generateUserStatsPdf(data, {
-        userLabel:         pdfExport.userLabel,
-        organizationLabel: pdfExport.organizationLabel ?? null,
-        locale:            (language as 'es' | 'en' | 'pt') ?? 'es',
-        insights,
+      await downloadUserStatsPdf({
+        apiBasePath,
+        orgSlug,
+        userId,
+        organizationId,
+        range,
+        locale: (language as 'es' | 'en' | 'pt') ?? 'es',
       })
-      const url = URL.createObjectURL(blob)
-      const a   = document.createElement('a')
-      a.href     = url
-      a.download = `estadisticas-${pdfExport.userLabel.toLowerCase().replace(/\s+/g, '-')}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
     } catch {
       // PDF generation is non-critical; ignore failures silently
     } finally {
       setIsPdfExporting(false)
     }
-  }, [data, pdfExport, language, insights])
+  }, [data, pdfExport, language, apiBasePath, orgSlug, userId, organizationId, range])
 
   // ── Navigation ───────────────────────────────────────────────────────────────
 

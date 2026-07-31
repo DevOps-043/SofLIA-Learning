@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { CheckCircle, Clock, FileText, Target, Users, Video } from 'lucide-react'
+
 import type { BusinessCourseDetail } from '../../types/business-course-detail.types'
+import styles from './BusinessCourseDetail.module.css'
 
 interface BusinessCourseInfoTabProps {
   course: BusinessCourseDetail
@@ -14,91 +16,78 @@ interface BusinessCourseInfoTabProps {
 
 export function BusinessCourseInfoTab({
   course,
-  textColor,
-  borderColor,
-  primaryColor,
-  accentColor,
-  isDark,
   formatDuration,
 }: BusinessCourseInfoTabProps) {
-  const statBackground = isDark ? `color-mix(in srgb, ${primaryColor} 7.1%, transparent)` : `color-mix(in srgb, ${primaryColor} 3.1%, transparent)`
-  const statBorderColor = isDark ? `color-mix(in srgb, ${primaryColor} 19.6%, transparent)` : borderColor
-  const secondaryTextColor = isDark ? 'rgba(255,255,255,0.85)' : `color-mix(in srgb, ${textColor} 43.9%, transparent)`
+  const metrics = [
+    { icon: FileText, label: 'Módulos', value: course.stats.total_modules },
+    { icon: Video, label: 'Lecciones', value: course.stats.total_lessons },
+    { icon: Clock, label: 'Duración', value: formatDuration(course.stats.total_duration_minutes) },
+    { icon: Users, label: 'Estudiantes', value: course.student_count.toLocaleString() },
+  ]
 
   return (
     <motion.div
       key="info"
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
+      exit={{ opacity: 0, y: -8 }}
+      className={styles.contentSection}
     >
-      <div className="space-y-8">
-        {course.learning_objectives.length > 0 ? (
-          <div>
-            <h3 className="mb-4 flex items-center gap-2 text-xl font-bold" style={{ color: textColor }}>
-              <Target className="h-6 w-6" style={{ color: primaryColor }} />
+      <header className={styles.overviewLead}>
+        <span>Resumen académico</span>
+        <h3>Información clave del curso</h3>
+        <p>Consulta la estructura, duración y alcance antes de asignarlo a tu equipo.</p>
+      </header>
+
+      {course.learning_objectives.length > 0 ? (
+        <section className={styles.contentSection}>
+          <header className={styles.sectionHeading}>
+            <h3>
+              <Target aria-hidden="true" />
               Lo que aprenderás
             </h3>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              {course.learning_objectives.map((objective, index) => (
-                <motion.div
-                  key={objective}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="flex items-start gap-3 rounded-xl border p-4"
-                  style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 3.1%, transparent)`, borderColor }}
-                >
-                  <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0" style={{ color: accentColor }} />
-                  <span style={{ color: `color-mix(in srgb, ${textColor} 56.5%, transparent)` }}>{objective}</span>
-                </motion.div>
-              ))}
-            </div>
+          </header>
+          <div className={styles.objectiveGrid}>
+            {course.learning_objectives.map((objective, index) => (
+              <motion.div
+                key={objective}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04 }}
+                className={styles.objective}
+              >
+                <CheckCircle aria-hidden="true" />
+                <span>{objective}</span>
+              </motion.div>
+            ))}
           </div>
-        ) : null}
+        </section>
+      ) : null}
 
-        <div className="grid grid-cols-2 gap-4 2xl:grid-cols-4">
-          {[
-            { icon: FileText, label: 'Módulos', value: course.stats.total_modules },
-            { icon: Video, label: 'Lecciones', value: course.stats.total_lessons },
-            { icon: Clock, label: 'Duración', value: formatDuration(course.stats.total_duration_minutes) },
-            { icon: Users, label: 'Estudiantes', value: course.student_count.toLocaleString() },
-          ].map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="rounded-xl border p-4"
-              style={{
-                backgroundColor: statBackground,
-                borderColor: statBorderColor,
-              }}
-            >
-              <div className="mb-2 flex items-center gap-2">
-                <stat.icon className="h-5 w-5" style={{ color: accentColor }} />
-                <span className="text-sm font-medium" style={{ color: secondaryTextColor }}>
-                  {stat.label}
-                </span>
-              </div>
-              <p className="text-2xl font-bold" style={{ color: textColor }}>
-                {stat.value}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-
-        {course.description ? (
-          <div>
-            <h3 className="mb-4 text-xl font-bold" style={{ color: textColor }}>
-              Descripción del Curso
-            </h3>
-            <p className="whitespace-pre-line leading-relaxed" style={{ color: `color-mix(in srgb, ${textColor} 50.2%, transparent)` }}>
-              {course.description}
-            </p>
-          </div>
-        ) : null}
+      <div className={styles.metricGrid}>
+        {metrics.map(({ icon: Icon, label, value }, index) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className={styles.metric}
+          >
+            <span className={styles.metricLabel}>
+              <span className={styles.metricIcon}><Icon aria-hidden="true" /></span>
+              {label}
+            </span>
+            <strong>{value}</strong>
+          </motion.div>
+        ))}
       </div>
+
+      {course.description ? (
+        <section className={styles.description}>
+          <h3>Descripción del curso</h3>
+          <p className="whitespace-pre-line">{course.description}</p>
+        </section>
+      ) : null}
     </motion.div>
   )
 }

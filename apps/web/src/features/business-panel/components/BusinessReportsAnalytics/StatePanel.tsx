@@ -1,5 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ThemeTokens } from './types'
+import styles from './ReportsAnalytics.module.css'
 
 export function StatePanel({
   theme,
@@ -15,14 +16,22 @@ export function StatePanel({
   spinning?: boolean
 }) {
   return (
-    <section className="rounded-lg border p-6" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg" style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}>
+    <section
+      className={styles.statePanel}
+      style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
+      aria-live="polite"
+    >
+      <div className={styles.statePanelContent}>
+        <div
+          className={styles.statePanelIcon}
+          style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
+          aria-hidden="true"
+        >
           <Icon className={spinning ? 'h-5 w-5 animate-spin' : 'h-5 w-5'} />
         </div>
         <div>
-          <h2 className="font-semibold" style={{ color: theme.textColor }}>{title}</h2>
-          <p className="text-sm" style={{ color: theme.subtextColor }}>{message}</p>
+          <h2 className={styles.statePanelTitle} style={{ color: theme.textColor }}>{title}</h2>
+          <p className={styles.statePanelMessage} style={{ color: theme.subtextColor }}>{message}</p>
         </div>
       </div>
     </section>

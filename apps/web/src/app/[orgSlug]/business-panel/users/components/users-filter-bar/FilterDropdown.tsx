@@ -1,8 +1,11 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { Check, ChevronDown } from 'lucide-react'
+
 import type { FilterOption, UsersFilterBarTheme } from './users-filter-bar.types'
+import styles from '../UsersPanel.module.css'
 
 type FilterDropdownProps = {
   activeColor: string
@@ -18,16 +21,61 @@ type FilterDropdownProps = {
   variant?: 'primary' | 'advanced'
 }
 
-export function FilterDropdown({ activeColor, icon, isOpen, label, onToggle, options, setOpen, setValue, theme, value, variant = 'primary' }: FilterDropdownProps) {
+export function FilterDropdown({ activeColor, icon, isOpen, label, onToggle, options, setOpen, setValue, value, variant = 'primary' }: FilterDropdownProps) {
   const isAdvanced = variant === 'advanced'
+  const dropdownStyle = { '--filter-accent': activeColor } as CSSProperties
+
   return (
-    <div className={isAdvanced ? 'relative min-w-[150px]' : 'relative min-w-[140px]'}>
-      <button type="button" onClick={onToggle} className={isAdvanced ? 'flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2.5 text-sm' : 'flex w-full items-center justify-between gap-2 rounded-xl border-2 px-4 py-3.5 transition-all duration-300'} style={{ backgroundColor: isAdvanced ? theme.hoverBg : theme.cardBg, borderColor: value !== 'all' ? activeColor : theme.borderColor, color: theme.textColor }}>
-        <span className="flex items-center gap-2 truncate">{icon}<span className="truncate">{label}</span></span>
-        {!isAdvanced ? <motion.svg animate={{ rotate: isOpen ? 180 : 0 }} className="h-4 w-4 flex-shrink-0 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></motion.svg> : null}
+    <div
+      className={`${styles.dropdown} ${isAdvanced ? styles.dropdownAdvanced : ''}`}
+      style={dropdownStyle}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        className={`${styles.filterTrigger} ${isOpen || value !== 'all' ? styles.filterTriggerOpen : ''}`}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+      >
+        <span className={styles.filterTriggerValue}>
+          {icon}
+          <span>{label}</span>
+        </span>
+        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} aria-hidden="true">
+          <ChevronDown className={styles.filterChevron} />
+        </motion.span>
       </button>
       <AnimatePresence>
-        {isOpen ? <motion.div initial={{ opacity: 0, y: -10, scale: isAdvanced ? 1 : 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: isAdvanced ? 1 : 0.95 }} transition={{ duration: 0.15 }} className={isAdvanced ? 'absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto rounded-lg border shadow-xl' : 'absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border shadow-2xl'} style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>{options.map((option) => <button key={option.value} type="button" onClick={() => { setValue(option.value); setOpen(false) }} className="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-black/5 dark:hover:bg-white/5" style={{ backgroundColor: value === option.value ? `color-mix(in srgb, ${activeColor} 12.5%, transparent)` : 'transparent', color: value === option.value ? (theme.isDark ? theme.textColor : activeColor) : theme.mutedTextColor }}>{option.label}</button>)}</motion.div> : null}
+        {isOpen ? (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -5, scale: 0.985 }}
+            transition={{ duration: 0.14 }}
+            className={styles.filterMenu}
+            role="listbox"
+          >
+            {options.map((option) => {
+              const selected = value === option.value
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => {
+                    setValue(option.value)
+                    setOpen(false)
+                  }}
+                  className={`${styles.filterOption} ${selected ? styles.filterOptionSelected : ''}`}
+                >
+                  <span>{option.label}</span>
+                  {selected ? <Check aria-hidden="true" /> : null}
+                </button>
+              )
+            })}
+          </motion.div>
+        ) : null}
       </AnimatePresence>
     </div>
   )

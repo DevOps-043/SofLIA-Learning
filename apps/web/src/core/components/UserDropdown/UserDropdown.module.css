@@ -19,17 +19,13 @@
 
 .trigger:hover,
 .trigger:focus-visible {
-  border-color: color-mix(
-    in srgb,
-    var(--org-accent-color, var(--color-accent)) 22%,
-    transparent
-  );
+  border-color: color-mix(in srgb,
+      var(--org-accent-color, var(--color-accent)) 22%,
+      transparent);
   outline: none;
-  background: color-mix(
-    in srgb,
-    var(--org-accent-color, var(--color-accent)) 6%,
-    transparent
-  );
+  background: color-mix(in srgb,
+      var(--org-accent-color, var(--color-accent)) 6%,
+      transparent);
 }
 
 .triggerAvatar {
@@ -53,8 +49,13 @@
   inset: 0;
   border: 0;
   padding: 0;
-  background: rgb(2 10 20 / 0.18);
-  backdrop-filter: blur(0.15rem);
+  background: rgb(2 10 20 / 0.22);
+  -webkit-backdrop-filter: blur(1rem) saturate(72%);
+  backdrop-filter: blur(0.20rem) saturate(72%);
+}
+
+:global(.dark) .backdrop {
+  background: rgb(0 5 12 / 0.34);
 }
 
 .menu {
@@ -72,19 +73,15 @@
   max-width: calc(100vw - 2rem);
   overflow-x: hidden;
   overflow-y: auto;
-  border: 1px solid color-mix(
-    in srgb,
-    var(--user-accent) 16%,
-    var(--user-border)
-  );
+  border: 1px solid color-mix(in srgb,
+      var(--user-accent) 16%,
+      var(--user-border));
   border-radius: 1.35rem;
   color: var(--user-text);
   background:
-    radial-gradient(
-      circle at 100% 0,
+    radial-gradient(circle at 100% 0,
       color-mix(in srgb, var(--user-accent) 7%, transparent),
-      transparent 10rem
-    ),
+      transparent 10rem),
     var(--user-surface);
   box-shadow:
     0 2rem 5rem var(--user-shadow),
@@ -100,21 +97,15 @@
 }
 
 :global(.dark) .menu {
-  --user-surface: color-mix(
-    in srgb,
-    var(--color-bg-dark) 90%,
-    var(--color-gray-800)
-  );
-  --user-surface-soft: color-mix(
-    in srgb,
-    var(--color-bg-dark) 78%,
-    var(--color-gray-800)
-  );
-  --user-surface-raised: color-mix(
-    in srgb,
-    var(--color-gray-800) 84%,
-    var(--color-bg-dark)
-  );
+  --user-surface: color-mix(in srgb,
+      var(--color-bg-dark) 90%,
+      var(--color-gray-800));
+  --user-surface-soft: color-mix(in srgb,
+      var(--color-bg-dark) 78%,
+      var(--color-gray-800));
+  --user-surface-raised: color-mix(in srgb,
+      var(--color-gray-800) 84%,
+      var(--color-bg-dark));
   --user-text: var(--color-bg-light);
   --user-muted: rgb(190 202 215);
   --user-border: rgb(255 255 255 / 0.1);
@@ -687,6 +678,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .trigger,
   .menuItem,
   .logoutButton,

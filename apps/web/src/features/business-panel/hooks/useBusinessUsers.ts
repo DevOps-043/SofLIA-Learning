@@ -71,7 +71,14 @@ export function useBusinessUsers(
     invitations: 0,
     inviteLinks: 0,
   })
+  // `isLoading` es la carga del recurso activo (cambia en cada pestaña).
+  // `loadedResources` recuerda qué recursos ya se trajeron alguna vez: solo el
+  // primer viaje de cada uno justifica un esqueleto; a partir de ahí se revalida
+  // en segundo plano manteniendo las filas visibles.
   const [isLoading, setIsLoading] = useState(true)
+  const [loadedResources, setLoadedResources] = useState<
+    Record<BusinessUsersResource, boolean>
+  >({ users: false, invitations: false, links: false })
   const [error, setError] = useState<string | null>(null)
   const [orgData, setOrgData] = useState<{ id: string, name: string, logo_url?: string } | null>(null)
   const getOrgBySlug = useOrganizationStore((state: OrganizationStoreState) => state.getOrganizationBySlug)
@@ -161,6 +168,9 @@ export function useBusinessUsers(
         setError(err instanceof Error ? err.message : 'Error al cargar datos')
       } finally {
         setIsLoading(false)
+        setLoadedResources((previous) =>
+          previous[resource] ? previous : { ...previous, [resource]: true },
+        )
       }
     },
     [activeResource, buildResourceUrl, getOrgBySlug, orgSlug],
@@ -271,6 +281,11 @@ export function useBusinessUsers(
     [activeResource, paginationByResource],
   )
 
+  // Tras el primer recurso ya hay cabecera, estadísticas y filtros que conservar,
+  // así que ninguna carga posterior debe sustituir la página entera. Se calcula
+  // en cada render a propósito: recorrer tres claves no justifica un hook.
+  const hasAnyResourceLoaded = Object.values(loadedResources).some(Boolean)
+
   return {
     users,
     invitations,
@@ -278,6 +293,10 @@ export function useBusinessUsers(
     stats,
     orgData,
     isLoading,
+    // Arranque en frío: no hay nada que enseñar todavía en ninguna pestaña.
+    isInitialLoading: isLoading && !hasAnyResourceLoaded,
+    // Primer viaje de esta pestaña: la lista aún no tiene filas que mantener.
+    isResourceLoading: isLoading && !loadedResources[activeResource],
     error,
     paginationByResource,
     activePagination,

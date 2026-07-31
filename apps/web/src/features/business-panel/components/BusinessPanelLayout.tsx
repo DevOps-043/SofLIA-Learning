@@ -227,7 +227,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <main
                 id="main-scroll-container"
-                className="business-panel-content flex-1 overflow-x-clip overflow-y-auto p-4 transition-all duration-300 sm:p-6 lg:p-8 xl:p-12"
+                className="business-panel-content flex-1 overflow-x-clip overflow-y-auto px-3 pb-3 pt-[5.75rem] transition-all duration-300 sm:px-5 sm:pb-5 lg:px-7 lg:pb-7 xl:px-8 xl:pb-8"
                 style={{
                   paddingRight: contentOffsetPx > 0 ? `${contentOffsetPx}px` : undefined,
                 }}

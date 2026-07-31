@@ -11,7 +11,7 @@ import { useBusinessUserStatsModalLogic } from '../hooks/useBusinessUserStatsMod
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 import { BusinessUserAnalyticsPageClient } from './business-user-analytics/BusinessUserAnalyticsPageClient'
 import type {
-  BusinessUserAnalyticsInsights,
+  BusinessUserAnalyticsRange,
   BusinessUserAnalyticsResponse,
 } from '../types/business-user-analytics.types'
 import { useLanguage } from '@/core/providers/I18nProvider'
@@ -42,35 +42,33 @@ export function BusinessUserStatsModal({
   const { t, isDark, primaryColor, accentColor, displayName } =
     useBusinessUserStatsModalLogic({ user, onClose })
 
-  const [analyticsData,    setAnalyticsData]    = useState<BusinessUserAnalyticsResponse | null>(null)
-  const [analyticsInsights, setAnalyticsInsights] = useState<BusinessUserAnalyticsInsights | null>(null)
-  const [isPdfExporting,   setIsPdfExporting]   = useState(false)
+  const [analyticsData,  setAnalyticsData]  = useState<BusinessUserAnalyticsResponse | null>(null)
+  // El rango lo controla el panel embebido y define el ámbito del informe diario.
+  const [analyticsRange, setAnalyticsRange] = useState<BusinessUserAnalyticsRange>('365d')
+  const [isPdfExporting, setIsPdfExporting] = useState(false)
 
+  // El informe lo genera el servidor, que guarda uno por día y devuelve el ya
+  // generado si vuelven a pedirlo la misma jornada; así una segunda descarga no
+  // vuelve a gastar análisis de SofLIA.
   const handleExportPdf = useCallback(async () => {
-    if (!analyticsData) return
+    if (!analyticsData || !user || !orgSlug) return
     setIsPdfExporting(true)
     try {
-      const { generateUserStatsPdf } = await import(
-        '../services/business-user-analytics/pdf/generate-user-stats-pdf'
+      const { downloadUserStatsPdf } = await import(
+        '../services/business-user-analytics/download-user-stats-pdf'
       )
-      const blob = await generateUserStatsPdf(analyticsData, {
-        userLabel:         displayName,
-        organizationLabel: organizationName,
-        locale:            (language as 'es' | 'en' | 'pt') ?? 'es',
-        insights:          analyticsInsights,
+      await downloadUserStatsPdf({
+        orgSlug,
+        userId: user.id,
+        range: analyticsRange,
+        locale: (language as 'es' | 'en' | 'pt') ?? 'es',
       })
-      const url = URL.createObjectURL(blob)
-      const a   = document.createElement('a')
-      a.href     = url
-      a.download = `estadisticas-${displayName.toLowerCase().replace(/\s+/g, '-')}.pdf`
-      a.click()
-      URL.revokeObjectURL(url)
     } catch {
       // PDF generation is non-critical; ignore failures silently
     } finally {
       setIsPdfExporting(false)
     }
-  }, [analyticsData, analyticsInsights, displayName, language, organizationName])
+  }, [analyticsData, analyticsRange, language, orgSlug, user])
 
   // Dictamen forense (auditoría con SofLIA) — usa la ruta org-autorizada del panel de
   // organización. El botón solo aparece si hay orgSlug (contexto de organización).
@@ -97,10 +95,14 @@ export function BusinessUserStatsModal({
         {/* Backdrop */}
         <motion.div
           animate={{ opacity: 1 }}
-          className="absolute inset-0 bg-transparent"
+          className="absolute inset-0"
           exit={{ opacity: 0 }}
           initial={{ opacity: 0 }}
           onClick={onClose}
+          style={{
+            backgroundColor: panelTheme.overlayBg,
+            backdropFilter: 'blur(16px) saturate(112%)',
+          }}
         />
 
         {/* Modal */}
@@ -109,20 +111,20 @@ export function BusinessUserStatsModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative flex h-full w-full max-w-[1500px] flex-col overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] sm:h-[min(calc(var(--soflia-viewport-height)-2rem),900px)] sm:max-h-[900px] sm:rounded-[2.5rem]"
+          className="relative flex h-full w-full max-w-[76rem] flex-col overflow-hidden shadow-[0_32px_72px_-22px_rgba(2,12,23,0.55)] sm:h-[min(calc(var(--soflia-viewport-height)-3rem),820px)] sm:max-h-[820px] sm:rounded-[1.65rem]"
           onClick={(e) => e.stopPropagation()}
         >
           <div
-            className="flex h-full flex-col overflow-hidden border"
+            className="flex h-full flex-col overflow-hidden border sm:rounded-[1.65rem]"
             style={{ backgroundColor: modalBg, borderColor: modalBorder }}
           >
             {/* ── Header ──────────────────────────────────────────────────────── */}
-            <div className="relative shrink-0 border-b border-white/5 px-6 pb-4 pt-6 sm:px-12 sm:pb-6 sm:pt-8">
-              <div className="relative z-10 flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
+            <div className="relative shrink-0 border-b border-white/5 px-5 py-4 sm:px-7">
+              <div className="relative z-10 flex items-center gap-4">
                 {/* Avatar */}
                 <div className="relative shrink-0">
                   <div
-                    className="flex h-16 w-16 items-center justify-center rounded-[1.5rem] border-2 shadow-2xl sm:h-20 sm:w-20 sm:rounded-[2rem] sm:border-4"
+                    className="flex h-14 w-14 items-center justify-center rounded-[1rem] border-2 shadow-xl"
                     style={{
                       background:   user.profile_picture_url
                         ? 'transparent'
@@ -135,23 +137,23 @@ export function BusinessUserStatsModal({
                         src={user.profile_picture_url}
                         alt={displayName}
                         fill
-                        className="rounded-[1.5rem] object-cover sm:rounded-[2rem]"
+                        className="rounded-[0.9rem] object-cover"
                       />
                     ) : (
-                      <User className="h-8 w-8 text-white sm:h-10 sm:w-10" strokeWidth={2.5} />
+                      <User className="h-7 w-7 text-white" strokeWidth={2} />
                     )}
                   </div>
                 </div>
 
                 {/* Name + badges */}
-                <div className="min-w-0 flex-1 text-center sm:text-left">
+                <div className="min-w-0 flex-1 text-left">
                   <h2
-                    className="mb-1 truncate text-xl font-black tracking-tight sm:text-2xl"
+                    className="mb-1 truncate font-display text-2xl tracking-[-0.025em]"
                     style={{ color: panelTheme.textColor }}
                   >
                     {displayName}
                   </h2>
-                  <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
+                  <div className="flex flex-wrap items-center gap-2">
                     <div
                       className="inline-flex items-center gap-2 rounded-xl border px-3 py-1 text-[10px] font-black uppercase tracking-widest"
                       style={{ backgroundColor: inputBg, borderColor: modalBorder, color: mutedText }}
@@ -175,8 +177,9 @@ export function BusinessUserStatsModal({
 
                 {/* Close */}
                 <button
+                  aria-label={t('common.close', 'Cerrar')}
                   onClick={onClose}
-                  className="shrink-0 rounded-2xl border p-3 transition-all"
+                  className="shrink-0 rounded-[0.85rem] border p-2.5 transition-all"
                   style={{ backgroundColor: inputBg, borderColor: modalBorder, color: mutedText }}
                 >
                   <X className="h-5 w-5" />
@@ -187,10 +190,10 @@ export function BusinessUserStatsModal({
             {/* ── Content ─────────────────────────────────────────────────────── */}
             <div className="relative flex-1 overflow-hidden">
               <div
-                className="h-full overflow-y-auto px-6 pb-28 pt-6 sm:px-12 sm:pb-32"
-                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.05) transparent' }}
+                className="h-full overflow-y-auto px-4 pb-24 pt-5 sm:px-7 sm:pb-28"
+                style={{ scrollbarWidth: 'none' }}
               >
-                <div className="mx-auto w-full max-w-[1400px]">
+                <div className="mx-auto w-full max-w-[70rem]">
                   <BusinessUserAnalyticsPageClient
                     embedded
                     orgSlug={orgSlug}
@@ -198,7 +201,7 @@ export function BusinessUserStatsModal({
                     userId={user.id}
                     pdfExport={{ userLabel: displayName, organizationLabel: organizationName }}
                     onAnalyticsLoaded={setAnalyticsData}
-                    onInsightsLoaded={setAnalyticsInsights}
+                    onRangeChange={setAnalyticsRange}
                     viewerUserId={viewerUserId}
                     goalActionMode="reminder"
                     onNotifyFeedback={onNotifyFeedback}
@@ -208,8 +211,12 @@ export function BusinessUserStatsModal({
 
               {/* ── Footer ──────────────────────────────────────────────────────── */}
               <div
-                className="absolute bottom-0 left-0 right-0 flex items-center justify-between gap-4 border-t p-5 px-8"
-                style={{ backgroundColor: modalBg, borderColor: modalBorder }}
+                className="absolute bottom-0 left-0 right-0 flex items-center justify-between gap-4 border-t px-5 py-3.5 sm:px-7"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${modalBg} 94%, transparent)`,
+                  borderColor: modalBorder,
+                  backdropFilter: 'blur(18px) saturate(115%)',
+                }}
               >
                 <div className="hidden select-none items-center gap-3 opacity-30 sm:flex">
                   <BarChart3 className="h-5 w-5" style={{ color: panelTheme.textColor }} />

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { HierarchyConfig } from '../../../types/hierarchy.types'
 import { UserBehaviorToggleItem } from './UserBehaviorToggleItem'
+import styles from '../HierarchyExperience.module.css'
 
 export function UserBehaviorSettings({
   config,
@@ -47,21 +48,20 @@ export function UserBehaviorSettings({
   ]
 
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-6 dark:border-white/5 dark:bg-carbon-800">
-      <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 shadow-lg shadow-violet-500/20">
-          <Settings className="h-5 w-5 text-white" />
+    <section className={styles.settingsCard}>
+      <header className={styles.settingsHeader}>
+        <div className={styles.sectionIdentity}>
+          <div className={styles.sectionIcon}>
+            <Settings aria-hidden="true" />
+          </div>
+          <div className={styles.sectionCopy}>
+            <h2 className={styles.sectionTitle}>{t('hierarchy.userBehavior.title')}</h2>
+            <p className={styles.sectionDescription}>{t('hierarchy.userBehavior.subtitle')}</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
-            {t('hierarchy.userBehavior.title')}
-          </h3>
-          <p className="text-sm text-neutral-500 dark:text-white/40">
-            {t('hierarchy.userBehavior.subtitle')}
-          </p>
-        </div>
-      </div>
-      <div className="space-y-3">
+      </header>
+      <div className={styles.settingsBody}>
+        <div className={styles.toggleList}>
         {toggleItems.map((item) => (
           <UserBehaviorToggleItem
             key={item.key}
@@ -71,7 +71,8 @@ export function UserBehaviorSettings({
             onToggle={() => handleToggle(item.key, item.value)}
           />
         ))}
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import React, { useMemo, useState } from 'react'
 import { OrganizationNode } from '../../types/dynamicHierarchy.types'
 import {
@@ -18,6 +19,12 @@ import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
+import styles from './HierarchyExperience.module.css'
+
+type NodeRowVariables = CSSProperties & {
+  '--node-accent': string
+  '--node-depth': number
+}
 
 interface NodeItemProps {
   node: OrganizationNode
@@ -44,10 +51,6 @@ export const NodeItem: React.FC<NodeItemProps> = ({
   const { t: tc } = useTranslation('common')
   const [isExpanded, setIsExpanded] = useState(level === 0)
 
-  const indentSize = 32
-  const paddingLeft = level * indentSize
-  const isRootExpanded = isExpanded && level === 0
-
   const nodeTypeStyle = useMemo(() => {
     switch (node.type) {
       case 'root':
@@ -71,133 +74,80 @@ export const NodeItem: React.FC<NodeItemProps> = ({
   }
 
   return (
-    <div className="flex flex-col">
+    <div className={styles.nodeBranch}>
       <motion.div
-        whileHover={{ backgroundColor: theme.hoverBg }}
-        className="group relative flex items-start gap-3 rounded-2xl px-3 py-3 transition-all duration-300 sm:items-center sm:px-4"
+        className={styles.nodeRow}
         style={{
-          marginLeft: `${paddingLeft}px`,
-          backgroundColor: isRootExpanded ? theme.inputBg : 'transparent'
-        }}
+          '--node-accent': nodeTypeStyle.color,
+          '--node-depth': level,
+        } as NodeRowVariables}
       >
-        {level > 0 ? (
-          <div
-            className="absolute top-0 bottom-0 -left-[16px] w-px transition-colors"
-            style={{ backgroundColor: theme.borderColor }}
-          />
-        ) : null}
+        {level > 0 ? <span className={styles.nodeConnector} aria-hidden="true" /> : null}
 
         <button
+          type="button"
           onClick={handleToggle}
-          className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg transition-all"
-          style={{ color: isExpanded ? theme.primaryColor : theme.mutedTextColor }}
+          className={styles.nodeToggle}
+          aria-expanded={node.children?.length ? isExpanded : undefined}
+          aria-label={node.children?.length ? `${isExpanded ? 'Contraer' : 'Expandir'} ${node.name}` : node.name}
         >
           {node.children && node.children.length > 0 ? (
-            isExpanded ? <ChevronDown size={14} strokeWidth={3} /> : <ChevronRight size={14} strokeWidth={3} />
+            isExpanded ? <ChevronDown aria-hidden="true" /> : <ChevronRight aria-hidden="true" />
           ) : (
-            <div className="w-1 h-1 rounded-full bg-current opacity-60" />
+            <nodeTypeStyle.Icon aria-hidden="true" />
           )}
         </button>
 
-        <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
-          <div
-            className="shrink-0 w-10 h-10 rounded-xl flex items-center justify-center border transition-all"
-            style={{
-              backgroundColor: theme.inputBg,
-              borderColor: isExpanded ? `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)` : theme.borderColor,
-              boxShadow: isExpanded ? `0 12px 28px -16px color-mix(in srgb, ${theme.primaryColor} 50.2%, transparent)` : 'none'
-            }}
-          >
-            <nodeTypeStyle.Icon size={18} style={{ color: nodeTypeStyle.color }} />
+        <div className={styles.nodeMain}>
+          <div className={styles.nodeTitleLine}>
+            <Link
+              href={`/${params?.orgSlug}/business-panel/hierarchy/node/${node.id}`}
+              className={styles.nodeTitle}
+            >
+              {node.name}
+            </Link>
+            {node.code ? <span className={styles.nodeCode}>{node.code}</span> : null}
           </div>
 
-          <div className="flex min-w-0 flex-1 flex-col">
-            <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
-              <Link
-                href={`/${params?.orgSlug}/business-panel/hierarchy/node/${node.id}`}
-                className="min-w-0 max-w-full truncate text-sm font-black tracking-tight transition-colors"
-                style={{ color: theme.textColor }}
-              >
-                {node.name}
-              </Link>
-              {node.code ? (
-                <span
-                  className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-lg border"
-                  style={{
-                    color: theme.primaryColor,
-                    backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 6.3%, transparent)`,
-                    borderColor: `color-mix(in srgb, ${theme.primaryColor} 12.5%, transparent)`
-                  }}
-                >
-                  {node.code}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-[10px] font-medium" style={{ color: theme.mutedTextColor }}>
-              <span className="shrink-0 uppercase tracking-[0.1em] font-black">{t(`hierarchy.types.${node.type}`)}</span>
-              {node.manager ? (
-                <div className="flex min-w-0 items-center gap-1.5 border-l pl-3" style={{ borderColor: theme.borderColor }}>
-                  <User size={10} style={{ color: theme.primaryColor }} />
-                  <span className="truncate">{t('hierarchy.leaderLabel')}: {node.manager.first_name}</span>
-                </div>
-              ) : null}
-              <div className="flex shrink-0 items-center gap-1.5 border-l pl-3" style={{ borderColor: theme.borderColor }}>
-                <Users size={10} />
-                <span>{t('hierarchy.membersCount', { count: node.members_count || 0 })}</span>
-              </div>
-            </div>
+          <div className={styles.nodeMeta}>
+            <span className={styles.nodeType}>{t(`hierarchy.types.${node.type}`)}</span>
+            {node.manager ? (
+              <span className={styles.nodeMetaItem}>
+                <User aria-hidden="true" />
+                <span>{t('hierarchy.leaderLabel')}: {node.manager.first_name}</span>
+              </span>
+            ) : null}
+            <span className={styles.nodeMetaItem}>
+              <Users aria-hidden="true" />
+              <span>{t('hierarchy.membersCount', { count: node.members_count || 0 })}</span>
+            </span>
           </div>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 opacity-100 transition-all sm:scale-90 sm:opacity-0 sm:group-hover:scale-100 sm:group-hover:opacity-100 sm:group-focus-within:scale-100 sm:group-focus-within:opacity-100">
+        <div className={styles.nodeActions}>
           <button
+            type="button"
             onClick={() => onAddChild && onAddChild(node)}
-            className="p-2 rounded-xl transition-all"
-            style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = theme.primaryColor
-              event.currentTarget.style.backgroundColor = `color-mix(in srgb, ${theme.primaryColor} 7.1%, transparent)`
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = theme.mutedTextColor
-              event.currentTarget.style.backgroundColor = 'transparent'
-            }}
-            title={t('hierarchy.addSubLevel')}
+            className={styles.iconButton}
+            aria-label={`${t('hierarchy.addSubLevel')}: ${node.name}`}
           >
-            <Plus size={16} strokeWidth={3} />
+            <Plus aria-hidden="true" />
           </button>
           <button
+            type="button"
             onClick={() => onEdit && onEdit(node)}
-            className="p-2 rounded-xl transition-all"
-            style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = theme.textColor
-              event.currentTarget.style.backgroundColor = theme.hoverBg
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = theme.mutedTextColor
-              event.currentTarget.style.backgroundColor = 'transparent'
-            }}
-            title={tc('actions.edit')}
+            className={styles.iconButton}
+            aria-label={`${tc('actions.edit')}: ${node.name}`}
           >
-            <Edit3 size={16} />
+            <Edit3 aria-hidden="true" />
           </button>
           <button
+            type="button"
             onClick={() => onDelete && onDelete(node)}
-            className="p-2 rounded-xl transition-all"
-            style={{ color: theme.mutedTextColor, backgroundColor: 'transparent' }}
-            onMouseEnter={(event) => {
-              event.currentTarget.style.color = theme.dangerColor
-              event.currentTarget.style.backgroundColor = `color-mix(in srgb, ${theme.dangerColor} 7.1%, transparent)`
-            }}
-            onMouseLeave={(event) => {
-              event.currentTarget.style.color = theme.mutedTextColor
-              event.currentTarget.style.backgroundColor = 'transparent'
-            }}
-            title={tc('actions.delete')}
+            className={styles.dangerIconButton}
+            aria-label={`${tc('actions.delete')}: ${node.name}`}
           >
-            <Trash2 size={16} />
+            <Trash2 aria-hidden="true" />
           </button>
         </div>
       </motion.div>
@@ -208,7 +158,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="overflow-hidden flex flex-col pt-1"
+            className={styles.nodeChildren}
           >
             {node.children.map(child => (
               <NodeItem
@@ -227,10 +177,7 @@ export const NodeItem: React.FC<NodeItemProps> = ({
       </AnimatePresence>
 
       {isExpanded && (!node.children || node.children.length === 0) ? (
-        <div className="py-2 flex items-center gap-3" style={{ marginLeft: `${paddingLeft + indentSize + 12}px`, color: theme.mutedTextColor }}>
-          <div className="w-4 h-px bg-current shrink-0" />
-          <span className="text-[10px] font-black uppercase tracking-widest italic">{t('hierarchy.terminalLevel')}</span>
-        </div>
+        <div className={styles.terminalLabel}>{t('hierarchy.terminalLevel')}</div>
       ) : null}
     </div>
   )

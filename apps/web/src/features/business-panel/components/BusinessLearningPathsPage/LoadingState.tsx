@@ -1,12 +1,14 @@
-export function BusinessLearningPathsLoading({ inputBg }: { inputBg: string }) {
+import styles from '@/app/[orgSlug]/business-panel/courses/ContentPanel.module.css'
+
+export function BusinessLearningPathsLoading() {
   return (
-    <div className="min-h-screen p-6 lg:p-8 space-y-5">
-      {[80, 60, 200].map((height, index) => (
-        <div key={index} className="animate-pulse rounded-[2rem]" style={{ height, backgroundColor: inputBg }} />
-      ))}
-      <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
-        {[1, 2, 3].map((index) => (
-          <div key={index} className="animate-pulse rounded-[2rem]" style={{ height: 280, backgroundColor: inputBg }} />
+    <div className={styles.loadingPage} aria-label="Cargando rutas de aprendizaje">
+      <div className={`${styles.skeleton} ${styles.skeletonHero}`} />
+      <div className={`${styles.skeleton} ${styles.skeletonStats}`} />
+      <div className={`${styles.skeleton} ${styles.skeletonToolbar}`} />
+      <div className={styles.skeletonGrid}>
+        {[1, 2, 3, 4].map((index) => (
+          <div key={index} className={`${styles.skeleton} ${styles.skeletonCard}`} />
         ))}
       </div>
     </div>

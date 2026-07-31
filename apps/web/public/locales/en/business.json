@@ -1511,6 +1511,7 @@
     "errorDisable": "Error disabling hierarchy",
     "loadingConfig": "Loading Configuration...",
     "types": {
+      "root": "Organization",
       "region": "Region",
       "zone": "Zone",
       "team": "Team"
@@ -1652,6 +1653,33 @@
     "pageKicker": "Structure",
     "pageTitle": "Hierarchy",
     "pageSubtitle": "Manage your company's organizational levels, teams, and regions.",
+    "summary": {
+      "label": "Structure overview",
+      "structures": "Structures",
+      "levels": "Levels",
+      "members": "Members",
+      "leaders": "Managers"
+    },
+    "workspace": {
+      "controlKicker": "Structure center",
+      "controlTitle": "Organizational architecture",
+      "controlDescription": "Select a structure and manage its levels from one place.",
+      "currentStructure": "Current structure",
+      "noStructure": "No structure selected",
+      "mapKicker": "Organization map",
+      "mapDescription": "See the relationships, managers, and members at every level.",
+      "getStarted": "Start here",
+      "noStructuresTitle": "Design your first structure",
+      "noStructuresDescription": "Create a clear architecture to organize teams, managers, and information access.",
+      "steps": {
+        "structureTitle": "Create the structure",
+        "structureDescription": "Define the model that will organize your company.",
+        "levelsTitle": "Build the levels",
+        "levelsDescription": "Add regions, zones, areas, or teams.",
+        "peopleTitle": "Assign your team",
+        "peopleDescription": "Connect managers and members to every level."
+      }
+    },
     "tabs": {
       "treeView": "Tree view",
       "settings": "Settings"
@@ -2009,7 +2037,10 @@
       "allRegions": "All regions",
       "allZones": "All zones",
       "allTeams": "All areas/teams",
-      "moreFilters": "More filters"
+      "moreFilters": "More filters",
+      "activeFilters": "Active filters",
+      "removeFilter": "Remove filter",
+      "panelLabel": "Report filters"
     },
     "granularity": {
       "day": "Day",
@@ -2096,7 +2127,47 @@
       "plannerInsights": "Study planner",
       "plannerInsightsSubtitle": "Session adherence and planned vs. actual study time comparison.",
       "notesComposition": "Notes & annotations",
-      "notesCompositionSubtitle": "Notebook adoption and composition: manual vs. auto-generated."
+      "notesCompositionSubtitle": "Notebook adoption and composition: manual vs. auto-generated.",
+      "progressOverview": "Overall progress",
+      "progressOverviewSubtitle": "Review every learner's progress and filter by course or completion stage."
+    },
+    "groups": {
+      "learningEyebrow": "Overview",
+      "learningTitle": "Learning progress",
+      "learningDescription": "Distribution, organizational health, and drop-off points in one unified view.",
+      "riskEyebrow": "Follow-up",
+      "riskTitle": "Risk and compliance",
+      "riskDescription": "People, areas, and courses that require prioritized intervention or follow-up.",
+      "performanceEyebrow": "Performance",
+      "performanceTitle": "Evolution and achievement",
+      "performanceDescription": "Compare trends, teams, and segments without changing operational charts.",
+      "qualityEyebrow": "Adoption",
+      "qualityTitle": "Learning quality",
+      "qualityDescription": "Academic results, SofLIA usage, and note-taking habits within the period.",
+      "intelligenceEyebrow": "Intelligence",
+      "intelligenceTitle": "Insights and data quality",
+      "intelligenceDescription": "Turn indicators into decisions and improve analytical reliability."
+    },
+    "progressOverview": {
+      "summary": "Progress status summary",
+      "userFilter": "User",
+      "searchPlaceholder": "Search by name, email, or job title",
+      "completionFilter": "Completion",
+      "allStatuses": "All progress states",
+      "results": "users",
+      "learningScope": "Course / context",
+      "paginationLabel": "Overall progress pagination",
+      "page": "Page",
+      "of": "of",
+      "previous": "Previous",
+      "next": "Next",
+      "emptyTitle": "No users match these filters",
+      "emptyDescription": "Adjust the search, course, or completion state.",
+      "status": {
+        "completed": "Completed",
+        "in_progress": "In progress",
+        "not_started": "Not started"
+      }
     },
     "metrics": {
       "totalConversations": "Conversations",

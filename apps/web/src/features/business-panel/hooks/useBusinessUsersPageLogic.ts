@@ -67,6 +67,8 @@ export function useBusinessUsersPageLogic() {
     stats: usersState.stats,
     orgData: usersState.orgData,
     isLoading: usersState.isLoading,
+    isInitialLoading: usersState.isInitialLoading,
+    isResourceLoading: usersState.isResourceLoading,
     error: usersState.error,
     isJoinRequestsLoading: joinState.isLoading,
     joinRequestsError: joinState.error,

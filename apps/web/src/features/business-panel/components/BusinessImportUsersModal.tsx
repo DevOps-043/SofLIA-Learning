@@ -1,7 +1,12 @@
 'use client'
 
+import type { CSSProperties } from 'react'
+import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
+
 import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
+import styles from './AdministrativeModal.module.css'
 import { ImportUsersContent } from './import-users-modal/ImportUsersContent'
 import { ImportUsersFooter } from './import-users-modal/ImportUsersFooter'
 import { ImportUsersHeader } from './import-users-modal/ImportUsersHeader'
@@ -17,29 +22,81 @@ export function BusinessImportUsersModal({
   const theme = useBusinessPanelTheme()
   const state = useBusinessImportUsersModal({ onClose, onImportComplete })
 
-  if (!isOpen) return null
+  useEffect(() => {
+    if (!isOpen) return
 
-  return (
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !state.isImporting) state.handleClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isOpen, state.handleClose, state.isImporting])
+
+  if (!isOpen || typeof document === 'undefined') return null
+
+  const modalStyle = {
+    '--admin-modal-accent': theme.accentColor,
+    '--admin-modal-border': theme.borderColor,
+    '--admin-modal-danger': theme.dangerColor,
+    '--admin-modal-input': theme.inputBg,
+    '--admin-modal-muted': theme.mutedTextColor,
+    '--admin-modal-on-primary': theme.onPrimaryColor,
+    '--admin-modal-primary': theme.primaryColor,
+    '--admin-modal-success': theme.successColor,
+    '--admin-modal-surface': theme.panelBg,
+    '--admin-modal-text': theme.textColor,
+    '--admin-modal-warning': theme.warningColor,
+    '--admin-modal-width': '58rem',
+    '--admin-modal-height': '42rem',
+  } as CSSProperties
+
+  return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex: 99999 }}>
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={state.handleClose} className="absolute inset-0" />
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden" onClick={event => event.stopPropagation()}>
-          <div className="rounded-2xl shadow-2xl overflow-hidden border" style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor }}>
-            <div className="flex flex-col lg:flex-row max-h-[85vh] overflow-y-auto lg:overflow-hidden">
-              <ImportUsersPreviewPanel
+      <motion.div
+        animate={{ opacity: 1 }}
+        className={styles.overlay}
+        exit={{ opacity: 0 }}
+        initial={{ opacity: 0 }}
+        onMouseDown={() => {
+          if (!state.isImporting) state.handleClose()
+        }}
+        style={modalStyle}
+      >
+        <motion.section
+          aria-labelledby="business-import-users-title"
+          aria-modal="true"
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          className={styles.dialog}
+          exit={{ opacity: 0, scale: 0.985, y: 12 }}
+          initial={{ opacity: 0, scale: 0.975, y: 18 }}
+          onMouseDown={(event) => event.stopPropagation()}
+          role="dialog"
+          transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className={styles.importLayout}>
+            <ImportUsersPreviewPanel
+              importResult={state.importResult}
+              onDownloadTemplate={state.handleDownloadTemplate}
+              selectedFile={state.selectedFile}
+            />
+            <div className={styles.importMain}>
+              <ImportUsersHeader
                 importResult={state.importResult}
-                onDownloadTemplate={state.handleDownloadTemplate}
-                selectedFile={state.selectedFile}
+                onClose={state.handleClose}
               />
-              <div className="flex-1 flex flex-col min-w-0 max-h-[85vh] lg:max-h-full overflow-hidden">
-                <ImportUsersHeader importResult={state.importResult} onClose={state.handleClose} />
-                <ImportUsersContent state={state} />
-                <ImportUsersFooter state={state} />
-              </div>
+              <ImportUsersContent state={state} />
+              <ImportUsersFooter state={state} />
             </div>
           </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+        </motion.section>
+      </motion.div>
+    </AnimatePresence>,
+    document.body,
   )
 }

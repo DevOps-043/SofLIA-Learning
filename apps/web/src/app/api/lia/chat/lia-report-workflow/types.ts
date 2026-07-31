@@ -53,6 +53,12 @@ export interface PreparedDraftResponse {
 export interface ConfirmedBugReportResult {
   bugReportSaved: boolean
   clientContent: string
+  /**
+   * Texto a guardar en el historial. Difiere de `clientContent` cuando el envio
+   * falla: ahi conserva el bloque oculto del borrador para que el usuario pueda
+   * reintentar la confirmacion sin volver a describir el problema.
+   */
+  assistantContentToPersist: string
 }
 
 export type BugReportConfirmationIntent = 'confirm' | 'revise' | 'unclear'

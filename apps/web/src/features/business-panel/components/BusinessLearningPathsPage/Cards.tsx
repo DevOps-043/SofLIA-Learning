@@ -1,6 +1,7 @@
 import { Route } from 'lucide-react'
 import { BusinessLearningPathCard } from './Card'
 import type { BusinessLearningPathsLogic, BusinessLearningPathsTranslate } from './types'
+import styles from '@/app/[orgSlug]/business-panel/courses/ContentPanel.module.css'
 
 interface BusinessLearningPathCardsProps {
   logic: BusinessLearningPathsLogic
@@ -9,19 +10,41 @@ interface BusinessLearningPathCardsProps {
 }
 
 export function BusinessLearningPathCards({ logic, t, onOpenVideos }: BusinessLearningPathCardsProps) {
-  const { primaryColor, onPrimaryColor, accentColor, textColor, mutedTextColor, borderColor, inputBg } = logic.theme
   return (
-    <section id="tour-paths-cards">
+    <section id="tour-paths-cards" className={styles.contentStack}>
+      <header className={styles.collectionHeader}>
+        <div>
+          <h2 className={styles.collectionTitle}>Rutas disponibles</h2>
+          <p className={styles.collectionSummary}>
+            {logic.filteredLearningPaths.length} de {logic.learningPaths.length} rutas
+          </p>
+        </div>
+      </header>
       {logic.filteredLearningPaths.length === 0 ? (
-        <div className="rounded-[2rem] border border-dashed px-8 py-16 text-center" style={{ backgroundColor: inputBg, borderColor }}>
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.4rem] shadow-xl" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}>
-            <Route className="h-8 w-8" style={{ color: onPrimaryColor }} strokeWidth={2.5} />
+        <div className={styles.emptyState}>
+          <div className={styles.emptyStateContent}>
+            <span className={styles.emptyIcon} aria-hidden="true">
+              <Route />
+            </span>
+            <h2>No hay rutas disponibles</h2>
+            <p>
+              {logic.learningPaths.length === 0
+                ? 'Cuando el equipo administrador publique rutas activas, aparecerán aquí.'
+                : 'No encontramos rutas con la búsqueda actual. Prueba con otro término.'}
+            </p>
+            {logic.learningPaths.length > 0 ? (
+              <button
+                type="button"
+                className={styles.emptyAction}
+                onClick={() => logic.setSearchTerm('')}
+              >
+                Limpiar búsqueda
+              </button>
+            ) : null}
           </div>
-          <h2 className="text-lg font-black" style={{ color: textColor }}>No hay rutas disponibles</h2>
-          <p className="mt-2 text-sm max-w-sm mx-auto" style={{ color: mutedTextColor }}>Cuando el equipo administrador cree rutas activas, aparecerán aquí.</p>
         </div>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
+        <div className={styles.pathGrid}>
           {logic.filteredLearningPaths.map((path, index) => (
             <BusinessLearningPathCard key={path.id} path={path} index={index} logic={logic} t={t} onOpenVideos={onOpenVideos} />
           ))}

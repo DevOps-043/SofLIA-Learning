@@ -41,27 +41,10 @@ export function DashboardSkeleton() {
       </div>
 
       {/* Section 3 – Trend chart */}
-      <Bone className="h-72 rounded-2xl" />
-
-      {/* Section 4 – Performance cards */}
       <div className={styles.skeletonGrid}>
-        <Bone className="h-52" />
-        <Bone className="h-52" />
-        <Bone className="h-52" />
+        <Bone className="h-44 sm:col-span-2" />
+        <Bone className="h-44 sm:col-span-2" />
       </div>
-
-      {/* Section 5 – Goals */}
-      <div className={`${styles.sectionCard} ${styles.sectionPadding}`} style={CARD_STYLE}>
-        <Bone className="mb-5 h-6 w-40 rounded-lg" />
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <Bone key={i} className="h-16 rounded-xl" />
-          ))}
-        </div>
-      </div>
-
-      {/* Section 6 – AI Insights */}
-      <Bone className="h-48 rounded-2xl" />
     </div>
   )
 }

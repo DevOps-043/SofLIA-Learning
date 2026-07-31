@@ -1,5 +1,5 @@
-.root {
-  position: relative;
+.root,
+.portalTheme {
   --notifications-accent: var(--org-accent-color, var(--color-accent));
   --notifications-on-accent: var(--org-on-action-color, var(--color-primary));
   --notifications-surface: rgb(255 255 255 / 0.97);
@@ -10,7 +10,8 @@
   --notifications-shadow: rgb(10 37 64 / 0.22);
 }
 
-:global(.dark) .root {
+:global(.dark) .root,
+:global(.dark) .portalTheme {
   --notifications-surface: color-mix(
     in srgb,
     var(--color-bg-dark) 90%,
@@ -25,6 +26,10 @@
   --notifications-muted: rgb(190 202 215);
   --notifications-border: rgb(255 255 255 / 0.1);
   --notifications-shadow: rgb(0 0 0 / 0.5);
+}
+
+.root {
+  position: relative;
 }
 
 .trigger {
@@ -50,11 +55,7 @@
   );
   outline: none;
   color: var(--notifications-text);
-  background: color-mix(
-    in srgb,
-    var(--notifications-accent) 5%,
-    transparent
-  );
+  background: color-mix(in srgb, var(--notifications-accent) 5%, transparent);
 }
 
 .badge {
@@ -88,7 +89,7 @@
 .backdrop {
   position: fixed;
   inset: 0;
-  z-index: 90;
+  z-index: 1000002;
   border: 0;
   padding: 0;
   background: rgb(2 10 20 / 0.28);
@@ -96,21 +97,20 @@
 }
 
 .panel {
-  position: absolute;
-  z-index: 100;
-  top: calc(100% + 0.6rem);
-  right: 0;
+  position: fixed;
+  z-index: 1000003;
   display: flex;
   width: 29rem;
   max-width: calc(100vw - 1.5rem);
   max-height: min(35rem, calc(var(--soflia-viewport-height) - 6.5rem));
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid color-mix(
-    in srgb,
-    var(--notifications-accent) 16%,
-    var(--notifications-border)
-  );
+  border: 1px solid
+    color-mix(
+      in srgb,
+      var(--notifications-accent) 16%,
+      var(--notifications-border)
+    );
   border-radius: 1.35rem;
   color: var(--notifications-text);
   background:
@@ -136,7 +136,11 @@
   gap: 1rem;
   border-bottom: 1px solid var(--notifications-border);
   padding: 0.8rem 0.9rem 0.8rem 1rem;
-  background: color-mix(in srgb, var(--notifications-surface-soft) 74%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--notifications-surface-soft) 74%,
+    transparent
+  );
 }
 
 .heading {
@@ -218,7 +222,11 @@
   flex-shrink: 0;
   border-top: 1px solid var(--notifications-border);
   padding: 0.65rem;
-  background: color-mix(in srgb, var(--notifications-surface-soft) 70%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--notifications-surface-soft) 70%,
+    transparent
+  );
 }
 
 .viewAll {
@@ -243,22 +251,13 @@
     transparent
   );
   outline: none;
-  background: color-mix(
-    in srgb,
-    var(--notifications-accent) 6%,
-    transparent
-  );
+  background: color-mix(in srgb, var(--notifications-accent) 6%, transparent);
 }
 
 @media (max-width: 40rem) {
   .panel {
-    position: fixed;
-    top: 4.75rem;
-    right: 0.65rem;
-    left: 0.65rem;
     width: auto;
     max-width: none;
-    max-height: calc(var(--soflia-viewport-height) - 5.5rem);
   }
 }
 

@@ -143,20 +143,24 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="sticky top-0 z-[999] w-full border-b backdrop-blur-xl"
-      style={{
-        backgroundColor: navbarStyle.backgroundColor,
-        borderColor: navbarStyle.borderColor,
-      }}
+      className="pointer-events-none absolute inset-x-0 top-0 z-[999] w-full bg-transparent px-3 pt-3 sm:px-4 lg:px-6"
     >
-      <div className="mx-auto w-full max-w-[1920px] px-4 sm:px-6 lg:px-12">
-        <div className="flex h-16 items-center justify-between gap-3">
+      <div
+        className="pointer-events-auto mx-auto flex h-16 w-full max-w-[1480px] items-center justify-between gap-3 rounded-[1.25rem] border px-3 shadow-[0_18px_48px_-32px_rgba(2,12,23,0.38)] backdrop-blur-2xl sm:px-4 lg:px-5"
+        style={{
+          backgroundColor: `color-mix(in srgb, ${navbarStyle.backgroundColor} 58%, transparent)`,
+          borderColor: navbarStyle.borderColor,
+          boxShadow: `0 18px 48px -32px color-mix(in srgb, ${panelTheme.actionColor} 30%, transparent), inset 0 1px 0 color-mix(in srgb, var(--color-bg-light) 9%, transparent)`,
+        }}
+      >
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={onMenuClick}
-              className="rounded-lg p-2 transition-colors hover:opacity-80 lg:hidden"
+              className="grid h-10 w-10 place-items-center rounded-xl border p-0 transition-all hover:-translate-y-px lg:hidden"
               style={{
+                backgroundColor: panelTheme.inputBg,
+                borderColor: panelTheme.borderColor,
                 color:
                   navbarStyle.color ||
                   (resolvedTheme === 'light'
@@ -184,7 +188,7 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                     alt={organization?.name || 'Organizacion'}
                     width={180}
                     height={48}
-                    className="h-10 w-auto max-w-[140px] rounded-lg object-contain sm:h-12 sm:max-w-[180px]"
+                    className="h-9 w-auto max-w-[128px] rounded-xl object-contain sm:h-10 sm:max-w-[168px]"
                     style={{ width: 'auto' }}
                     onError={(event) => {
                       const image = event.target as HTMLImageElement
@@ -193,9 +197,10 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
                   />
                 ) : (
                   <div
-                    className="flex h-10 w-10 items-center justify-center rounded-lg sm:h-12 sm:w-12"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border sm:h-10 sm:w-10"
                     style={{
                       background: `linear-gradient(135deg, ${panelTheme.actionColor}, ${panelTheme.secondaryColor})`,
+                      borderColor: `color-mix(in srgb, ${panelTheme.accentColor} 28%, transparent)`,
                     }}
                   >
                     <Building2 className="h-5 w-5 text-white sm:h-6 sm:w-6" />
@@ -205,8 +210,9 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
 
               {organization?.show_navbar_name !== false && (
                 <h1
-                  className="hidden min-w-0 truncate text-sm font-semibold sm:block sm:max-w-[300px] sm:text-base lg:max-w-[360px]"
+                  className="hidden min-w-0 truncate text-sm font-semibold tracking-[-0.01em] sm:block sm:max-w-[300px] lg:max-w-[360px]"
                   style={{
+                    fontFamily: 'var(--font-system-ui)',
                     color:
                       navbarStyle.color ||
                       (resolvedTheme === 'light'
@@ -240,7 +246,6 @@ export function BusinessPanelHeader({ onMenuClick }: BusinessPanelHeaderProps) {
               <UserDropdown />
             </div>
           </div>
-        </div>
       </div>
     </motion.header>
   )

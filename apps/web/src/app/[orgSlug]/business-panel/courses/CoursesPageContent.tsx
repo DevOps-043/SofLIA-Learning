@@ -2,37 +2,34 @@
 
 import { motion } from 'framer-motion'
 import {
+  AlertTriangle,
+  ArrowUpRight,
   BookOpen,
-  Search,
   Filter,
   GraduationCap,
-  Award,
-  Sparkles,
   LayoutGrid,
-  List
+  LibraryBig,
+  List,
+  Search,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect } from 'react'
-import { PremiumSelect } from '@/features/business-panel/components/PremiumSelect'
-import { CourseStatCard } from './CourseStatCard'
-import { CourseCard } from './CourseCard'
-import { useCoursesPageLogic } from './useCoursesPageLogic'
-import { useMotionSafe } from '@/lib/utils/motion'
+
 import { PrefetchLink } from '@/core/components/PrefetchLink'
+import { PremiumSelect } from '@/shared/components/premium-form-controls'
 import { useTour } from '@/features/tours'
 import { businessPanelCoursesTour } from '@/features/tours/config/business-panel-courses.tour'
+import { useMotionSafe } from '@/lib/utils/motion'
+
+import { CourseCard } from './CourseCard'
+import { CourseStatCard } from './CourseStatCard'
+import styles from './ContentPanel.module.css'
+import { useCoursesPageLogic } from './useCoursesPageLogic'
 
 export function CoursesPageContent() {
   const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const {
     t,
-    isDark,
-    primaryColor,
-    accentColor,
-    secondaryColor,
-    textColor,
-    cardBg,
-    borderColor,
     courses,
     isLoading,
     error,
@@ -46,325 +43,276 @@ export function CoursesPageContent() {
     levels,
     filteredCourses,
     courseStats,
-    handleCourseClick,
     viewMode,
     setViewMode,
     orgSlug,
+    heroBackground,
+    heroBorderColor,
+    actionColor,
+    onActionColor,
+    accentColor,
+    borderColor,
+    inputBg,
+    panelBg,
+    cardBg,
+    textColor,
+    subtextColor,
   } = useCoursesPageLogic()
-
   const { autoStartIfNeeded } = useTour(businessPanelCoursesTour)
 
-  // Auto-start tour on first visit
-  useEffect(() => {
-    return autoStartIfNeeded()
-  }, [autoStartIfNeeded])
+  useEffect(() => autoStartIfNeeded(), [autoStartIfNeeded])
 
   if (isLoading) {
     return (
-      <div className="p-6 lg:p-8 min-h-screen animate-pulse">
-        {/* Hero Skeleton */}
-        <div className="h-48 rounded-3xl bg-white/5 mb-8" />
-
-        {/* Stats Skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-24 bg-white/5 rounded-2xl" />
-          ))}
-        </div>
-
-        {/* Filters Skeleton */}
-        <div className="h-16 bg-white/5 rounded-2xl mb-8" />
-
-        {/* Grid Skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-96 bg-white/5 rounded-2xl" />
+      <div className={styles.loadingPage} aria-label="Cargando catálogo de cursos">
+        <div className={`${styles.skeleton} ${styles.skeletonHero}`} />
+        <div className={`${styles.skeleton} ${styles.skeletonStats}`} />
+        <div className={`${styles.skeleton} ${styles.skeletonToolbar}`} />
+        <div className={styles.skeletonGrid}>
+          {Array.from({ length: 8 }, (_, index) => (
+            <div key={index} className={`${styles.skeleton} ${styles.skeletonCard}`} />
           ))}
         </div>
       </div>
     )
   }
 
+  const clearFilters = () => {
+    setSearchTerm('')
+    setFilterCategory('all')
+    setFilterLevel('all')
+  }
+  const controlPalette = {
+    accentColor,
+    borderColor,
+    inputBg,
+    menuBg: cardBg,
+    mutedText: subtextColor,
+    onPrimaryColor: onActionColor,
+    primaryColor: actionColor,
+    surfaceColor: panelBg,
+    textColor,
+  }
+
   return (
-    <>
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={interfaceTransition}
-      className="p-6 lg:p-8 min-h-screen"
+      className={styles.contentStack}
     >
-      {/* Hero Section */}
-      <motion.div
+      <motion.section
         data-tour-id="business-panel-courses--hero"
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: disableHeavy ? 0 : 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={interfaceTransition}
-        className="relative overflow-hidden rounded-3xl p-8 mb-8 shadow-lg"
-        style={{
-          background: isDark
-            ? `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 12.5%, transparent), color-mix(in srgb, ${accentColor} 6.3%, transparent))`
-            : `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})`,
-          border: isDark ? '1px solid rgba(255,255,255,0.1)' : 'none'
-        }}
+        className={styles.hero}
+        style={{ background: heroBackground, borderColor: heroBorderColor }}
+        aria-labelledby="courses-page-title"
       >
-        {!disableHeavy && (
-          <>
-            <div
-              className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20"
-              style={{ backgroundColor: primaryColor }}
-            />
-            <div
-              className="absolute bottom-0 left-1/3 w-48 h-48 rounded-full blur-3xl opacity-15"
-              style={{ backgroundColor: accentColor }}
-            />
-          </>
-        )}
+        <div className={styles.heroAtmosphere} aria-hidden="true" />
+        <div className={styles.heroRingLarge} aria-hidden="true" />
+        <div className={styles.heroRingSmall} aria-hidden="true" />
+        <div className={styles.heroDot} aria-hidden="true" />
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <motion.div
-              animate={disableHeavy ? undefined : { rotate: [0, 360] }}
-              transition={disableHeavy ? undefined : { duration: 20, repeat: Infinity, ease: "linear" }}
-            >
-              <Sparkles className="w-5 h-5" style={{ color: isDark ? accentColor : 'var(--color-bg-light)' }} />
-            </motion.div>
-            <span
-              className="text-sm font-semibold uppercase tracking-wider"
-              style={{ color: isDark ? accentColor : 'var(--color-bg-light)', opacity: 0.9 }}
-            >
-              {t('courses.badge')}
-            </span>
-          </div>
-
-          <h1
-            className="text-3xl lg:text-4xl font-bold mb-3"
-            style={{ color: isDark ? textColor : 'var(--color-bg-light)' }}
-          >
+        <div className={styles.heroCopy}>
+          <p className={styles.eyebrow}>{t('courses.badge')}</p>
+          <h1 id="courses-page-title" className={styles.heroTitle}>
             {t('courses.title')}
           </h1>
-          <p
-            className="text-base lg:text-lg max-w-2xl"
-            style={{ color: isDark ? `color-mix(in srgb, ${textColor} 60%, transparent)` : 'var(--color-bg-light)', opacity: 0.8 }}
-          >
-            {t('courses.subtitle')}
-          </p>
+          <p className={styles.heroDescription}>{t('courses.subtitle')}</p>
         </div>
-      </motion.div>
 
-      {/* Stats Grid - Minimalist Dashboard Pattern */}
-      <div data-tour-id="business-panel-courses--stats" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className={styles.heroIcon} aria-hidden="true">
+          <BookOpen />
+        </div>
+      </motion.section>
+
+      <div data-tour-id="business-panel-courses--stats" className={styles.statsSurface}>
         {courseStats.map((stat, index) => (
           <CourseStatCard key={stat.title} {...stat} delay={index} />
         ))}
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8 p-4 rounded-xl border-2"
-          style={{
-            backgroundColor: isDark ? 'rgba(245, 158, 11, 0.05)' : 'rgba(245, 158, 11, 0.05)',
-            borderColor: 'rgba(245, 158, 11, 0.2)',
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <Award className="w-5 h-5 text-amber-500" />
-            <p className="text-sm font-medium text-amber-500">{error}</p>
+      {error ? (
+        <div className={styles.errorBanner} role="alert">
+          <AlertTriangle aria-hidden="true" />
+          <span>{error}</span>
+        </div>
+      ) : null}
+
+      <section
+        data-tour-id="business-panel-courses--filters"
+        className={styles.controlsSurface}
+        aria-label="Buscar y filtrar cursos"
+      >
+        <div className={styles.primaryFilters}>
+          <label className={styles.search}>
+            <span className="sr-only">{t('courses.filters.search')}</span>
+            <Search className={styles.searchIcon} aria-hidden="true" />
+            <input
+              type="search"
+              placeholder={t('courses.filters.search')}
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className={styles.searchInput}
+            />
+          </label>
+
+          <div className={styles.selectSlot}>
+            <PremiumSelect
+              ariaLabel={t('courses.filters.category')}
+              value={filterCategory}
+              onChange={setFilterCategory}
+              options={[
+                { value: 'all', label: t('courses.filters.allCategories') },
+                ...categories.map((category) => ({ value: category, label: category })),
+              ]}
+              palette={controlPalette}
+              placeholder={t('courses.filters.category')}
+              icon={Filter}
+            />
           </div>
-        </motion.div>
-      )}
 
-      {/* Filters Section - EXACT Replication of Users Page Style */}
-      <div data-tour-id="business-panel-courses--filters" className="flex flex-col lg:flex-row gap-4 mb-8">
-        {/* Search Input - Matching Users Page Design */}
-        <div className="flex-1 relative group">
-          <Search
-            className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-opacity ${isDark ? 'group-focus-within:opacity-70 opacity-40' : 'group-focus-within:opacity-50 opacity-30'}`}
-            style={{ color: textColor }}
-          />
-          <input
-            type="text"
-            placeholder={t('courses.filters.search')}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 rounded-xl border-2 focus:outline-none transition-all duration-300"
-            style={{
-              backgroundColor: isDark ? 'var(--org-card-background, var(--color-gray-800))' : 'var(--color-bg-light)',
-              borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-              color: textColor,
-            }}
-          />
-        </div>
+          <div className={styles.selectSlot}>
+            <PremiumSelect
+              ariaLabel={t('courses.filters.level')}
+              value={filterLevel}
+              onChange={setFilterLevel}
+              options={[
+                { value: 'all', label: t('courses.filters.allLevels') },
+                ...levels.map((level) => ({ value: level, label: level })),
+              ]}
+              palette={controlPalette}
+              placeholder={t('courses.filters.level')}
+              icon={GraduationCap}
+            />
+          </div>
 
-        {/* Category Filter */}
-        <div className="w-full lg:w-64">
-          <PremiumSelect
-            value={filterCategory}
-            onChange={setFilterCategory}
-            options={[
-              { value: 'all', label: t('courses.filters.allCategories') },
-              ...categories.map(cat => ({ value: cat, label: cat }))
-            ]}
-            placeholder={t('courses.filters.category')}
-            icon={<Filter className="w-4 h-4" />}
-          />
-        </div>
-
-        {/* Level Filter */}
-        <div className="w-full lg:w-64">
-          <PremiumSelect
-            value={filterLevel}
-            onChange={setFilterLevel}
-            options={[
-              { value: 'all', label: t('courses.filters.allLevels') },
-              ...levels.map(level => ({ value: level, label: level }))
-            ]}
-            placeholder={t('courses.filters.level')}
-            icon={<GraduationCap className="w-4 h-4" />}
-          />
-        </div>
-
-        <div
-          data-tour-id="business-panel-courses--view-toggle"
-          className="flex items-center rounded-xl border-2 overflow-hidden ml-auto"
-          style={{
-            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-            backgroundColor: isDark ? 'var(--org-card-background, var(--color-gray-800))' : 'var(--color-bg-light)',
-          }}
-        >
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
-            style={{ backgroundColor: viewMode === 'grid' ? `color-mix(in srgb, ${primaryColor} 18.8%, transparent)` : 'transparent' }}
-          >
-            <LayoutGrid className="w-5 h-5" style={{ color: viewMode === 'grid' ? primaryColor : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)') }} />
-          </button>
-          <div className="w-px h-6" style={{ backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }} />
-          <button
-            onClick={() => setViewMode('list')}
-            className={`p-3.5 transition-all ${isDark ? 'hover:bg-white/5' : 'hover:bg-black/5'}`}
-            style={{ backgroundColor: viewMode === 'list' ? `color-mix(in srgb, ${primaryColor} 18.8%, transparent)` : 'transparent' }}
-          >
-            <List className="w-5 h-5" style={{ color: viewMode === 'list' ? primaryColor : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)') }} />
-          </button>
-        </div>
-      </div>
-
-      {/* Courses Grid */}
-      {filteredCourses.length === 0 ? (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="rounded-3xl p-16 border border-white/10 text-center"
-          style={{ backgroundColor: cardBg }}
-        >
           <div
-            className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center"
-            style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}
+            data-tour-id="business-panel-courses--view-toggle"
+            className={styles.viewToggle}
+            aria-label="Cambiar vista del catálogo"
           >
-            <BookOpen className="w-10 h-10" style={{ color: primaryColor }} />
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`${styles.viewButton} ${viewMode === 'grid' ? styles.viewButtonActive : ''}`}
+              aria-label="Vista en cuadrícula"
+              aria-pressed={viewMode === 'grid'}
+              title="Vista en cuadrícula"
+            >
+              <LayoutGrid aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`${styles.viewButton} ${viewMode === 'list' ? styles.viewButtonActive : ''}`}
+              aria-label="Vista en lista"
+              aria-pressed={viewMode === 'list'}
+              title="Vista en lista"
+            >
+              <List aria-hidden="true" />
+            </button>
           </div>
-          <h3 className="text-xl font-bold mb-2" style={{ color: textColor }}>
-            {courses.length === 0 ? t('courses.empty.noCourses') : t('courses.empty.noResults')}
-          </h3>
-          <p className="text-sm" style={{ color: `color-mix(in srgb, ${textColor} 43.9%, transparent)` }}>
-            {courses.length === 0
-              ? t('courses.empty.noCoursesSubtitle')
-              : t('courses.empty.noResultsSubtitle')}
-          </p>
-        </motion.div>
-      ) : (
-        <>
-          {/* Results Count */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center justify-between mb-6"
-          >
-            <p className="text-sm" style={{ color: `color-mix(in srgb, ${textColor} 43.9%, transparent)` }}>
-              {t('courses.results.showing')}{' '}
-              <span className="font-semibold" style={{ color: textColor }}>
-                {filteredCourses.length}
-              </span>{' '}
-              {t('courses.results.courses')}
-            </p>
-          </motion.div>
+        </div>
+      </section>
 
-          {/* Grid or List View */}
-          {viewMode === 'grid' ? (
-            <div data-tour-id="business-panel-courses--grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 xl:gap-6">
-              {filteredCourses.map((course, index) => (
-                <PrefetchLink
-                  key={course.id}
-                  href={`/${orgSlug}/business-panel/courses/${course.id}`}
-                  className="block h-full relative z-10"
-                  {...(index === 0 ? { 'data-tour-id': 'business-panel-courses--first-card' } : {})}
-                >
-                  <CourseCard
-                    course={course}
-                    index={index}
-                  />
-                </PrefetchLink>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {filteredCourses.map((course, index) => (
-                <PrefetchLink
-                  key={course.id}
-                  href={`/${orgSlug}/business-panel/courses/${course.id}`}
-                  className="block relative z-10"
-                >
-                  <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-                    transition={{ ...interfaceTransition, delay: disableHeavy ? 0 : Math.min(index * interfaceStaggerSeconds, 0.08) }}
-                    className="flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all hover:translate-x-1 group"
-                    style={{
-                      backgroundColor: cardBg,
-                      borderColor: borderColor,
-                    }}
-                  >
-                  <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 relative">
-                    {course.thumbnail_url ? (
-                      <Image
-                        src={course.thumbnail_url}
-                        alt={course.title}
-                        fill
-                        priority={index < 8}
-                        className="object-cover"
-                        sizes="64px"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 12.5%, transparent)` }}>
-                        <BookOpen className="w-6 h-6" style={{ color: primaryColor }} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold truncate" style={{ color: textColor }}>{course.title}</h3>
-                    <p className="text-xs opacity-60" style={{ color: textColor }}>{course.instructor.name}</p>
-                  </div>
-                  <div className="hidden md:flex items-center gap-6 px-4">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] uppercase tracking-wider opacity-40 font-bold" style={{ color: textColor }}>{t('courses.filters.category')}</span>
-                      <span className="text-xs font-semibold" style={{ color: textColor }}>{course.category}</span>
+      <header className={styles.collectionHeader}>
+        <div>
+          <h2 className={styles.collectionTitle}>Cursos disponibles</h2>
+          <p className={styles.collectionSummary} aria-live="polite">
+            {filteredCourses.length} de {courses.length} cursos
+          </p>
+        </div>
+      </header>
+
+      {filteredCourses.length === 0 ? (
+        <div className={styles.emptyState}>
+          <div className={styles.emptyStateContent}>
+            <span className={styles.emptyIcon} aria-hidden="true">
+              <BookOpen />
+            </span>
+            <h3>
+              {courses.length === 0 ? t('courses.empty.noCourses') : t('courses.empty.noResults')}
+            </h3>
+            <p>
+              {courses.length === 0
+                ? t('courses.empty.noCoursesSubtitle')
+                : t('courses.empty.noResultsSubtitle')}
+            </p>
+            {courses.length > 0 ? (
+              <button type="button" onClick={clearFilters} className={styles.emptyAction}>
+                Limpiar filtros
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div data-tour-id="business-panel-courses--grid" className={styles.courseGrid}>
+          {filteredCourses.map((course, index) => (
+            <PrefetchLink
+              key={course.id}
+              href={`/${orgSlug}/business-panel/courses/${course.id}`}
+              className={styles.courseLink}
+              {...(index === 0 ? { 'data-tour-id': 'business-panel-courses--first-card' } : {})}
+            >
+              <CourseCard course={course} index={index} />
+            </PrefetchLink>
+          ))}
+        </div>
+      ) : (
+        <div className={styles.courseList}>
+          {filteredCourses.map((course, index) => (
+            <PrefetchLink
+              key={course.id}
+              href={`/${orgSlug}/business-panel/courses/${course.id}`}
+              className={styles.courseLink}
+            >
+              <motion.article
+                initial={{ opacity: 0, y: disableHeavy ? 0 : 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  ...interfaceTransition,
+                  delay: disableHeavy ? 0 : Math.min(index * interfaceStaggerSeconds, 0.08),
+                }}
+                className={styles.courseListItem}
+              >
+                <div className={styles.courseListMedia}>
+                  {course.thumbnail_url ? (
+                    <Image
+                      src={course.thumbnail_url}
+                      alt=""
+                      fill
+                      priority={index < 6}
+                      sizes="90px"
+                    />
+                  ) : (
+                    <div className={styles.courseFallback}>
+                      <BookOpen aria-hidden="true" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] uppercase tracking-wider opacity-40 font-bold" style={{ color: textColor }}>{t('courses.filters.level')}</span>
-                      <span className="text-xs font-semibold" style={{ color: textColor }}>{course.level}</span>
-                    </div>
-                  </div>
-                </motion.div>
-              </PrefetchLink>
-              ))}
-            </div>
-          )}
-        </>
+                  )}
+                </div>
+                <div className={styles.courseListIdentity}>
+                  <h3>{course.title}</h3>
+                  <p>{course.instructor.name}</p>
+                </div>
+                <div className={styles.courseListMeta}>
+                  <span>{t('courses.filters.category')}</span>
+                  <strong>{course.category || 'Sin categoría'}</strong>
+                </div>
+                <div className={styles.courseListMeta}>
+                  <span>{t('courses.filters.level')}</span>
+                  <strong>{course.level || 'Sin nivel'}</strong>
+                </div>
+                <span className={styles.courseListArrow} aria-hidden="true">
+                  <ArrowUpRight />
+                </span>
+              </motion.article>
+            </PrefetchLink>
+          ))}
+        </div>
       )}
     </motion.div>
-    </>
   )
 }

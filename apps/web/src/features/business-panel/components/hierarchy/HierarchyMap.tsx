@@ -1,28 +1,12 @@
 'use client'
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import React, { useEffect, useState, useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap, ScaleControl } from 'react-leaflet'
+import L from 'leaflet'
+import { Loader2, Maximize2, MousePointer2 } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import 'leaflet/dist/leaflet.css'
-import L from 'leaflet'
-
-// Fix for default Leaflet icons - ejecutar solo en cliente
-const setupLeafletIcons = () => {
-  if (typeof window === 'undefined') return
-
-  const iconUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png'
-  const iconRetinaUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png'
-  const shadowUrl = 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png'
-
-  /* eslint-disable no-underscore-dangle */
-  delete (L.Icon.Default.prototype as any)._getIconUrl // leaflet internal API — no public type available
-  L.Icon.Default.mergeOptions({
-    iconRetinaUrl,
-    iconUrl,
-    shadowUrl,
-  })
-}
+import styles from './HierarchyExperience.module.css'
 
 interface MapPoint {
   id: string
@@ -40,301 +24,223 @@ interface HierarchyMapProps {
   points: MapPoint[]
   center?: [number, number]
   zoom?: number
-  enableScrollWheelZoom?: boolean // Toggle para zoom con rueda
+  enableScrollWheelZoom?: boolean
 }
 
-// Componente interno para cambiar la vista del mapa
-// Debe estar separado para usar el hook useMap correctamente dentro del MapContainer
-function MapViewController({ center, zoom }: { center: [number, number], zoom: number }) {
-  const map = useMap()
-  
-  useEffect(() => {
-    if (map && center) {
-    map.setView(center, zoom)
-    }
-  }, [center, zoom, map])
-  
-  return null
+type InitialView = {
+  center: [number, number]
+  zoom: number
 }
 
-// Componente para controlar el zoom con rueda del mouse
-function ScrollWheelZoomController({ enabled }: { enabled: boolean }) {
-  const map = useMap()
-  
-  useEffect(() => {
-    if (enabled) {
-      map.scrollWheelZoom.enable()
-    } else {
-      map.scrollWheelZoom.disable()
-    }
-  }, [enabled, map])
-  
-  return null
+function createMarkerIcon(isTopPerformer: boolean) {
+  const markerClass = isTopPerformer ? 'hierarchy-map-marker hierarchy-map-marker--top' : 'hierarchy-map-marker'
+  return L.divIcon({
+    className: '',
+    html: `<span class="${markerClass}" aria-hidden="true"><span></span></span>`,
+    iconAnchor: [16, 32],
+    iconSize: [32, 32],
+    popupAnchor: [0, -28],
+  })
 }
 
-// Componente para control de pantalla completa
-function FullscreenControl() {
-  const map = useMap()
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const { t } = useTranslation('business')
-  
-  const toggleFullscreen = () => {
-    const mapContainer = map.getContainer()
-    
-    if (!document.fullscreenElement) {
-      mapContainer.requestFullscreen().then(() => {
-        setIsFullscreen(true)
-        // Ajustar el tamaño del mapa cuando entra en pantalla completa
-        setTimeout(() => {
-          map.invalidateSize()
-        }, 100)
-      }).catch((err) => {
-        techDebtLogger.error('Error al entrar en pantalla completa:', err)
-      })
-    } else {
-      document.exitFullscreen().then(() => {
-        setIsFullscreen(false)
-        // Ajustar el tamaño del mapa cuando sale de pantalla completa
-        setTimeout(() => {
-          map.invalidateSize()
-        }, 100)
-      }).catch((err) => {
-        techDebtLogger.error('Error al salir de pantalla completa:', err)
-      })
-    }
+function createPopupContent(point: MapPoint, topPerformerLabel: string) {
+  const root = document.createElement('div')
+  root.className = 'hierarchy-map-popup'
+
+  const title = document.createElement('strong')
+  title.textContent = point.name
+  root.appendChild(title)
+
+  if (point.isTopPerformer) {
+    const status = document.createElement('span')
+    status.className = 'hierarchy-map-popup__status'
+    status.textContent = topPerformerLabel
+    root.appendChild(status)
   }
-  
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement)
-      setTimeout(() => {
-        map.invalidateSize()
-      }, 100)
-    }
 
-    document.addEventListener('fullscreenchange', handleFullscreenChange)
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  if (point.stats) {
+    const label = document.createElement('small')
+    label.textContent = point.stats.label
+    root.appendChild(label)
+
+    const value = document.createElement('b')
+    value.textContent = String(point.stats.value)
+    root.appendChild(value)
+  }
+
+  return root
+}
+
+function getDerivedCenter(points: MapPoint[], fallback: [number, number]): [number, number] {
+  if (points.length === 0) return fallback
+  const latitude = points.reduce((total, point) => total + point.lat, 0) / points.length
+  const longitude = points.reduce((total, point) => total + point.lng, 0) / points.length
+  return [latitude, longitude]
+}
+
+export default function HierarchyMap({
+  points,
+  center = [23.6345, -102.5528],
+  zoom = 5,
+  enableScrollWheelZoom = false,
+}: HierarchyMapProps) {
+  const { t } = useTranslation('business')
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const mapRef = useRef<L.Map | null>(null)
+  const markerLayerRef = useRef<L.LayerGroup | null>(null)
+  const initialViewRef = useRef<InitialView>({ center, zoom })
+  const [isReady, setIsReady] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [instanceKey, setInstanceKey] = useState(0)
+  const [scrollWheelEnabled, setScrollWheelEnabled] = useState(enableScrollWheelZoom)
+  const validPoints = useMemo(
+    () => points.filter(point => Number.isFinite(point.lat) && Number.isFinite(point.lng)),
+    [points],
+  )
+  const derivedCenter = useMemo(() => getDerivedCenter(validPoints, center), [center, validPoints])
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || mapRef.current) return
+
+    try {
+      const map = L.map(container, {
+        center: initialViewRef.current.center,
+        zoom: initialViewRef.current.zoom,
+        scrollWheelZoom: false,
+        zoomControl: true,
+      })
+      mapRef.current = map
+      markerLayerRef.current = L.layerGroup().addTo(map)
+
+      const usesDarkTheme = document.documentElement.classList.contains('dark')
+      L.tileLayer(
+        usesDarkTheme
+          ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+          : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+        {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          maxZoom: 19,
+        },
+      ).addTo(map)
+      L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map)
+
+      const resizeObserver = new ResizeObserver(() => map.invalidateSize({ pan: false }))
+      resizeObserver.observe(container)
+      requestAnimationFrame(() => {
+        map.invalidateSize({ pan: false })
+        setIsReady(true)
+      })
+
+      return () => {
+        resizeObserver.disconnect()
+        markerLayerRef.current = null
+        mapRef.current = null
+        map.remove()
+      }
+    } catch (mapError) {
+      techDebtLogger.error('Unable to initialize hierarchy map', mapError)
+      mapRef.current?.remove()
+      mapRef.current = null
+      markerLayerRef.current = null
+      setError(t('hierarchy.map.loading'))
     }
-  }, [map])
-  
-  return (
-    <div 
-      className="leaflet-top leaflet-right" 
-      style={{ zIndex: 1000, marginTop: '10px', marginRight: '10px' }}
-    >
-      <div className="leaflet-control">
+  }, [instanceKey, t])
+
+  useEffect(() => {
+    const map = mapRef.current
+    const markerLayer = markerLayerRef.current
+    if (!map || !markerLayer || !isReady) return
+
+    markerLayer.clearLayers()
+    validPoints.forEach(point => {
+      L.marker([point.lat, point.lng], {
+        icon: createMarkerIcon(Boolean(point.isTopPerformer)),
+        keyboard: true,
+        title: point.name,
+      })
+        .bindPopup(createPopupContent(point, t('hierarchy.map.bestPerformance')))
+        .addTo(markerLayer)
+    })
+
+    if (validPoints.length === 1) {
+      map.setView([validPoints[0].lat, validPoints[0].lng], Math.max(zoom, 10), { animate: false })
+    } else if (validPoints.length > 1) {
+      const bounds = L.latLngBounds(validPoints.map(point => [point.lat, point.lng] as [number, number]))
+      map.fitBounds(bounds, { padding: [36, 36], maxZoom: 11, animate: false })
+    } else {
+      map.setView(derivedCenter, zoom, { animate: false })
+    }
+  }, [derivedCenter, isReady, t, validPoints, zoom])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (scrollWheelEnabled) map.scrollWheelZoom.enable()
+    else map.scrollWheelZoom.disable()
+  }, [scrollWheelEnabled, isReady])
+
+  const toggleFullscreen = useCallback(async () => {
+    const container = containerRef.current
+    const map = mapRef.current
+    if (!container || !map) return
+
+    try {
+      if (document.fullscreenElement === container) {
+        await document.exitFullscreen()
+      } else {
+        await container.requestFullscreen()
+      }
+      requestAnimationFrame(() => map.invalidateSize({ pan: false }))
+    } catch (fullscreenError) {
+      techDebtLogger.error('Unable to toggle hierarchy map fullscreen', fullscreenError)
+    }
+  }, [])
+
+  if (error) {
+    return (
+      <div className={styles.mapLoading} role="alert">
+        <p>{error}</p>
         <button
-          onClick={toggleFullscreen}
-          title={isFullscreen ? t('hierarchy.map.exitFullscreen') : t('hierarchy.map.fullscreen')}
-          style={{
-            width: '34px',
-            height: '34px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            background: 'var(--color-gray-800)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '4px',
-            color: 'white',
-            fontSize: '18px',
-            padding: 0,
-            margin: 0
-          }}
           type="button"
+          className={styles.secondaryButton}
+          onClick={() => {
+            setError(null)
+            setIsReady(false)
+            setInstanceKey(current => current + 1)
+          }}
         >
-          {isFullscreen ? '⤓' : '⤢'}
+          {t('hierarchy.syncing')}
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className={styles.mapContainer}>
+      <div ref={containerRef} className={styles.mapContainer} aria-label={t('hierarchy.map.title')} />
+      {!isReady ? (
+        <div className={styles.mapLoading} aria-live="polite">
+          <Loader2 className="animate-spin" aria-hidden="true" />
+          <span>{t('hierarchy.map.initializing')}</span>
+        </div>
+      ) : null}
+      <div className={styles.mapControls}>
+        <button
+          type="button"
+          className={styles.mapControlButton}
+          data-active={scrollWheelEnabled}
+          onClick={() => setScrollWheelEnabled(current => !current)}
+          aria-pressed={scrollWheelEnabled}
+        >
+          <MousePointer2 aria-hidden="true" />
+          <span>{t('hierarchy.map.wheelZoom')}</span>
+        </button>
+        <button type="button" className={styles.mapControlButton} onClick={() => void toggleFullscreen()}>
+          <Maximize2 aria-hidden="true" />
+          <span>{t('hierarchy.map.fullscreen')}</span>
         </button>
       </div>
     </div>
   )
 }
-
-
-// Componente para renderizar los marcadores
-function MapMarkers({ 
-  points, 
-  goldIcon, 
-  defaultIcon 
-}: { 
-  points: MapPoint[]
-  goldIcon: L.Icon
-  defaultIcon: L.Icon 
-}) {
-  const { t } = useTranslation('business')
-  return (
-    <>
-      {points.map((point) => (
-        <Marker 
-          key={point.id} 
-          position={[point.lat, point.lng]}
-          icon={point.isTopPerformer ? goldIcon : defaultIcon}
-          zIndexOffset={point.isTopPerformer ? 1000 : 0}
-        >
-          <Popup className="custom-popup dark-popup">
-            <div className="min-w-[200px] bg-gradient-to-br from-carbon-800 to-gray-700 text-white rounded-lg border border-white/10 shadow-xl overflow-hidden">
-              {/* Header con gradiente */}
-              <div className={`px-4 py-3 border-b border-white/10 relative ${point.isTopPerformer ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/20' : 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10'}`}>
-                <div className="flex items-center justify-between pr-8">
-                  <h3 className="font-bold text-white text-base leading-tight">{point.name}</h3>
-                  {point.isTopPerformer && (
-                    <span className="text-lg" title={t('hierarchy.map.topPerformer')}>🏆</span>
-                  )}
-                </div>
-                {point.isTopPerformer && (
-                  <div className="mt-2 bg-amber-500/30 text-amber-300 text-xs px-2.5 py-1 rounded-full inline-block font-semibold border border-amber-500/40">
-                    {t('hierarchy.map.bestPerformance')}
-                  </div>
-                )}
-              </div>
-              
-              {/* Contenido de estadísticas */}
-              {point.stats && (
-                <div className="px-4 py-3 bg-white/5">
-                  <div>
-                    <p className="text-white/70 text-sm font-semibold uppercase tracking-wide mb-1">{point.stats.label}</p>
-                    <p className="text-white font-bold text-xl">{point.stats.value}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </>
-  )
-}
-
-// Loading placeholder
-const MapLoadingState = ({ message }: { message?: string }) => {
-  const { t } = useTranslation('business')
-  return (
-  <div className="h-[400px] w-full rounded-2xl bg-carbon-800 border border-white/10 flex items-center justify-center">
-    <div className="text-white/40">{message || t('hierarchy.map.loading')}</div>
-  </div>
-)}
-
-function HierarchyMap({ points, center = [23.6345, -102.5528], zoom = 5, enableScrollWheelZoom = false }: HierarchyMapProps) {
-  const { t } = useTranslation('business')
-  const [isReady, setIsReady] = useState(false)
-  const [scrollWheelEnabled, setScrollWheelEnabled] = useState(enableScrollWheelZoom)
-
-  // Inicializar iconos de Leaflet y marcar como listo
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-      
-    // Setup icons
-    setupLeafletIcons()
-    
-    // Pequeño delay para asegurar que todo esté inicializado
-    const timer = requestAnimationFrame(() => {
-      setIsReady(true)
-    })
-      
-    return () => cancelAnimationFrame(timer)
-  }, [])
-
-  // Crear iconos de forma memoizada
-  const { goldIcon, defaultIcon } = useMemo(() => {
-    if (typeof window === 'undefined' || !isReady) {
-      return { goldIcon: null, defaultIcon: null }
-    }
-    
-    return {
-      goldIcon: new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-      }),
-      defaultIcon: new L.Icon({
-    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
-    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41]
-      })
-    }
-  }, [isReady])
-
-  // Calcular centro basado en puntos
-  const derivedCenter: [number, number] = useMemo(() => {
-    if (points.length === 0) return center
-    
-    const avgLat = points.reduce((acc, p) => acc + p.lat, 0) / points.length
-    const avgLng = points.reduce((acc, p) => acc + p.lng, 0) / points.length
-    return [avgLat, avgLng]
-  }, [points, center])
-
-  // Estados de carga
-  if (typeof window === 'undefined') {
-    return <MapLoadingState />
-  }
-
-  if (!isReady) {
-    return <MapLoadingState message={t('hierarchy.map.initializing')} />
-  }
-  if (!goldIcon || !defaultIcon) {
-    return <MapLoadingState message={t('hierarchy.map.preparing')} />
-  }
-
-  return (
-    <div className="h-[400px] w-full rounded-2xl overflow-hidden border border-white/10 relative">
-      <MapContainer 
-        key={`hierarchy-map-${derivedCenter[0].toFixed(4)}-${derivedCenter[1].toFixed(4)}`}
-        center={derivedCenter} 
-        zoom={zoom} 
-        style={{ height: '100%', width: '100%' }}
-        scrollWheelZoom={scrollWheelEnabled}
-      >
-        <MapViewController center={derivedCenter} zoom={zoom} />
-        
-        {/* Control de zoom con rueda del mouse */}
-        <ScrollWheelZoomController enabled={scrollWheelEnabled} />
-        
-        {/* Dark Matter Layer for stylish look */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        />
-
-        <MapMarkers 
-          points={points} 
-          goldIcon={goldIcon} 
-          defaultIcon={defaultIcon} 
-        />
-        
-        {/* Control de Escala */}
-        <ScaleControl 
-          imperial={false}
-          position="bottomleft"
-        />
-        
-        {/* Control de Pantalla Completa */}
-        <FullscreenControl />
-      </MapContainer>
-      
-      {/* Toggle para habilitar/deshabilitar zoom con rueda */}
-      <div 
-        className="absolute bottom-2 right-2 z-[1000] bg-carbon-800 border border-white/20 rounded-lg p-2 flex items-center gap-2"
-        style={{ pointerEvents: 'auto' }}
-      >
-        <label className="flex items-center gap-2 cursor-pointer text-white text-sm">
-          <input
-            type="checkbox"
-            checked={scrollWheelEnabled}
-            onChange={(e) => setScrollWheelEnabled(e.target.checked)}
-            className="w-4 h-4 rounded border-white/20 bg-gray-700 text-blue-500 focus:ring-2 focus:ring-blue-500"
-          />
-          <span>{t('hierarchy.map.wheelZoom')}</span>
-        </label>
-      </div>
-    </div>
-  )
-}
-
-export default HierarchyMap

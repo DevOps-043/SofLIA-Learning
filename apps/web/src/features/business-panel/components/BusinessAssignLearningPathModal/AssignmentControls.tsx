@@ -4,6 +4,7 @@ import { AssignmentModeSelector } from './AssignmentModeSelector'
 import { NodeControls } from './NodeControls'
 import type { AssignmentMode, BusinessPanelTheme, BusinessT } from './types'
 import { UserControls } from './UserControls'
+import modalStyles from '../ContentModal.module.css'
 
 export function AssignmentControls(props: {
   activeUsers: BusinessUser[]
@@ -25,10 +26,10 @@ export function AssignmentControls(props: {
   theme: BusinessPanelTheme
 }) {
   return (
-    <div className="border-b px-6 py-5 sm:px-8" style={{ borderColor: props.theme.borderColor }}>
+    <div className={modalStyles.controls}>
       <AssignmentModeSelector assignmentMode={props.assignmentMode} setAssignmentMode={props.setAssignmentMode} t={props.t} theme={props.theme} />
       {props.assignmentMode === 'users' ? <UserControls {...props} /> : null}
-      {props.assignmentMode === 'all' ? <div className="rounded-2xl border px-4 py-3 text-sm" style={{ backgroundColor: props.theme.inputBg, borderColor: props.theme.borderColor, color: props.theme.subtextColor }}>{props.t('assignLearningPath.allUsersHint', { count: props.activeUsers.length })}</div> : null}
+      {props.assignmentMode === 'all' ? <div className={modalStyles.notice}>{props.t('assignLearningPath.allUsersHint', { count: props.activeUsers.length })}</div> : null}
       {props.assignmentMode === 'node' ? <NodeControls {...props} /> : null}
     </div>
   )

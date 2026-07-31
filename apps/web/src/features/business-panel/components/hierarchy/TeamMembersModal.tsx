@@ -1,31 +1,51 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { UsersRound, X } from 'lucide-react'
 import { AvailableUsersList } from './TeamMembersModal/AvailableUsersList'
 import { CurrentMembersList } from './TeamMembersModal/CurrentMembersList'
-import { TeamMembersHeader } from './TeamMembersModal/Header'
 import { TeamMembersMessages } from './TeamMembersModal/Messages'
 import type { TeamMembersModalProps } from './TeamMembersModal/types'
 import { useTeamMembersModalLogic } from './TeamMembersModal/useTeamMembersModalLogic'
+import { useHierarchyDialog } from './useHierarchyDialog'
+import styles from './HierarchyExperience.module.css'
 
 export function TeamMembersModal(props: TeamMembersModalProps) {
   const { currentMembers, isOpen, onClose, onMembersUpdated, teamId, teamName } = props
   const logic = useTeamMembersModalLogic({ currentMembers, isOpen, onMembersUpdated, teamId })
+  const isBusy = logic.isAssigning || Boolean(logic.isRemoving)
+  const dialogRef = useHierarchyDialog({ isOpen, onClose, preventClose: isBusy })
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white dark:bg-carbon-800 rounded-2xl border border-gray-200 dark:border-white/10 w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
-        style={{ backgroundColor: logic.theme.cardBackground }}
+    <div
+      className={styles.overlay}
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !isBusy) onClose()
+      }}
+    >
+      <div
+        ref={dialogRef}
+        className={styles.dialogWide}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="team-members-title"
       >
-        <TeamMembersHeader onClose={onClose} teamName={teamName} />
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <header className={styles.dialogHeader}>
+          <span className={styles.dialogIcon}><UsersRound aria-hidden="true" /></span>
+          <div className={styles.dialogHeading}>
+            <p className={styles.dialogKicker}>Personas y acceso</p>
+            <h2 id="team-members-title" className={styles.dialogTitle}>Gestionar miembros</h2>
+            <p className={styles.dialogDescription}>{teamName}</p>
+          </div>
+          <button type="button" className={styles.iconButton} onClick={onClose} disabled={isBusy} aria-label="Cerrar">
+            <X aria-hidden="true" />
+          </button>
+        </header>
+
+        <div className={styles.dialogBody}>
+          <div className={styles.membersManagerGrid}>
             <CurrentMembersList
               currentMembers={currentMembers}
               isRemoving={logic.isRemoving}
@@ -47,16 +67,13 @@ export function TeamMembersModal(props: TeamMembersModalProps) {
           </div>
           <TeamMembersMessages error={logic.error} success={logic.success} />
         </div>
-        <div className="p-6 border-t border-gray-200 dark:border-white/10 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 rounded-xl text-white font-medium shadow-lg cursor-pointer hover:shadow-xl hover:translate-y-[-1px] transition-all drop-shadow-md"
-            style={{ background: `linear-gradient(135deg, ${logic.theme.primaryColor}, ${logic.theme.accentColor})`, textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' }}
-          >
-            Cerrar
+
+        <footer className={styles.dialogFooter}>
+          <button type="button" className={styles.primaryButton} onClick={onClose} disabled={isBusy}>
+            Listo
           </button>
-        </div>
-      </motion.div>
+        </footer>
+      </div>
     </div>
   )
 }

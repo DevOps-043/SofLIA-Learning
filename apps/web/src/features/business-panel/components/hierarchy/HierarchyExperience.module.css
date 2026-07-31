@@ -1,0 +1,3671 @@
+.page {
+  --hierarchy-action: var(--org-action-color, var(--color-primary));
+  --hierarchy-accent: var(--org-accent-color, var(--color-accent));
+  --hierarchy-on-action: var(--org-on-action-color, var(--color-bg-light));
+  --hierarchy-primary: var(--org-primary-color, var(--color-primary));
+  --hierarchy-surface: var(--org-card-background, var(--color-gray-800));
+  --hierarchy-input: color-mix(in srgb, var(--color-contrast) 4%, transparent);
+  --hierarchy-text: var(--org-text-color, var(--color-contrast));
+  --hierarchy-subtext: var(--org-text-secondary, var(--color-muted));
+  --hierarchy-muted: color-mix(in srgb, var(--hierarchy-text) 52%, transparent);
+  --hierarchy-border: var(
+    --org-border-color,
+    color-mix(in srgb, var(--hierarchy-text) 10%, transparent)
+  );
+  --hierarchy-divider: color-mix(in srgb, var(--hierarchy-text) 8%, transparent);
+  --hierarchy-success: var(--color-success);
+  --hierarchy-warning: var(--color-warning);
+  --hierarchy-danger: var(--color-error);
+  --hierarchy-info: var(--color-info);
+  --hierarchy-shadow: rgb(2 12 23 / 0.14);
+
+  width: min(100%, 92rem);
+  margin-inline: auto;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-ui);
+}
+
+.pageStack {
+  display: grid;
+  gap: 1.35rem;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 10.5rem;
+  align-items: center;
+  gap: 2rem;
+  overflow: hidden;
+  border: 1px solid;
+  border-radius: 2rem;
+  padding: 2rem 3rem;
+  color: var(--color-bg-light);
+  box-shadow:
+    0 1.4rem 3.5rem var(--hierarchy-shadow),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  isolation: isolate;
+}
+
+.heroAtmosphere {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    radial-gradient(circle at 88% 8%, rgb(255 255 255 / 0.13), transparent 18rem),
+    linear-gradient(110deg, rgb(2 12 23 / 0.08), transparent 55%);
+  pointer-events: none;
+}
+
+.heroRingLarge,
+.heroRingSmall {
+  position: absolute;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.heroRingLarge {
+  top: -10.5rem;
+  right: -5rem;
+  width: 24rem;
+  height: 24rem;
+}
+
+.heroRingSmall {
+  top: -6.2rem;
+  right: -0.5rem;
+  width: 15rem;
+  height: 15rem;
+  opacity: 0.72;
+}
+
+.heroDot {
+  position: absolute;
+  right: 1.65rem;
+  bottom: 1.55rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--hierarchy-accent);
+  box-shadow: 0 0 1.2rem color-mix(in srgb, var(--hierarchy-accent) 66%, transparent);
+  pointer-events: none;
+}
+
+.heroCopy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 42rem;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0;
+  color: rgb(255 255 255 / 0.74);
+  font-family: var(--font-system-label);
+  font-size: 0.61rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.eyebrow::before {
+  width: 1.55rem;
+  height: 1px;
+  background: var(--hierarchy-accent);
+  content: "";
+}
+
+.heroTitle {
+  max-width: 36rem;
+  margin: 0.58rem 0 0;
+  color: var(--color-bg-light);
+  font-family: var(--font-system-display);
+  font-size: clamp(2.4rem, 3.4vw, 3.15rem);
+  font-weight: 300;
+  letter-spacing: -0.038em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.heroDescription {
+  max-width: 34rem;
+  margin: 0.7rem 0 0;
+  color: rgb(255 255 255 / 0.76);
+  font-size: 0.84rem;
+  line-height: 1.55;
+}
+
+.heroTabs {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.22rem;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 1rem;
+  padding: 0.24rem;
+  background: rgb(255 255 255 / 0.07);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(0.9rem) saturate(120%);
+}
+
+.heroTab {
+  display: inline-flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 0;
+  border-radius: 0.76rem;
+  padding: 0.68rem 0.92rem;
+  color: rgb(255 255 255 / 0.68);
+  font-size: 0.74rem;
+  font-weight: 600;
+  white-space: nowrap;
+  background: transparent;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.heroTab:hover {
+  color: var(--color-bg-light);
+  background: rgb(255 255 255 / 0.08);
+}
+
+.heroTabActive {
+  color: var(--hierarchy-on-action);
+  background: var(--hierarchy-action);
+  box-shadow: 0 0.7rem 1.6rem color-mix(in srgb, var(--hierarchy-action) 24%, transparent);
+}
+
+.heroTabActive:hover {
+  color: var(--hierarchy-on-action);
+  background: var(--hierarchy-action);
+}
+
+.heroTab svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.8;
+}
+
+.surface {
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(
+      circle at 96% 0%,
+      color-mix(in srgb, var(--hierarchy-accent) 5%, transparent),
+      transparent 16rem
+    ),
+    color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+  box-shadow:
+    0 0.85rem 2.4rem rgb(2 12 23 / 0.07),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.surfaceBody {
+  padding: clamp(1rem, 2.2vw, 2rem);
+}
+
+.tabPanel {
+  min-width: 0;
+}
+
+.treeExperience {
+  display: grid;
+  min-width: 0;
+  gap: 1.35rem;
+}
+
+.treeSummary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(
+      circle at 96% 0%,
+      color-mix(in srgb, var(--hierarchy-accent) 6%, transparent),
+      transparent 16rem
+    ),
+    color-mix(in srgb, var(--hierarchy-surface) 98%, transparent);
+  box-shadow:
+    0 0.85rem 2.4rem rgb(2 12 23 / 0.065),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.treeSummaryItem {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 6.1rem;
+  align-items: center;
+  gap: 0.85rem;
+  border-right: 1px solid var(--hierarchy-divider);
+  padding: 1rem 1.15rem;
+}
+
+.treeSummaryItem:last-child {
+  border-right: 0;
+}
+
+.treeSummaryIcon {
+  --summary-tone: var(--hierarchy-primary);
+
+  display: grid;
+  width: 2.65rem;
+  height: 2.65rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--summary-tone) 22%, var(--hierarchy-border));
+  border-radius: 0.85rem;
+  color: var(--summary-tone);
+  background: color-mix(in srgb, var(--summary-tone) 7%, transparent);
+}
+
+.treeSummaryItem[data-tone="teal"] .treeSummaryIcon {
+  --summary-tone: var(--hierarchy-accent);
+}
+
+.treeSummaryItem[data-tone="amber"] .treeSummaryIcon {
+  --summary-tone: var(--hierarchy-warning);
+}
+
+.treeSummaryItem[data-tone="mint"] .treeSummaryIcon {
+  --summary-tone: var(--hierarchy-success);
+}
+
+.treeSummaryIcon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 1.75;
+}
+
+.treeSummaryCopy {
+  display: grid;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.treeSummaryLabel {
+  overflow: hidden;
+  color: var(--hierarchy-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.57rem;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.treeSummaryValue {
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.55rem;
+  font-weight: 450;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.treeWorkspace {
+  display: grid;
+  min-width: 0;
+  min-height: 34rem;
+  grid-template-columns: minmax(17.5rem, 20rem) minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 98%, transparent);
+  box-shadow:
+    0 1rem 2.8rem rgb(2 12 23 / 0.075),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.treeSidebar {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--hierarchy-divider);
+  padding: 1.5rem;
+  background:
+    radial-gradient(
+      circle at 0% 0%,
+      color-mix(in srgb, var(--hierarchy-primary) 9%, transparent),
+      transparent 16rem
+    ),
+    color-mix(in srgb, var(--hierarchy-input) 72%, transparent);
+}
+
+.treeSidebarHeader {
+  display: grid;
+  grid-template-columns: 2.55rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.treeSidebarIcon {
+  display: grid;
+  width: 2.55rem;
+  height: 2.55rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 28%, var(--hierarchy-border));
+  border-radius: 0.82rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 8%, transparent);
+  box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--hierarchy-accent) 10%, transparent);
+}
+
+.treeSidebarIcon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  stroke-width: 1.75;
+}
+
+.treeSidebarTitle,
+.treeCanvasTitle {
+  margin: 0.25rem 0 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-weight: 420;
+  letter-spacing: -0.028em;
+}
+
+.treeSidebarTitle {
+  font-size: 1.12rem;
+  line-height: 1.15;
+}
+
+.treeSidebarDescription {
+  margin: 1rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.74rem;
+  line-height: 1.6;
+}
+
+.treeSidebarSection {
+  margin-top: 1.45rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--hierarchy-divider);
+}
+
+.activeStructureCard {
+  display: grid;
+  grid-template-columns: 0.45rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.75rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.9rem;
+  padding: 0.8rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 84%, transparent);
+}
+
+.activeStructureMark {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: var(--hierarchy-accent);
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--hierarchy-accent) 10%, transparent);
+}
+
+.activeStructureCard > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.activeStructureLabel {
+  overflow: hidden;
+  color: var(--hierarchy-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.53rem;
+  font-weight: 650;
+  letter-spacing: 0.09em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.activeStructureCard strong {
+  overflow: hidden;
+  color: var(--hierarchy-text);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeSidebarActions {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.treeSidebarActions .toolbarActions {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.treeSidebarActions .primaryButton,
+.treeSidebarActions .secondaryButton {
+  width: 100%;
+}
+
+.treeCanvas {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  background:
+    linear-gradient(color-mix(in srgb, var(--hierarchy-text) 2.5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--hierarchy-text) 2.5%, transparent) 1px, transparent 1px),
+    color-mix(in srgb, var(--hierarchy-surface) 98%, transparent);
+  background-size: 2rem 2rem;
+}
+
+.treeCanvasHeader {
+  display: flex;
+  min-height: 7.25rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  border-bottom: 1px solid var(--hierarchy-divider);
+  padding: 1.35rem 1.55rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 94%, transparent);
+  backdrop-filter: blur(0.75rem);
+}
+
+.treeCanvasHeading {
+  min-width: 0;
+}
+
+.treeCanvasTitle {
+  overflow: hidden;
+  font-size: 1.45rem;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.treeCanvasDescription {
+  max-width: 34rem;
+  margin: 0.45rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.treeCanvasStatus {
+  display: inline-flex;
+  min-height: 2rem;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.48rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 999px;
+  padding: 0.46rem 0.72rem;
+  color: var(--hierarchy-subtext);
+  background: var(--hierarchy-input);
+  font-size: 0.64rem;
+  font-weight: 600;
+}
+
+.treeCanvasStatus strong {
+  color: var(--hierarchy-text);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.liveDot {
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--hierarchy-success);
+  box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--hierarchy-success) 10%, transparent);
+}
+
+.treeCanvasContent {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  align-content: start;
+  gap: 1rem;
+  padding: 1.35rem;
+}
+
+.emptyWorkspace {
+  display: grid;
+  min-height: 25rem;
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.2rem;
+  background:
+    radial-gradient(
+      circle at 15% 20%,
+      color-mix(in srgb, var(--hierarchy-accent) 7%, transparent),
+      transparent 20rem
+    ),
+    color-mix(in srgb, var(--hierarchy-surface) 95%, transparent);
+  box-shadow: 0 0.7rem 2rem rgb(2 12 23 / 0.035);
+}
+
+.emptyWorkspaceMain {
+  display: grid;
+  min-height: 17rem;
+  grid-template-columns: minmax(11rem, 0.8fr) minmax(16rem, 1.2fr);
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.emptyWorkspaceVisual {
+  position: relative;
+  display: grid;
+  width: 9rem;
+  height: 9rem;
+  place-items: center;
+  justify-self: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 22%, var(--hierarchy-border));
+  border-radius: 50%;
+  color: var(--hierarchy-accent);
+  background:
+    radial-gradient(circle, color-mix(in srgb, var(--hierarchy-accent) 10%, transparent), transparent 64%),
+    color-mix(in srgb, var(--hierarchy-surface) 94%, transparent);
+  box-shadow:
+    0 1.25rem 3.5rem color-mix(in srgb, var(--hierarchy-primary) 12%, transparent),
+    inset 0 0 0 1.25rem color-mix(in srgb, var(--hierarchy-accent) 2.5%, transparent);
+}
+
+.emptyWorkspaceVisual > svg {
+  width: 2.2rem;
+  height: 2.2rem;
+  stroke-width: 1.35;
+}
+
+.emptyWorkspaceOrbit {
+  position: absolute;
+  inset: 1.15rem;
+  border: 1px dashed color-mix(in srgb, var(--hierarchy-accent) 28%, transparent);
+  border-radius: 50%;
+}
+
+.emptyWorkspaceNode {
+  position: absolute;
+  width: 0.72rem;
+  height: 0.72rem;
+  border: 2px solid var(--hierarchy-surface);
+  border-radius: 50%;
+  background: var(--hierarchy-accent);
+  box-shadow: 0 0 0 0.25rem color-mix(in srgb, var(--hierarchy-accent) 10%, transparent);
+}
+
+.emptyWorkspaceNode[data-position="top"] {
+  top: 0.75rem;
+  left: calc(50% - 0.36rem);
+}
+
+.emptyWorkspaceNode[data-position="left"] {
+  bottom: 1.35rem;
+  left: 1.1rem;
+}
+
+.emptyWorkspaceNode[data-position="right"] {
+  right: 1.1rem;
+  bottom: 1.35rem;
+}
+
+.emptyWorkspaceCopy {
+  display: grid;
+  justify-items: start;
+  gap: 0.7rem;
+}
+
+.emptyWorkspaceCopy .stateTitle {
+  margin: 0;
+  font-size: clamp(1.65rem, 2.5vw, 2.1rem);
+}
+
+.emptyWorkspaceCopy .stateDescription {
+  max-width: 32rem;
+}
+
+.emptyWorkspaceCopy .primaryButton {
+  margin-top: 0.3rem;
+}
+
+.setupSteps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--hierarchy-divider);
+  padding: 0;
+  list-style: none;
+  background: color-mix(in srgb, var(--hierarchy-input) 64%, transparent);
+}
+
+.setupStep {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: auto 2rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.65rem;
+  border-right: 1px solid var(--hierarchy-divider);
+  padding: 1rem;
+}
+
+.setupStep:last-child {
+  border-right: 0;
+}
+
+.setupStepNumber {
+  color: var(--hierarchy-muted);
+  font-family: var(--font-system-mono);
+  font-size: 0.52rem;
+  line-height: 2rem;
+}
+
+.setupStepIcon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.65rem;
+  color: var(--hierarchy-accent);
+  background: var(--hierarchy-surface);
+}
+
+.setupStepIcon svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  stroke-width: 1.75;
+}
+
+.setupStep > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.setupStep strong {
+  color: var(--hierarchy-text);
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.setupStep small {
+  color: var(--hierarchy-subtext);
+  font-size: 0.6rem;
+  line-height: 1.45;
+}
+
+.treeLayout {
+  display: grid;
+  min-height: 32rem;
+  gap: 1.25rem;
+}
+
+.treeToolbar {
+  display: grid;
+  grid-template-columns: minmax(15rem, 22rem) minmax(0, 1fr);
+  align-items: end;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--hierarchy-divider);
+}
+
+.fieldGroup {
+  display: grid;
+  min-width: 0;
+  gap: 0.45rem;
+}
+
+.fieldLabel,
+.sectionKicker,
+.metricLabel,
+.nodeType,
+.roleInitials,
+.statusBadge {
+  font-family: var(--font-system-label);
+}
+
+.fieldLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  margin: 0;
+  color: var(--hierarchy-muted);
+  font-size: 0.59rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+.fieldLabel svg {
+  width: 0.8rem;
+  height: 0.8rem;
+  color: var(--hierarchy-accent);
+  stroke-width: 1.8;
+}
+
+.selectRoot {
+  position: relative;
+}
+
+.selectTrigger,
+.input,
+.selectNative {
+  width: 100%;
+  min-height: 2.9rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.9rem;
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+  font-family: var(--font-system-ui);
+  font-size: 0.8rem;
+  transition:
+    border-color 170ms ease,
+    background 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.selectTrigger {
+  display: grid;
+  grid-template-columns: 1.1rem minmax(0, 1fr) 1rem;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.66rem 0.82rem;
+  text-align: left;
+}
+
+.selectTrigger:hover,
+.input:hover,
+.selectNative:hover {
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 26%, var(--hierarchy-border));
+}
+
+.selectTrigger[data-open="true"] {
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 54%, var(--hierarchy-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hierarchy-accent) 11%, transparent);
+}
+
+.selectTrigger svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--hierarchy-accent);
+  stroke-width: 1.8;
+}
+
+.selectValue {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selectMenu {
+  position: absolute;
+  z-index: 70;
+  top: calc(100% + 0.42rem);
+  right: 0;
+  left: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  padding: 0.35rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+  box-shadow: 0 1.4rem 3.5rem rgb(2 12 23 / 0.24);
+  backdrop-filter: blur(1rem) saturate(120%);
+}
+
+.selectOptionRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.45rem;
+  align-items: center;
+  gap: 0.15rem;
+  border-radius: 0.72rem;
+  transition: background 170ms ease;
+}
+
+.selectOptionRow:hover {
+  background: color-mix(in srgb, var(--hierarchy-accent) 6%, transparent);
+}
+
+.selectOption {
+  display: flex;
+  min-height: 2.55rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 0;
+  padding: 0.62rem 0.68rem;
+  color: var(--hierarchy-text);
+  text-align: left;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.selectOptionActive {
+  color: var(--hierarchy-action);
+  font-weight: 600;
+}
+
+.selectOptionDot {
+  width: 0.4rem;
+  height: 0.4rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--hierarchy-accent);
+  box-shadow: 0 0 0 0.22rem color-mix(in srgb, var(--hierarchy-accent) 11%, transparent);
+}
+
+.iconButton,
+.dangerIconButton {
+  display: inline-grid;
+  width: 2.45rem;
+  height: 2.45rem;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 0.76rem;
+  color: var(--hierarchy-muted);
+  background: transparent;
+  transition:
+    color 170ms ease,
+    border-color 170ms ease,
+    background 170ms ease,
+    transform 170ms ease;
+}
+
+.iconButton:hover {
+  color: var(--hierarchy-text);
+  border-color: var(--hierarchy-border);
+  background: var(--hierarchy-input);
+}
+
+.dangerIconButton:hover {
+  color: var(--hierarchy-danger);
+  border-color: color-mix(in srgb, var(--hierarchy-danger) 24%, transparent);
+  background: color-mix(in srgb, var(--hierarchy-danger) 7%, transparent);
+}
+
+.iconButton svg,
+.dangerIconButton svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.8;
+}
+
+.toolbarActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.primaryButton,
+.secondaryButton,
+.ghostButton,
+.dangerButton {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.88rem;
+  padding: 0.68rem 0.95rem;
+  font-family: var(--font-system-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.primaryButton {
+  border: 1px solid var(--hierarchy-action);
+  color: var(--hierarchy-on-action);
+  background: var(--hierarchy-action);
+  box-shadow: 0 0.8rem 1.9rem color-mix(in srgb, var(--hierarchy-action) 18%, transparent);
+}
+
+.primaryButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 1rem 2.25rem color-mix(in srgb, var(--hierarchy-action) 25%, transparent);
+}
+
+.secondaryButton {
+  border: 1px solid var(--hierarchy-border);
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+}
+
+.secondaryButton:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 26%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--hierarchy-accent) 5%, var(--hierarchy-input));
+}
+
+.ghostButton {
+  border: 1px solid transparent;
+  color: var(--hierarchy-subtext);
+  background: transparent;
+}
+
+.ghostButton:hover {
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+}
+
+.dangerButton {
+  border: 1px solid var(--hierarchy-danger);
+  color: var(--color-bg-light);
+  background: var(--hierarchy-danger);
+  box-shadow: 0 0.8rem 1.9rem color-mix(in srgb, var(--hierarchy-danger) 16%, transparent);
+}
+
+.primaryButton svg,
+.secondaryButton svg,
+.ghostButton svg,
+.dangerButton svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.8;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.ghostButton:disabled,
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.44;
+  box-shadow: none;
+  transform: none;
+}
+
+.inlineAlerts {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid;
+  border-radius: 1rem;
+  padding: 0.75rem 0.85rem;
+}
+
+.alertError {
+  border-color: color-mix(in srgb, var(--hierarchy-danger) 32%, transparent);
+  color: color-mix(in srgb, var(--hierarchy-danger) 82%, var(--hierarchy-text));
+  background: color-mix(in srgb, var(--hierarchy-danger) 8%, transparent);
+}
+
+.alertWarning {
+  border-color: color-mix(in srgb, var(--hierarchy-warning) 32%, transparent);
+  color: color-mix(in srgb, var(--hierarchy-warning) 78%, var(--hierarchy-text));
+  background: color-mix(in srgb, var(--hierarchy-warning) 8%, transparent);
+}
+
+.alertSuccess {
+  border-color: color-mix(in srgb, var(--hierarchy-success) 30%, transparent);
+  color: color-mix(in srgb, var(--hierarchy-success) 78%, var(--hierarchy-text));
+  background: color-mix(in srgb, var(--hierarchy-success) 7%, transparent);
+}
+
+.alert svg {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: 0 0 auto;
+  stroke-width: 1.8;
+}
+
+.alertCopy {
+  min-width: 0;
+  flex: 1;
+  margin: 0;
+  font-size: 0.77rem;
+  line-height: 1.5;
+}
+
+.alertActions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.4rem;
+}
+
+.compactButton {
+  min-height: 2.25rem;
+  border: 1px solid currentColor;
+  border-radius: 0.7rem;
+  padding: 0.52rem 0.72rem;
+  color: inherit;
+  background: transparent;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.compactDangerButton {
+  min-height: 2.25rem;
+  border: 1px solid var(--hierarchy-danger);
+  border-radius: 0.7rem;
+  padding: 0.52rem 0.72rem;
+  color: var(--color-bg-light);
+  background: var(--hierarchy-danger);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.state {
+  display: grid;
+  min-height: clamp(18rem, 42vh, 28rem);
+  place-content: center;
+  justify-items: center;
+  gap: 0.8rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.stateIcon {
+  display: grid;
+  width: 3.6rem;
+  height: 3.6rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 22%, var(--hierarchy-border));
+  border-radius: 1.05rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, transparent);
+}
+
+.stateIcon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  stroke-width: 1.65;
+}
+
+.stateTitle {
+  margin: 0.3rem 0 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.55rem;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+.stateDescription {
+  max-width: 28rem;
+  margin: 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.skeletonStack {
+  display: grid;
+  min-height: 24rem;
+  align-content: start;
+  gap: 0.65rem;
+  padding-top: 0.5rem;
+}
+
+.skeletonRow {
+  height: 4.7rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  background:
+    linear-gradient(
+      90deg,
+      var(--hierarchy-input) 0%,
+      color-mix(in srgb, var(--hierarchy-text) 7%, transparent) 46%,
+      var(--hierarchy-input) 100%
+    );
+  background-size: 220% 100%;
+  animation: hierarchy-shimmer 1.4s ease-in-out infinite;
+}
+
+.treeRows {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.nodeBranch {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.nodeRow {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 4.65rem;
+  margin-left: calc(var(--node-depth, 0) * 1.65rem);
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  padding: 0.65rem 0.7rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 96%, transparent);
+  box-shadow: 0 0.45rem 1.4rem rgb(2 12 23 / 0.035);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.nodeRow:hover,
+.nodeRow:focus-within {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--node-accent, var(--hierarchy-accent)) 28%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--node-accent, var(--hierarchy-accent)) 4%, var(--hierarchy-surface));
+  box-shadow: 0 0.65rem 1.6rem rgb(2 12 23 / 0.06);
+}
+
+.nodeConnector {
+  position: absolute;
+  top: -0.55rem;
+  bottom: 50%;
+  left: -1rem;
+  width: 1rem;
+  border-bottom: 1px solid var(--hierarchy-border);
+  border-left: 1px solid var(--hierarchy-border);
+  border-bottom-left-radius: 0.5rem;
+  pointer-events: none;
+}
+
+.nodeToggle {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--node-accent, var(--hierarchy-accent)) 20%, var(--hierarchy-border));
+  border-radius: 0.72rem;
+  color: var(--node-accent, var(--hierarchy-accent));
+  background: color-mix(in srgb, var(--node-accent, var(--hierarchy-accent)) 7%, transparent);
+}
+
+.nodeToggle svg {
+  width: 0.95rem;
+  height: 0.95rem;
+  stroke-width: 1.9;
+}
+
+.nodeMain {
+  display: grid;
+  min-width: 0;
+  gap: 0.28rem;
+}
+
+.nodeTitleLine {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nodeTitle {
+  overflow: hidden;
+  color: var(--hierarchy-text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 170ms ease;
+}
+
+.nodeTitle:hover {
+  color: var(--hierarchy-action);
+}
+
+.nodeCode {
+  flex: 0 0 auto;
+  border: 1px solid color-mix(in srgb, var(--node-accent, var(--hierarchy-accent)) 24%, transparent);
+  border-radius: 999px;
+  padding: 0.18rem 0.42rem;
+  color: var(--node-accent, var(--hierarchy-accent));
+  background: color-mix(in srgb, var(--node-accent, var(--hierarchy-accent)) 7%, transparent);
+  font-family: var(--font-system-mono);
+  font-size: 0.56rem;
+}
+
+.nodeMeta {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.8rem;
+  color: var(--hierarchy-muted);
+  font-size: 0.66rem;
+}
+
+.nodeType {
+  color: var(--node-accent, var(--hierarchy-accent));
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.nodeMetaItem {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.nodeMetaItem svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: 0 0 auto;
+  stroke-width: 1.7;
+}
+
+.nodeActions {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+  opacity: 0;
+  transition: opacity 170ms ease;
+}
+
+.nodeRow:hover .nodeActions,
+.nodeRow:focus-within .nodeActions {
+  opacity: 1;
+}
+
+.nodeChildren {
+  display: grid;
+  gap: 0.35rem;
+  padding-top: 0.1rem;
+}
+
+.terminalLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0.1rem 0 0.2rem;
+  color: var(--hierarchy-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.terminalLabel::before {
+  width: 1.2rem;
+  height: 1px;
+  background: var(--hierarchy-border);
+  content: "";
+}
+
+.settingsStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.settingsCard {
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+  box-shadow:
+    0 0.65rem 1.8rem rgb(2 12 23 / 0.045),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.settingsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  border-bottom: 1px solid var(--hierarchy-divider);
+}
+
+.sectionIdentity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sectionIcon {
+  display: grid;
+  width: 2.6rem;
+  height: 2.6rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--section-accent, var(--hierarchy-accent)) 24%, var(--hierarchy-border));
+  border-radius: 0.84rem;
+  color: var(--section-accent, var(--hierarchy-accent));
+  background: color-mix(in srgb, var(--section-accent, var(--hierarchy-accent)) 7%, transparent);
+}
+
+.sectionIcon svg {
+  width: 1.08rem;
+  height: 1.08rem;
+  stroke-width: 1.75;
+}
+
+.sectionCopy {
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+.sectionDescription {
+  margin: 0.24rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 999px;
+  padding: 0.38rem 0.62rem;
+  color: var(--hierarchy-muted);
+  background: var(--hierarchy-input);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.statusBadge::before {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 50%;
+  background: currentColor;
+  content: "";
+}
+
+.statusActive {
+  border-color: color-mix(in srgb, var(--hierarchy-success) 25%, transparent);
+  color: var(--hierarchy-success);
+  background: color-mix(in srgb, var(--hierarchy-success) 8%, transparent);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  border-bottom: 1px solid var(--hierarchy-divider);
+}
+
+.metric {
+  display: grid;
+  grid-template-columns: 2.35rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.68rem;
+  min-height: 5.5rem;
+  border-right: 1px solid var(--hierarchy-divider);
+  padding: 0.8rem 0.9rem;
+}
+
+.metric:last-child {
+  border-right: 0;
+}
+
+.metricIcon {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--metric-color, var(--hierarchy-accent)) 22%, var(--hierarchy-border));
+  border-radius: 0.76rem;
+  color: var(--metric-color, var(--hierarchy-accent));
+  background: color-mix(in srgb, var(--metric-color, var(--hierarchy-accent)) 7%, transparent);
+}
+
+.metricIcon svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.75;
+}
+
+.metricLabel {
+  overflow: hidden;
+  margin: 0;
+  color: var(--hierarchy-muted);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.metricValue {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-label);
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.settingsBody {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1rem 1.2rem 1.2rem;
+}
+
+.settingsActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.setupCallout {
+  display: grid;
+  grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-info) 22%, transparent);
+  border-radius: 1rem;
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--hierarchy-info) 6%, transparent);
+}
+
+.toggleList,
+.rolesGrid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.toggleRow {
+  display: grid;
+  grid-template-columns: 2.35rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 4.5rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  padding: 0.72rem 0.78rem;
+  background: var(--hierarchy-input);
+  transition:
+    border-color 170ms ease,
+    background 170ms ease;
+}
+
+.toggleRowActive {
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 24%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--hierarchy-accent) 5%, var(--hierarchy-input));
+}
+
+.toggleCopy {
+  min-width: 0;
+}
+
+.toggleTitle {
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-size: 0.79rem;
+  font-weight: 600;
+}
+
+.toggleDescription {
+  margin: 0.2rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.68rem;
+  line-height: 1.48;
+}
+
+.savedLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: 0.4rem;
+  color: var(--hierarchy-success);
+  font-size: 0.62rem;
+  font-weight: 500;
+}
+
+.savedLabel svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  width: 2.55rem;
+  height: 1.45rem;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.2rem;
+  background: color-mix(in srgb, var(--hierarchy-text) 18%, transparent);
+  transition:
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.switch[data-checked="true"] {
+  background: var(--hierarchy-action);
+}
+
+.switchThumb {
+  width: 1.05rem;
+  height: 1.05rem;
+  border-radius: 50%;
+  background: var(--color-bg-light);
+  box-shadow: 0 0.15rem 0.45rem rgb(2 12 23 / 0.25);
+  transform: translateX(0);
+  transition: transform 190ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.switch[data-checked="true"] .switchThumb {
+  transform: translateX(1.1rem);
+}
+
+.rolesGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.roleRow {
+  display: grid;
+  grid-template-columns: 2.1rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 3.6rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.9rem;
+  padding: 0.58rem 0.65rem;
+  background: var(--hierarchy-input);
+}
+
+.roleInitials {
+  display: grid;
+  width: 2.1rem;
+  height: 2.1rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 20%, var(--hierarchy-border));
+  border-radius: 0.68rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 6%, transparent);
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.roleName {
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.roleScope {
+  margin: 0.12rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.63rem;
+}
+
+.dashboard {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.nodeHero {
+  min-height: 9.75rem;
+}
+
+.nodeHeroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.85rem;
+  margin-top: 0.78rem;
+  color: rgb(255 255 255 / 0.68);
+  font-family: var(--font-system-label);
+  font-size: 0.63rem;
+}
+
+.nodeHeroMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+}
+
+.nodeHeroMeta svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.nodeHeroActions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.glassButton {
+  display: inline-flex;
+  min-height: 2.7rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.48rem;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 0.82rem;
+  padding: 0.66rem 0.88rem;
+  color: var(--color-bg-light);
+  background: rgb(255 255 255 / 0.075);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(0.8rem) saturate(120%);
+  font-size: 0.73rem;
+  font-weight: 600;
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease;
+}
+
+.glassButton:hover {
+  transform: translateY(-1px);
+  border-color: rgb(255 255 255 / 0.32);
+  background: rgb(255 255 255 / 0.12);
+}
+
+.glassButton svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.dashboardTabs {
+  display: flex;
+  max-width: 100%;
+  gap: 0.18rem;
+  overflow-x: auto;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  padding: 0.25rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 96%, transparent);
+  box-shadow: 0 0.6rem 1.6rem rgb(2 12 23 / 0.045);
+  scrollbar-width: none;
+}
+
+.dashboardTabs::-webkit-scrollbar {
+  display: none;
+}
+
+.dashboardTab {
+  display: inline-flex;
+  min-height: 2.55rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  border: 0;
+  border-radius: 0.74rem;
+  padding: 0.62rem 0.82rem;
+  color: var(--hierarchy-subtext);
+  background: transparent;
+  font-size: 0.73rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    color 170ms ease,
+    background 170ms ease,
+    box-shadow 170ms ease;
+}
+
+.dashboardTab:hover {
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+}
+
+.dashboardTabActive {
+  color: var(--hierarchy-on-action);
+  background: var(--hierarchy-action);
+  box-shadow: 0 0.5rem 1.2rem color-mix(in srgb, var(--hierarchy-action) 17%, transparent);
+}
+
+.dashboardContent {
+  min-width: 0;
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: minmax(17rem, 0.85fr) minmax(0, 1.75fr);
+  align-items: stretch;
+  gap: 1rem;
+}
+
+.dashboardCard {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.25rem;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--card-accent, var(--hierarchy-accent)) 5%, transparent),
+      transparent 13rem
+    ),
+    color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+  box-shadow:
+    0 0.7rem 2rem rgb(2 12 23 / 0.05),
+    inset 0 1px 0 rgb(255 255 255 / 0.035);
+}
+
+.dashboardCardBody {
+  padding: 1.15rem;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.cardTitle {
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.18rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.cardDescription {
+  margin: 0.2rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.managerBody {
+  display: grid;
+  min-height: 20rem;
+  place-content: center;
+  justify-items: center;
+  padding: 1rem;
+  text-align: center;
+}
+
+.avatar {
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  place-items: center;
+  overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--hierarchy-accent) 45%, transparent);
+  border-radius: 50%;
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+  box-shadow: 0 0.9rem 2rem color-mix(in srgb, var(--hierarchy-accent) 13%, transparent);
+  font-family: var(--font-system-display);
+  font-size: 1.6rem;
+}
+
+.avatar img,
+.memberAvatar img,
+.courseImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.managerName {
+  margin: 0.8rem 0 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.managerEmail {
+  margin: 0.2rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.7rem;
+}
+
+.managerRole {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.8rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 999px;
+  padding: 0.35rem 0.55rem;
+  color: var(--hierarchy-muted);
+  background: var(--hierarchy-input);
+  font-size: 0.62rem;
+}
+
+.managerRole svg {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+
+.compactEmpty {
+  display: grid;
+  min-height: 19rem;
+  place-content: center;
+  justify-items: center;
+  gap: 0.7rem;
+  border: 1px dashed color-mix(in srgb, var(--hierarchy-text) 16%, transparent);
+  border-radius: 1rem;
+  padding: 1rem;
+  text-align: center;
+  background: var(--hierarchy-input);
+}
+
+.performanceMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.performanceMetric {
+  min-height: 5rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.95rem;
+  padding: 0.8rem;
+  background: var(--hierarchy-input);
+}
+
+.performanceMetric p {
+  margin: 0;
+  color: var(--hierarchy-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.performanceValue {
+  display: block;
+  margin-top: 0.4rem;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-label);
+  font-size: 1.45rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.chartPlaceholder {
+  display: grid;
+  min-height: 15rem;
+  place-content: center;
+  margin-top: 0.75rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  color: var(--hierarchy-muted);
+  background:
+    linear-gradient(var(--hierarchy-divider) 1px, transparent 1px),
+    linear-gradient(90deg, var(--hierarchy-divider) 1px, transparent 1px),
+    var(--hierarchy-input);
+  background-size: 2.5rem 2.5rem;
+  font-size: 0.72rem;
+}
+
+.sectionToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionToolbarCopy h2 {
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.45rem;
+  font-weight: 400;
+  letter-spacing: -0.025em;
+}
+
+.sectionToolbarCopy p {
+  margin: 0.25rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.76rem;
+}
+
+.memberGrid,
+.courseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
+.memberCard {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 4.8rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  padding: 0.7rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+}
+
+.memberAvatar {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.82rem;
+  color: var(--hierarchy-muted);
+  background: var(--hierarchy-input);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.memberName {
+  overflow: hidden;
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberEmail {
+  overflow: hidden;
+  margin: 0.15rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.64rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memberRoleBadge {
+  display: inline-block;
+  margin-top: 0.3rem;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 22%, transparent);
+  border-radius: 999px;
+  padding: 0.18rem 0.4rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, transparent);
+  font-family: var(--font-system-label);
+  font-size: 0.53rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.emptySurface {
+  display: grid;
+  min-height: clamp(16rem, 36vh, 23rem);
+  place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  color: var(--hierarchy-subtext);
+  text-align: center;
+  background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+}
+
+.emptySurface svg {
+  width: 1.7rem;
+  height: 1.7rem;
+  color: var(--hierarchy-accent);
+  stroke-width: 1.6;
+}
+
+.emptySurface h3 {
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+}
+
+.emptySurface p {
+  max-width: 28rem;
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.55;
+}
+
+.structureGrid {
+  display: grid;
+  grid-template-columns: minmax(16rem, 0.8fr) minmax(0, 1.7fr);
+  gap: 1rem;
+}
+
+.structureAside {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+}
+
+.detailsList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.detailItem {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.detailLabel {
+  color: var(--hierarchy-muted);
+  font-family: var(--font-system-label);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.detailValue {
+  color: var(--hierarchy-text);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.pathList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pathLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--hierarchy-subtext);
+  font-size: 0.68rem;
+}
+
+.pathLink:hover {
+  color: var(--hierarchy-action);
+}
+
+.childrenList {
+  display: grid;
+  max-height: 18rem;
+  gap: 0.45rem;
+  overflow-y: auto;
+}
+
+.childLink {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.85rem;
+  padding: 0.62rem 0.7rem;
+  background: var(--hierarchy-input);
+  transition:
+    border-color 170ms ease,
+    transform 170ms ease;
+}
+
+.childLink:hover {
+  transform: translateX(2px);
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 25%, var(--hierarchy-border));
+}
+
+.childLink strong {
+  display: block;
+  color: var(--hierarchy-text);
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.childLink small {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--hierarchy-subtext);
+  font-size: 0.62rem;
+  text-transform: capitalize;
+}
+
+.mapCard {
+  position: relative;
+  min-height: 31rem;
+}
+
+.mapHeader {
+  position: absolute;
+  z-index: 10;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: inline-flex;
+  min-height: 2.35rem;
+  align-items: center;
+  gap: 0.42rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.78rem;
+  padding: 0.5rem 0.68rem;
+  color: var(--hierarchy-text);
+  background: color-mix(in srgb, var(--hierarchy-surface) 92%, transparent);
+  box-shadow: 0 0.6rem 1.6rem rgb(2 12 23 / 0.16);
+  backdrop-filter: blur(0.9rem);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.mapHeader svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--hierarchy-accent);
+}
+
+.mapContainer,
+.mapLoading {
+  width: 100%;
+  height: 100%;
+  min-height: 31rem;
+}
+
+.mapContainer {
+  position: relative;
+  z-index: 1;
+}
+
+.mapLoading {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.7rem;
+  color: var(--hierarchy-subtext);
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--hierarchy-accent) 8%, transparent), transparent 14rem),
+    var(--hierarchy-input);
+  font-size: 0.72rem;
+}
+
+.mapLoading svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--hierarchy-accent);
+}
+
+.mapControls {
+  position: absolute;
+  z-index: 900;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.8rem;
+  padding: 0.28rem;
+  color: var(--hierarchy-text);
+  background: color-mix(in srgb, var(--hierarchy-surface) 92%, transparent);
+  box-shadow: 0 0.6rem 1.6rem rgb(2 12 23 / 0.16);
+  backdrop-filter: blur(0.9rem);
+}
+
+.mapControlButton {
+  display: inline-flex;
+  min-height: 2.2rem;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 0.62rem;
+  padding: 0.46rem 0.55rem;
+  color: var(--hierarchy-subtext);
+  background: transparent;
+  font-size: 0.63rem;
+}
+
+.mapControlButton:hover,
+.mapControlButton[data-active="true"] {
+  color: var(--hierarchy-text);
+  background: color-mix(in srgb, var(--hierarchy-accent) 8%, transparent);
+}
+
+.mapControlButton svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.mapContainer :global(.leaflet-container) {
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+  font-family: var(--font-system-ui);
+}
+
+.mapContainer :global(.leaflet-control-zoom) {
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.78rem;
+  box-shadow: 0 0.6rem 1.6rem rgb(2 12 23 / 0.16);
+}
+
+.mapContainer :global(.leaflet-control-zoom a) {
+  display: grid;
+  width: 2.2rem;
+  height: 2.2rem;
+  place-items: center;
+  border: 0;
+  color: var(--hierarchy-text);
+  background: color-mix(in srgb, var(--hierarchy-surface) 94%, transparent);
+  font-family: var(--font-system-ui);
+  line-height: 1;
+}
+
+.mapContainer :global(.leaflet-control-zoom a:first-child) {
+  border-bottom: 1px solid var(--hierarchy-border);
+}
+
+.mapContainer :global(.leaflet-control-attribution),
+.mapContainer :global(.leaflet-control-scale-line) {
+  border-color: var(--hierarchy-border);
+  color: var(--hierarchy-subtext);
+  background: color-mix(in srgb, var(--hierarchy-surface) 88%, transparent);
+  backdrop-filter: blur(0.7rem);
+  font-size: 0.56rem;
+}
+
+.mapContainer :global(.leaflet-popup-content-wrapper),
+.mapContainer :global(.leaflet-popup-tip) {
+  color: var(--hierarchy-text);
+  background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+}
+
+.mapContainer :global(.leaflet-popup-content-wrapper) {
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1rem;
+  box-shadow: 0 1rem 2.8rem rgb(2 12 23 / 0.24);
+}
+
+.mapContainer :global(.leaflet-popup-content) {
+  margin: 0;
+}
+
+.mapContainer :global(.hierarchy-map-marker) {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 65%, var(--color-bg-light));
+  border-radius: 0.7rem 0.7rem 0.7rem 0.2rem;
+  background: var(--hierarchy-action);
+  box-shadow: 0 0.6rem 1.2rem rgb(2 12 23 / 0.28);
+  transform: rotate(-45deg);
+}
+
+.mapContainer :global(.hierarchy-map-marker span) {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--hierarchy-on-action);
+}
+
+.mapContainer :global(.hierarchy-map-marker--top) {
+  border-color: color-mix(in srgb, var(--hierarchy-warning) 65%, var(--color-bg-light));
+  background: var(--hierarchy-warning);
+}
+
+.mapContainer :global(.hierarchy-map-popup) {
+  display: grid;
+  min-width: 12rem;
+  gap: 0.28rem;
+  padding: 0.8rem;
+}
+
+.mapContainer :global(.hierarchy-map-popup strong) {
+  font-family: var(--font-system-display);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.mapContainer :global(.hierarchy-map-popup small) {
+  color: var(--hierarchy-subtext);
+  font-family: var(--font-system-label);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mapContainer :global(.hierarchy-map-popup b) {
+  font-family: var(--font-system-label);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.mapContainer :global(.hierarchy-map-popup__status) {
+  justify-self: start;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-warning) 28%, transparent);
+  border-radius: 999px;
+  padding: 0.2rem 0.4rem;
+  color: var(--hierarchy-warning);
+  background: color-mix(in srgb, var(--hierarchy-warning) 8%, transparent);
+  font-size: 0.54rem;
+}
+
+.courseCard {
+  display: flex;
+  height: 100%;
+  min-height: 18rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.15rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.courseCard:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 24%, var(--hierarchy-border));
+  box-shadow: 0 0.9rem 2.2rem rgb(2 12 23 / 0.09);
+}
+
+.courseImage {
+  position: relative;
+  height: 9rem;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--hierarchy-primary) 82%, transparent), color-mix(in srgb, var(--hierarchy-accent) 30%, transparent));
+}
+
+.courseImage img {
+  opacity: 0.72;
+}
+
+.courseCategory {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  border: 1px solid rgb(255 255 255 / 0.18);
+  border-radius: 999px;
+  padding: 0.25rem 0.48rem;
+  color: var(--color-bg-light);
+  background: rgb(2 12 23 / 0.58);
+  backdrop-filter: blur(0.7rem);
+  font-family: var(--font-system-label);
+  font-size: 0.53rem;
+  font-weight: 600;
+}
+
+.courseBody {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0.9rem;
+}
+
+.courseTitle {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+  line-height: 1.22;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.courseFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.8rem;
+}
+
+.courseAdd {
+  display: grid;
+  min-height: 18rem;
+  place-content: center;
+  justify-items: center;
+  gap: 0.65rem;
+  border: 1px dashed color-mix(in srgb, var(--hierarchy-text) 18%, transparent);
+  border-radius: 1.15rem;
+  color: var(--hierarchy-subtext);
+  background: transparent;
+  font-size: 0.74rem;
+  font-weight: 500;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.courseAdd:hover {
+  color: var(--hierarchy-text);
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 35%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--hierarchy-accent) 5%, transparent);
+}
+
+.courseAddIcon {
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 23%, var(--hierarchy-border));
+  border-radius: 0.85rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, transparent);
+}
+
+.courseAddIcon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.chatShell {
+  min-height: min(37rem, 68svh);
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.25rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
+  box-shadow: 0 0.8rem 2.2rem rgb(2 12 23 / 0.07);
+}
+
+.overlay {
+  position: fixed;
+  z-index: 9999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+  background:
+    radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--hierarchy-accent) 10%, transparent), transparent 42%),
+    rgb(3 12 22 / 0.62);
+  backdrop-filter: blur(0.9rem) saturate(115%);
+}
+
+.dialog,
+.dialogWide {
+  position: relative;
+  display: grid;
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: min(46rem, calc(100svh - 2rem));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 22%, var(--hierarchy-border));
+  border-radius: 1.55rem;
+  color: var(--hierarchy-text);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--hierarchy-accent) 7%, transparent), transparent 22rem),
+    color-mix(in srgb, var(--hierarchy-surface) 98%, transparent);
+  box-shadow:
+    0 2.5rem 7rem rgb(2 12 22 / 0.34),
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+  backdrop-filter: blur(1.5rem) saturate(125%);
+}
+
+.dialogWide {
+  width: min(54rem, calc(100vw - 2rem));
+}
+
+.dialogHeader {
+  display: grid;
+  grid-template-columns: 2.7rem minmax(0, 1fr) 2.7rem;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--hierarchy-divider);
+  background: color-mix(in srgb, var(--hierarchy-surface) 94%, transparent);
+  backdrop-filter: blur(1.1rem);
+}
+
+.dialogIcon {
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 24%, var(--hierarchy-border));
+  border-radius: 0.86rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, transparent);
+}
+
+.dialogIcon svg {
+  width: 1.1rem;
+  height: 1.1rem;
+  stroke-width: 1.8;
+}
+
+.dialogHeading {
+  min-width: 0;
+}
+
+.dialogKicker {
+  margin: 0;
+  color: var(--hierarchy-accent);
+  font-family: var(--font-system-label);
+  font-size: 0.56rem;
+  font-weight: 600;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.dialogTitle {
+  overflow: hidden;
+  margin: 0.15rem 0 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.55rem;
+  font-weight: 400;
+  letter-spacing: -0.027em;
+  line-height: 1.08;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dialogDescription {
+  margin: 0.18rem 0 0;
+  color: var(--hierarchy-subtext);
+  font-size: 0.67rem;
+  line-height: 1.4;
+}
+
+.dialogBody {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1rem 1.15rem;
+}
+
+.dialogFooter {
+  display: flex;
+  min-height: 4.75rem;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  border-top: 1px solid var(--hierarchy-divider);
+  padding: 0.78rem 1.15rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 94%, transparent);
+  backdrop-filter: blur(1.1rem);
+}
+
+.formStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.addressPrimary {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(5rem, 0.72fr) minmax(5rem, 0.72fr);
+  gap: 0.65rem;
+}
+
+.addressSecondary {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(6rem, 0.8fr);
+  gap: 0.65rem;
+}
+
+.addressLocation,
+.coordinateGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.coordinateGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.input {
+  padding: 0.7rem 0.82rem;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--hierarchy-muted);
+}
+
+.input:focus,
+.selectNative:focus {
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 54%, var(--hierarchy-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hierarchy-accent) 11%, transparent);
+}
+
+.formError {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0;
+  color: var(--hierarchy-danger);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.searchField {
+  position: relative;
+}
+
+.searchField > svg {
+  position: absolute;
+  top: 50%;
+  left: 0.82rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--hierarchy-muted);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.searchField .input {
+  padding-left: 2.45rem;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.coursePicker {
+  display: grid;
+  grid-template-columns: 2.7rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 4.8rem;
+  border: 1px dashed color-mix(in srgb, var(--hierarchy-accent) 38%, var(--hierarchy-border));
+  border-radius: 1rem;
+  padding: 0.72rem;
+  color: var(--hierarchy-text);
+  text-align: left;
+  background: color-mix(in srgb, var(--hierarchy-accent) 4%, var(--hierarchy-input));
+  transition:
+    border-color 170ms ease,
+    background 170ms ease,
+    transform 170ms ease;
+}
+
+.coursePicker:hover {
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 65%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, var(--hierarchy-input));
+  transform: translateY(-1px);
+}
+
+.coursePickerIcon,
+.coursePickerCount {
+  display: grid;
+  width: 2.7rem;
+  height: 2.7rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 18%, var(--hierarchy-border));
+  border-radius: 0.8rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, transparent);
+}
+
+.coursePickerIcon svg {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.coursePickerCount {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  font-family: var(--font-system-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.coursePickerCopy,
+.resultCopy {
+  display: grid;
+  min-width: 0;
+  gap: 0.18rem;
+}
+
+.coursePickerCopy strong,
+.resultCopy strong {
+  overflow: hidden;
+  color: var(--hierarchy-text);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coursePickerCopy span,
+.resultCopy span {
+  overflow: hidden;
+  color: var(--hierarchy-subtext);
+  font-size: 0.66rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.approachFieldset {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.approachGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.48rem;
+}
+
+.approachOption {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1rem;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3.5rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.9rem;
+  padding: 0.58rem 0.7rem;
+  cursor: pointer;
+  background: var(--hierarchy-input);
+  transition:
+    border-color 170ms ease,
+    background 170ms ease;
+}
+
+.approachOption[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 48%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, var(--hierarchy-input));
+}
+
+.approachOption input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.approachOption > span {
+  display: grid;
+  gap: 0.13rem;
+}
+
+.approachOption strong {
+  color: var(--hierarchy-text);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.approachOption small {
+  color: var(--hierarchy-subtext);
+  font-size: 0.61rem;
+}
+
+.approachOption > svg {
+  width: 0.92rem;
+  height: 0.92rem;
+  color: transparent;
+}
+
+.approachOption[data-selected="true"] > svg {
+  color: var(--hierarchy-accent);
+}
+
+.approachOption:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--hierarchy-accent) 62%, transparent);
+  outline-offset: 2px;
+}
+
+.textarea {
+  min-height: 6.4rem;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.infoBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 22%, var(--hierarchy-border));
+  border-radius: 0.9rem;
+  padding: 0.72rem 0.8rem;
+  color: var(--hierarchy-subtext);
+  background: color-mix(in srgb, var(--hierarchy-accent) 5%, var(--hierarchy-input));
+  font-size: 0.69rem;
+  line-height: 1.5;
+}
+
+.infoBanner svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  margin-top: 0.1rem;
+  color: var(--hierarchy-accent);
+}
+
+.selectorBody {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.75rem;
+  min-height: 24rem;
+}
+
+.selectionSummary {
+  display: flex;
+  min-height: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--hierarchy-subtext);
+  font-family: var(--font-system-label);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.selectionSummary button {
+  border: 0;
+  color: var(--hierarchy-accent);
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.resultThumb {
+  position: relative;
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.72rem;
+  color: var(--hierarchy-muted);
+  background: color-mix(in srgb, var(--hierarchy-surface) 75%, transparent);
+}
+
+.resultThumb svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.resultThumbImage {
+  object-fit: cover;
+}
+
+.resultCheck {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  place-items: center;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 999px;
+  color: transparent;
+  background: transparent;
+}
+
+.resultCheck[data-selected="true"] {
+  border-color: var(--hierarchy-action);
+  color: var(--hierarchy-on-action);
+  background: var(--hierarchy-action);
+}
+
+.resultCheck svg {
+  width: 0.72rem;
+  height: 0.72rem;
+  stroke-width: 2.3;
+}
+
+.compactEmptyState {
+  display: grid;
+  min-height: 10rem;
+  place-content: center;
+  justify-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  color: var(--hierarchy-subtext);
+  text-align: center;
+}
+
+.compactEmptyState .stateIcon {
+  width: 2.8rem;
+  height: 2.8rem;
+  border-radius: 0.85rem;
+}
+
+.compactEmptyState .stateIcon svg {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+.compactEmptyState > strong {
+  color: var(--hierarchy-text);
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.compactEmptyState > span:not(.stateIcon) {
+  max-width: 17rem;
+  font-size: 0.65rem;
+  line-height: 1.5;
+}
+
+.membersManagerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.membersManagerColumn {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 0.75rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.1rem;
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--hierarchy-input) 76%, transparent);
+}
+
+.membersManagerHeading {
+  display: flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.membersManagerTitle {
+  margin: 0.15rem 0 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.18rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.countBadge {
+  display: grid;
+  min-width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 22%, var(--hierarchy-border));
+  border-radius: 999px;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 6%, transparent);
+  font-family: var(--font-system-label);
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+
+.textButton {
+  min-height: 2rem;
+  border: 0;
+  color: var(--hierarchy-accent);
+  background: transparent;
+  font-size: 0.64rem;
+  font-weight: 600;
+}
+
+.membersManagerList {
+  display: grid;
+  max-height: 21rem;
+  align-content: start;
+  gap: 0.42rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.managerMemberRow {
+  display: grid;
+  grid-template-columns: 2.35rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.62rem;
+  min-height: 3.75rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.9rem;
+  padding: 0.55rem 0.6rem;
+  background: var(--hierarchy-surface);
+}
+
+.memberAvatar {
+  position: relative;
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 20%, var(--hierarchy-border));
+  border-radius: 0.76rem;
+  color: var(--hierarchy-accent);
+  background: color-mix(in srgb, var(--hierarchy-accent) 7%, var(--hierarchy-input));
+  font-family: var(--font-system-label);
+  font-size: 0.67rem;
+  font-weight: 600;
+}
+
+.memberAvatarImage {
+  object-fit: cover;
+}
+
+.memberActions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.roleToggle {
+  display: inline-flex;
+  gap: 0.15rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.68rem;
+  padding: 0.16rem;
+  background: var(--hierarchy-input);
+}
+
+.roleToggle button {
+  display: grid;
+  min-width: 2rem;
+  min-height: 1.85rem;
+  place-items: center;
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0 0.48rem;
+  color: var(--hierarchy-muted);
+  background: transparent;
+  font-size: 0.58rem;
+  font-weight: 600;
+}
+
+.roleToggle button[data-active="true"] {
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-surface);
+  box-shadow: 0 0.25rem 0.7rem rgb(2 12 23 / 0.08);
+}
+
+.roleToggle svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.spin {
+  animation: hierarchy-spin 0.8s linear infinite;
+}
+
+@keyframes hierarchy-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.skeletonRow {
+  position: relative;
+  overflow: hidden;
+  min-height: 3.8rem;
+  pointer-events: none;
+}
+
+.skeletonRow::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--hierarchy-text) 7%, transparent), transparent);
+  content: "";
+  transform: translateX(-100%);
+  animation: hierarchy-shimmer 1.4s ease-in-out infinite;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.2rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.95rem;
+  padding: 0.22rem;
+  background: var(--hierarchy-input);
+}
+
+.segment {
+  min-height: 2.45rem;
+  border: 0;
+  border-radius: 0.72rem;
+  color: var(--hierarchy-subtext);
+  background: transparent;
+  font-size: 0.73rem;
+  font-weight: 500;
+}
+
+.segmentActive {
+  color: var(--hierarchy-on-action);
+  background: var(--hierarchy-action);
+  box-shadow: 0 0.45rem 1.1rem color-mix(in srgb, var(--hierarchy-action) 17%, transparent);
+}
+
+.resultList {
+  display: grid;
+  max-height: 18rem;
+  gap: 0.4rem;
+  overflow-y: auto;
+}
+
+.resultRow {
+  display: grid;
+  grid-template-columns: 2.35rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 3.8rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.9rem;
+  padding: 0.58rem 0.65rem;
+  color: var(--hierarchy-text);
+  text-align: left;
+  background: var(--hierarchy-input);
+  transition:
+    border-color 170ms ease,
+    background 170ms ease;
+}
+
+.resultRow:hover,
+.resultRow[data-selected="true"] {
+  border-color: color-mix(in srgb, var(--hierarchy-accent) 30%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--hierarchy-accent) 6%, var(--hierarchy-input));
+}
+
+.formSection {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--hierarchy-divider);
+}
+
+.formSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.formSectionTitle svg {
+  width: 1rem;
+  height: 1rem;
+  color: var(--hierarchy-accent);
+}
+
+.heroTab:focus-visible,
+.selectTrigger:focus-visible,
+.selectOption:focus-visible,
+.iconButton:focus-visible,
+.dangerIconButton:focus-visible,
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.ghostButton:focus-visible,
+.dangerButton:focus-visible,
+.compactButton:focus-visible,
+.compactDangerButton:focus-visible,
+.nodeToggle:focus-visible,
+.nodeTitle:focus-visible,
+.switch:focus-visible,
+.dashboardTab:focus-visible,
+.glassButton:focus-visible,
+.courseAdd:focus-visible,
+.mapControlButton:focus-visible,
+.segment:focus-visible,
+.resultRow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hierarchy-accent) 16%, transparent);
+}
+
+@keyframes hierarchy-shimmer {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@media (max-width: 72rem) {
+  .hero {
+    padding-inline: 2rem;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .metric:nth-child(3) {
+    border-right: 0;
+  }
+
+  .metric:nth-child(n + 4) {
+    border-top: 1px solid var(--hierarchy-divider);
+  }
+
+  .memberGrid,
+  .courseGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 64rem) {
+  .treeWorkspace {
+    grid-template-columns: 1fr;
+  }
+
+  .treeSidebar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.9fr);
+    gap: 0.85rem 1.25rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--hierarchy-divider);
+  }
+
+  .treeSidebarDescription {
+    grid-column: 1;
+    margin-top: 0;
+  }
+
+  .treeSidebarSection {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    margin-top: 0;
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .activeStructureCard {
+    grid-column: 2;
+  }
+
+  .treeSidebarActions {
+    grid-column: 1 / -1;
+    margin-top: 0;
+    padding-top: 0.3rem;
+  }
+
+  .treeSidebarActions .toolbarActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboardGrid,
+  .structureGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mapCard,
+  .mapContainer,
+  .mapLoading {
+    min-height: 25rem;
+  }
+}
+
+@media (max-width: 48rem) {
+  .hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    align-items: start;
+    gap: 1.25rem;
+    border-radius: 1.5rem;
+    padding: 1.4rem;
+  }
+
+  .heroTabs {
+    width: 100%;
+  }
+
+  .heroTab {
+    flex: 1;
+  }
+
+  .treeToolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .treeSummary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-radius: 1.15rem;
+  }
+
+  .treeSummaryItem:nth-child(2) {
+    border-right: 0;
+  }
+
+  .treeSummaryItem:nth-child(n + 3) {
+    border-top: 1px solid var(--hierarchy-divider);
+  }
+
+  .treeWorkspace {
+    border-radius: 1.15rem;
+  }
+
+  .treeSidebar {
+    display: flex;
+    padding: 1.15rem;
+  }
+
+  .treeSidebarDescription {
+    margin-top: 0.75rem;
+  }
+
+  .treeSidebarSection {
+    margin-top: 1rem;
+    border-top: 1px solid var(--hierarchy-divider);
+    padding-top: 1rem;
+  }
+
+  .treeSidebarActions {
+    padding-top: 1rem;
+  }
+
+  .treeCanvasHeader {
+    min-height: auto;
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 1.15rem;
+  }
+
+  .treeCanvasContent {
+    padding: 0.85rem;
+  }
+
+  .emptyWorkspaceMain {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 1.5rem 1.1rem;
+    text-align: center;
+  }
+
+  .emptyWorkspaceCopy {
+    justify-items: center;
+  }
+
+  .setupSteps {
+    grid-template-columns: 1fr;
+  }
+
+  .setupStep {
+    border-right: 0;
+    border-bottom: 1px solid var(--hierarchy-divider);
+  }
+
+  .setupStep:last-child {
+    border-bottom: 0;
+  }
+
+  .toolbarActions {
+    justify-content: stretch;
+  }
+
+  .toolbarActions > * {
+    flex: 1;
+  }
+
+  .surfaceBody {
+    padding: 0.85rem;
+  }
+
+  .metrics,
+  .performanceMetrics {
+    grid-template-columns: 1fr;
+  }
+
+  .metric {
+    border-right: 0;
+    border-bottom: 1px solid var(--hierarchy-divider);
+  }
+
+  .metric:last-child {
+    border-bottom: 0;
+  }
+
+  .metric:nth-child(n + 4) {
+    border-top: 0;
+  }
+
+  .rolesGrid,
+  .memberGrid,
+  .courseGrid,
+  .membersManagerGrid,
+  .formGrid,
+  .approachGrid,
+  .addressPrimary,
+  .addressSecondary,
+  .addressLocation,
+  .coordinateGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .sectionToolbar,
+  .settingsHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .sectionToolbar .primaryButton {
+    width: 100%;
+  }
+
+  .setupCallout {
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+  }
+
+  .setupCallout > :last-child {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .nodeHeroActions {
+    width: 100%;
+  }
+
+  .glassButton {
+    flex: 1;
+  }
+
+  .nodeRow {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+  }
+
+  .nodeActions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    opacity: 1;
+  }
+
+  .nodeMeta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dialog,
+  .dialogWide {
+    width: 100%;
+    max-height: 100svh;
+    border-radius: 1.25rem;
+  }
+
+  .dialogFooter {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dialogFooter > * {
+    width: 100%;
+  }
+
+  .mapCard,
+  .mapContainer,
+  .mapLoading {
+    min-height: 21rem;
+  }
+}
+
+@media (max-width: 30rem) {
+  .pageStack {
+    gap: 0.85rem;
+  }
+
+  .hero {
+    padding: 1.15rem;
+  }
+
+  .heroTitle {
+    font-size: 2.05rem;
+  }
+
+  .heroTabs {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .toolbarActions {
+    flex-direction: column;
+  }
+
+  .treeSummary {
+    grid-template-columns: 1fr;
+  }
+
+  .treeSummaryItem,
+  .treeSummaryItem:nth-child(2) {
+    min-height: 4.8rem;
+    border-top: 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--hierarchy-divider);
+  }
+
+  .treeSummaryItem:last-child {
+    border-bottom: 0;
+  }
+
+  .treeSidebarActions .toolbarActions {
+    grid-template-columns: 1fr;
+  }
+
+  .emptyWorkspaceVisual {
+    width: 7rem;
+    height: 7rem;
+  }
+
+  .toolbarActions > * {
+    width: 100%;
+  }
+
+  .nodeRow {
+    margin-left: min(calc(var(--node-depth, 0) * 0.45rem), 0.9rem);
+  }
+
+  .nodeConnector {
+    display: none;
+  }
+
+  .toggleRow,
+  .setupCallout {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .toggleRow .sectionIcon,
+  .setupCallout .sectionIcon {
+    display: none;
+  }
+
+  .memberCard {
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+  }
+
+  .memberCard > :last-child {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+
+  .overlay {
+    padding: 0;
+  }
+
+  .dialog,
+  .dialogWide {
+    height: 100svh;
+    max-height: 100svh;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .dialogFooter {
+    padding-bottom: max(0.78rem, env(safe-area-inset-bottom));
+  }
+
+  .mapControlButton span {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page *,
+  .page *::before,
+  .page *::after,
+  .overlay *,
+  .overlay *::before,
+  .overlay *::after {
+    scroll-behavior: auto;
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

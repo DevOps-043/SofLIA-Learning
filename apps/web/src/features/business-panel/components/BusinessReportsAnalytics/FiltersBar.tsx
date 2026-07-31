@@ -7,28 +7,26 @@ import { PremiumDatePicker } from '../PremiumDatePicker'
 import { buildSelectFilterDefinitions, type SelectFilterDefinition } from './filter-definitions'
 import { GranularityControl } from './GranularityControl'
 import { PremiumSelectFilter } from './PremiumSelectFilter'
-import type { ReportsAnalyticsFilterUpdater, ReportsAnalyticsFilters, ReportsAnalyticsT, ThemeTokens } from './types'
+import styles from './ReportsAnalytics.module.css'
+import type { ReportsAnalyticsFilterUpdater, ReportsAnalyticsFilters, ReportsAnalyticsT } from './types'
 
-function DateFilter({ label, value, placeholder, theme, onChange }: {
+function DateFilter({ label, value, placeholder, onChange }: {
   label: string
   value: string
   placeholder: string
-  theme: ThemeTokens
   onChange: (value: string) => void
 }) {
   return (
-    <div className="flex min-w-[140px] flex-col gap-1">
-      <span className="text-xs font-medium uppercase tracking-wide" style={{ color: theme.mutedTextColor }}>{label}</span>
+    <div className={styles.filterField}>
+      <span className={styles.filterLabel}>{label}</span>
       <PremiumDatePicker value={value} onChange={onChange} placeholder={placeholder} />
     </div>
   )
 }
 
-function ActiveChips({ filters, selectFilters, t, theme, onFilterChange }: {
-  filters: ReportsAnalyticsFilters
+function ActiveChips({ selectFilters, t, onFilterChange }: {
   selectFilters: SelectFilterDefinition[]
   t: ReportsAnalyticsT
-  theme: ThemeTokens
   onFilterChange: ReportsAnalyticsFilterUpdater
 }) {
   const activeFilters: Array<{ key: string; label: string; onRemove: () => void }> = []
@@ -61,15 +59,16 @@ function ActiveChips({ filters, selectFilters, t, theme, onFilterChange }: {
   if (activeFilters.length === 0) return null
 
   return (
-    <div className="mt-2 flex flex-wrap gap-1.5">
+    <div className={styles.activeChips} aria-label={t('reportsAnalytics.filters.activeFilters')}>
       {activeFilters.map((chip) => (
-        <span
-          key={chip.key}
-          className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
-          style={{ backgroundColor: theme.hoverBg, color: theme.textColor, border: `1px solid ${theme.borderColor}` }}
-        >
+        <span key={chip.key} className={styles.activeChip}>
           {chip.label}
-          <button onClick={chip.onRemove} className="ml-0.5 rounded-full hover:opacity-70">
+          <button
+            type="button"
+            onClick={chip.onRemove}
+            className={styles.chipRemove}
+            aria-label={`${t('reportsAnalytics.filters.removeFilter')}: ${chip.label}`}
+          >
             <X className="h-3 w-3" />
           </button>
         </span>
@@ -81,7 +80,6 @@ function ActiveChips({ filters, selectFilters, t, theme, onFilterChange }: {
 export function FiltersBar({
   data,
   filters,
-  theme,
   t,
   onFilterChange,
   onReset,
@@ -90,7 +88,6 @@ export function FiltersBar({
 }: {
   data: ReportsAnalyticsResponse | null
   filters: ReportsAnalyticsFilters
-  theme: ThemeTokens
   t: ReportsAnalyticsT
   onFilterChange: ReportsAnalyticsFilterUpdater
   onReset: () => void
@@ -122,42 +119,41 @@ export function FiltersBar({
   const hasSecondaryActive = secondaryFilters.some((f) => f.value)
 
   return (
-    <section id="tour-reports-filters" className="rounded-lg border p-4" style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}>
-      <div className="flex flex-wrap items-end gap-3">
+    <section
+      id="tour-reports-filters"
+      className={styles.filtersSurface}
+      aria-label={t('reportsAnalytics.filters.panelLabel')}
+    >
+      <div className={styles.filtersPrimary}>
         <DateFilter
           label={t('reportsAnalytics.filters.from')}
           value={filters.from}
-          placeholder="Fecha inicio"
-          theme={theme}
+          placeholder={t('reportsAnalytics.filters.from')}
           onChange={(value) => onFilterChange('from', value)}
         />
         <DateFilter
           label={t('reportsAnalytics.filters.to')}
           value={filters.to}
-          placeholder="Fecha fin"
-          theme={theme}
+          placeholder={t('reportsAnalytics.filters.to')}
           onChange={(value) => onFilterChange('to', value)}
         />
         {primarySelectFilters.map((filter) => (
-          <div key={filter.label} className="min-w-[140px]">
-            <PremiumSelectFilter theme={theme} {...filter} />
+          <div key={filter.label}>
+            <PremiumSelectFilter {...filter} />
           </div>
         ))}
 
         <button
           type="button"
           onClick={() => setShowMore(!showMore)}
-          className="inline-flex items-center gap-1.5 self-end rounded-lg border px-3 py-2 text-xs font-medium transition-colors"
-          style={{
-            borderColor: showMore || hasSecondaryActive ? theme.actionColor : theme.borderColor,
-            color: showMore || hasSecondaryActive ? theme.actionColor : theme.subtextColor,
-            backgroundColor: showMore || hasSecondaryActive ? theme.actionSurface : 'transparent',
-          }}
+          className={`${styles.filterAction} ${styles.moreFilters}`}
+          data-active={showMore || hasSecondaryActive}
+          aria-expanded={showMore}
         >
           <SlidersHorizontal className="h-3.5 w-3.5" />
-          {t('reportsAnalytics.filters.moreFilters') || 'Más filtros'}
+          {t('reportsAnalytics.filters.moreFilters')}
           {hasSecondaryActive && (
-            <span className="flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold" style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}>
+            <span className={styles.filterCount}>
               {secondaryFilters.filter((f) => f.value).length}
             </span>
           )}
@@ -166,32 +162,29 @@ export function FiltersBar({
       </div>
 
       {showMore && (
-        <div className="mt-3 flex flex-wrap items-end gap-3 border-t pt-3" style={{ borderColor: theme.dividerColor }}>
+        <div className={styles.filtersSecondary}>
           {secondaryFilters.map((filter) => (
-            <div key={filter.label} className="min-w-[140px]">
-              <PremiumSelectFilter theme={theme} {...filter} />
+            <div key={filter.label}>
+              <PremiumSelectFilter {...filter} />
             </div>
           ))}
         </div>
       )}
 
       <ActiveChips
-        filters={filters}
         selectFilters={allFilters}
         t={t}
-        theme={theme}
         onFilterChange={onFilterChange}
       />
 
-      <div className="mt-3 flex flex-col gap-3 border-t pt-3 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: theme.dividerColor }}>
-        <GranularityControl value={filters.granularity} theme={theme} t={t} onChange={(value) => onFilterChange('granularity', value)} />
-        <div className="flex gap-2">
+      <div className={styles.filtersFooter}>
+        <GranularityControl value={filters.granularity} t={t} onChange={(value) => onFilterChange('granularity', value)} />
+        <div className={styles.filterActions}>
           <button
             type="button"
             onClick={onRefresh}
             disabled={isLoading}
-            className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold disabled:opacity-60"
-            style={{ backgroundColor: theme.actionSurface, color: theme.actionColor }}
+            className={styles.filterActionPrimary}
           >
             <RefreshCcw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             {t('reportsAnalytics.actions.refresh')}
@@ -199,8 +192,7 @@ export function FiltersBar({
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold"
-            style={{ borderColor: theme.borderColor, color: theme.textColor }}
+            className={styles.filterAction}
           >
             <RotateCcw className="h-3.5 w-3.5" />
             {t('reportsAnalytics.actions.reset')}

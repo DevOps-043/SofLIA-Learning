@@ -1,46 +1,60 @@
-import { Network, Settings } from 'lucide-react';
-import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme';
+import { AlertTriangle, Building2, Layers3, Network, RefreshCw, Users } from 'lucide-react';
 import { NodeItem } from '../NodeItem';
 import type { BusinessTranslator } from './types';
 import type { useHierarchyTreeState } from './useHierarchyTreeState';
+import styles from '../HierarchyExperience.module.css';
 
 type HierarchyTreeState = ReturnType<typeof useHierarchyTreeState>;
 
 interface HierarchyTreeBodyProps {
+  onCreateStructure: () => void;
   onInitializeRootNode: () => Promise<void>;
   state: HierarchyTreeState;
   t: BusinessTranslator;
 }
 
-export function HierarchyTreeBody({ onInitializeRootNode, state, t }: HierarchyTreeBodyProps) {
-  const theme = useBusinessPanelTheme();
-
+export function HierarchyTreeBody({ onCreateStructure, onInitializeRootNode, state, t }: HierarchyTreeBodyProps) {
   if (state.isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 opacity-30">
-        <div className="w-10 h-10 border-4 border-neutral-200 dark:border-white/10 rounded-full animate-spin" style={{ borderTopColor: theme.actionColor }} />
-        <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: theme.actionColor }}>{t('hierarchy.syncing')}</span>
+      <div className={styles.skeletonStack} aria-live="polite" aria-label={t('hierarchy.syncing')}>
+        {[0, 1, 2, 3].map((item) => <div key={item} className={styles.skeletonRow} />)}
       </div>
     );
   }
 
   if (state.error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] gap-3 text-center">
-        <div className="p-4 rounded-full bg-red-500/10 border border-red-500/20 mx-auto">
-          <Settings className="w-8 h-8 text-red-500" />
+      <div className={styles.state} role="alert">
+        <div className={styles.stateIcon}>
+          <AlertTriangle aria-hidden="true" />
         </div>
-        <span className="text-sm font-bold text-red-500 block">{state.error}</span>
+        <h2 className={styles.stateTitle}>{state.error}</h2>
+        <p className={styles.stateDescription}>{t('hierarchy.loadHierarchyError')}</p>
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          onClick={() => state.selectedStructureId && void state.loadNodes(state.selectedStructureId)}
+        >
+          <RefreshCw aria-hidden="true" />
+          {t('hierarchy.syncing')}
+        </button>
       </div>
     );
   }
 
   if (state.treeRoots.length === 0) {
-    return <EmptyHierarchyState onInitializeRootNode={onInitializeRootNode} t={t} />;
+    return (
+      <EmptyHierarchyState
+        hasStructures={state.structures.length > 0}
+        onCreateStructure={onCreateStructure}
+        onInitializeRootNode={onInitializeRootNode}
+        t={t}
+      />
+    );
   }
 
   return (
-    <div className="space-y-1">
+    <div className={styles.treeRows}>
       {state.treeRoots.map((root) => (
         <NodeItem
           key={root.id}
@@ -58,23 +72,80 @@ export function HierarchyTreeBody({ onInitializeRootNode, state, t }: HierarchyT
   );
 }
 
-function EmptyHierarchyState({ onInitializeRootNode, t }: Pick<HierarchyTreeBodyProps, 'onInitializeRootNode' | 't'>) {
-  const theme = useBusinessPanelTheme();
+function EmptyHierarchyState({
+  hasStructures,
+  onCreateStructure,
+  onInitializeRootNode,
+  t,
+}: Pick<HierarchyTreeBodyProps, 'onCreateStructure' | 'onInitializeRootNode' | 't'> & { hasStructures: boolean }) {
+  const steps = [
+    {
+      icon: Building2,
+      title: t('hierarchy.workspace.steps.structureTitle', { defaultValue: 'Crea la estructura' }),
+      description: t('hierarchy.workspace.steps.structureDescription', { defaultValue: 'Define el modelo que organizará a tu empresa.' }),
+    },
+    {
+      icon: Layers3,
+      title: t('hierarchy.workspace.steps.levelsTitle', { defaultValue: 'Construye los niveles' }),
+      description: t('hierarchy.workspace.steps.levelsDescription', { defaultValue: 'Agrega regiones, zonas, áreas o equipos.' }),
+    },
+    {
+      icon: Users,
+      title: t('hierarchy.workspace.steps.peopleTitle', { defaultValue: 'Asigna a tu equipo' }),
+      description: t('hierarchy.workspace.steps.peopleDescription', { defaultValue: 'Vincula responsables y miembros a cada nivel.' }),
+    },
+  ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] text-center space-y-8">
-      <div className="w-24 h-24 rounded-[2.5rem] bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-        <Network className="w-12 h-12 text-neutral-300 dark:text-white/10" />
+    <div className={styles.emptyWorkspace}>
+      <div className={styles.emptyWorkspaceMain}>
+        <div className={styles.emptyWorkspaceVisual} aria-hidden="true">
+          <span className={styles.emptyWorkspaceOrbit} />
+          <span className={styles.emptyWorkspaceNode} data-position="top" />
+          <span className={styles.emptyWorkspaceNode} data-position="left" />
+          <span className={styles.emptyWorkspaceNode} data-position="right" />
+          <Network />
+        </div>
+        <div className={styles.emptyWorkspaceCopy}>
+          <p className={styles.sectionKicker}>
+            {t('hierarchy.workspace.getStarted', { defaultValue: 'Empieza aquí' })}
+          </p>
+          <h2 className={styles.stateTitle}>
+            {hasStructures
+              ? t('hierarchy.emptyStructureTitle')
+              : t('hierarchy.workspace.noStructuresTitle', { defaultValue: 'Diseña tu primera estructura' })}
+          </h2>
+          <p className={styles.stateDescription}>
+            {hasStructures
+              ? t('hierarchy.emptyStructureDesc')
+              : t('hierarchy.workspace.noStructuresDescription', {
+                defaultValue: 'Crea una arquitectura clara para ordenar equipos, responsables y acceso a la información.',
+              })}
+          </p>
+          <button
+            type="button"
+            onClick={hasStructures ? onInitializeRootNode : onCreateStructure}
+            className={styles.primaryButton}
+          >
+            {hasStructures
+              ? t('hierarchy.initializeGeneral')
+              : t('hierarchy.newStructure')}
+          </button>
+        </div>
       </div>
-      <div className="space-y-3">
-        <h3 className="text-xl font-black italic tracking-tight uppercase" style={{ color: theme.actionColor }}>{t('hierarchy.emptyStructureTitle')}</h3>
-        <p className="text-xs font-semibold text-neutral-400 dark:text-white/30 max-w-xs mx-auto uppercase tracking-wide leading-relaxed">
-          {t('hierarchy.emptyStructureDesc')}
-        </p>
-      </div>
-      <button onClick={onInitializeRootNode} className="px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-2xl active:scale-95" style={{ backgroundColor: theme.actionColor, color: theme.onActionColor }}>
-        {t('hierarchy.initializeGeneral')}
-      </button>
+
+      <ol className={styles.setupSteps}>
+        {steps.map(({ icon: Icon, title, description }, index) => (
+          <li key={title} className={styles.setupStep}>
+            <span className={styles.setupStepNumber}>{String(index + 1).padStart(2, '0')}</span>
+            <span className={styles.setupStepIcon} aria-hidden="true"><Icon /></span>
+            <span>
+              <strong>{title}</strong>
+              <small>{description}</small>
+            </span>
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }

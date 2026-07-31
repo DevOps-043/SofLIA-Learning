@@ -26,7 +26,10 @@ function MiniCard({ label, value, icon: Icon, theme, color }: MiniCardProps) {
         <p className="text-xs uppercase tracking-wide" style={{ color: theme.mutedTextColor }}>
           {label}
         </p>
-        <p className="mt-0.5 text-xl font-bold tabular-nums" style={{ color: color ?? theme.textColor }}>
+        <p
+          className="mt-0.5 text-xl font-bold tabular-nums"
+          style={{ color: color ?? theme.textColor, fontFamily: 'var(--font-system-ui), sans-serif' }}
+        >
           {value}
         </p>
       </div>
@@ -46,11 +49,11 @@ export function AcademicPerformanceCards({ data, theme, t }: AcademicPerformance
 
   return (
     <section>
-      <div className="mb-3">
+      <div className="mb-5">
         <h2 className="text-base font-semibold sm:text-lg" style={{ color: theme.textColor }}>
           {t('reportsAnalytics.sections.academicPerformance')}
         </h2>
-        <p className="mt-1 text-sm" style={{ color: theme.subtextColor }}>
+        <p className="mt-1.5 text-sm" style={{ color: theme.subtextColor }}>
           {t('reportsAnalytics.sections.academicPerformanceSubtitle')}
         </p>
       </div>

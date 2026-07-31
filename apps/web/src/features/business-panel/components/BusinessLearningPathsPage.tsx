@@ -16,6 +16,7 @@ import { BusinessLearningPathsLoading } from './BusinessLearningPathsPage/Loadin
 import { BusinessLearningPathModals } from './BusinessLearningPathsPage/Modals'
 import { BusinessLearningPathsSearch } from './BusinessLearningPathsPage/Search'
 import { BusinessLearningPathStats } from './BusinessLearningPathsPage/Stats'
+import styles from '@/app/[orgSlug]/business-panel/courses/ContentPanel.module.css'
 
 export function BusinessLearningPathsPage() {
   const { t, i18n } = useTranslation('business')
@@ -34,10 +35,8 @@ export function BusinessLearningPathsPage() {
     () => logic.learningPaths.find((path) => path.id === videosLearningPathId) ?? null,
     [logic.learningPaths, videosLearningPathId],
   )
-  const { panelBg, inputBg } = logic.theme
-
   if (logic.isLoading) {
-    return <BusinessLearningPathsLoading inputBg={inputBg} />
+    return <BusinessLearningPathsLoading />
   }
 
   return (
@@ -45,23 +44,20 @@ export function BusinessLearningPathsPage() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen p-5 lg:p-8 space-y-6"
-        style={{ backgroundColor: panelBg }}
+        className={styles.contentStack}
       >
-        <div className="space-y-6">
-          <BusinessLearningPathsHero theme={logic.theme} />
-          <BusinessLearningPathStats logic={logic} />
-          <BusinessLearningPathsFeedback logic={logic} />
-          <BusinessLearningPathsSearch logic={logic} />
-          <BusinessLearningPathCards logic={logic} t={t} onOpenVideos={setVideosLearningPathId} />
-          <BusinessLearningPathAssignments logic={logic} language={i18n.language} />
-          <BusinessLearningPathModals
-            logic={logic}
-            videosLearningPathId={videosLearningPathId}
-            selectedLearningPathForVideos={selectedLearningPathForVideos}
-            onCloseVideos={() => setVideosLearningPathId(null)}
-          />
-        </div>
+        <BusinessLearningPathsHero theme={logic.theme} />
+        <BusinessLearningPathStats logic={logic} />
+        <BusinessLearningPathsFeedback logic={logic} />
+        <BusinessLearningPathsSearch logic={logic} />
+        <BusinessLearningPathCards logic={logic} t={t} onOpenVideos={setVideosLearningPathId} />
+        <BusinessLearningPathAssignments logic={logic} language={i18n.language} />
+        <BusinessLearningPathModals
+          logic={logic}
+          videosLearningPathId={videosLearningPathId}
+          selectedLearningPathForVideos={selectedLearningPathForVideos}
+          onCloseVideos={() => setVideosLearningPathId(null)}
+        />
       </motion.div>
       <ToastNotification
         isOpen={logic.toast.isOpen}

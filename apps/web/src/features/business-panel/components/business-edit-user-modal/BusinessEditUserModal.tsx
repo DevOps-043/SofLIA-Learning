@@ -1,12 +1,14 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, type CSSProperties } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { X } from 'lucide-react'
 import { useBusinessPanelTheme } from '../../hooks/useBusinessPanelTheme'
 import type { BusinessUser, UpdateBusinessUserRequest } from '../../services/businessUsers.service'
 import { UserFormFields } from './UserFormFields'
 import { UserProfilePreview } from './UserProfilePreview'
 import { useUserFormState, type UserFormData } from './useUserFormState'
+import styles from './BusinessEditUserModal.module.css'
 
 interface BusinessEditUserModalProps {
   isOpen: boolean
@@ -59,16 +61,42 @@ export function BusinessEditUserModal({ isOpen, onClose, user, onSave, orgSlug }
           exit={{ opacity: 0 }}
           onClick={onClose}
           className="absolute inset-0"
+          style={{
+            backgroundColor: theme.overlayBg,
+            backdropFilter: 'blur(20px) saturate(105%)',
+          }}
         />
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative flex h-full w-full max-w-6xl flex-col overflow-hidden shadow-2xl sm:h-[min(calc(var(--soflia-viewport-height)-3rem),780px)] sm:max-h-[780px] sm:rounded-[2rem] lg:flex-row"
-          style={{ backgroundColor: theme.panelBg, borderColor: theme.borderColor }}
+          className={styles.modal}
+          style={{
+            '--edit-action': theme.actionColor,
+            '--edit-on-action': theme.onActionColor,
+            '--edit-accent': theme.accentColor,
+            '--edit-text': theme.textColor,
+            '--edit-subtext': theme.subtextColor,
+            '--edit-muted': theme.mutedTextColor,
+            '--edit-surface': theme.cardBg,
+            '--edit-panel': theme.panelBg,
+            '--edit-input': theme.inputBg,
+            '--edit-hover': theme.hoverBg,
+            '--edit-border': theme.borderColor,
+            '--edit-divider': theme.dividerColor,
+            '--edit-success': theme.successColor,
+            '--edit-danger': theme.dangerColor,
+            '--edit-warning': theme.warningColor,
+          } as CSSProperties}
           onClick={(event) => event.stopPropagation()}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="business-edit-user-title"
         >
+          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Cerrar">
+            <X aria-hidden="true" size={18} strokeWidth={1.8} />
+          </button>
           <UserProfilePreview
             previewImage={form.previewImage}
             initials={getUserInitials(form.formData)}
@@ -84,9 +112,6 @@ export function BusinessEditUserModal({ isOpen, onClose, user, onSave, orgSlug }
             error={form.error}
             isLoading={form.isLoading}
             isUploadingImage={form.isUploadingImage}
-            isDark={theme.isDark}
-            primaryColor={theme.primaryColor}
-            accentColor={theme.accentColor}
             onChange={form.handleChange}
             onRoleChange={(role) => form.setFormData((prev) => ({ ...prev, org_role: role }))}
             onStatusChange={(status) => form.setFormData((prev) => ({ ...prev, org_status: status }))}

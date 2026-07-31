@@ -2,7 +2,7 @@
 
 import { useTranslation } from 'react-i18next'
 
-import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
+import styles from './UsersPanel.module.css'
 
 interface UsersPaginationProps {
   onPageChange: (page: number) => void
@@ -18,16 +18,12 @@ export function UsersPagination({
   onPageChange,
 }: UsersPaginationProps) {
   const { t } = useTranslation('business')
-  const theme = useBusinessPanelTheme()
   const canGoBack = page > 1
   const canGoForward = page < totalPages
 
   return (
-    <div
-      className="flex flex-col items-center justify-between gap-3 rounded-2xl border px-4 py-3 sm:flex-row"
-      style={{ backgroundColor: theme.cardBg, borderColor: theme.borderColor }}
-    >
-      <p className="text-sm" style={{ color: theme.subtextColor }}>
+    <nav className={styles.pagination} aria-label={t('users.pagination.label', 'Paginación de usuarios')}>
+      <p className={styles.paginationSummary}>
         {t('users.pagination.summary', {
           count: total,
           page,
@@ -35,17 +31,12 @@ export function UsersPagination({
           defaultValue: '{{count}} resultados - pagina {{page}} de {{totalPages}}',
         })}
       </p>
-      <div className="flex items-center gap-2">
+      <div className={styles.paginationActions}>
         <button
           type="button"
           disabled={!canGoBack}
           onClick={() => onPageChange(page - 1)}
-          className="rounded-xl border px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-          style={{
-            backgroundColor: theme.inputBg,
-            borderColor: theme.borderColor,
-            color: theme.textColor,
-          }}
+          className={styles.paginationButton}
         >
           {t('users.pagination.previous', { defaultValue: 'Anterior' })}
         </button>
@@ -53,15 +44,11 @@ export function UsersPagination({
           type="button"
           disabled={!canGoForward}
           onClick={() => onPageChange(page + 1)}
-          className="rounded-xl px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
-          style={{
-            backgroundColor: theme.primaryColor,
-            color: theme.onPrimaryColor,
-          }}
+          className={`${styles.paginationButton} ${styles.paginationButtonPrimary}`}
         >
           {t('users.pagination.next', { defaultValue: 'Siguiente' })}
         </button>
       </div>
-    </div>
+    </nav>
   )
 }

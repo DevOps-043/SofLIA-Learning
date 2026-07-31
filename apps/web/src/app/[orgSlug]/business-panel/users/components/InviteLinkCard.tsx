@@ -1,10 +1,14 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import { Link2, Pause, Play, Trash2 } from 'lucide-react'
+import { CalendarDays, Link2, Pause, Play, Shield, Trash2, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
-import { BulkInviteLink } from '@/features/business-panel/services/businessUsers.service'
+
+import type { BulkInviteLink } from '@/features/business-panel/services/businessUsers.service'
+import { formatDate } from '@/shared/utils/date-formatter'
+
+import styles from './UsersPanel.module.css'
 
 interface InviteLinkCardProps {
   link: BulkInviteLink
@@ -14,124 +18,85 @@ interface InviteLinkCardProps {
 }
 
 function InviteLinkCard({ link, index, onToggleStatus, onDelete }: InviteLinkCardProps) {
-  const { t } = useTranslation('business')
-  const theme = useBusinessPanelTheme()
-
-  const getLinkStatusConfig = (status: string) => {
-    switch (status) {
-      case 'active':    return { label: t('users.card.active'),    color: theme.statusColors.active,    bg: 'rgba(0,212,179,0.1)' }
-      case 'paused':    return { label: t('users.card.paused'),    color: theme.statusColors.invited,   bg: 'rgba(245,158,11,0.1)' }
-      case 'expired':   return { label: t('users.card.expired'),   color: theme.statusColors.suspended, bg: 'rgba(239,68,68,0.1)' }
-      case 'exhausted': return { label: t('users.card.exhausted'), color: theme.subtextColor,           bg: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }
-      default:          return { label: status,                    color: theme.subtextColor,           bg: theme.isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }
-    }
-  }
-
-  const statusConfig = getLinkStatusConfig(link.status)
-  const usagePercent = Math.min(100, (link.current_uses / link.max_uses) * 100)
+  const { t, i18n } = useTranslation('business')
+  const status = getLinkStatus(link.status, {
+    active: t('users.card.active', 'Activo'),
+    exhausted: t('users.card.exhausted', 'Agotado'),
+    expired: t('users.card.expired', 'Vencido'),
+    paused: t('users.card.paused', 'Pausado'),
+  })
+  const usagePercent = Math.min(100, (link.current_uses / Math.max(link.max_uses, 1)) * 100)
+  const cardStyle = {
+    '--management-status': status.color,
+    '--management-progress': `${usagePercent}%`,
+  } as CSSProperties
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
+    <motion.article
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.5 }}
-      whileHover={{ y: -6 }}
-      className="group relative flex flex-col rounded-3xl border transition-all duration-300 overflow-hidden"
-      style={{
-        backgroundColor: theme.cardBg,
-        borderColor: theme.borderColor,
-        backdropFilter: 'blur(20px)',
-        boxShadow: theme.isDark
-          ? '0 20px 40px -20px rgba(0,0,0,0.5)'
-          : '0 10px 20px -10px rgba(0,0,0,0.05)',
-      }}
+      className={styles.managementCard}
+      initial={{ opacity: 0, y: 16 }}
+      style={cardStyle}
+      transition={{ delay: index * 0.035, duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
     >
-      {/* Header */}
-      <div className="relative h-24 flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-10 blur-2xl"
-          style={{ background: `radial-gradient(circle, ${theme.accentColor} 0%, transparent 70%)` }}
-        />
-        <div
-          className="w-14 h-14 rounded-xl flex items-center justify-center border-2 shadow-2xl relative z-10"
-          style={{
-            backgroundColor: theme.inputBg,
-            borderColor: theme.borderColor,
-            color: theme.accentColor,
-          }}
-        >
-          <Link2 className="w-7 h-7" />
+      <header className={styles.managementCardHeader}>
+        <span className={styles.managementIcon} aria-hidden="true"><Link2 /></span>
+        <div className={styles.managementIdentity}>
+          <p className={styles.managementEyebrow}>{t('users.list.link', 'Enlace de acceso')}</p>
+          <h3 className={styles.managementTitle} title={link.name ?? undefined}>
+            {link.name || `${t('users.card.link', 'Enlace')} ${link.token.substring(0, 6)}`}
+          </h3>
+        </div>
+        <span className={styles.managementStatus}>{status.icon}{status.label}</span>
+      </header>
+
+      <div className={styles.managementDivider} />
+
+      <div className={styles.usageBlock}>
+        <div className={styles.usageHeader}>
+          <span><Users aria-hidden="true" />{t('users.card.uses', 'Usos')}</span>
+          <strong>{link.current_uses} / {link.max_uses}</strong>
+        </div>
+        <div className={styles.usageTrack} aria-label={`${usagePercent.toFixed(0)}%`} role="progressbar" aria-valuenow={usagePercent} aria-valuemin={0} aria-valuemax={100}>
+          <motion.span animate={{ width: `${usagePercent}%` }} initial={{ width: 0 }} />
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col p-4 pt-0">
-        <div className="text-center mb-4">
-          <h4 className="font-bold text-base tracking-tight truncate mb-0.5" style={{ color: theme.textColor }}>
-            {link.name || `${t('users.card.link')} ${link.token.substring(0, 6)}`}
-          </h4>
-          <div
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider"
-            style={{ backgroundColor: statusConfig.bg, color: statusConfig.color }}
-          >
-            {statusConfig.label}
-          </div>
+      <dl className={`${styles.managementMeta} ${styles.managementMetaCompact}`}>
+        <div className={styles.managementMetaItem}>
+          <Shield aria-hidden="true" />
+          <dt>{t('users.modals.delete.fields.role', 'Rol')}</dt>
+          <dd>{formatRole(link.role)}</dd>
         </div>
-
-        {/* Usage */}
-        <div className="mb-4">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">{t('users.card.uses')}</span>
-            <span className="text-[10px] font-bold" style={{ color: theme.textColor }}>
-              {link.current_uses} / {link.max_uses}
-            </span>
-          </div>
-          <div className="w-full h-1.5 bg-black/5 dark:bg-white/5 rounded-full overflow-hidden mb-1.5">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${usagePercent}%` }}
-              className="h-full rounded-full"
-              style={{ backgroundColor: theme.accentColor }}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-bold opacity-40 lowercase">{usagePercent.toFixed(0)}%</span>
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">
-              {t('users.modals.delete.fields.role')}: {link.role}
-            </span>
-          </div>
+        <div className={styles.managementMetaItem}>
+          <CalendarDays aria-hidden="true" />
+          <dt>{t('users.card.expires', 'Vence')}</dt>
+          <dd>{formatDate(link.expires_at, i18n.language)}</dd>
         </div>
+      </dl>
 
-        {/* Actions */}
-        <div className="mt-auto grid grid-cols-2 gap-1.5">
-          <button
-            onClick={onToggleStatus}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl transition-all duration-300 font-bold text-[10px] uppercase tracking-widest border border-white/5"
-            style={{
-              backgroundColor: link.status === 'active'
-                ? `color-mix(in srgb, ${theme.statusColors.invited} 6.3%, transparent)`
-                : `color-mix(in srgb, ${theme.accentColor} 6.3%, transparent)`,
-              color: link.status === 'active'
-                ? theme.statusColors.invited
-                : theme.accentColor,
-            }}
-          >
-            {link.status === 'active' ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
-            {link.status === 'active' ? t('users.card.suspend') : t('users.card.activate')}
-          </button>
-
-          <button
-            onClick={onDelete}
-            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl transition-colors hover:bg-red-500/10 border border-red-500/10 font-bold text-[10px] uppercase tracking-widest"
-            style={{ color: theme.dangerColor }}
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            {t('users.card.delete')}
-          </button>
-        </div>
-      </div>
-    </motion.div>
+      <footer className={styles.managementActions}>
+        <button className={styles.cardPrimaryAction} onClick={onToggleStatus} type="button">
+          {link.status === 'active' ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+          {link.status === 'active' ? t('users.card.suspend', 'Pausar') : t('users.card.activate', 'Activar')}
+        </button>
+        <button aria-label={t('users.card.delete', 'Eliminar enlace')} className={`${styles.iconAction} ${styles.dangerAction}`} onClick={onDelete} title={t('users.card.delete', 'Eliminar enlace')} type="button">
+          <Trash2 aria-hidden="true" />
+        </button>
+      </footer>
+    </motion.article>
   )
+}
+
+function getLinkStatus(status: string, labels: Record<string, string>) {
+  if (status === 'active') return { label: labels.active, color: 'var(--users-success)', icon: <Link2 aria-hidden="true" /> }
+  if (status === 'paused') return { label: labels.paused, color: 'var(--users-warning)', icon: <Pause aria-hidden="true" /> }
+  if (status === 'expired') return { label: labels.expired, color: 'var(--users-danger)', icon: <CalendarDays aria-hidden="true" /> }
+  return { label: labels.exhausted, color: 'var(--users-muted)', icon: <Users aria-hidden="true" /> }
+}
+
+function formatRole(role: string) {
+  return ({ owner: 'Propietario', admin: 'Administrador', member: 'Miembro' } as Record<string, string>)[role] ?? role
 }
 
 export { InviteLinkCard }

@@ -1,13 +1,33 @@
 'use client'
 
+import { BookOpen, LayoutDashboard, Map, MessageSquare, Users } from 'lucide-react'
 import type { NodeDashboardCommonProps, NodeDashboardTab } from './node-dashboard.types'
+import styles from '../HierarchyExperience.module.css'
 
-const tabs: NodeDashboardTab[] = ['overview', 'members', 'structure', 'learning', 'chat']
+const tabs: Array<{ id: NodeDashboardTab; icon: typeof LayoutDashboard }> = [
+  { id: 'overview', icon: LayoutDashboard },
+  { id: 'members', icon: Users },
+  { id: 'structure', icon: Map },
+  { id: 'learning', icon: BookOpen },
+  { id: 'chat', icon: MessageSquare },
+]
 
 export function NodeDashboardTabs({ state, t }: NodeDashboardCommonProps) {
   return (
-    <div className="border-b border-white/10"><nav className="flex space-x-8">
-      {tabs.map((tab) => <button key={tab} onClick={() => state.setActiveTab(tab)} className={`border-b-2 px-2 py-4 text-sm font-medium transition-colors ${state.activeTab === tab ? 'border-blue-500 text-blue-400' : 'border-transparent text-white/40 hover:border-white/20 hover:text-white'}`}>{t(`hierarchy.dashboard.tabs.${tab}`)}</button>)}
-    </nav></div>
+    <nav className={styles.dashboardTabs} role="tablist" aria-label={t('hierarchy.pageTitle')}>
+      {tabs.map(({ id, icon: Icon }) => (
+        <button
+          key={id}
+          type="button"
+          role="tab"
+          aria-selected={state.activeTab === id}
+          onClick={() => state.setActiveTab(id)}
+          className={`${styles.dashboardTab} ${state.activeTab === id ? styles.dashboardTabActive : ''}`}
+        >
+          <Icon className="h-4 w-4" aria-hidden="true" />
+          {t(`hierarchy.dashboard.tabs.${id}`)}
+        </button>
+      ))}
+    </nav>
   )
 }

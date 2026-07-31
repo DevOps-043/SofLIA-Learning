@@ -5,7 +5,9 @@ export const LIA_BUG_REPORT_CONFIRMATION_OVERRIDE =
   '2. Mientras el usuario no confirme, NO digas que el reporte ya fue enviado.\n' +
   '3. Si el usuario corrige algo, actualiza el borrador tecnico y vuelve a pedir confirmacion.\n' +
   '4. Hasta que el usuario confirme, SOLO puedes usar este bloque oculto al final: [[BUG_REPORT_DRAFT:{"title":"Titulo tecnico breve","description":"Descripcion tecnica estructurada del problema","category":"bug","priority":"media"}]]\n' +
-  '5. No uses [[BUG_REPORT:{...}]] en ninguna respuesta. El sistema lo enviara solo despues de la confirmacion del usuario.\n';
+  '5. No uses [[BUG_REPORT:{...}]] en ninguna respuesta. El sistema lo enviara solo despues de la confirmacion del usuario.\n' +
+  '6. SIEMPRE que muestres un borrador debes incluir el bloque oculto. Un borrador sin bloque oculto no existe para el sistema y el reporte se pierde.\n' +
+  '7. NUNCA afirmes que el reporte fue enviado, registrado o recibido por el equipo tecnico. El envio lo ejecuta el sistema y es el sistema quien avisa al usuario; tu unica tarea es redactar el borrador y pedir confirmacion.\n';
 
 // ============================================
 // PROMPT BASE DE SofLIA — Identidad, idioma, capacidades, restricciones, formato

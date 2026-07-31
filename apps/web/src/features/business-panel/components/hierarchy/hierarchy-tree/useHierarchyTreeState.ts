@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { DynamicHierarchyService } from '../../../services/dynamicHierarchy.service';
 import type { OrganizationNode, OrganizationStructure } from '../../../types/dynamicHierarchy.types';
 import { buildTreeFromFlat } from './buildTreeFromFlat';
-import { findRootNode, saveHierarchyNode } from './hierarchy-node-actions';
+import { saveHierarchyNode } from './hierarchy-node-actions';
 import type { BusinessTranslator, HierarchyNodeModalMode, HierarchyNodeSavePayload } from './types';
 
 export function useHierarchyTreeState(
@@ -30,6 +30,7 @@ export function useHierarchyTreeState(
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const loadStructures = useCallback(async () => {
+    setError(null);
     try {
       const data = await DynamicHierarchyService.getStructures(orgSlug);
       setStructures(data);
@@ -49,6 +50,7 @@ export function useHierarchyTreeState(
 
   const loadNodes = useCallback(async (structureId: string) => {
     setIsLoading(true);
+    setError(null);
 
     try {
       const data = await DynamicHierarchyService.getTree(structureId, orgSlug);

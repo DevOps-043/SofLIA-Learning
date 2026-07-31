@@ -1,29 +1,26 @@
 'use client'
+
+import type { CSSProperties } from 'react'
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 import { motion } from 'framer-motion'
 import {
-  ClockIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from '@heroicons/react/24/outline'
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useBusinessPanelDashboardLogic } from '../hooks/useBusinessPanelDashboardLogic'
-import { useTour } from '@/features/tours'
-import { businessPanelDashboardTour } from '@/features/tours/config/business-panel-dashboard.tour'
-import { StatCard } from './dashboard/StatCard'
-import { ActivityItem } from './dashboard/ActivityItem'
+
 import { useMinuteTicker } from '@/hooks/useMinuteTicker'
 import { useMotionSafe } from '@/lib/utils/motion'
+import { useTour } from '@/features/tours'
+import { businessPanelDashboardTour } from '@/features/tours/config/business-panel-dashboard.tour'
 
-function renderMetricValue(metric: unknown): string | number {
-  if (metric && typeof metric === 'object' && 'value' in metric) {
-    const value = (metric as { value?: unknown }).value
-    return typeof value === 'string' || typeof value === 'number' ? value : 0
-  }
+import { ActivityItem } from './dashboard/ActivityItem'
+import { StatCard } from './dashboard/StatCard'
+import { useBusinessPanelDashboardLogic } from '../hooks/useBusinessPanelDashboardLogic'
+import styles from './BusinessPanelDashboard.module.css'
 
-  return typeof metric === 'string' || typeof metric === 'number' ? metric : 0
-}
+type DashboardVariables = CSSProperties & Record<`--dashboard-${string}`, string>
 
 export function BusinessPanelDashboard() {
   const { t } = useTranslation('business')
@@ -31,175 +28,207 @@ export function BusinessPanelDashboard() {
   const { interfaceTransition } = useMotionSafe()
 
   const {
-    stats,
     activities,
-    isLoading,
     activitiesLoading,
-    themeColors,
-    statsData,
+    formatDate,
     getGreeting,
     getUserName,
-    formatDate,
-    getBackgroundStyles,
+    isLoading,
+    statsData,
+    themeColors,
   } = useBusinessPanelDashboardLogic()
 
   const { autoStartIfNeeded } = useTour(businessPanelDashboardTour)
 
-  useEffect(() => {
-    return autoStartIfNeeded()
-  }, [autoStartIfNeeded])
+  useEffect(() => autoStartIfNeeded(), [autoStartIfNeeded])
+
+  const dashboardVariables: DashboardVariables = {
+    '--dashboard-accent': themeColors.accent,
+    '--dashboard-action': themeColors.actionColor,
+    '--dashboard-border': themeColors.borderColor,
+    '--dashboard-card': themeColors.cardBg,
+    '--dashboard-input': themeColors.inputBg,
+    '--dashboard-muted': themeColors.mutedText,
+    '--dashboard-on-action': themeColors.onActionColor,
+    '--dashboard-primary': themeColors.primary,
+    '--dashboard-subtext': themeColors.subtext,
+    '--dashboard-text': themeColors.text,
+  }
 
   return (
     <div
       data-tour-id="business-panel-dashboard--page"
-      className="p-3 md:p-6 lg:p-8 min-h-screen"
-      style={getBackgroundStyles()}
+      className={styles.dashboard}
+      style={dashboardVariables}
     >
-      {/* Hero Section */}
-      <motion.div
+      <motion.section
         id="tour-hero-section"
         data-tour-id="business-panel-dashboard--hero"
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={interfaceTransition}
-        className="relative overflow-hidden rounded-2xl md:rounded-3xl p-4 md:p-8 mb-4 md:mb-8 group"
+        className={styles.hero}
         style={{
           background: themeColors.heroBackground,
-          border: `1px solid ${themeColors.heroBorderColor}`,
+          borderColor: themeColors.heroBorderColor,
         }}
       >
-        <div className="absolute inset-0 z-0">
-          {themeColors.brandBannerUrl ? (
-            <Image
-              src={themeColors.brandBannerUrl}
-              alt=""
-              fill
-              priority
-              className="object-cover opacity-25 mix-blend-luminosity group-hover:scale-105 transition-transform duration-700"
-              sizes="(max-width: 768px) 100vw, 100vw"
-            />
-          ) : null}
-          <div className="absolute inset-0 z-10" style={{ background: `linear-gradient(to right, color-mix(in srgb, ${themeColors.primary} 78%, var(--color-black)) 0%, color-mix(in srgb, ${themeColors.primary} 42%, transparent) 56%, transparent 100%)` }} />
-          <div className="absolute inset-0 z-10 opacity-35" style={{ backgroundColor: themeColors.accent }} />
-        </div>
+        <div className={styles.heroAtmosphere} aria-hidden="true" />
+        <div className={styles.heroRingLarge} aria-hidden="true" />
+        <div className={styles.heroRingSmall} aria-hidden="true" />
+        <div className={styles.heroDot} aria-hidden="true" />
 
-        <div className="relative z-10">
-          <motion.h1 data-tour-id="business-panel-dashboard--hero-summary" className="text-xl md:text-3xl lg:text-4xl font-bold mb-1 md:mb-2 leading-tight" style={{ color: themeColors.inverseText }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
+        <div className={styles.heroCopy}>
+          <p
+            className={styles.eyebrow}
+            style={{ color: themeColors.inverseSubtext }}
+          >
+            <span aria-hidden="true" />
+            {t('dashboard.adminEyebrow', { defaultValue: 'Control organizacional' })}
+          </p>
+          <h1
+            data-tour-id="business-panel-dashboard--hero-summary"
+            className={styles.heroTitle}
+            style={{ color: themeColors.inverseText }}
+          >
             <DashboardGreeting getGreeting={getGreeting} userName={getUserName()} />
-          </motion.h1>
-
-          <motion.p className="text-xs md:text-base lg:text-lg max-w-xl line-clamp-2 md:line-clamp-none" style={{ color: themeColors.inverseSubtext }} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={interfaceTransition}>
-            {t('dashboard.subtitle')}
-          </motion.p>
-
-          <motion.div className="flex items-center gap-2 md:gap-6 mt-3 md:mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={interfaceTransition}>
-            <div className="flex items-center gap-1.5 md:gap-2 text-white/60 text-[10px] md:text-sm">
-              <ClockIcon className="h-3 w-3 md:h-4 md:w-4" />
-              <span style={{ color: themeColors.inverseText }} className="opacity-90">
-                <DashboardDateText formatDate={formatDate} />
-              </span>
-            </div>
-          </motion.div>
+          </h1>
+          <div className={styles.heroMeta}>
+            <p style={{ color: themeColors.inverseSubtext }}>
+              {t('dashboard.subtitle')}
+            </p>
+            <span className={styles.heroDate}>
+              <CalendarDays aria-hidden="true" />
+              <DashboardDateText formatDate={formatDate} />
+            </span>
+          </div>
         </div>
-      </motion.div>
+      </motion.section>
 
-      <div className="space-y-8">
-          {/* Stats Grid */}
-          <section id="tour-stats-section" data-tour-id="business-panel-dashboard--stats-section">
-            <motion.div data-tour-id="business-panel-dashboard--stats-header" className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
-              <div>
-                <h2 className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.generalStats')}</h2>
-                <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.keyMetrics')}</p>
-              </div>
-              <button 
-                onClick={() => setIsStatsOpenMobile(!isStatsOpenMobile)}
-                className="md:hidden flex items-center justify-center p-2 rounded-full transition-colors"
-                style={{ backgroundColor: `color-mix(in srgb, ${themeColors.primary} 8.2%, transparent)`, color: themeColors.primary }}
-                aria-label="Toggle statistics"
-              >
-                {isStatsOpenMobile ? <ChevronUpIcon className="w-5 h-5" /> : <ChevronDownIcon className="w-5 h-5" />}
-              </button>
-            </motion.div>
+      <section
+        id="tour-stats-section"
+        data-tour-id="business-panel-dashboard--stats-section"
+        className={styles.section}
+      >
+        <motion.div
+          data-tour-id="business-panel-dashboard--stats-header"
+          className={styles.sectionHeader}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={interfaceTransition}
+        >
+          <div>
+            <h2>{t('dashboard.generalStats')}</h2>
+            <p>{t('dashboard.keyMetrics')}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsStatsOpenMobile((open) => !open)}
+            className={styles.mobileSectionToggle}
+            aria-label={t('dashboard.toggleStats', {
+              defaultValue: isStatsOpenMobile ? 'Ocultar métricas' : 'Mostrar métricas',
+            })}
+            aria-expanded={isStatsOpenMobile}
+          >
+            {isStatsOpenMobile ? <ChevronUp /> : <ChevronDown />}
+          </button>
+        </motion.div>
 
-            <div
-              data-tour-id="business-panel-dashboard--stats-grid"
-              className={!isStatsOpenMobile ? 'hidden md:block' : 'block'}
-            >
-              {isLoading ? (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="h-[90px] md:h-36 rounded-2xl animate-pulse" style={{ backgroundColor: themeColors.cardBg }} />
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                  {statsData.map((stat, index) => (
-                    <StatCard
-                      key={stat.title}
-                      title={stat.title}
-                      value={stat.value}
-                      change={stat.change}
-                      iconColor={stat.iconColor}
-                      backgroundImage={stat.backgroundImage}
-                      gradient={stat.gradient}
-                      gradientStyle={stat.gradientStyle}
-                      delay={index}
-                      href={stat.href}
-                      theme={themeColors}
-                      icon={stat.icon}
-                    />
-                  ))}
-                </div>
-              )}
+        <div
+          data-tour-id="business-panel-dashboard--stats-grid"
+          className={`${styles.statsRegion} ${isStatsOpenMobile ? styles.statsRegionOpen : ''}`}
+        >
+          {isLoading ? (
+            <div className={styles.statsGrid} aria-label="Cargando métricas">
+              {Array.from({ length: 6 }, (_, index) => (
+                <div key={index} className={styles.statSkeleton} />
+              ))}
             </div>
-          </section>
+          ) : (
+            <div className={styles.statsGrid}>
+              {statsData.map((stat, index) => (
+                <StatCard
+                  key={stat.title}
+                  title={stat.title}
+                  value={stat.value}
+                  delay={index}
+                  href={stat.href}
+                  id={stat.id}
+                  theme={themeColors}
+                  icon={stat.icon}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
-          {/* Activity Section */}
-          <section id="tour-activity-section" data-tour-id="business-panel-dashboard--recent-activity">
-            <motion.div data-tour-id="business-panel-dashboard--recent-activity-header" className="flex items-center justify-between mb-6" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition}>
-              <div>
-                <h2 id="tour-activity-title" className="text-xl font-bold" style={{ color: themeColors.text }}>{t('dashboard.recentActivity.title')}</h2>
-                <p className="text-sm mt-1" style={{ color: themeColors.text, opacity: 0.7 }}>{t('dashboard.recentActivity.subtitle')}</p>
+      <section
+        id="tour-activity-section"
+        data-tour-id="business-panel-dashboard--recent-activity"
+        className={styles.section}
+      >
+        <motion.div
+          data-tour-id="business-panel-dashboard--recent-activity-header"
+          className={styles.sectionHeader}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={interfaceTransition}
+        >
+          <div>
+            <h2 id="tour-activity-title">{t('dashboard.recentActivity.title')}</h2>
+            <p>{t('dashboard.recentActivity.subtitle')}</p>
+          </div>
+        </motion.div>
+
+        <motion.div
+          id="tour-activity-card"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={interfaceTransition}
+          className={styles.activityCard}
+        >
+          {activitiesLoading ? (
+            <div className={styles.activityLoading} aria-label="Cargando actividad">
+              {Array.from({ length: 4 }, (_, index) => (
+                <div key={index} className={styles.activitySkeleton}>
+                  <span />
+                  <div>
+                    <i />
+                    <i />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : activities.length === 0 ? (
+            <div className={styles.emptyActivity}>
+              <div className={styles.emptyIcon}>
+                <CalendarDays aria-hidden="true" />
               </div>
-            </motion.div>
-
-            <motion.div id="tour-activity-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={interfaceTransition} className="rounded-2xl border overflow-hidden" style={{ backgroundColor: themeColors.cardBg, borderColor: `color-mix(in srgb, ${themeColors.borderColor} 20%, transparent)` }}>
-              {activitiesLoading ? (
-                <div className="p-6 space-y-4">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex gap-4 animate-pulse">
-                      <div className="w-2 h-2 mt-2 rounded-full" style={{ backgroundColor: `color-mix(in srgb, ${themeColors.borderColor} 30.2%, transparent)` }} />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 rounded w-3/4" style={{ backgroundColor: `color-mix(in srgb, ${themeColors.borderColor} 20%, transparent)` }} />
-                        <div className="h-3 rounded w-1/2" style={{ backgroundColor: `color-mix(in srgb, ${themeColors.borderColor} 20%, transparent)` }} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : activities.length === 0 ? (
-                <div className="p-12 text-center">
-                  <ClockIcon className="h-12 w-12 mx-auto mb-4" style={{ color: themeColors.text, opacity: 0.3 }} />
-                  <p style={{ color: themeColors.text, opacity: 0.6 }}>{t('dashboard.recentActivity.empty')}</p>
-                </div>
-              ) : (
-                <div className="flex flex-col">
-                  {activities.map((activity, index) => (
-                    <div key={index} style={{ borderBottom: index < activities.length - 1 ? `1px solid color-mix(in srgb, ${themeColors.borderColor} 10.2%, transparent)` : 'none' }}>
-                      <ActivityItem
-                        title={activity.title || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' })}
-                        description={activity.description || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripción' })}
-                        user={activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' })}
-                        timestamp={activity.timestamp || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' })}
-                        type={activity.type || 'system'}
-                        delay={index}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </section>
-      </div>
+              <h3>{t('dashboard.recentActivity.empty')}</h3>
+              <p>
+                {t('dashboard.recentActivity.emptyDescription', {
+                  defaultValue: 'Las nuevas acciones del equipo aparecerán aquí.',
+                })}
+              </p>
+            </div>
+          ) : (
+            <div className={styles.activityList}>
+              {activities.map((activity, index) => (
+                <ActivityItem
+                  key={`${activity.title}-${activity.timestamp}-${index}`}
+                  title={activity.title || t('dashboard.recentActivity.defaultTitle', { defaultValue: 'Actividad' })}
+                  description={activity.description || t('dashboard.recentActivity.defaultDesc', { defaultValue: 'Sin descripción' })}
+                  user={activity.user || t('dashboard.recentActivity.defaultUser', { defaultValue: 'Usuario' })}
+                  timestamp={activity.timestamp || t('dashboard.recentActivity.defaultTime', { defaultValue: 'Hace un momento' })}
+                  type={activity.type || 'system'}
+                  delay={index}
+                />
+              ))}
+            </div>
+          )}
+        </motion.div>
+      </section>
     </div>
   )
 }
@@ -212,12 +241,7 @@ function DashboardGreeting({
   userName: string
 }) {
   const currentTime = useMinuteTicker()
-
-  return (
-    <>
-      {getGreeting(currentTime)}, {userName}
-    </>
-  )
+  return <>{getGreeting(currentTime)}, {userName}.</>
 }
 
 function DashboardDateText({
@@ -226,6 +250,5 @@ function DashboardDateText({
   formatDate: (date: Date) => string
 }) {
   const currentTime = useMinuteTicker()
-
   return <>{formatDate(currentTime)}</>
 }

@@ -9,13 +9,13 @@ import { useBusinessSettings } from './useBusinessSettings'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
 import {
-  UsersIcon,
-  BookOpenIcon,
-  CheckCircleIcon,
-  ChartBarIcon,
-  ClockIcon,
-  AcademicCapIcon,
-} from '@heroicons/react/24/outline'
+  Award,
+  BookOpen,
+  CircleCheckBig,
+  Gauge,
+  TrendingUp,
+  UsersRound,
+} from 'lucide-react'
 import { formatDate, formatTimeAgo } from '@/utils/date-formatter'
 
 type DashboardChange = number | string | null | undefined
@@ -196,7 +196,11 @@ export function useBusinessPanelDashboardLogic() {
     accent: panelTheme.accentColor,
     text: panelTheme.textColor,
     cardBg: panelTheme.cardBg,
+    inputBg: panelTheme.inputBg,
     borderColor: panelTheme.borderColor,
+    onActionColor: panelTheme.onActionColor,
+    subtext: panelTheme.subtextColor,
+    mutedText: panelTheme.mutedTextColor,
     heroBackground: panelTheme.heroBackground,
     heroBorderColor: panelTheme.heroBorderColor,
     inverseText: panelTheme.inverseTextColor,
@@ -259,7 +263,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: `bg-gradient-to-br from-[${themeColors.primary}] to-[${themeColors.primary}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.primary}, color-mix(in srgb, ${themeColors.primary} 80%, transparent))` },
       href: `/${orgSlug}/business-panel/users`,
-      icon: UsersIcon,
+      icon: UsersRound,
       iconColor: themeColors.primary,
     },
     {
@@ -271,7 +275,7 @@ export function useBusinessPanelDashboardLogic() {
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.secondary}, color-mix(in srgb, ${themeColors.secondary} 80%, transparent))` },
       href: `/${orgSlug}/business-panel/courses`,
       id: 'tour-stat-courses',
-      icon: BookOpenIcon,
+      icon: BookOpen,
       iconColor: themeColors.secondary,
     },
     {
@@ -281,7 +285,8 @@ export function useBusinessPanelDashboardLogic() {
       backgroundImage: '/images/dashboard-cards/completed-card-bg.webp',
       gradient: `bg-gradient-to-br from-[${themeColors.accent}] to-[${themeColors.accent}]/80`,
       gradientStyle: { background: `linear-gradient(to bottom right, ${themeColors.accent}, color-mix(in srgb, ${themeColors.accent} 80%, transparent))` },
-      icon: CheckCircleIcon,
+      href: `/${orgSlug}/business-panel/reports`,
+      icon: CircleCheckBig,
       iconColor: themeColors.accent,
     },
     {
@@ -291,7 +296,8 @@ export function useBusinessPanelDashboardLogic() {
       backgroundImage: '/images/dashboard-cards/progress-card-bg.webp',
       gradient: 'bg-gradient-to-br from-warning to-warning/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-warning), var(--color-legacy-f59e0bcc))' },
-      icon: ClockIcon,
+      href: `/${orgSlug}/business-panel/reports`,
+      icon: TrendingUp,
       iconColor: 'var(--color-warning)',
     },
     {
@@ -302,7 +308,8 @@ export function useBusinessPanelDashboardLogic() {
       gradient: 'bg-gradient-to-br from-secondary to-secondary/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-secondary), var(--color-legacy-8b5cf6cc))' },
       id: 'tour-stat-certificates',
-      icon: AcademicCapIcon,
+      href: `/${orgSlug}/business-panel/reports`,
+      icon: Award,
       iconColor: 'var(--color-secondary)',
     },
     {
@@ -313,7 +320,7 @@ export function useBusinessPanelDashboardLogic() {
       gradient: 'bg-gradient-to-br from-pink-500 to-pink-500/80',
       gradientStyle: { background: 'linear-gradient(to bottom right, var(--color-legacy-ec4899), var(--color-legacy-ec4899cc))' },
       href: `/${orgSlug}/business-panel/reports`,
-      icon: ChartBarIcon,
+      icon: Gauge,
       iconColor: 'var(--color-legacy-ec4899)',
     },
   ] : [], [stats, themeColors, t, orgSlug]) // eslint-disable-line react-hooks/exhaustive-deps

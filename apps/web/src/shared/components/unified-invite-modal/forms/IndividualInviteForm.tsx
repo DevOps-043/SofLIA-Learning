@@ -6,6 +6,7 @@ import { InviteErrorAlert } from './InviteErrorAlert';
 import { InviteFooter } from './InviteFooter';
 import { InviteInfoHint } from './InviteInfoHint';
 import { InviteRoleSelector } from './InviteRoleSelector';
+import styles from './InviteForm.module.css';
 
 type IndividualInviteFormProps = Omit<FormsViewProps, 'mode'>;
 
@@ -14,10 +15,10 @@ export function IndividualInviteForm({ controller, onClose, theme }: IndividualI
   const optionalLabel = t('common.optional', 'Opcional');
 
   return (
-    <form className="flex h-full flex-col overflow-hidden" onSubmit={handleIndividualSubmit}>
+    <form className={styles.form} onSubmit={handleIndividualSubmit}>
       <div className={formBodyClass} style={inviteScrollStyle}>
         <InviteErrorAlert error={error} />
-        <div className="grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
+        <div className={styles.fieldGrid}>
           <InviteTextField icon={Mail} label={t('users.modals.invite.fields.email', 'Email Address')} required theme={theme}>
             <input
               className={controlClass}
@@ -43,21 +44,21 @@ export function IndividualInviteForm({ controller, onClose, theme }: IndividualI
             />
           </InviteTextField>
         </div>
-        <div className="space-y-4">
+        <div className={styles.roleSection}>
           <label className={labelClass} style={{ color: theme.mutedText }}>
-            {t('users.modals.invite.fields.role', 'Rol en la organizacion')} <span className="text-red-400">*</span>
+            {t('users.modals.invite.fields.role', 'Rol en la organización')} <span className={styles.required}>*</span>
           </label>
           <InviteRoleSelector form={individualForm} onRoleChange={(role) => setIndividualForm((form) => ({ ...form, role }))} roleLabels={roleLabels} status={status} theme={theme} />
         </div>
-        <div className="space-y-3">
+        <div className={styles.field}>
           <label className={labelClass} style={{ color: theme.mutedText }}>
             {t('users.modals.invite.fields.message', 'Mensaje personalizado')}
-            <span className="ml-1 uppercase opacity-40">({optionalLabel})</span>
+            <span className={styles.optional}>({optionalLabel})</span>
           </label>
-          <div className="group relative">
-            <MessageSquare className="absolute left-4 top-4 h-4 w-4 transition-colors" style={{ color: theme.mutedText }} />
+          <div className={styles.textareaWrap}>
+            <MessageSquare aria-hidden="true" />
             <textarea
-              className="w-full resize-none rounded-[2rem] border bg-transparent py-4 pl-12 pr-4 text-xs font-medium transition-all focus:outline-none sm:text-sm"
+              className={styles.textarea}
               disabled={status === 'loading'}
               maxLength={500}
               onChange={(event) => setIndividualForm((form) => ({ ...form, customMessage: event.target.value }))}
@@ -66,9 +67,9 @@ export function IndividualInviteForm({ controller, onClose, theme }: IndividualI
               style={getInputStyle(theme)}
               value={individualForm.customMessage}
             />
-            <p className="absolute bottom-4 right-6 text-[10px] font-black uppercase tracking-widest opacity-20" style={{ color: theme.mutedText }}>
+            <span className={styles.counter} style={{ color: theme.mutedText }}>
               {individualForm.customMessage.length}/500
-            </p>
+            </span>
           </div>
         </div>
         <InviteInfoHint message={t('users.modals.invite.hints.info', 'El usuario recibira un correo con el enlace. Expira en 7 dias.')} theme={theme} />

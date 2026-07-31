@@ -2,6 +2,7 @@
 
 import { useLanguage } from '@/core/providers/I18nProvider'
 import { AlertCircle, Loader2 } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTour } from '@/features/tours'
@@ -12,11 +13,14 @@ import { FiltersBar } from './FiltersBar'
 import { ReportsHero } from './ReportsHero'
 import { ReportsLoadedContent } from './ReportsLoadedContent'
 import { StatePanel } from './StatePanel'
+import styles from './ReportsAnalytics.module.css'
 import type { ReportsAnalyticsLocale, ReportsAnalyticsT } from './types'
 
 interface BusinessReportsAnalyticsProps {
   orgSlug?: string
 }
+
+type ReportsAnalyticsVariables = CSSProperties & Record<`--reports-${string}`, string>
 
 export function BusinessReportsAnalytics({ orgSlug }: BusinessReportsAnalyticsProps = {}) {
   const { t: tRaw } = useTranslation('business')
@@ -48,59 +52,75 @@ export function BusinessReportsAnalytics({ orgSlug }: BusinessReportsAnalyticsPr
 
   const locale = language as ReportsAnalyticsLocale
   const t: ReportsAnalyticsT = (key) => tRaw(key)
+  const reportsVariables: ReportsAnalyticsVariables = {
+    '--reports-accent': theme.accentColor,
+    '--reports-action': theme.actionColor,
+    '--reports-border': theme.borderColor,
+    '--reports-card': theme.cardBg,
+    '--reports-danger': theme.dangerColor,
+    '--reports-divider': theme.dividerColor,
+    '--reports-input': theme.inputBg,
+    '--reports-muted': theme.subtextColor,
+    '--reports-on-action': theme.onActionColor,
+    '--reports-success': theme.successColor,
+    '--reports-text': theme.textColor,
+    '--reports-warning': theme.warningColor,
+  }
 
   return (
-    <div className="flex flex-col gap-4">
-      <ReportsHero
-        data={data}
-        isExporting={isExporting}
-        isGeneratingInsights={isGeneratingInsights}
-        locale={locale}
-        theme={theme}
-        t={t}
-        onExport={exportAnalytics}
-        onGenerateInsights={generateInsights}
-      />
-
-      <FiltersBar
-        data={data}
-        filters={filters}
-        theme={theme}
-        t={t}
-        onFilterChange={updateFilter}
-        onReset={resetFilters}
-        onRefresh={refetch}
-        isLoading={isValidating}
-      />
-
-      {isLoading && !data ? (
-        <StatePanel
-          theme={theme}
-          icon={Loader2}
-          title={t('reportsAnalytics.states.loadingTitle')}
-          message={t('reportsAnalytics.states.loadingDescription')}
-          spinning
-        />
-      ) : error && !data ? (
-        <StatePanel
-          theme={theme}
-          icon={AlertCircle}
-          title={t('reportsAnalytics.states.errorTitle')}
-          message={t('reportsAnalytics.states.errorDescription')}
-        />
-      ) : data ? (
-        <ReportsLoadedContent
+    <div className={styles.page} style={reportsVariables}>
+      <div className={styles.pageStack}>
+        <ReportsHero
           data={data}
-          insights={insights}
-          isExportingInsightsPdf={isExportingInsightsPdf}
+          isExporting={isExporting}
           isGeneratingInsights={isGeneratingInsights}
           locale={locale}
           theme={theme}
           t={t}
-          onExportInsightsPdf={() => exportInsightsPdf(locale)}
-          onGenerateInsights={() => generateInsights(locale)}
+          onExport={exportAnalytics}
+          onGenerateInsights={generateInsights}
         />
-      ) : null}
+
+        <FiltersBar
+          data={data}
+          filters={filters}
+          t={t}
+          onFilterChange={updateFilter}
+          onReset={resetFilters}
+          onRefresh={refetch}
+          isLoading={isValidating}
+        />
+
+        {isLoading && !data ? (
+          <StatePanel
+            theme={theme}
+            icon={Loader2}
+            title={t('reportsAnalytics.states.loadingTitle')}
+            message={t('reportsAnalytics.states.loadingDescription')}
+            spinning
+          />
+        ) : error && !data ? (
+          <StatePanel
+            theme={theme}
+            icon={AlertCircle}
+            title={t('reportsAnalytics.states.errorTitle')}
+            message={t('reportsAnalytics.states.errorDescription')}
+          />
+        ) : data ? (
+          <ReportsLoadedContent
+            data={data}
+            insights={insights}
+            isExportingInsightsPdf={isExportingInsightsPdf}
+            isGeneratingInsights={isGeneratingInsights}
+            locale={locale}
+            theme={theme}
+            t={t}
+            onCourseFilterChange={(courseId) => updateFilter('courseId', courseId)}
+            onExportInsightsPdf={() => exportInsightsPdf(locale)}
+            onGenerateInsights={() => generateInsights(locale)}
+          />
+        ) : null}
+      </div>
     </div>
   )
 }

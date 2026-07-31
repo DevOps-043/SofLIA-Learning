@@ -3,16 +3,17 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import {
+  ArrowUpRight,
   BookOpen,
   Star,
   Users,
   Clock,
-  Play,
 } from 'lucide-react'
 import { type BusinessCourse } from '@/features/business-panel/hooks/useBusinessCourses'
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
 import { useTranslation } from 'react-i18next'
 import { useMotionSafe } from '@/lib/utils/motion'
+import styles from './ContentPanel.module.css'
 
 export interface CourseCardProps {
   course: BusinessCourse
@@ -59,12 +60,6 @@ export function CourseCard({ course, index, onClick }: CourseCardProps) {
   const { t } = useTranslation('business')
   const { disableHeavy, interfaceStaggerSeconds, interfaceTransition } = useMotionSafe()
   const {
-    primaryColor,
-    textColor,
-    cardBg,
-    borderColor,
-    dividerColor,
-    mutedTextColor,
     difficultyColors,
   } = useBusinessPanelTheme()
   const levelStyles = getLevelStyles(course.level, t, difficultyColors)
@@ -75,80 +70,62 @@ export function CourseCard({ course, index, onClick }: CourseCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...interfaceTransition, delay: entranceDelay }}
-      whileHover={disableHeavy ? undefined : { y: -2, scale: 1.005 }}
       onClick={onClick}
-      className="group cursor-pointer overflow-hidden rounded-[1.5rem] border transition-all duration-300 shadow-sm hover:shadow-xl relative"
-      style={{ backgroundColor: cardBg, borderColor }}
+      className={styles.courseCard}
     >
-      {/* Thumbnail - Standard Video Aspect Ratio for No Crop */}
-      <div className="relative aspect-video overflow-hidden">
+      <div className={styles.courseMedia}>
         {course.thumbnail_url ? (
           <Image
             src={course.thumbnail_url}
             alt={course.title}
             fill
             priority={index < 4}
-            className="object-cover transition-transform duration-700 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1536px) 33vw, 25vw"
           />
         ) : (
-          <div
-            className="w-full h-full flex items-center justify-center bg-gray-900"
-            style={{ background: `linear-gradient(135deg, color-mix(in srgb, ${primaryColor} 25.1%, transparent), color-mix(in srgb, ${primaryColor} 6.3%, transparent))` }}
-          >
-            <BookOpen className="w-10 h-10" style={{ color: `color-mix(in srgb, ${primaryColor} 37.6%, transparent)` }} />
+          <div className={styles.courseFallback}>
+            <BookOpen aria-hidden="true" />
           </div>
         )}
 
-        {/* Level Badge Overlay */}
-        <div className="absolute top-3 left-3">
-          <span
-            className="px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest backdrop-blur-md border"
-            style={{ backgroundColor: levelStyles.bg, color: levelStyles.color, borderColor: `color-mix(in srgb, ${levelStyles.color} 18.8%, transparent)` }}
-          >
-            {levelStyles.text}
-          </span>
-        </div>
+        <span
+          className={styles.courseBadge}
+          style={{
+            backgroundColor: levelStyles.bg,
+            color: levelStyles.color,
+            borderColor: `color-mix(in srgb, ${levelStyles.color} 28%, transparent)`,
+          }}
+        >
+          {levelStyles.text}
+        </span>
 
-        {/* Rating Overlay */}
-        <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-md bg-black/40 border border-white/10">
-          <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" />
-          <span className="text-[9px] font-bold text-white">
-            {course.rating ? course.rating.toFixed(1) : '0.0'}
-          </span>
-        </div>
+        <span className={styles.courseRating} aria-label={`Valoración ${course.rating?.toFixed(1) ?? '0.0'}`}>
+          <Star aria-hidden="true" />
+          {course.rating ? course.rating.toFixed(1) : '0.0'}
+        </span>
 
-        {/* Play Icon Hint */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[1px]">
-           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white/20 border border-white/30">
-              <Play className="w-5 h-5 text-white ml-1 fill-white" />
-           </div>
+        <div className={styles.courseOpenHint} aria-hidden="true">
+          <span>
+            Ver curso
+            <ArrowUpRight />
+          </span>
         </div>
       </div>
 
-      {/* Content Body */}
-      <div className="p-4 sm:p-5">
-        <div className="mb-4 min-h-[56px]">
-          <h3 className="text-sm font-black tracking-tight line-clamp-2 leading-tight mb-1.5" style={{ color: textColor }}>
-            {course.title}
-          </h3>
-          <p className="text-[10px] font-medium" style={{ color: mutedTextColor }}>
-            {course.instructor.name}
-          </p>
-        </div>
+      <div className={styles.courseBody}>
+        <p className={styles.courseCategory}>{course.category || 'Curso'}</p>
+        <h3 className={styles.courseTitle}>{course.title}</h3>
+        <p className={styles.courseInstructor}>{course.instructor.name}</p>
 
-        {/* Stats Row */}
-        <div className="flex items-center justify-between pt-3.5 border-t" style={{ borderColor: dividerColor }}>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5" style={{ color: mutedTextColor }}>
-              <Clock className="w-3 h-3" />
-              <span className="text-[10px] font-bold tracking-tight">{formatDuration(course.duration)}</span>
-            </div>
-            <div className="flex items-center gap-1.5" style={{ color: mutedTextColor }}>
-              <Users className="w-3 h-3" />
-              <span className="text-[10px] font-bold tracking-tight">{course.student_count || 0}</span>
-            </div>
-          </div>
+        <div className={styles.courseMeta}>
+          <span className={styles.courseMetaItem}>
+            <Clock aria-hidden="true" />
+            {formatDuration(course.duration)}
+          </span>
+          <span className={styles.courseMetaItem}>
+            <Users aria-hidden="true" />
+            {course.student_count || 0} estudiantes
+          </span>
         </div>
       </div>
     </motion.div>

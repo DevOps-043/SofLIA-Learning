@@ -1,25 +1,29 @@
 'use client'
 
-import { useState } from 'react'
+import type { CSSProperties } from 'react'
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 import {
-  Edit,
-  Trash,
-  Mail,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
+  BadgeCheck,
+  CalendarDays,
+  ChartNoAxesCombined,
+  CircleAlert,
+  CircleOff,
   Crown,
-  Activity,
-  Calendar,
-  Lock,
-  Unlock,
+  LockKeyhole,
+  LockKeyholeOpen,
+  Mail,
+  PencilLine,
+  Send,
+  Trash2,
 } from 'lucide-react'
+import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
+
 import { useBusinessPanelTheme } from '@/features/business-panel/hooks/useBusinessPanelTheme'
-import { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
+import type { BusinessUser } from '@/features/business-panel/services/businessUsers.service'
 import { formatDate } from '@/shared/utils/date-formatter'
+
+import styles from './UsersPanel.module.css'
 
 interface UserCardProps {
   user: BusinessUser
@@ -35,194 +39,182 @@ interface UserCardProps {
 function UserCard({ user, index, onEdit, onDelete, onStats, onResend, onSuspend, onActivate }: UserCardProps) {
   const { t, i18n } = useTranslation('business')
   const theme = useBusinessPanelTheme()
-  const [showOptions, setShowOptions] = useState(false)
+  const displayName =
+    user.display_name ||
+    `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+    user.username
 
-  const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
-
-  const getRoleConfig = (role: string) => {
-    const { roleColors } = theme
-    switch (role) {
-      case 'owner': return { label: t('users.roles.owner'), ...roleColors.owner }
-      case 'admin': return { label: t('users.roles.admin'), ...roleColors.admin }
-      default: return { label: t('users.roles.member'), ...roleColors.member }
-    }
-  }
-
-  const getStatusConfig = (status: string) => {
-    const { statusColors } = theme
-    switch (status) {
-      case 'active':    return { label: t('users.status.active'),    color: statusColors.active,    icon: CheckCircle }
-      case 'invited':   return { label: t('users.status.invited'),   color: statusColors.invited,   icon: Mail }
-      case 'suspended': return { label: t('users.status.suspended'), color: statusColors.suspended, icon: XCircle }
-      default:          return { label: t('users.status.removed'),   color: statusColors.removed,   icon: AlertCircle }
-    }
-  }
-
-  const roleConfig = getRoleConfig(user.org_role || 'member')
-  const statusConfig = getStatusConfig(user.org_status || 'active')
+  const roleConfig = getRoleConfig(user.org_role || 'member', theme, t)
+  const statusConfig = getStatusConfig(user.org_status || 'active', theme, t)
+  const StatusIcon = statusConfig.icon
+  const lastAccess =
+    user.last_activity_at || user.last_login_at
+      ? formatDate(
+          (user.last_activity_at ?? user.last_login_at) as string,
+          i18n.language,
+          { day: '2-digit', month: 'short' },
+        )
+      : t('users.card.noAccess')
+  const cardStyle = {
+    '--status-color': statusConfig.color,
+  } as CSSProperties
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
+    <motion.article
+      initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.5, ease: 'easeOut' }}
-      whileHover={{ y: -6, transition: { duration: 0.2 } }}
-      onMouseLeave={() => setShowOptions(false)}
-      className="group relative flex flex-col rounded-3xl border transition-all duration-300 overflow-hidden"
-      style={{
-        backgroundColor: theme.cardBg,
-        borderColor: theme.borderColor,
-        backdropFilter: 'blur(20px)',
-        boxShadow: theme.isDark
-          ? '0 20px 40px -20px rgba(0,0,0,0.5)'
-          : '0 10px 20px -10px rgba(0,0,0,0.05)',
-      }}
+      transition={{ delay: Math.min(index * 0.035, 0.16), duration: 0.28, ease: 'easeOut' }}
+      className={styles.userCard}
+      style={cardStyle}
     >
-      {/* Header Hero Section */}
-      <div className="relative h-32 overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-20 transform scale-150 rotate-12 blur-[50px]"
-          style={{ background: `radial-gradient(circle, ${theme.accentColor} 0%, transparent 70%)` }}
-        />
-
-        <div className="absolute inset-0 flex items-center justify-center p-4">
-          <div className="relative">
-            <div
-              className="w-20 h-20 rounded-2xl overflow-hidden shadow-2xl border-2 transition-transform duration-500 group-hover:scale-105"
-              style={{ borderColor: theme.isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)' }}
-            >
-              {user.profile_picture_url ? (
-                <Image
-                  src={user.profile_picture_url}
-                  alt={displayName}
-                  width={100}
-                  height={100}
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <div
-                  className="w-full h-full flex items-center justify-center text-3xl font-black"
-                  style={{ backgroundColor: theme.inputBg, color: theme.accentColor }}
-                >
-                  {displayName.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
-
-            {/* Status Badge */}
-            <div
-              className="absolute -bottom-1 -right-1 p-1 rounded-full border-2 shadow-lg"
-              style={{
-                backgroundColor: statusConfig.color,
-                borderColor: theme.isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
-              }}
-            >
-              <statusConfig.icon className="w-3 h-3 text-black" />
-            </div>
-
-            {/* Owner Crown */}
-            {user.org_role === 'owner' && (
-              <div className="absolute -top-3 -left-3 p-1.5 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-xl border border-white/20">
-                <Crown className="w-3.5 h-3.5 text-white" />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Content Section */}
-      <div className="flex-1 flex flex-col p-4 pt-0">
-        <div className="text-center mb-4">
-          <h3 className="font-bold text-lg tracking-tight truncate mb-0.5" style={{ color: theme.textColor }}>
-            {displayName}
-          </h3>
-          <p className="text-[11px] truncate opacity-50 font-medium" style={{ color: theme.subtextColor }}>
-            {user.email}
-          </p>
-        </div>
-
-        {/* Meta Row */}
-        <div className="flex flex-col gap-2 mb-4">
-          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-white/5">
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">
-              {t('users.card.organizationRole')}
-            </span>
-            <span
-              className="text-[10px] font-bold px-2 py-0.5 rounded-lg"
-              style={{ backgroundColor: roleConfig.bg, color: roleConfig.text }}
-            >
-              {roleConfig.label}
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-black/5 dark:bg-white/5 border border-white/5">
-            <span className="text-[9px] font-black uppercase tracking-tight opacity-40">
-              {t('users.card.lastTime')}
-            </span>
-            <div className="flex items-center gap-1 text-[10px] font-bold" style={{ color: theme.textColor }}>
-              <Calendar className="w-3 h-3 opacity-40" />
-              {user.last_activity_at || user.last_login_at
-                ? formatDate((user.last_activity_at ?? user.last_login_at) as string, i18n.language, { day: '2-digit', month: 'short' })
-                : t('users.card.noAccess')}
-            </div>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="mt-auto flex flex-col gap-2">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={onEdit}
-              className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all font-bold text-[10px] uppercase tracking-wider border border-white/10"
-              style={{ color: theme.textColor }}
-            >
-              <Edit className="w-4 h-4 opacity-70" />
-              {t('users.card.edit')}
-            </button>
-
-            {user.org_status === 'active' && onSuspend ? (
-              <button
-                onClick={onSuspend}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase tracking-wider border border-red-500/20 text-red-400"
-              >
-                <Lock className="w-4 h-4" />
-                {t('users.card.suspend')}
-              </button>
-            ) : user.org_status === 'suspended' && onActivate ? (
-              <button
-                onClick={onActivate}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 transition-all font-bold text-[10px] uppercase tracking-wider border border-emerald-500/20 text-emerald-400"
-              >
-                <Unlock className="w-4 h-4" />
-                {t('users.card.activate')}
-              </button>
+      <header className={styles.userCardHeader}>
+        <div className={styles.avatarWrap}>
+          <div className={styles.avatar}>
+            {user.profile_picture_url ? (
+              <Image
+                src={user.profile_picture_url}
+                alt=""
+                width={72}
+                height={72}
+              />
             ) : (
-              <button
-                onClick={onDelete}
-                className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition-all font-bold text-[10px] uppercase tracking-wider border border-red-500/20 text-red-500"
-              >
-                <Trash className="w-4 h-4" />
-                {t('users.card.delete')}
-              </button>
+              <span aria-hidden="true">{displayName.charAt(0).toUpperCase()}</span>
             )}
           </div>
+          <span className={styles.presence} title={statusConfig.label}>
+            <StatusIcon aria-hidden="true" />
+          </span>
+          {user.org_role === 'owner' ? (
+            <span className={styles.ownerMark} title={roleConfig.label}>
+              <Crown aria-hidden="true" />
+            </span>
+          ) : null}
+        </div>
 
-          {/* Manage CTA */}
-          <button
-            onClick={onStats}
-            className="flex items-center justify-center gap-3 px-4 py-3.5 rounded-xl font-black text-xs uppercase tracking-[0.1em] transition-all duration-300 shadow-xl hover:shadow-2xl hover:scale-[1.02] active:scale-95 group/managed"
-            style={{
-              backgroundColor: theme.actionColor,
-              color: theme.onActionColor,
-            }}
+        <div className={styles.identity}>
+          <h2 className={styles.userName}>{displayName}</h2>
+          <p className={styles.userEmail}>{user.email}</p>
+        </div>
+
+        <span className={styles.statusBadge}>
+          <StatusIcon aria-hidden="true" />
+          <span>{statusConfig.label}</span>
+        </span>
+      </header>
+
+      <div className={styles.cardDivider} />
+
+      <div className={styles.metaList}>
+        <div className={styles.metaRow}>
+          <span className={styles.metaLabel}>{t('users.card.organizationRole')}</span>
+          <span
+            className={styles.roleBadge}
+            style={{ backgroundColor: roleConfig.bg, color: roleConfig.text }}
           >
-            <Activity className="w-4 h-4 group-hover/managed:animate-pulse" />
-            <span>{t('users.card.statistics')}</span>
-          </button>
+            {roleConfig.label}
+          </span>
+        </div>
+        <div className={styles.metaRow}>
+          <span className={styles.metaLabel}>{t('users.card.lastTime')}</span>
+          <span className={styles.metaValue}>
+            <CalendarDays aria-hidden="true" />
+            {lastAccess}
+          </span>
         </div>
       </div>
-    </motion.div>
+
+      <footer className={styles.cardActions}>
+        <button type="button" onClick={onStats} className={styles.cardPrimaryAction}>
+          <ChartNoAxesCombined aria-hidden="true" />
+          <span>{t('users.card.statistics')}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onEdit}
+          className={styles.iconAction}
+          title={t('users.card.edit')}
+          aria-label={t('users.card.edit')}
+        >
+          <PencilLine aria-hidden="true" />
+        </button>
+
+        {user.org_status === 'active' && onSuspend ? (
+          <button
+            type="button"
+            onClick={onSuspend}
+            className={`${styles.iconAction} ${styles.dangerAction}`}
+            title={t('users.card.suspend')}
+            aria-label={t('users.card.suspend')}
+          >
+            <LockKeyhole aria-hidden="true" />
+          </button>
+        ) : user.org_status === 'suspended' && onActivate ? (
+          <button
+            type="button"
+            onClick={onActivate}
+            className={`${styles.iconAction} ${styles.successAction}`}
+            title={t('users.card.activate')}
+            aria-label={t('users.card.activate')}
+          >
+            <LockKeyholeOpen aria-hidden="true" />
+          </button>
+        ) : user.org_status === 'invited' && onResend ? (
+          <button
+            type="button"
+            onClick={onResend}
+            className={styles.iconAction}
+            title={t('users.card.resendInvite')}
+            aria-label={t('users.card.resendInvite')}
+          >
+            <Send aria-hidden="true" />
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onDelete}
+            className={`${styles.iconAction} ${styles.dangerAction}`}
+            title={t('users.card.delete')}
+            aria-label={t('users.card.delete')}
+          >
+            <Trash2 aria-hidden="true" />
+          </button>
+        )}
+      </footer>
+    </motion.article>
   )
+}
+
+function getRoleConfig(
+  role: string,
+  theme: ReturnType<typeof useBusinessPanelTheme>,
+  t: ReturnType<typeof useTranslation>['t'],
+) {
+  switch (role) {
+    case 'owner':
+      return { label: t('users.roles.owner'), ...theme.roleColors.owner }
+    case 'admin':
+      return { label: t('users.roles.admin'), ...theme.roleColors.admin }
+    default:
+      return { label: t('users.roles.member'), ...theme.roleColors.member }
+  }
+}
+
+function getStatusConfig(
+  status: string,
+  theme: ReturnType<typeof useBusinessPanelTheme>,
+  t: ReturnType<typeof useTranslation>['t'],
+) {
+  switch (status) {
+    case 'active':
+      return { label: t('users.status.active'), color: theme.statusColors.active, icon: BadgeCheck }
+    case 'invited':
+      return { label: t('users.status.invited'), color: theme.statusColors.invited, icon: Mail }
+    case 'suspended':
+      return { label: t('users.status.suspended'), color: theme.statusColors.suspended, icon: CircleOff }
+    default:
+      return { label: t('users.status.removed'), color: theme.statusColors.removed, icon: CircleAlert }
+  }
 }
 
 export { UserCard }

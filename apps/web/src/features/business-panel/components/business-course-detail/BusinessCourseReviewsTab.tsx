@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { Star } from 'lucide-react'
+
 import type { BusinessCourseDetail } from '../../types/business-course-detail.types'
+import styles from './BusinessCourseDetail.module.css'
 
 interface BusinessCourseReviewsTabProps {
   course: BusinessCourseDetail
@@ -15,59 +17,58 @@ interface BusinessCourseReviewsTabProps {
 
 export function BusinessCourseReviewsTab({
   course,
-  textColor,
-  primaryColor,
-  borderColor,
-  onPrimaryColor,
-  mutedTextColor,
-  successColor,
-  formatDate
+  formatDate,
 }: BusinessCourseReviewsTabProps) {
   return (
-    <motion.div key="reviews" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+    <motion.div
+      key="reviews"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+    >
       {course.reviews.length === 0 ? (
-        <div className="text-center py-12">
-          <Star className="w-16 h-16 mx-auto mb-4" style={{ color: mutedTextColor }} />
-          <p style={{ color: mutedTextColor }}>Aun no hay resenas para este curso</p>
+        <div className={styles.emptyState}>
+          <div>
+            <span className={styles.emptyStateIcon} aria-hidden="true">
+              <Star />
+            </span>
+            <h4>Aún no hay reseñas</h4>
+            <p>Las opiniones verificadas de quienes tomen este curso aparecerán en esta sección.</p>
+          </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className={styles.reviewList}>
           {course.reviews.map((review, index) => (
-            <motion.div
+            <motion.article
               key={review.id}
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="p-5 rounded-xl border"
-              style={{ backgroundColor: `color-mix(in srgb, ${primaryColor} 2%, transparent)`, borderColor }}
+              transition={{ delay: index * 0.04 }}
+              className={styles.review}
             >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold flex-shrink-0" style={{ backgroundColor: primaryColor, color: onPrimaryColor }}>
-                  {review.user.name[0]?.toUpperCase()}
+              <span className={styles.reviewAvatar} aria-hidden="true">
+                {review.user.name[0]?.toUpperCase()}
+              </span>
+              <div className={styles.reviewBody}>
+                <header className={styles.reviewHeader}>
+                  <h4>{review.user.name}</h4>
+                  {review.is_verified ? <span>Verificada</span> : null}
+                </header>
+                <div className={styles.reviewMeta} aria-label={`Valoración ${review.rating} de 5`}>
+                  {Array.from({ length: 5 }, (_, starIndex) => (
+                    <Star
+                      key={`${review.id}-${starIndex}`}
+                      fill={starIndex < review.rating ? 'currentColor' : 'none'}
+                      style={{ opacity: starIndex < review.rating ? 1 : 0.35 }}
+                      aria-hidden="true"
+                    />
+                  ))}
+                  <time dateTime={review.created_at}>{formatDate(review.created_at)}</time>
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-semibold" style={{ color: textColor }}>{review.user.name}</h4>
-                    {review.is_verified ? (
-                      <span className="px-2 py-0.5 rounded text-xs font-medium" style={{ backgroundColor: `color-mix(in srgb, ${successColor} 12.5%, transparent)`, color: successColor }}>
-                        Verificado
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-2 mb-3">
-                    {[...Array(5)].map((_, starIndex) => (
-                      <Star
-                        key={`${review.id}-${starIndex}`}
-                        className={`w-4 h-4 ${starIndex < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`}
-                      />
-                    ))}
-                    <span className="text-xs" style={{ color: mutedTextColor }}>{formatDate(review.created_at)}</span>
-                  </div>
-                  {review.title ? <h5 className="font-medium mb-2" style={{ color: textColor }}>{review.title}</h5> : null}
-                  <p className="text-sm leading-relaxed" style={{ color: textColor }}>{review.content}</p>
-                </div>
+                {review.title ? <h5>{review.title}</h5> : null}
+                <p>{review.content}</p>
               </div>
-            </motion.div>
+            </motion.article>
           ))}
         </div>
       )}

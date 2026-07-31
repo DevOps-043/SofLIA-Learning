@@ -18,10 +18,10 @@ export function UsersFilterBar(props: UsersFilterBarProps) {
   }
 
   return (
-    <div className="flex flex-col space-y-4">
+    <>
       <UsersTabStrip activeTab={props.activeTab} setActiveTab={props.setActiveTab} tabs={buildTabs(props)} theme={theme} />
       <UsersPrimaryFilters closeDropdowns={closeDropdowns} props={props} theme={theme} />
       <UsersAdvancedFilters closeDropdowns={closeDropdowns} props={props} theme={theme} />
-    </div>
+    </>
   )
 }

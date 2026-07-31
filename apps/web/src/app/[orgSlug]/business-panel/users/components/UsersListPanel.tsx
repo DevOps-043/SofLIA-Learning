@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { EmptyState } from './EmptyState'
 import { UserCard } from './UserCard'
 import { UserListRow } from './UserListRow'
+import styles from './UsersPanel.module.css'
 import type { BusinessUsersPageLogic } from './users-page.types'
 
 interface UsersListPanelProps {
@@ -26,7 +27,7 @@ export function UsersListPanel({ logic }: UsersListPanelProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        className={styles.cardGrid}
       >
         {logic.filteredUsers.map((user, index) => (
           <UserCard
@@ -46,12 +47,13 @@ export function UsersListPanel({ logic }: UsersListPanelProps) {
   }
 
   return (
-    <motion.div key="list-users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-2">
-      <div className="hidden grid-cols-5 gap-4 px-4 py-2 text-xs font-medium uppercase tracking-wider opacity-50 lg:grid">
-        <div className="col-span-2">{t('users.list.name', 'Nombre')}</div>
-        <div>{t('users.list.hierarchy', 'Ubicacion')}</div>
-        <div>{t('users.list.role', 'Rol / Estado')}</div>
-        <div className="text-right">{t('users.list.lastAccess', 'Ultimo acceso')}</div>
+    <motion.div key="list-users" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className={styles.list}>
+      <div className={styles.listHeader} aria-hidden="true">
+        <span>{t('users.list.name', 'Nombre')}</span>
+        <span>{t('users.list.hierarchy', 'Ubicación')}</span>
+        <span>{t('users.list.role', 'Rol / Estado')}</span>
+        <span>{t('users.list.lastAccess', 'Último acceso')}</span>
+        <span>{t('users.list.actions', 'Acciones')}</span>
       </div>
       {logic.filteredUsers.map((user, index) => (
         <UserListRow

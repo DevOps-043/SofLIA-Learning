@@ -1,25 +1,31 @@
 import { Route } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { BusinessLearningPathsTheme } from './types'
+import styles from '@/app/[orgSlug]/business-panel/courses/ContentPanel.module.css'
 
 export function BusinessLearningPathsHero({ theme }: { theme: BusinessLearningPathsTheme }) {
   const { t } = useTranslation('business')
-  const { primaryColor, onPrimaryColor, accentColor, textColor, mutedTextColor, borderColor, inputBg } = theme
   return (
-    <div id="tour-paths-hero" className="relative overflow-hidden rounded-[2rem] border px-8 py-8 lg:py-10" style={{ borderColor, backgroundColor: inputBg }}>
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-64 opacity-20 blur-3xl" style={{ background: `radial-gradient(circle, ${accentColor}, transparent)` }} />
-      <div className="relative z-10 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] mb-2" style={{ color: mutedTextColor }}>{t('learningPathsPage.badge')}</p>
-          <h1 className="text-3xl lg:text-4xl font-black tracking-tight mb-2" style={{ color: textColor }}>{t('learningPathsPage.title')}</h1>
-          <p className="text-sm max-w-md" style={{ color: mutedTextColor }}>
-            {t('learningPathsPage.subtitle')}
-          </p>
-        </div>
-        <div className="hidden lg:flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.4rem] shadow-xl" style={{ background: `linear-gradient(135deg, ${primaryColor}, ${accentColor})` }}>
-          <Route className="h-7 w-7" style={{ color: onPrimaryColor }} strokeWidth={2.5} />
-        </div>
+    <section
+      id="tour-paths-hero"
+      className={styles.hero}
+      style={{ background: theme.heroBackground, borderColor: theme.heroBorderColor }}
+      aria-labelledby="learning-paths-page-title"
+    >
+      <div className={styles.heroAtmosphere} aria-hidden="true" />
+      <div className={styles.heroRingLarge} aria-hidden="true" />
+      <div className={styles.heroRingSmall} aria-hidden="true" />
+      <div className={styles.heroDot} aria-hidden="true" />
+      <div className={styles.heroCopy}>
+        <p className={styles.eyebrow}>{t('learningPathsPage.badge')}</p>
+        <h1 id="learning-paths-page-title" className={styles.heroTitle}>
+          {t('learningPathsPage.title')}
+        </h1>
+        <p className={styles.heroDescription}>{t('learningPathsPage.subtitle')}</p>
       </div>
-    </div>
+      <div className={styles.heroIcon} aria-hidden="true">
+        <Route />
+      </div>
+    </section>
   )
 }

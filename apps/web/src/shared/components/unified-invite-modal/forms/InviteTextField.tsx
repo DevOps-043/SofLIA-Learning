@@ -1,7 +1,8 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { UnifiedInviteTheme } from '../types';
-import { controlClass, labelClass } from './formStyles';
+import { controlClass } from './formStyles';
+import styles from './InviteForm.module.css';
 
 interface InviteTextFieldProps {
   icon: LucideIcon;
@@ -14,13 +15,14 @@ interface InviteTextFieldProps {
 
 export function InviteTextField({ children, icon: Icon, label, optionalLabel, required, theme }: InviteTextFieldProps) {
   return (
-    <div className="space-y-3">
-      <label className={labelClass} style={{ color: theme.mutedText }}>
-        {label} {required && <span className="text-red-400">*</span>}
-        {optionalLabel && <span className="ml-1 uppercase opacity-40">({optionalLabel})</span>}
+    <div className={styles.field}>
+      <label className={styles.label} style={{ color: theme.mutedText }}>
+        {label}
+        {required && <span className={styles.required}> *</span>}
+        {optionalLabel && <span className={styles.optional}>({optionalLabel})</span>}
       </label>
-      <div className="group relative">
-        <Icon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors" style={{ color: theme.mutedText }} />
+      <div className={styles.controlWrap}>
+        <Icon aria-hidden="true" />
         {children}
       </div>
     </div>

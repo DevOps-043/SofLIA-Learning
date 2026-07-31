@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useTranslation, Trans } from 'react-i18next'
-import { X, AlertTriangle, Trash2 } from 'lucide-react'
-import { Button } from '@aprende-y-aplica/ui'
+import { AlertTriangle, Trash2, X } from 'lucide-react'
 import { BusinessUser } from '../services/businessUsers.service'
+import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
 
 interface BusinessDeleteUserModalProps {
   user: BusinessUser | null
@@ -14,8 +14,14 @@ interface BusinessDeleteUserModalProps {
   onConfirm: () => Promise<void>
 }
 
-export function BusinessDeleteUserModal({ user, isOpen, onClose, onConfirm }: BusinessDeleteUserModalProps) {
+export function BusinessDeleteUserModal({
+  user,
+  isOpen,
+  onClose,
+  onConfirm,
+}: BusinessDeleteUserModalProps) {
   const { t } = useTranslation('business')
+  const theme = useBusinessPanelTheme()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -35,154 +41,240 @@ export function BusinessDeleteUserModal({ user, isOpen, onClose, onConfirm }: Bu
 
   if (!isOpen || !user) return null
 
-  const displayName = user.display_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username
+  const displayName =
+    user.display_name ||
+    `${user.first_name || ''} ${user.last_name || ''}`.trim() ||
+    user.username
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop premium */}
+      <div
+        className="fixed inset-0 isolate flex h-app-dynamic items-center justify-center p-4"
+        style={{ zIndex: 100000 }}
+      >
         <motion.div
-          initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
           className="absolute inset-0"
+          exit={{ opacity: 0 }}
+          initial={{ opacity: 0 }}
+          onClick={onClose}
+          style={{
+            backgroundColor: theme.overlayBg,
+            backdropFilter: 'blur(16px) saturate(112%)',
+          }}
         />
 
-        {/* Modal */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
+          className="relative m-4 w-full max-w-[30rem] overflow-hidden border shadow-[0_30px_70px_-24px_rgba(2,12,23,0.58)]"
           exit={{ opacity: 0, scale: 0.96, y: 20 }}
+          initial={{ opacity: 0, scale: 0.96, y: 20 }}
+          onClick={(event) => event.stopPropagation()}
+          style={{
+            backgroundColor: theme.panelBg,
+            borderColor: `color-mix(in srgb, ${theme.dangerColor} 24%, ${theme.borderColor})`,
+            borderRadius: '1.65rem',
+          }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="relative backdrop-blur-xl rounded-3xl shadow-2xl border w-full max-w-md m-4 overflow-hidden bg-white/95 dark:bg-slate-900/95 border-red-200/50 dark:border-red-500/30"
         >
-          {/* Header */}
-          <div className="relative border-b p-6 backdrop-blur-sm bg-slate-50/80 dark:bg-slate-900/80 border-slate-200/50 dark:border-slate-700/30">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+          <header
+            className="border-b px-6 py-5"
+            style={{
+              backgroundColor: `color-mix(in srgb, ${theme.inputBg} 94%, transparent)`,
+              borderColor: theme.borderColor,
+            }}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-4">
                 <motion.div
-                  initial={{ scale: 0.9, rotate: -5 }}
                   animate={{ scale: 1, rotate: 0 }}
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[0.95rem] border"
+                  initial={{ scale: 0.9, rotate: -5 }}
+                  style={{
+                    color: theme.dangerColor,
+                    backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 10%, transparent)`,
+                    borderColor: `color-mix(in srgb, ${theme.dangerColor} 24%, ${theme.borderColor})`,
+                  }}
                   transition={{ delay: 0.1, type: 'spring' }}
-                  className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center shrink-0"
                 >
-                  <AlertTriangle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                  <AlertTriangle className="h-5 w-5" strokeWidth={1.8} />
                 </motion.div>
-                <div>
-                  <h2 className="text-heading text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                <div className="min-w-0">
+                  <h2
+                    className="truncate font-display text-[1.65rem] leading-none tracking-[-0.025em]"
+                    style={{ color: theme.textColor }}
+                  >
                     {t('users.modals.delete.title')}
                   </h2>
-                  <p className="text-body text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  <p
+                    className="mt-1.5 font-ui text-xs"
+                    style={{ color: theme.mutedTextColor }}
+                  >
                     {t('users.modals.delete.subtitle')}
                   </p>
                 </div>
               </div>
               <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={onClose}
+                aria-label={t('common.close', 'Cerrar')}
+                className="rounded-[0.8rem] border p-2.5 transition-all disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={isLoading}
-                className="p-2 rounded-xl transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={onClose}
+                style={{
+                  color: theme.mutedTextColor,
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.borderColor,
+                }}
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.94 }}
               >
-                <X className="w-5 h-5 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors" />
+                <X className="h-4 w-4" strokeWidth={1.8} />
               </motion.button>
             </div>
-          </div>
+          </header>
 
-          {/* Content */}
-          <div className="p-6 space-y-5">
-            {/* Error message */}
+          <div className="space-y-5 p-6">
             <AnimatePresence>
-              {error && (
+              {error ? (
                 <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-500/30 rounded-xl text-red-600 dark:text-red-400 backdrop-blur-sm"
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-[0.95rem] border p-4"
+                  exit={{ opacity: 0, y: -8 }}
+                  initial={{ opacity: 0, y: -8 }}
+                  style={{
+                    color: theme.dangerColor,
+                    backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 8%, ${theme.inputBg})`,
+                    borderColor: `color-mix(in srgb, ${theme.dangerColor} 22%, ${theme.borderColor})`,
+                  }}
                 >
-                  <span className="text-body text-sm">{error}</span>
+                  <span className="font-ui text-sm">{error}</span>
                 </motion.div>
-              )}
+              ) : null}
             </AnimatePresence>
 
-            {/* Warning message */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.1, duration: 0.3 }}
-              className="p-5 bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-500/20 rounded-xl backdrop-blur-sm"
+              className="rounded-[1rem] border p-5"
+              initial={{ opacity: 0, scale: 0.97 }}
+              style={{
+                backgroundColor: `color-mix(in srgb, ${theme.dangerColor} 5%, ${theme.inputBg})`,
+                borderColor: `color-mix(in srgb, ${theme.dangerColor} 20%, ${theme.borderColor})`,
+              }}
             >
-              <p className="text-body text-slate-700 dark:text-slate-200 mb-2 leading-relaxed">
+              <p
+                className="mb-2 font-ui text-sm leading-relaxed"
+                style={{ color: theme.textColor }}
+              >
                 <Trans
+                  components={{
+                    1: (
+                      <span
+                        className="font-ui font-semibold"
+                        style={{ color: theme.dangerColor }}
+                      />
+                    ),
+                  }}
                   i18nKey="users.modals.delete.confirmQuestion"
                   t={t}
                   values={{ name: displayName }}
-                  components={{ 1: <span className="font-ui font-semibold text-red-600 dark:text-red-400" /> }}
                 />
               </p>
-              <p className="text-body text-red-500/80 dark:text-slate-400 text-sm">
+              <p
+                className="font-ui text-xs leading-relaxed"
+                style={{ color: theme.mutedTextColor }}
+              >
                 {t('users.modals.delete.warning')}
               </p>
             </motion.div>
 
-            {/* User details */}
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.3 }}
-              className="p-5 bg-slate-50 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/30 backdrop-blur-sm"
+              className="rounded-[1rem] border p-5"
+              initial={{ opacity: 0, y: 8 }}
+              style={{
+                backgroundColor: theme.inputBg,
+                borderColor: theme.borderColor,
+              }}
             >
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <p className="text-body text-xs text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{t('users.modals.delete.fields.email')}</p>
-                  <p className="text-body text-slate-900 dark:text-white font-medium">{user.email}</p>
+                  <p
+                    className="mb-1.5 font-label text-[0.62rem] font-semibold uppercase tracking-[0.14em]"
+                    style={{ color: theme.mutedTextColor }}
+                  >
+                    {t('users.modals.delete.fields.email')}
+                  </p>
+                  <p
+                    className="break-all font-ui text-sm font-medium"
+                    style={{ color: theme.textColor }}
+                  >
+                    {user.email}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-body text-xs text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">{t('users.modals.delete.fields.role')}</p>
-                  <p className="text-body text-slate-900 dark:text-white font-medium capitalize">{
-                    user.org_role === 'owner' ? t('users.roles.owner') :
-                      user.org_role === 'admin' ? t('users.roles.admin') : t('users.roles.member')
-                  }</p>
+                  <p
+                    className="mb-1.5 font-label text-[0.62rem] font-semibold uppercase tracking-[0.14em]"
+                    style={{ color: theme.mutedTextColor }}
+                  >
+                    {t('users.modals.delete.fields.role')}
+                  </p>
+                  <p
+                    className="font-ui text-sm font-medium capitalize"
+                    style={{ color: theme.textColor }}
+                  >
+                    {user.org_role === 'owner'
+                      ? t('users.roles.owner')
+                      : user.org_role === 'admin'
+                        ? t('users.roles.admin')
+                        : t('users.roles.member')}
+                  </p>
                 </div>
               </div>
             </motion.div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 dark:border-slate-700/30">
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={onClose}
-                  disabled={isLoading}
-                  className="font-ui text-sm transition-all duration-200"
-                >
-                  {t('users.buttons.cancel')}
-                </Button>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                <Button
-                  type="button"
-                  variant="gradient"
-                  onClick={handleConfirm}
-                  disabled={isLoading}
-                  className="bg-red-600 hover:bg-red-700 font-ui text-sm transition-all duration-200"
-                >
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      {t('users.buttons.deleting')}
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Trash2 className="w-4 h-4" />
-                      {t('users.buttons.delete')}
-                    </span>
-                  )}
-                </Button>
-              </motion.div>
+            <div
+              className="flex items-center justify-end gap-3 border-t pt-4"
+              style={{ borderColor: theme.borderColor }}
+            >
+              <motion.button
+                className="min-h-11 rounded-[0.85rem] border px-5 font-ui text-xs font-semibold transition-all disabled:opacity-50"
+                disabled={isLoading}
+                onClick={onClose}
+                style={{
+                  color: theme.textColor,
+                  backgroundColor: theme.inputBg,
+                  borderColor: theme.borderColor,
+                }}
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {t('users.buttons.cancel')}
+              </motion.button>
+              <motion.button
+                className="min-h-11 rounded-[0.85rem] border px-5 font-ui text-xs font-semibold text-white shadow-[0_12px_28px_-14px_rgba(239,68,68,0.8)] transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={isLoading}
+                onClick={handleConfirm}
+                style={{
+                  backgroundColor: theme.dangerColor,
+                  borderColor: theme.dangerColor,
+                }}
+                type="button"
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                    {t('users.buttons.deleting')}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Trash2 className="h-4 w-4" strokeWidth={1.8} />
+                    {t('users.buttons.delete')}
+                  </span>
+                )}
+              </motion.button>
             </div>
           </div>
         </motion.div>

@@ -1,5 +1,6 @@
 'use client'
 
+import type { CSSProperties } from 'react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -17,6 +18,9 @@ import { UsersPageHeader } from './components/UsersPageHeader'
 import { UsersPagination } from './components/UsersPagination'
 import { UsersStatsGrid } from './components/UsersStatsGrid'
 import { UsersTabContent } from './components/UsersTabContent'
+import styles from './components/UsersPanel.module.css'
+
+type UsersPanelVariables = CSSProperties & Record<`--users-${string}`, string>
 
 export default function BusinessPanelUsersPage() {
   const { t } = useTranslation('business')
@@ -25,57 +29,80 @@ export default function BusinessPanelUsersPage() {
   const { autoStartIfNeeded } = useTour(businessPanelUsersTour)
 
   useEffect(() => {
-    if (!logic.isLoading) {
+    if (!logic.isInitialLoading) {
       return autoStartIfNeeded()
     }
-  }, [autoStartIfNeeded, logic.isLoading])
+  }, [autoStartIfNeeded, logic.isInitialLoading])
 
-  if (logic.isLoading) {
+  // Solo el arranque en frío sustituye la página entera. Cambiar de pestaña
+  // recarga el recurso, pero la cabecera, las estadísticas y los filtros deben
+  // permanecer montados: desmontarlos se percibe como recargar toda la página.
+  if (logic.isInitialLoading) {
     return <BusinessUsersLoadingState />
+  }
+
+  const usersPanelVariables: UsersPanelVariables = {
+    '--users-accent': theme.accentColor,
+    '--users-action': theme.actionColor,
+    '--users-border': theme.borderColor,
+    '--users-card': theme.cardBg,
+    '--users-danger': theme.dangerColor,
+    '--users-divider': theme.dividerColor,
+    '--users-input': theme.inputBg,
+    '--users-muted': theme.mutedTextColor,
+    '--users-on-action': theme.onActionColor,
+    '--users-primary': theme.primaryColor,
+    '--users-secondary': theme.secondaryColor,
+    '--users-subtext': theme.subtextColor,
+    '--users-success': theme.successColor,
+    '--users-text': theme.textColor,
+    '--users-warning': theme.warningColor,
   }
 
   return (
     <>
       <div
-        className="p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8"
-        style={{ color: theme.textColor }}
+        className={styles.page}
+        style={usersPanelVariables}
       >
-        <UsersPageHeader
-          t={t}
-          onExportUsers={() => void downloadUsersCsv()}
-          onImportClick={() => logic.setIsImportModalOpen(true)}
-          onInviteClick={() => logic.setIsUnifiedInviteModalOpen(true)}
-          onAddClick={() => logic.setIsAddModalOpen(true)}
-          onRefresh={logic.refetch}
-          isRefreshing={logic.isLoading}
-        />
-        <BusinessUsersErrorBanner error={logic.error} theme={theme} />
-        <UsersStatsGrid logic={logic} theme={theme} />
-        <UsersFilterSection logic={logic} />
-        <UsersTabContent logic={logic} theme={theme} />
-
-        {logic.activeTab !== 'requests' && logic.activePagination.totalPages > 1 ? (
-          <UsersPagination
-            page={logic.activePagination.page}
-            totalPages={logic.activePagination.totalPages}
-            total={logic.activePagination.total}
-            onPageChange={(page) => {
-              const resource =
-                logic.activeTab === 'invitations' || logic.activeTab === 'links'
-                  ? logic.activeTab
-                  : 'users'
-              logic.setResourcePage(resource, page)
-            }}
+        <div className={styles.pageStack}>
+          <UsersPageHeader
+            t={t}
+            onExportUsers={() => void downloadUsersCsv()}
+            onImportClick={() => logic.setIsImportModalOpen(true)}
+            onInviteClick={() => logic.setIsUnifiedInviteModalOpen(true)}
+            onAddClick={() => logic.setIsAddModalOpen(true)}
+            onRefresh={logic.refetch}
+            isRefreshing={logic.isLoading}
           />
-        ) : null}
+          <BusinessUsersErrorBanner error={logic.error} theme={theme} />
+          <UsersStatsGrid logic={logic} theme={theme} />
+          <UsersFilterSection logic={logic} />
+          <UsersTabContent logic={logic} theme={theme} isLoading={logic.isResourceLoading} />
 
-        <UsersDynamicModals logic={logic} />
-        <ToastNotification
-          isOpen={logic.toast.isOpen}
-          onClose={() => logic.setToast({ ...logic.toast, isOpen: false })}
-          message={logic.toast.message}
-          type={logic.toast.type}
-        />
+          {logic.activeTab !== 'requests' && logic.activePagination.totalPages > 1 ? (
+            <UsersPagination
+              page={logic.activePagination.page}
+              totalPages={logic.activePagination.totalPages}
+              total={logic.activePagination.total}
+              onPageChange={(page) => {
+                const resource =
+                  logic.activeTab === 'invitations' || logic.activeTab === 'links'
+                    ? logic.activeTab
+                    : 'users'
+                logic.setResourcePage(resource, page)
+              }}
+            />
+          ) : null}
+
+          <UsersDynamicModals logic={logic} />
+          <ToastNotification
+            isOpen={logic.toast.isOpen}
+            onClose={() => logic.setToast({ ...logic.toast, isOpen: false })}
+            message={logic.toast.message}
+            type={logic.toast.type}
+          />
+        </div>
       </div>
     </>
   )

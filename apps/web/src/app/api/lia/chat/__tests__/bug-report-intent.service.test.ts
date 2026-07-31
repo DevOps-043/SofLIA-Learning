@@ -40,6 +40,22 @@ describe('detectTechnicalBugReportIntent', () => {
     expect(result.isBugReport).toBe(false);
   });
 
+  it('matches accented wording that the patterns spell without diacritics', () => {
+    const result = detectTechnicalBugReportIntent({
+      message: 'La página del curso no carga y la lección se traba al abrirla.',
+    });
+
+    expect(result.isBugReport).toBe(true);
+  });
+
+  it('recognizes a colloquial platform issue without the word "error"', () => {
+    const result = detectTechnicalBugReportIntent({
+      message: 'Tengo un problema para escuchar el reading de la lección 3 y 4',
+    });
+
+    expect(result.isBugReport).toBe(true);
+  });
+
   it('honors the explicit bug report flag', () => {
     const result = detectTechnicalBugReportIntent({
       message: 'Necesito ayuda con esto.',

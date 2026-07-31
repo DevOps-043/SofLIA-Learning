@@ -3,6 +3,7 @@
 import { useTranslation } from 'react-i18next'
 
 import { UsersFilterBar } from './UsersFilterBar'
+import styles from './UsersPanel.module.css'
 import type { BusinessUsersPageLogic } from './users-page.types'
 
 interface UsersFilterSectionProps {
@@ -13,7 +14,7 @@ export function UsersFilterSection({ logic }: UsersFilterSectionProps) {
   const { t } = useTranslation('business')
 
   return (
-    <div id="tour-users-filters">
+    <section id="tour-users-filters" className={styles.controlsSurface} aria-label={t('users.filters.title', 'Filtros de usuarios')}>
       <UsersFilterBar
         activeTab={logic.activeTab}
         setActiveTab={logic.setActiveTab}
@@ -60,6 +61,6 @@ export function UsersFilterSection({ logic }: UsersFilterSectionProps) {
         filteredJoinRequests={logic.filteredJoinRequests}
         t={t}
       />
-    </div>
+    </section>
   )
 }

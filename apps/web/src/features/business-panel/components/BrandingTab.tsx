@@ -1,22 +1,21 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
+import type { CSSProperties, DragEvent, ReactNode } from 'react'
 import {
-  BrandingColorsCard,
-  BrandingErrorState,
-  BrandingFaviconCard,
-  BrandingLoadingState,
-  BrandingLogoCard,
-  useBrandingTabState,
-} from './branding-tab'
-import { useBusinessPanelTheme } from '../hooks/useBusinessPanelTheme'
-import { useThemeStore } from '@/core/stores/themeStore'
+  ImageIcon,
+  ImageUp,
+  Palette,
+  Save,
+  Sparkles,
+  Upload,
+  WandSparkles,
+} from 'lucide-react'
+import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
+import { useBrandingTabState } from './branding-tab'
+import type { BrandingFormState } from './branding-tab/types'
+import styles from './SettingsSections.module.css'
 
 export function BrandingTab() {
-  const theme = useBusinessPanelTheme()
-  const { resolvedTheme } = useThemeStore()
-  const isDark = resolvedTheme === 'dark'
   const {
     isLoading,
     error,
@@ -34,134 +33,286 @@ export function BrandingTab() {
   } = useBrandingTabState()
 
   if (isLoading) {
-    return <BrandingLoadingState />
+    return (
+      <div className={styles.emptyState}>
+        <div>
+          <Palette aria-hidden="true" />
+          <p>Preparando la identidad visual…</p>
+        </div>
+      </div>
+    )
   }
 
   if (error) {
-    return <BrandingErrorState error={error} />
+    return (
+      <div className={styles.emptyState}>
+        <div>
+          <Palette aria-hidden="true" />
+          <p>{error}</p>
+        </div>
+      </div>
+    )
   }
 
-  const brandingEnabled = localBranding.branding_enabled
+  const setField = <K extends keyof BrandingFormState>(
+    field: K,
+    value: BrandingFormState[K],
+  ) => {
+    setLocalBranding((current) => ({ ...current, [field]: value }))
+  }
+
+  const handleDrop = (
+    event: DragEvent<HTMLDivElement>,
+    folder: string,
+    field: 'banner_url' | 'favicon_url',
+  ) => {
+    event.preventDefault()
+    const file = event.dataTransfer.files[0]
+    if (file) void handleDropUpload(file, folder, field)
+  }
+
+  const previewVariables = {
+    '--preview-primary': localBranding.color_primary,
+    '--preview-secondary': localBranding.color_secondary,
+    '--preview-accent': localBranding.color_accent,
+  } as CSSProperties
 
   return (
     <>
-    <div className="space-y-6">
-      {/* Branding toggle */}
-      <div
-        className="rounded-xl border p-5 flex items-start gap-5"
-        style={{
-          backgroundColor: theme.cardBg,
-          borderColor: theme.borderColor,
-        }}
-      >
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm" style={{ color: theme.textColor }}>
-            Branding personalizado
-          </p>
-          <p className="mt-1 text-xs leading-relaxed" style={{ color: theme.subtextColor }}>
-            {brandingEnabled
-              ? 'Los colores y estilos de tu organización se aplican a todos los paneles y componentes de usuario.'
-              : 'Activá el branding personalizado para reemplazar el tema por defecto de SofLIA con los colores de tu organización.'}
-          </p>
-        </div>
+      <div className={styles.stack}>
+        <section className={styles.section}>
+          <SectionHeader
+            icon={<Sparkles />}
+            title="Identidad visual personalizada"
+            description="Activa una experiencia de marca coherente en navegación, acceso y espacios de aprendizaje."
+          />
+          <div className={styles.sectionBody}>
+            <div className={styles.switchRow}>
+              <div className={styles.switchCopy}>
+                <strong>Usar la marca de la organización</strong>
+                <span>
+                  Al desactivarla, SofLIA conserva su paleta predeterminada sin eliminar
+                  esta configuración.
+                </span>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-label="Usar la marca de la organización"
+                aria-checked={localBranding.branding_enabled}
+                className={styles.switch}
+                data-checked={localBranding.branding_enabled}
+                onClick={() => handleToggleBranding(!localBranding.branding_enabled)}
+              />
+            </div>
+          </div>
+        </section>
 
-        {/* Toggle switch */}
+        <section className={styles.section}>
+          <SectionHeader
+            icon={<ImageIcon />}
+            title="Activos de marca"
+            description="Imágenes limpias, legibles y preparadas para adaptarse a superficies claras u oscuras."
+          />
+          <div
+            className={`${styles.sectionBody} ${
+              !localBranding.branding_enabled ? styles.disabledGroup : ''
+            }`}
+          >
+            <div className={styles.mediaGrid}>
+              <BrandAsset
+                title="Logotipo principal"
+                description="PNG, JPG o SVG · fondo transparente recomendado"
+                image={localBranding.banner_url}
+                onUpload={() => openFileDialog('Logo-Empresa', 'banner_url')}
+                onDrop={(event) => handleDrop(event, 'Logo-Empresa', 'banner_url')}
+              />
+              <BrandAsset
+                compact
+                title="Favicon y acceso"
+                description="Formato cuadrado · 512 × 512 px"
+                image={localBranding.favicon_url}
+                onUpload={() => openFileDialog('Favicon', 'favicon_url')}
+                onDrop={(event) => handleDrop(event, 'Favicon', 'favicon_url')}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.section}>
+          <SectionHeader
+            icon={<Palette />}
+            title="Paleta de color"
+            description="Tres decisiones cromáticas controlan jerarquía, superficies activas y acentos de interacción."
+          />
+          <div
+            className={`${styles.sectionBody} ${
+              !localBranding.branding_enabled ? styles.disabledGroup : ''
+            }`}
+          >
+            <div className={styles.sectionTools}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                disabled={isDetecting || !localBranding.banner_url}
+                onClick={() => void handleDetectColors()}
+              >
+                <WandSparkles aria-hidden="true" />
+                {isDetecting ? 'Detectando…' : 'Extraer desde el logotipo'}
+              </button>
+            </div>
+
+            <div className={styles.colorGrid}>
+              <ColorControl
+                label="Primario"
+                value={localBranding.color_primary}
+                onChange={(value) => setField('color_primary', value)}
+              />
+              <ColorControl
+                label="Secundario"
+                value={localBranding.color_secondary}
+                onChange={(value) => setField('color_secondary', value)}
+              />
+              <ColorControl
+                label="Acento"
+                value={localBranding.color_accent}
+                onChange={(value) => setField('color_accent', value)}
+              />
+            </div>
+
+            <div className={styles.brandPreview} style={previewVariables}>
+              <div className={styles.brandPreviewCopy}>
+                <span>Vista previa</span>
+                <strong>Una marca, una experiencia.</strong>
+                <small>
+                  Contraste, jerarquía y acentos se validan antes de guardar.
+                </small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className={styles.actionBar}>
+          <div className={styles.actionMeta}>
+            <Palette aria-hidden="true" />
+            Sistema visual de la organización
+          </div>
+          <div className={styles.actionButtons}>
+            <button
+              type="button"
+              className={styles.primaryButton}
+              disabled={isSaving}
+              onClick={() => void handleSave()}
+            >
+              <Save aria-hidden="true" />
+              {isSaving ? 'Guardando…' : 'Guardar identidad'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <ToastNotification
+        isOpen={toast.isOpen}
+        onClose={hideToast}
+        message={toast.message}
+        type={toast.type}
+        position="top-right"
+      />
+    </>
+  )
+}
+
+function SectionHeader({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <header className={styles.sectionHeader}>
+      <span className={styles.sectionIcon}>{icon}</span>
+      <div className={styles.sectionCopy}>
+        <h3 className={styles.sectionTitle}>{title}</h3>
+        <p className={styles.sectionDescription}>{description}</p>
+      </div>
+    </header>
+  )
+}
+
+function BrandAsset({
+  title,
+  description,
+  image,
+  compact = false,
+  onUpload,
+  onDrop,
+}: {
+  title: string
+  description: string
+  image: string
+  compact?: boolean
+  onUpload: () => void
+  onDrop: (event: DragEvent<HTMLDivElement>) => void
+}) {
+  return (
+    <div
+      className={`${styles.asset} ${compact ? styles.assetCompact : ''}`}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={onDrop}
+    >
+      <div className={styles.assetPreview}>
+        {image ? (
+          <img src={image} alt="" />
+        ) : (
+          <div className={styles.assetEmpty}>
+            <ImageUp aria-hidden="true" />
+            <span>Arrastra una imagen o selecciónala</span>
+          </div>
+        )}
+      </div>
+      <div className={styles.assetToolbar}>
+        <span>
+          {title} · {description}
+        </span>
         <button
           type="button"
-          role="switch"
-          aria-checked={brandingEnabled}
-          onClick={() => handleToggleBranding(!brandingEnabled)}
-          className="relative flex-shrink-0 mt-0.5 w-12 h-6 rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-          style={{
-            backgroundColor: brandingEnabled
-              ? theme.actionColor
-              : isDark
-              ? 'color-mix(in srgb, var(--color-bg-light) 15%, transparent)'
-              : 'color-mix(in srgb, var(--color-black) 20%, transparent)',
-          }}
+          className={styles.iconButton}
+          onClick={onUpload}
+          aria-label={`Subir ${title}`}
         >
-          <span
-            className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200"
-            style={{
-              transform: brandingEnabled ? 'translateX(24px)' : 'translateX(0)',
-            }}
-          />
+          <Upload aria-hidden="true" />
         </button>
       </div>
-
-      {/* Color and logo customization — always visible so admins can preview  */}
-      <div
-        className="space-y-5 transition-opacity duration-200"
-        style={{ opacity: brandingEnabled ? 1 : 0.45 }}
-      >
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <BrandingLogoCard
-            branding={localBranding}
-            isDetecting={isDetecting}
-            onUpload={() => openFileDialog('Logo-Empresa', 'banner_url')}
-            onDropUpload={(file) =>
-              void handleDropUpload(file, 'Logo-Empresa', 'banner_url')
-            }
-          />
-
-          <BrandingFaviconCard
-            branding={localBranding}
-            onUpload={() => openFileDialog('Favicon', 'favicon_url')}
-          />
-        </div>
-
-        <BrandingColorsCard
-          branding={localBranding}
-          isDetecting={isDetecting}
-          onDetectColors={() => void handleDetectColors()}
-          onColorChange={(key, value) =>
-            setLocalBranding((current) => ({
-              ...current,
-              [key]: value,
-            }))
-          }
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div className="flex justify-end">
-          <motion.button
-            type="button"
-            onClick={() => void handleSave()}
-            disabled={isSaving}
-            whileHover={{ scale: isSaving ? 1 : 1.02 }}
-            whileTap={{ scale: isSaving ? 1 : 0.98 }}
-            className="relative overflow-hidden px-8 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2.5"
-            style={{
-              backgroundColor: theme.actionColor,
-              boxShadow: `0 8px 30px color-mix(in srgb, ${theme.actionColor} 20%, transparent)`,
-              color: theme.onActionColor,
-            }}
-          >
-            <motion.div
-              className="absolute inset-0 w-full"
-              animate={{ x: ['-100%', '100%'] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-              style={{
-                background:
-                  'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-              }}
-            />
-
-            <div className="relative flex items-center gap-2.5">
-              {isSaving ? 'Guardando...' : 'Guardar Cambios'}
-            </div>
-          </motion.button>
-        </div>
-      </div>
     </div>
-    <ToastNotification
-      isOpen={toast.isOpen}
-      onClose={hideToast}
-      message={toast.message}
-      type={toast.type}
-      position="top-right"
-    />
-    </>
+  )
+}
+
+function ColorControl({
+  label,
+  value,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+}) {
+  return (
+    <label className={styles.colorControl}>
+      <span className={styles.colorSwatch}>
+        <input
+          type="color"
+          value={value}
+          aria-label={`Color ${label.toLowerCase()}`}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </span>
+      <span className={styles.colorMeta}>
+        <strong>{label}</strong>
+        <code>{value}</code>
+      </span>
+    </label>
   )
 }

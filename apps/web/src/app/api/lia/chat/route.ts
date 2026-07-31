@@ -19,7 +19,12 @@ import {
   evaluatePromptInjectionRisk,
 } from '@/lib/security/prompt-injection-detector';
 import { recordSecurityEvent } from '@/lib/security/security-events';
-import { fetchPlatformContext, PlatformContext, ChatRequest } from './platform-context.service';
+import {
+  fetchPlatformContext,
+  type ChatMessage,
+  type ChatRequest,
+  type PlatformContext,
+} from './platform-context.service';
 import { resolveActiveOrganizationContext } from './organization-context.service';
 import { getLIASystemPrompt } from './system-prompt.service';
 import {
@@ -40,11 +45,17 @@ import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.se
 import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config';
 import { logger } from '@/lib/logger';
 import {
+  BUG_REPORT_CONFIRMATION_REMINDER,
   buildPendingBugReportPromptSection,
+  containsBugReportToken,
+  createBugReportTokenStreamMask,
   detectBugReportConfirmationIntent,
   extractBugReportDraftToken,
+  prepareDraftResponseForPersistence,
+  requestsBugReportConfirmation,
   stripBugReportTokens,
   submitConfirmedBugReport,
+  type LiaChatProcessingBody,
 } from './lia-report-workflow.service';
 import type { ChatSession } from '@google/generative-ai';
 import {
@@ -157,9 +168,15 @@ function buildAssistantResponse(
 /**
  * Persiste y asegura (defensa en profundidad) el texto COMPLETO ya emitido por
  * streaming. La protección primaria contra inyección ocurre ANTES de generar
- * (bloqueo pre-generación); aquí solo se limpian tokens internos y se aplica la
- * política de seguridad sobre el contenido que se guarda. Best-effort: un fallo
- * de persistencia no debe afectar la respuesta ya entregada al usuario.
+ * (bloqueo pre-generación); aquí solo se aplica la política de seguridad sobre
+ * el contenido que se guarda. Best-effort: un fallo de persistencia no debe
+ * afectar la respuesta ya entregada al usuario.
+ *
+ * Si el modelo abrió un borrador de reporte técnico, el bloque oculto se
+ * normaliza y se GUARDA (nunca se descarta): es lo que permite que el turno
+ * siguiente reconozca la confirmación del usuario y envíe el reporte. El bloque
+ * no llega a pantalla — lo enmascara `createBugReportTokenStreamMask` — y la
+ * lectura del historial vuelve a filtrarlo.
  */
 async function finalizeStreamedAssistantResponse(params: {
   fullText: string;
@@ -169,9 +186,25 @@ async function finalizeStreamedAssistantResponse(params: {
 }): Promise<void> {
   const { fullText, body, requestContext, securityAssessment } = params;
   try {
-    const cleaned = stripBugReportTokens(fullText);
+    // El cuerpo validado por Zod usa `passthrough`, por lo que su tipo inferido
+    // no coincide nominalmente con la interfaz del flujo de reportes aunque la
+    // forma sea la misma: se reconstruye solo lo que ese flujo necesita.
+    const draftBody: LiaChatProcessingBody = {
+      conversationId: body.conversationId,
+      context: requestContext,
+      enrichedMetadata: body.enrichedMetadata,
+      isBugReport: body.isBugReport,
+      messages: body.messages as ChatMessage[],
+    };
+    const preparedDraft = await prepareDraftResponseForPersistence({
+      finalContent: fullText,
+      body: draftBody,
+      requestContext,
+    });
+    const contentToPersist =
+      preparedDraft?.assistantContentToPersist ?? stripBugReportTokens(fullText);
     const secured = enforceSecurityResponsePolicy({
-      content: cleaned,
+      content: contentToPersist,
       assessment: securityAssessment,
     });
 
@@ -189,9 +222,14 @@ async function finalizeStreamedAssistantResponse(params: {
 
 /**
  * Streaming REAL de Gemini: emite cada fragmento de texto al cliente conforme el
- * modelo lo genera (TTFT de ~1-2 s en lugar de esperar toda la respuesta). Solo
- * se usa en el flujo común (sin reporte de bug), donde el contenido no requiere
- * reescritura previa al envío. La persistencia/seguridad se aplican al cerrar.
+ * modelo lo genera (TTFT de ~1-2 s en lugar de esperar toda la respuesta). La
+ * persistencia y la política de seguridad se aplican al cerrar.
+ *
+ * Se usa en el flujo común, pero el flujo común puede convertirse en un reporte
+ * técnico en cualquier turno: el modelo decide abrir el borrador aunque el
+ * usuario no haya usado la palabra "error". Por eso el stream enmascara el
+ * bloque oculto en lugar de descartarlo y garantiza la petición de confirmación
+ * al cierre.
  */
 async function streamGeminiResponse(params: {
   chatSession: ChatSession;
@@ -203,10 +241,23 @@ async function streamGeminiResponse(params: {
   const { chatSession, parts, body, requestContext, securityAssessment } = params;
 
   const encoder = new TextEncoder();
+  // `fullText` conserva la salida CRUDA del modelo (con el bloque oculto de
+  // reporte si lo hubo) porque es lo que se persiste; `visibleText` es lo que
+  // realmente vio el usuario y define si hay que pedirle la confirmación.
   let fullText = '';
+  let visibleText = '';
+  const tokenMask = createBugReportTokenStreamMask();
 
   const readable = new ReadableStream({
     async start(controller) {
+      const emit = (text: string) => {
+        if (!text) return;
+        visibleText += text;
+        controller.enqueue(
+          encoder.encode('data: ' + JSON.stringify({ content: text, done: false }) + '\n\n'),
+        );
+      };
+
       try {
         const streamResult = await executeWithCircuitBreaker(
           'gemini-lia-chat',
@@ -218,9 +269,7 @@ async function streamGeminiResponse(params: {
           const piece = chunk.text();
           if (!piece) continue;
           fullText += piece;
-          controller.enqueue(
-            encoder.encode('data: ' + JSON.stringify({ content: piece, done: false }) + '\n\n'),
-          );
+          emit(tokenMask.push(piece));
         }
       } catch (streamError) {
         logger.error('LIA chat: error durante el streaming de Gemini', streamError);
@@ -229,11 +278,21 @@ async function streamGeminiResponse(params: {
             'En este momento no puedo responder por un problema temporal del servicio de IA. ' +
             'Por favor intenta de nuevo en unos minutos.';
           fullText = fallback;
-          controller.enqueue(
-            encoder.encode('data: ' + JSON.stringify({ content: fallback, done: false }) + '\n\n'),
-          );
+          emit(fallback);
         }
       } finally {
+        emit(tokenMask.flush());
+
+        // El modelo abrió un borrador de reporte: el usuario debe poder
+        // confirmarlo o corregirlo, así que la petición de confirmación se
+        // garantiza igual que en el flujo sin streaming.
+        if (
+          containsBugReportToken(fullText) &&
+          !requestsBugReportConfirmation(visibleText)
+        ) {
+          emit(`\n\n${BUG_REPORT_CONFIRMATION_REMINDER}`);
+        }
+
         controller.enqueue(encoder.encode('data: ' + JSON.stringify({ done: true }) + '\n\n'));
         controller.close();
         void finalizeStreamedAssistantResponse({
@@ -437,19 +496,20 @@ async function handlePost(
       );
 
       if (confirmationIntent === 'confirm') {
-        const { clientContent } = await submitConfirmedBugReport({
-          draft: activeBugReportDraft,
-          body,
-          requestContext: sanitizedRequestContext,
-          request,
-        });
+        const { clientContent, assistantContentToPersist } =
+          await submitConfirmedBugReport({
+            draft: activeBugReportDraft,
+            body,
+            requestContext: sanitizedRequestContext,
+            request,
+          });
 
         await persistConversationTurn({
           conversationId: body.conversationId,
           userId: sanitizedRequestContext?.userId,
           requestContext: sanitizedRequestContext,
           userMessage: lastMessage,
-          assistantContent: clientContent,
+          assistantContent: assistantContentToPersist,
         });
 
         return buildAssistantResponse(clientContent, shouldStream);
@@ -506,10 +566,12 @@ async function handlePost(
 
     const messageParts = buildCurrentMessageParts(messageWithContext, lastMessage.attachments);
 
-    // Streaming REAL: solo en el flujo común. Los flujos de reporte de bug y los
-    // turnos de superadmin con acciones habilitadas requieren reescribir el
-    // contenido (token de confirmación) antes de enviarlo, por lo que se
-    // mantienen en modo buffered.
+    // Streaming REAL: solo en el flujo común. Los turnos de reporte ya
+    // identificados y los de superadmin con acciones habilitadas requieren
+    // reescribir el contenido (token de confirmación) antes de enviarlo, por lo
+    // que se mantienen en modo buffered. Cuando el reporte nace en un turno que
+    // aquí parecía común, el streaming lo cubre: enmascara el bloque oculto y lo
+    // conserva al persistir (ver `streamGeminiResponse`).
     const canStreamLive =
       shouldStream &&
       !bugReportIntent.isBugReport &&
@@ -574,8 +636,7 @@ async function handlePost(
       body,
       sanitizedRequestContext,
       request,
-      activeBugReportDraft,
-      { allowBugReportDraft: bugReportIntent.isBugReport }
+      activeBugReportDraft
     );
     const securedClientContent = enforceSecurityResponsePolicy({
       content: clientContent,
