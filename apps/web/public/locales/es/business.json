@@ -51,7 +51,7 @@
         "content": "Define la jerarquía de tu empresa mediante regiones, zonas y equipos para una gestión granular y reportes segmentados."
       },
       "navReports": {
-        "title": "Reportes y Analytics",
+        "title": "Reportes y Analíticas",
         "content": "Accede a datos profundos sobre el impacto del aprendizaje, exporta informes y analiza el ROI de tu capacitación."
       },
       "navReviews": {
@@ -151,7 +151,7 @@
         "content": "Aquí se muestra el contenido de la vista seleccionada. En la vista de árbol puedes crear, editar y eliminar nodos. En configuración, ajusta la nomenclatura de cada nivel."
       },
       "reportsHero": {
-        "title": "Reportes y Analytics",
+        "title": "Reportes y Analíticas",
         "content": "Tu centro de inteligencia de datos. Genera insights con IA, exporta reportes en Excel, CSV o PDF y analiza el ROI de tu capacitación."
       },
       "reportsFilters": {
@@ -394,7 +394,7 @@
         "desc": "Asigna talleres a usuarios"
       },
       "viewReports": {
-        "title": "Ver reportes y analytics",
+        "title": "Ver reportes y analíticas",
         "desc": "Abrir el nuevo panel unificado"
       },
       "myStats": {
@@ -2007,7 +2007,7 @@
   },
   "reportsAnalytics": {
     "eyebrow": "Centro de inteligencia RRHH",
-    "title": "Reportes y Analytics",
+    "title": "Reportes y Analíticas",
     "description": "Analiza demografía, progreso de aprendizaje, actividad en SofLIA, uso de notas, respuestas de actividades y cumplimiento de planificación en un solo panel.",
     "actions": {
       "exportCsv": "Descargar CSV",
