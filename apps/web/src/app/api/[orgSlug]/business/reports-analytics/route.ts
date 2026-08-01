@@ -11,7 +11,7 @@ import {
   generateReportsAnalyticsWorkbook,
   generateReportsAnalyticsZip,
 } from "@/features/business-panel/services/reports-analytics/reports-analytics.export.service";
-import { getOrganizationAnalyticsDailyReport } from "@/features/business-panel/services/reports-analytics/org-analytics-daily-report.server.service";
+import { getLatestOrganizationAnalyticsReportDocument } from "@/features/business-panel/services/reports-analytics/org-analytics-daily-report.server.service";
 import { generateReportsAnalyticsReportBlueprint } from "@/features/business-panel/services/reports-analytics/reports-analytics.blueprint.service";
 import type {
   ReportsAnalyticsDataset,
@@ -123,12 +123,18 @@ async function handlePost(
     const locale = body.locale || "es";
 
     if (body.format === "pdf") {
-      const document = await getOrganizationAnalyticsDailyReport({
+      const document = await getLatestOrganizationAnalyticsReportDocument({
         organizationId: auth.organizationId,
-        filters,
         locale,
-        generatedByUserId: auth.userId,
       });
+
+      if (!document) {
+        return apiError(
+          "REPORT_INSIGHTS_REQUIRED",
+          "Genera primero el analisis diario antes de exportarlo",
+          409,
+        );
+      }
 
       return buildFileResponse(
         document.bytes,

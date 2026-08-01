@@ -9,6 +9,7 @@ import type {
 } from '../../types/reports-analytics.types'
 import { buildReportsAnalyticsAiPayload } from './reports-analytics.ai-payload.service'
 import { buildFallbackInsights } from './reports-analytics-insights/fallback'
+import { reconcileReportsAnalyticsInsights } from './reports-analytics-insights/integrity'
 import { parseInsights } from './reports-analytics-insights/parse'
 import { buildSystemPrompt } from './reports-analytics-insights/prompt'
 
@@ -69,7 +70,7 @@ export async function generateReportsAnalyticsInsights({
     )
 
     const parsed = parseInsights(result.response.text(), model)
-    if (parsed) return parsed
+    if (parsed) return reconcileReportsAnalyticsInsights(dataset, parsed, locale)
   } catch (error) {
     logger.error('Reports analytics Gemini insights failed', error)
   }

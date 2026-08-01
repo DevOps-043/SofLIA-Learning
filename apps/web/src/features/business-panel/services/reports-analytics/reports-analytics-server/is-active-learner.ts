@@ -2,7 +2,8 @@ import type { ReportsAnalyticsUserDetailRow } from '../../../types/reports-analy
 
 export function isActiveLearner(user: ReportsAnalyticsUserDetailRow): boolean {
   return Boolean(
-    user.coursesAssigned > 0 ||
+    user.averageProgress > 0 ||
+      user.coursesCompleted > 0 ||
       user.completedLessons > 0 ||
       user.timeSpentMinutes > 0 ||
       user.sofliaConversations > 0 ||

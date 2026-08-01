@@ -1,5 +1,5 @@
 import type { ReportsAnalyticsQuality } from '../../../types/reports-analytics.types'
-import { calculateAverage, calculatePercentage, calculateQualityScore, clampPercentage } from '../reports-analytics.helpers'
+import { calculateAverage, calculatePercentage, clampPercentage } from '../reports-analytics.helpers'
 import { buildLatestActivityEvaluationBySubmission } from './build-latest-activity-evaluation-by-submission'
 import { buildQualityRadar } from './build-quality-radar'
 import { filterQualityActivities } from './filter-quality-activities'
@@ -49,12 +49,16 @@ export function buildQuality(
 
   const includedMessages = filterQualityMessages(context, conversations, messages)
   const userMessages = includedMessages.filter((message) => message.role === 'user')
-  const offTopicMessages = userMessages.filter((message) => message.is_off_topic).length
+  const topicClassifiedMessages = userMessages.filter(
+    (message) => typeof message.is_off_topic === 'boolean',
+  )
+  const offTopicMessages = topicClassifiedMessages.filter((message) => message.is_off_topic).length
   const questionMessages = userMessages.filter((message) => message.contains_question).length
   const responseTimes = includedMessages
     .map((message) => Number(message.response_time_ms))
     .filter((value) => Number.isFinite(value) && value > 0)
   const sentimentScores = includedMessages
+    .filter((message) => message.sentiment_score !== null && message.sentiment_score !== undefined)
     .map((message) => Number(message.sentiment_score))
     .filter((value) => Number.isFinite(value))
 
@@ -69,13 +73,23 @@ export function buildQuality(
   )
   const helpRate = calculatePercentage(usersNeedingHelp, totalActivityEvidence)
   const redirectRate = calculatePercentage(redirects, totalActivityEvidence)
-  const offTopicRate = calculatePercentage(offTopicMessages, userMessages.length)
+  const offTopicRate = calculatePercentage(offTopicMessages, topicClassifiedMessages.length)
   const questionRate = calculatePercentage(questionMessages, userMessages.length)
   const averageSentiment = sentimentScores.length > 0 ? Math.round(calculateAverage(sentimentScores) * 100) / 100 : 0
-  const sofliaScore = clampPercentage(70 + questionRate * 0.15 - offTopicRate * 0.35 - redirectRate * 0.15 + averageSentiment * 10)
-  const activityScore = clampPercentage(activityCompletionRate - helpRate * 0.25 - redirectRate * 0.2)
+  // Solo se muestran medidas observables: mensajes clasificados dentro de tema,
+  // entregas validadas y calificaciones registradas. No se asigna una base
+  // artificial cuando faltan sentimiento o tiempos de respuesta.
+  const sofliaScore = topicClassifiedMessages.length > 0
+    ? clampPercentage(100 - offTopicRate)
+    : 0
+  const activityScore = activityCompletionRate
   const notesScore = calculatePercentage(notesWithContent, includedNotes.length)
-  const overallScore = calculateQualityScore([quizScore, activityScore, sofliaScore, notesScore])
+  const activityOutcomeScores = [
+    ...Array(completedActivities + completedSubmissions).fill(100),
+    ...Array(totalActivityEvidence - completedActivities - completedSubmissions).fill(0),
+  ]
+  const evaluatedEvidenceScores = [...quizScores, ...activityOutcomeScores]
+  const overallScore = calculateAverage(evaluatedEvidenceScores)
 
   return {
     overallScore,
@@ -92,7 +106,7 @@ export function buildQuality(
     questionRate,
     averageResponseTimeSeconds: calculateAverage(responseTimes.map((value) => value / 1000)),
     averageSentiment,
-    evidenceCount: totalActivityEvidence + includedQuizzes.length + userMessages.length + includedNotes.length,
+    evidenceCount: evaluatedEvidenceScores.length,
     radar: buildQualityRadar({ quizScore, activityScore, sofliaScore, notesScore }),
   }
 }

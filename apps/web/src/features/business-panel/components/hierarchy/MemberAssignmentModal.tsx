@@ -2,7 +2,7 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { AnimatePresence, motion } from 'framer-motion'
-import { AlertCircle, CheckCircle, Loader2, Search, UserPlus, X } from 'lucide-react'
+import { AlertCircle, Check, Loader2, Search, UserPlus, X } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -36,7 +36,7 @@ export function MemberAssignmentModal({
   const [searching, setSearching] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [users, setUsers] = useState<UserWithHierarchy['user'][]>([])
-  const [selectedUser, setSelectedUser] = useState<string | null>(null)
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set())
   const [role, setRole] = useState<'member' | 'leader'>(initialRole || 'member')
   const [error, setError] = useState<string | null>(null)
   const dialogRef = useHierarchyDialog({ isOpen, onClose, preventClose: loading })
@@ -45,7 +45,7 @@ export function MemberAssignmentModal({
     if (!isOpen) {
       setUsers([])
       setSearchQuery('')
-      setSelectedUser(null)
+      setSelectedUserIds(new Set())
       setError(null)
       setRole(initialRole || 'member')
       return
@@ -79,21 +79,67 @@ export function MemberAssignmentModal({
 
   const handleRoleChange = (nextRole: 'member' | 'leader') => {
     setRole(nextRole)
-    setSelectedUser(null)
+    setSelectedUserIds(new Set())
+  }
+
+  const toggleUser = (userId: string) => {
+    setSelectedUserIds(current => {
+      if (role === 'leader') {
+        return current.has(userId) ? new Set() : new Set([userId])
+      }
+
+      const next = new Set(current)
+      if (next.has(userId)) next.delete(userId)
+      else next.add(userId)
+      return next
+    })
+  }
+
+  const availableUserIds = users.flatMap(user => user?.id ? [user.id] : [])
+  const areAllVisibleUsersSelected = availableUserIds.length > 0
+    && availableUserIds.every(userId => selectedUserIds.has(userId))
+
+  const toggleAllVisibleUsers = () => {
+    if (role !== 'member') return
+
+    setSelectedUserIds(current => {
+      const next = new Set(current)
+      if (areAllVisibleUsersSelected) availableUserIds.forEach(userId => next.delete(userId))
+      else availableUserIds.forEach(userId => next.add(userId))
+      return next
+    })
   }
 
   const handleAssign = async () => {
-    if (!selectedUser || loading) return
+    if (selectedUserIds.size === 0 || loading) return
 
     setLoading(true)
     setError(null)
     try {
-      const result = await HierarchyService.assignUserToNode(nodeId, selectedUser, role, false, orgSlug)
-      if (!result.success) {
-        setError(result.error || t('hierarchy.memberModal.errorAssign'))
+      const userIds = Array.from(selectedUserIds)
+      const results = await Promise.all(
+        userIds.map(async userId => ({
+          userId,
+          result: await HierarchyService.assignUserToNode(nodeId, userId, role, false, orgSlug),
+        })),
+      )
+      const failedAssignments = results.filter(({ result }) => !result.success)
+      const successfulUserIds = new Set(
+        results.filter(({ result }) => result.success).map(({ userId }) => userId),
+      )
+
+      if (successfulUserIds.size > 0) onSuccess()
+
+      if (failedAssignments.length > 0) {
+        setSelectedUserIds(new Set(failedAssignments.map(({ userId }) => userId)))
+        setUsers(currentUsers => currentUsers.filter(user => user?.id && !successfulUserIds.has(user.id)))
+        setError(t('hierarchy.memberModal.partialError', {
+          count: failedAssignments.length,
+          defaultValue: 'No se pudieron asignar {{count}} usuarios. Intenta nuevamente.',
+        }))
         return
       }
-      onSuccess()
+
       onClose()
     } catch (assignError) {
       techDebtLogger.error(assignError)
@@ -175,6 +221,22 @@ export function MemberAssignmentModal({
                   </button>
                 </div>
 
+                <div className={styles.selectionSummary} aria-live="polite">
+                  <span>
+                    {t('hierarchy.memberModal.selectedCount', {
+                      count: selectedUserIds.size,
+                      defaultValue: '{{count}} seleccionados',
+                    })}
+                  </span>
+                  {role === 'member' && users.length > 0 ? (
+                    <button type="button" onClick={toggleAllVisibleUsers}>
+                      {areAllVisibleUsersSelected
+                        ? t('hierarchy.memberModal.clearSelection', { defaultValue: 'Deseleccionar todos' })
+                        : t('hierarchy.memberModal.selectAll', { defaultValue: 'Seleccionar todos' })}
+                    </button>
+                  ) : null}
+                </div>
+
                 <div className={styles.resultList} aria-live="polite">
                   {searching ? (
                     [0, 1, 2].map(item => <div key={item} className={styles.skeletonRow} />)
@@ -190,8 +252,9 @@ export function MemberAssignmentModal({
                       <button
                         key={user.id}
                         type="button"
-                        data-selected={selectedUser === user.id}
-                        onClick={() => setSelectedUser(user.id)}
+                        aria-pressed={selectedUserIds.has(user.id)}
+                        data-selected={selectedUserIds.has(user.id)}
+                        onClick={() => toggleUser(user.id)}
                         className={styles.resultRow}
                       >
                         <span className={styles.memberAvatar}>
@@ -205,7 +268,9 @@ export function MemberAssignmentModal({
                           <span className={styles.memberName}>{user.first_name} {user.last_name}</span>
                           <span className={styles.memberEmail}>{user.email}</span>
                         </span>
-                        {selectedUser === user.id ? <CheckCircle aria-hidden="true" /> : null}
+                        <span className={styles.resultCheck} data-selected={selectedUserIds.has(user.id)} aria-hidden="true">
+                          <Check />
+                        </span>
                       </button>
                     ) : null)
                   )}
@@ -224,9 +289,14 @@ export function MemberAssignmentModal({
               <button type="button" onClick={onClose} disabled={loading} className={styles.secondaryButton}>
                 {tc('actions.cancel')}
               </button>
-              <button type="button" onClick={() => void handleAssign()} disabled={!selectedUser || loading} className={styles.primaryButton}>
+              <button type="button" onClick={() => void handleAssign()} disabled={selectedUserIds.size === 0 || loading} className={styles.primaryButton}>
                 {loading ? <Loader2 className="animate-spin" aria-hidden="true" /> : <UserPlus aria-hidden="true" />}
-                {t('hierarchy.memberModal.submit')}
+                {selectedUserIds.size > 1
+                  ? t('hierarchy.memberModal.submitMany', {
+                    count: selectedUserIds.size,
+                    defaultValue: 'Asignar {{count}} usuarios',
+                  })
+                  : t('hierarchy.memberModal.submit')}
               </button>
             </footer>
           </motion.div>

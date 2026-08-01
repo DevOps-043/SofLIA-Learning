@@ -8,6 +8,8 @@ export function ReportsHero({
   data,
   isExporting,
   isGeneratingInsights,
+  canGenerateInsights,
+  hasInsights,
   locale,
   theme,
   t,
@@ -17,6 +19,8 @@ export function ReportsHero({
   data: ReportsAnalyticsResponse | null
   isExporting: ReportsAnalyticsExportingState
   isGeneratingInsights: boolean
+  canGenerateInsights: boolean
+  hasInsights: boolean
   locale: ReportsAnalyticsLocale
   theme: ThemeTokens
   t: ReportsAnalyticsT
@@ -49,6 +53,8 @@ export function ReportsHero({
         canUseData={Boolean(data)}
         isExporting={isExporting}
         isGeneratingInsights={isGeneratingInsights}
+        canGenerateInsights={canGenerateInsights}
+        hasInsights={hasInsights}
         locale={locale}
         t={t}
         onExport={onExport}

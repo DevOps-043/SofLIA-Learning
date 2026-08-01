@@ -35,6 +35,20 @@ async function handlePost(
 
     const supabase = createAdminClient();
 
+    if (body.manager_id) {
+      const { data: organizationUser, error: organizationUserError } = await supabase
+        .from('organization_users')
+        .select('user_id')
+        .eq('organization_id', auth.organizationId)
+        .eq('user_id', body.manager_id)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (organizationUserError || !organizationUser) {
+        return apiError('MANAGER_NOT_IN_ORG', 'Manager must be an active organization user', 400);
+      }
+    }
+
     // 1. Verificar que la estructura pertenece a la organización
     const { data: structure } = await supabase
       .from('organization_structures')
@@ -100,6 +114,20 @@ async function handlePost(
     if (error) {
       logger.error('Error creando nodo:', error);
       return apiError('CREATE_NODE_FAILED', error.message, 500);
+    }
+
+    if (body.manager_id) {
+      const { error: managerAssignmentError } = await supabase
+        .from('organization_node_users')
+        .insert({
+          node_id: data.id,
+          user_id: body.manager_id,
+          role: 'leader',
+        });
+
+      if (managerAssignmentError) {
+        logger.error('Error assigning manager to newly created node:', managerAssignmentError);
+      }
     }
 
     return NextResponse.json({ success: true, data });

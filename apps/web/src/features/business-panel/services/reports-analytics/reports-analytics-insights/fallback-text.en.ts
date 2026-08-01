@@ -2,15 +2,15 @@ export const FALLBACK_TEXT_EN = {
   // Section titles
   learningTitle: 'Learning and completion',
   adoptionTitle: 'AI and notes adoption',
-  qualityTitle: 'Operational quality and assessments',
+  qualityTitle: 'Evaluated evidence',
 
   // Metric labels
   metricProgress: 'Progress and closure',
   metricSoflia: 'SofLIA adoption',
-  metricQuality: 'Operational quality',
+  metricQuality: 'Evaluated evidence',
   metricAtRisk: 'At-risk users',
   metricActiveLearners: 'Active learners',
-  metricCompliance: 'Org. compliance',
+  metricCompliance: 'Without risk signals',
 
   // Action plan section titles
   actionPlanTitle: 'Immediate priorities',
@@ -19,34 +19,34 @@ export const FALLBACK_TEXT_EN = {
   // Empty / no data messages
   noHierarchy: 'There is not enough hierarchy data to compare regions, zones, or areas.',
   noRiskCourse: 'No course shows critical risk signals in the filtered period.',
-  noSegment: 'There are not enough segments to compare quality for this period.',
+  noSegment: 'There are not enough segments with evaluated evidence to compare for this period.',
   noAgeBandData: 'The age band data does not have enough information for this period.',
 
   // Recommendations (5)
   recommendSoflia: 'Increase SofLIA adoption in lower-adoption segments and cross-reference it with course progress.',
   recommendHierarchy: 'Use the regional, zone, and area leaderboard to identify and replicate the practices of top-scoring teams.',
-  recommendQuality: 'Review low-quality activities with high help usage to adjust instructions, examples, and evaluation criteria.',
+  recommendQuality: 'Review low-scoring submissions and assessments alongside help requests to adjust instructions, examples, and evaluation criteria.',
   recommendPlanner: 'Enable session reminders for learners with low study planner adherence.',
   recommendInactive: 'Directly contact learners with no recent activity using a personalized re-engagement message.',
 
   // Action plan items
-  actionPlanSegment: 'Prioritize segments with low quality or low progress before expanding new assignments.',
+  actionPlanSegment: 'Prioritize segments with low evaluated-evidence results or low progress before expanding new assignments.',
   actionPlanCourse: 'Review the highest-risk courses and cross-check progress, overdue work, and help requests.',
   actionPlanData: 'Complete missing demographic data to improve HR statistical precision.',
   actionPlanAtRiskUsers: 'Assign personalized follow-up to each learner identified as high or medium risk.',
   actionPlanPlannerLow: 'Run study planner onboarding sessions with the lowest-adherence teams.',
 
   // Summary — richer, no "Automatic read" framing
-  summary: (quality: number, progress: number, atRisk: number, compliance: number) =>
-    `The organization records an average progress of ${progress}% with a compliance rate of ${compliance}%. Operational quality reaches ${quality}%${atRisk > 0 ? ` and ${atRisk} learners are at risk and require priority attention` : ''}.`,
+  summary: (quality: number, progress: number, atRisk: number, compliance: number, evidence: number) =>
+    `The organization records average progress of ${progress}%. ${compliance}% of assigned learners show no risk signals under the follow-up rule. The ${evidence} evaluated items average ${quality}%${atRisk > 0 ? ` and ${atRisk} learners require priority attention` : ''}.`,
 
   // Metric detail functions
   metricProgressDetail: (completion: number, days: number) =>
     `Completion ${completion}% and median closure ${days} days.`,
   metricSofliaDetail: (conversations: number, messages: number) =>
     `${conversations} conversations and ${messages} messages analyzed.`,
-  metricQualityDetail: (quiz: number, activity: number, soflia: number) =>
-    `Assessments ${quiz}%, activities ${activity}%, and SofLIA ${soflia}%.`,
+  metricQualityDetail: (quiz: number, activity: number, evidence: number) =>
+    `${evidence} items: assessments ${quiz}% and validated submissions ${activity}%.`,
   metricAtRiskDetail: (count: number, rate: number) =>
     `${count} learners (${rate}%) with overdue work, inactivity, or critical progress.`,
   metricActiveLearnerDetail: (count: number, rate: number) =>
@@ -63,10 +63,10 @@ export const FALLBACK_TEXT_EN = {
     `SofLIA adoption is ${soflia}% and notes adoption is ${notes}%.`,
   bestRegion: (name: string, score: number) =>
     `${name} leads the regional ranking with a ${score}% score.`,
-  qualityPoint: (quality: number, offTopic: number) =>
-    `Quality score is ${quality}% and the off-topic response rate is ${offTopic}%.`,
-  segmentPoint: (label: string, score: number) =>
-    `The "${label}" age band shows a quality score of ${score}% and needs review.`,
+  qualityPoint: (quality: number, evidence: number) =>
+    `The ${evidence} evaluated items record an average result of ${quality}%.`,
+  segmentPoint: (label: string, score: number, users: number) =>
+    `The "${label}" age band includes ${users} ${users === 1 ? 'person' : 'people'} and records an evaluated-evidence result of ${score}%.`,
 
   // Risk functions (5)
   riskQuality: (help: number) =>
@@ -76,18 +76,18 @@ export const FALLBACK_TEXT_EN = {
   riskInactive: (count: number) =>
     `${count} assigned learners have not recorded any activity in the last 14 days and are at risk of dropping out.`,
   riskOverdue: (count: number) =>
-    `${count} overdue assignments accumulated in the period, with potential compliance implications.`,
+    `${count} overdue assignments accumulated in the period require operational follow-up.`,
   riskLowPlanner: (rate: number) =>
     `Study planner adherence is ${rate}%, below the recommended threshold of 60%.`,
 
   // Urgent action text
-  urgentAtRiskTitle: 'At-risk learners without active follow-up',
+  urgentAtRiskTitle: 'Learners with risk signals',
   urgentAtRiskDesc: (count: number) =>
-    `${count} learners show overdue work, prolonged inactivity, or critical progress. They need a recovery plan and direct contact within the next few days.`,
+    `${count} learners show at least one follow-up signal: overdue work, no start, inactivity, or low progress. They need a recovery plan and direct contact within the next few days.`,
   urgentAtRiskTimeline: '1-2 days',
   urgentOverdueTitle: 'Unresolved accumulated overdue assignments',
   urgentOverdueDesc: (count: number) =>
-    `${count} overdue assignments detected in the period. Prioritize contact with area leads to agree on recovery timelines.`,
+    `${count} overdue ${count === 1 ? 'assignment was' : 'assignments were'} detected in the period. Prioritize contact with area leads to agree on recovery timelines.`,
   urgentOverdueTimeline: '3-5 days',
 
   // Segment highlight text
@@ -104,9 +104,9 @@ export const FALLBACK_TEXT_EN = {
   kudoCompletionTitle: 'Outstanding completion rate',
   kudoCompletionDesc: (rate: number) =>
     `With a completion rate of ${rate}%, the organization exceeds the healthy threshold of 70%. This is an achievement worth recognizing with the teams.`,
-  kudoQualityTitle: 'Solid operational quality',
+  kudoQualityTitle: 'Strong evaluated-evidence result',
   kudoQualityDesc: (score: number) =>
-    `A quality score of ${score}% reflects genuine commitment to learning and rigorous evaluation across the organization.`,
+    `The ${score}% average applies only to assessments and submissions recorded in the period.`,
   kudoAdoptionTitle: 'High SofLIA adoption',
   kudoAdoptionDesc: (rate: number) =>
     `${rate}% SofLIA adoption shows that learners are actively using AI to reinforce and deepen their learning.`,

@@ -47,6 +47,9 @@ export function ReportsLoadedContent({
   insights,
   isExportingInsightsPdf,
   isGeneratingInsights,
+  canGenerateInsights,
+  insightsGeneratedAt,
+  insightsPeriod,
   theme,
   t,
   onCourseFilterChange,
@@ -57,6 +60,9 @@ export function ReportsLoadedContent({
   insights: ReportsAnalyticsAiInsights | null
   isExportingInsightsPdf: boolean
   isGeneratingInsights: boolean
+  canGenerateInsights: boolean
+  insightsGeneratedAt: string | null
+  insightsPeriod: { from: string; to: string } | null
   locale: ReportsAnalyticsLocale
   theme: ThemeTokens
   t: ReportsAnalyticsT
@@ -174,6 +180,9 @@ export function ReportsLoadedContent({
             insights={insights}
             isExportingPdf={isExportingInsightsPdf}
             isGenerating={isGeneratingInsights}
+            canGenerate={canGenerateInsights}
+            generatedAt={insightsGeneratedAt}
+            reportPeriod={insightsPeriod}
             theme={theme}
             t={t}
             onExportPdf={onExportInsightsPdf}

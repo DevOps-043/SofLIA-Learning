@@ -66,7 +66,7 @@ export function TourRenderer() {
   }, [])
 
   // Track the business-panel sidebar width so floating-ui's shift middleware
-  // keeps the tooltip and its arrow fully inside the content area (never behind the sidebar).
+  // keeps the tooltip fully inside the content area (never behind the sidebar).
   useEffect(() => {
     const sidebarEl = document.querySelector<HTMLElement>('#business-panel-sidebar-root')
     if (!sidebarEl) return
@@ -86,6 +86,7 @@ export function TourRenderer() {
     () =>
       resolvedTourSteps.map((step) => ({
         target: step.target,
+        data: { tourTarget: step.target },
         title: translateTourKey(t, i18n, step.titleKey),
         content: translateTourKey(t, i18n, step.contentKey),
         placement: resolveStepPlacement(step, isMobile),
@@ -95,6 +96,7 @@ export function TourRenderer() {
         // Without this, Joyride may use a scrollable ancestor as the shift
         // boundary, which lets the tooltip escape the visible viewport area.
         floatingOptions: {
+          hideArrow: true,
           shiftOptions: {
             rootBoundary: 'viewport',
           },
@@ -271,24 +273,23 @@ export function TourRenderer() {
         skip: translateTourKey(t, i18n, 'actions.skip'),
       }}
       options={{
-        arrowColor: isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
-        backgroundColor: isDark ? 'var(--color-gray-800)' : 'var(--color-bg-light)',
+        backgroundColor: 'var(--color-surface)',
         blockTargetInteraction: true,
         closeButtonAction: 'skip',
-        offset: 12,
+        offset: 16,
         overlayClickAction: false,
         overlayColor: isDark
           ? isMobile
-            ? 'rgba(0,0,0,0.62)'
-            : 'rgba(0,0,0,0.72)'
+            ? 'rgba(2, 12, 23, 0.66)'
+            : 'rgba(2, 12, 23, 0.74)'
           : isMobile
-            ? 'rgba(0,0,0,0.55)'
-            : 'rgba(0,0,0,0.65)',
+            ? 'rgba(2, 12, 23, 0.58)'
+            : 'rgba(2, 12, 23, 0.66)',
         primaryColor: 'var(--color-accent)',
         scrollOffset: 120,
         showProgress: false,
-        spotlightPadding: 8,
-        spotlightRadius: 10,
+        spotlightPadding: 10,
+        spotlightRadius: 16,
         zIndex: TOUR_OVERLAY_Z_INDEX,
       }}
       floatingOptions={{
@@ -296,8 +297,9 @@ export function TourRenderer() {
           fallbackPlacements: ['bottom', 'right', 'left', 'top'],
           padding: 24,
         },
+        hideArrow: true,
         shiftOptions: {
-          // Per-side padding so floating-ui shifts the tooltip (and its arrow)
+          // Per-side padding so floating-ui shifts the tooltip
           // to stay inside the content area, not behind any left sidebar.
           padding: {
             top: 24,
@@ -322,11 +324,14 @@ export function TourRenderer() {
           zIndex: TOUR_FLOATER_Z_INDEX,
         },
         overlay: {
+          backdropFilter: 'none',
+          filter: 'none',
+          WebkitBackdropFilter: 'none',
           zIndex: TOUR_OVERLAY_Z_INDEX,
         },
         spotlight: {
           stroke: 'var(--color-accent)',
-          strokeWidth: 3,
+          strokeWidth: 2,
         },
         tooltip: {
           backgroundColor: 'transparent',

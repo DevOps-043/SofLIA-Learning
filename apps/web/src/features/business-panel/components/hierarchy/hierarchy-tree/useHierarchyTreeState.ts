@@ -80,7 +80,7 @@ export function useHierarchyTreeState(
     setShowNodeModal(true);
   };
 
-  const handleNodeSave = async (name: string, type: string, properties?: HierarchyNodeSavePayload['properties'], managerId?: string) => {
+  const handleNodeSave = async (name: string, type: string, properties?: HierarchyNodeSavePayload['properties'], managerId?: string | null) => {
     if (!selectedStructureId) return;
 
     try {
@@ -90,6 +90,7 @@ export function useHierarchyTreeState(
     } catch (err) {
       techDebtLogger.error(err);
       setNodeActionError(t('hierarchy.saveNodeError'));
+      throw err;
     }
   };
 

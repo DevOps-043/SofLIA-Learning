@@ -18,7 +18,7 @@ import { useNodeFormState } from './useNodeFormState'
 export interface NodeFormProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (name: string, type: string, properties?: OrganizationNodeProperties, managerId?: string) => Promise<void>
+  onSave: (name: string, type: string, properties?: OrganizationNodeProperties, managerId?: string | null) => Promise<void>
   mode: 'create' | 'edit'
   parentNode?: OrganizationNode
   nodeToEdit?: OrganizationNode
@@ -39,7 +39,7 @@ export function NodeForm({
   const params = useParams()
   const orgSlug = params?.orgSlug as string | undefined
   const [isTypeMenuOpen, setIsTypeMenuOpen] = useState(false)
-  const form = useNodeFormState(isOpen, mode, onSave, onClose, parentNode, nodeToEdit)
+  const form = useNodeFormState(isOpen, mode, onSave, onClose, parentNode, nodeToEdit, orgSlug)
   const dialogRef = useHierarchyDialog({ isOpen, onClose, preventClose: form.loading })
 
   const { handleGeocode, handleReverseGeocode, isGeocoding, geocodeError } = useGeocoding(

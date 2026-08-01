@@ -33,11 +33,24 @@ export function applyEnrollments(context: BuildContext, enrollments: EnrollmentR
     user.assignedCourseIds.add(enrollment.course_id)
     course.assignedUsers.add(enrollment.user_id)
     updateCourseProgress(user, course, enrollment.user_id, enrollment.course_id, progress)
-    course.activeLearners.add(enrollment.user_id)
+    if (
+      completed ||
+      progress > 0 ||
+      Boolean(enrollment.started_at) ||
+      Boolean(enrollment.last_accessed_at)
+    ) {
+      course.activeLearners.add(enrollment.user_id)
+    }
 
     if (completed) {
       const completionDays = calculateDaysBetween(enrollment.enrolled_at || enrollment.started_at, enrollment.completed_at || enrollment.last_accessed_at || enrollment.updated_at)
-      if (completionDays !== null) user.completionDays.push(completionDays)
+      if (completionDays !== null) {
+        const previous = user.completionDaysByCourse.get(enrollment.course_id)
+        user.completionDaysByCourse.set(
+          enrollment.course_id,
+          previous === undefined ? completionDays : Math.min(previous, completionDays),
+        )
+      }
       recordCompletedCourse(
         context,
         user,
@@ -48,6 +61,14 @@ export function applyEnrollments(context: BuildContext, enrollments: EnrollmentR
       )
     }
 
-    pushLastActivity(user, enrollment.enrolled_at, enrollment.started_at, enrollment.completed_at, enrollment.last_accessed_at, enrollment.updated_at)
+    // La fecha de asignacion no es actividad de aprendizaje. `updated_at` solo
+    // cuenta cuando existe una senal real de avance/completitud.
+    pushLastActivity(
+      user,
+      enrollment.started_at,
+      enrollment.completed_at,
+      enrollment.last_accessed_at,
+      progress > 0 || completed ? enrollment.updated_at : null,
+    )
   })
 }

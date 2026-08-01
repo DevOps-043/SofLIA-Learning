@@ -18,20 +18,20 @@ function getSegmentRows(data: ReportsAnalyticsResponse, tab: Tab): SegmentRow[] 
   switch (tab) {
     case 'teams':
       return data.rankings.teams
-        .map((r) => ({ name: r.name, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate * 100), overdueAssignments: r.overdueAssignments }))
+        .map((r) => ({ name: r.name, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate), overdueAssignments: r.overdueAssignments }))
         .sort((a, b) => a.completionRate - b.completionRate)
     case 'regions':
       return data.rankings.regions
-        .map((r) => ({ name: r.name, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate * 100), overdueAssignments: r.overdueAssignments }))
+        .map((r) => ({ name: r.name, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate), overdueAssignments: r.overdueAssignments }))
         .sort((a, b) => a.completionRate - b.completionRate)
     case 'zones':
       return data.rankings.zones
-        .map((r) => ({ name: r.name, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate * 100), overdueAssignments: r.overdueAssignments }))
+        .map((r) => ({ name: r.name, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate), overdueAssignments: r.overdueAssignments }))
         .sort((a, b) => a.completionRate - b.completionRate)
     case 'jobTitles':
       return data.segments.jobTitles
         .filter((r) => r.key !== 'unspecified')
-        .map((r) => ({ name: r.label, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate * 100) }))
+        .map((r) => ({ name: r.label, users: r.users, averageProgress: Math.round(r.averageProgress), completionRate: Math.round(r.completionRate) }))
         .sort((a, b) => a.completionRate - b.completionRate)
   }
 }
@@ -142,12 +142,12 @@ export function SegmentPerformancePanel({ data, theme, t }: SegmentPerformancePa
                     <SegmentBar
                       value={row.completionRate}
                       maxValue={maxCompletion}
-                      color={row.completionRate >= 70 ? theme.successColor : row.completionRate >= 40 ? '#f59e0b' : '#ef4444'}
+                      color={row.completionRate >= 70 ? theme.successColor : row.completionRate >= 40 ? theme.warningColor : theme.dangerColor}
                       theme={theme}
                     />
                   </td>
                   {activeTab !== 'jobTitles' && (
-                    <td className="px-3 py-3 text-center text-xs tabular-nums font-semibold" style={{ color: (row.overdueAssignments ?? 0) > 0 ? '#ef4444' : theme.subtextColor }}>
+                    <td className="px-3 py-3 text-center text-xs tabular-nums font-semibold" style={{ color: (row.overdueAssignments ?? 0) > 0 ? theme.dangerColor : theme.subtextColor }}>
                       {row.overdueAssignments ?? 0}
                     </td>
                   )}

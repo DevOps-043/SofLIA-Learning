@@ -79,7 +79,7 @@ export function deriveExecutiveKpis(
       id: 'completionRate',
       value: ov.completionRate,
       formatted: formatPercent(ov.completionRate),
-      subtitle: lrn.completedCourses + ' / ' + lrn.assignedCourses + ' ' + t('reportsAnalytics.metrics.totalActivities').toLowerCase(),
+      subtitle: lrn.completedCourses + ' / ' + lrn.assignedCourses + ' ' + t('reportsAnalytics.metrics.assignedCourses').toLowerCase(),
       status: ov.completionRate >= 70 ? 'success' : ov.completionRate >= 40 ? 'warning' : 'danger',
     },
     {

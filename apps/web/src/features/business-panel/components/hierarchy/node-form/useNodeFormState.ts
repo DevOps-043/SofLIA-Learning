@@ -57,10 +57,11 @@ export interface NodeFormActions {
 export function useNodeFormState(
   isOpen: boolean,
   mode: 'create' | 'edit',
-  onSave: (name: string, type: string, properties?: OrganizationNodeProperties, managerId?: string) => Promise<void>,
+  onSave: (name: string, type: string, properties?: OrganizationNodeProperties, managerId?: string | null) => Promise<void>,
   onClose: () => void,
   parentNode?: OrganizationNode,
   nodeToEdit?: OrganizationNode,
+  orgSlug?: string,
 ): NodeFormState & NodeFormActions {
   const { t } = useTranslation('business')
   const [name, setName] = useState('')
@@ -158,7 +159,7 @@ export function useNodeFormState(
     const searchUsers = async () => {
       setIsSearchingManager(true)
       try {
-        const users = await HierarchyService.searchOrganizationUsers(managerSearch)
+        const users = await HierarchyService.searchOrganizationUsers(managerSearch, orgSlug)
         setManagerResults(users)
       } catch (error) {
         techDebtLogger.error('Failed to search managers', error)
@@ -172,7 +173,7 @@ export function useNodeFormState(
     }, 300)
 
     return () => clearTimeout(timeoutId)
-  }, [managerSearch, isOpen])
+  }, [managerSearch, isOpen, orgSlug, selectedManager])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -209,7 +210,7 @@ export function useNodeFormState(
         if (properties[key] === null || properties[key] === '') delete properties[key]
       })
 
-      await onSave(name, finalType, properties, managerId || undefined)
+      await onSave(name, finalType, properties, managerId)
       onClose()
     } catch (error) {
       techDebtLogger.error(error)

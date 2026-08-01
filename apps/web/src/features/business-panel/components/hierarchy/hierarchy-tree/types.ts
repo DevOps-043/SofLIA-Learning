@@ -8,5 +8,5 @@ export interface HierarchyNodeSavePayload {
   name: string;
   type: string;
   properties?: OrganizationNodeProperties;
-  managerId?: string;
+  managerId?: string | null;
 }

@@ -8,9 +8,11 @@ import type {
   ReportsAnalyticsHierarchyRankingRow,
   ReportsAnalyticsLocale,
   ReportsAnalyticsPriorityUser,
+  ReportsAnalyticsPriorityUserRiskCause,
   ReportsAnalyticsSegmentRow,
   ReportsAnalyticsTrendPoint,
 } from "../../../types/reports-analytics.types";
+import { reconcileReportsAnalyticsInsights } from "./integrity";
 
 type Rgb = readonly [number, number, number];
 type CellAlign = "left" | "center" | "right";
@@ -57,10 +59,23 @@ type PdfCopy = {
   demographicProfilesComplete: string;
   profilesRequireInformation: string;
   users: string;
+  activeLearners: string;
   progress: string;
   quality: string;
+  adoption: string;
+  evidence: string;
+  sofliaAdoption: string;
+  validatedSubmissions: string;
+  riskSignals: string;
+  withoutRiskSignals: string;
+  assessments: string;
+  inTopicMessages: string;
+  notesWithContent: string;
+  inProgress: string;
+  notStarted: string;
   completion: string;
   assigned: string;
+  assignments: string;
   completed: string;
   overdue: string;
   course: string;
@@ -70,6 +85,7 @@ type PdfCopy = {
   risk: string;
   cause: string;
   lastActivity: string;
+  lastActivityShort: string;
   noData: string;
   page: string;
   of: string;
@@ -121,8 +137,8 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     keyIndicators: "Indicadores clave",
     performance: "Pulso de desempeño",
     learningEvolution: "Evolución del aprendizaje",
-    learningStatus: "Estado del portafolio",
-    adoptionAndQuality: "Adopción y calidad",
+    learningStatus: "Estado de las asignaciones",
+    adoptionAndQuality: "Adopción y evidencia evaluada",
     coursePortfolio: "Desempeño por curso",
     segments: "Segmentos a observar",
     hierarchy: "Ranking organizacional",
@@ -140,17 +156,30 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     evidenceAnalyzed: "Evidencias analizadas",
     methodologyPoints: [
       "Progreso: promedio de avance registrado en las asignaciones incluidas.",
-      "Calidad: índice compuesto de evaluaciones, actividades y señales de aprendizaje.",
+      "Evidencia evaluada: promedio de calificaciones y resultados de entregas registradas.",
       "Adopción: proporción de personas que utilizaron SofLIA durante el periodo.",
-      "Riesgo: combina vencimientos, inactividad y bajo avance; orienta el seguimiento, no sanciones.",
+      "Riesgo: regla de seguimiento que combina vencimientos, inactividad y bajo avance; no es una sanción.",
     ],
     demographicProfilesComplete: "PERFILES DEMOGRÁFICOS COMPLETOS",
     profilesRequireInformation: "perfiles requieren completar información.",
     users: "Usuarios",
+    activeLearners: "Usuarios con actividad",
     progress: "Progreso",
-    quality: "Calidad",
+    quality: "Evidencia evaluada",
+    adoption: "ADOPCIÓN",
+    evidence: "EVIDENCIA",
+    sofliaAdoption: "Adopción SofLIA",
+    validatedSubmissions: "Entregas validadas",
+    riskSignals: "Señales de riesgo",
+    withoutRiskSignals: "Sin señales de riesgo",
+    assessments: "Evaluaciones",
+    inTopicMessages: "Mensajes en tema",
+    notesWithContent: "Notas con contenido",
+    inProgress: "En progreso",
+    notStarted: "No iniciados",
     completion: "Finalización",
     assigned: "Asignados",
+    assignments: "Asignaciones",
     completed: "Completados",
     overdue: "Vencidos",
     course: "Curso",
@@ -160,6 +189,7 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     risk: "Riesgo",
     cause: "Causa",
     lastActivity: "Última actividad",
+    lastActivityShort: "Últ. actividad",
     noData: "Sin datos suficientes para este periodo.",
     page: "Página",
     of: "de",
@@ -185,8 +215,8 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     keyIndicators: "Key indicators",
     performance: "Performance pulse",
     learningEvolution: "Learning evolution",
-    learningStatus: "Portfolio status",
-    adoptionAndQuality: "Adoption and quality",
+    learningStatus: "Assignment status",
+    adoptionAndQuality: "Adoption and evaluated evidence",
     coursePortfolio: "Course performance",
     segments: "Segments to watch",
     hierarchy: "Organizational ranking",
@@ -204,17 +234,30 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     evidenceAnalyzed: "Evidence analyzed",
     methodologyPoints: [
       "Progress: average recorded completion across the assignments in scope.",
-      "Quality: composite index of assessments, activities, and learning signals.",
+      "Evaluated evidence: average of recorded assessment scores and submission outcomes.",
       "Adoption: share of people who used SofLIA during the selected period.",
-      "Risk: combines overdue work, inactivity, and low progress; it guides support, not sanctions.",
+      "Risk: a follow-up rule combining overdue work, inactivity, and low progress; it is not a sanction.",
     ],
     demographicProfilesComplete: "COMPLETE DEMOGRAPHIC PROFILES",
     profilesRequireInformation: "profiles require additional information.",
     users: "Users",
+    activeLearners: "Users with activity",
     progress: "Progress",
-    quality: "Quality",
+    quality: "Evaluated evidence",
+    adoption: "ADOPTION",
+    evidence: "EVIDENCE",
+    sofliaAdoption: "SofLIA adoption",
+    validatedSubmissions: "Validated submissions",
+    riskSignals: "Risk signals",
+    withoutRiskSignals: "Without risk signals",
+    assessments: "Assessments",
+    inTopicMessages: "On-topic messages",
+    notesWithContent: "Notes with content",
+    inProgress: "In progress",
+    notStarted: "Not started",
     completion: "Completion",
     assigned: "Assigned",
+    assignments: "Assignments",
     completed: "Completed",
     overdue: "Overdue",
     course: "Course",
@@ -224,6 +267,7 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     risk: "Risk",
     cause: "Cause",
     lastActivity: "Last activity",
+    lastActivityShort: "Last active",
     noData: "Not enough data for this period.",
     page: "Page",
     of: "of",
@@ -249,8 +293,8 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     keyIndicators: "Indicadores-chave",
     performance: "Pulso de desempenho",
     learningEvolution: "Evolução da aprendizagem",
-    learningStatus: "Estado do portfólio",
-    adoptionAndQuality: "Adoção e qualidade",
+    learningStatus: "Estado das atribuições",
+    adoptionAndQuality: "Adoção e evidências avaliadas",
     coursePortfolio: "Desempenho por curso",
     segments: "Segmentos a observar",
     hierarchy: "Ranking organizacional",
@@ -268,17 +312,30 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     evidenceAnalyzed: "Evidências analisadas",
     methodologyPoints: [
       "Progresso: média de avanço registrada nas atribuições incluídas.",
-      "Qualidade: índice composto de avaliações, atividades e sinais de aprendizagem.",
+      "Evidências avaliadas: média de notas e resultados de entregas registradas.",
       "Adoção: proporção de pessoas que utilizaram a SofLIA durante o período.",
-      "Risco: combina vencimentos, inatividade e baixo avanço; orienta o acompanhamento, não sanções.",
+      "Risco: regra de acompanhamento que combina vencimentos, inatividade e baixo avanço; não é sanção.",
     ],
     demographicProfilesComplete: "PERFIS DEMOGRÁFICOS COMPLETOS",
     profilesRequireInformation: "perfis precisam completar informações.",
     users: "Usuários",
+    activeLearners: "Usuários com atividade",
     progress: "Progresso",
-    quality: "Qualidade",
+    quality: "Evidências avaliadas",
+    adoption: "ADOÇÃO",
+    evidence: "EVIDÊNCIA",
+    sofliaAdoption: "Adoção SofLIA",
+    validatedSubmissions: "Entregas validadas",
+    riskSignals: "Sinais de risco",
+    withoutRiskSignals: "Sem sinais de risco",
+    assessments: "Avaliações",
+    inTopicMessages: "Mensagens no tema",
+    notesWithContent: "Notas com conteúdo",
+    inProgress: "Em andamento",
+    notStarted: "Não iniciados",
     completion: "Conclusão",
     assigned: "Atribuídos",
+    assignments: "Atribuições",
     completed: "Concluídos",
     overdue: "Vencidos",
     course: "Curso",
@@ -288,6 +345,7 @@ const COPY: Record<ReportsAnalyticsLocale, PdfCopy> = {
     risk: "Risco",
     cause: "Causa",
     lastActivity: "Última atividade",
+    lastActivityShort: "Últ. atividade",
     noData: "Dados insuficientes para este período.",
     page: "Página",
     of: "de",
@@ -318,7 +376,9 @@ class PremiumAnalyticsPdf {
   ) {
     this.pdf = pdf;
     this.dataset = dataset;
-    this.insights = insights;
+    // Recompone los hechos desde el mismo dataset de tablas y graficas, incluso
+    // si el generador recibe un analisis antiguo o no reconciliado.
+    this.insights = reconcileReportsAnalyticsInsights(dataset, insights, locale);
     this.locale = locale;
     this.copy = COPY[locale] ?? COPY.es;
     this.width = pdf.internal.pageSize.getWidth();
@@ -346,22 +406,21 @@ class PremiumAnalyticsPdf {
     );
 
     this.sectionTitle(copy.keyIndicators, 16);
-    const metrics = this.insights.executiveMetrics?.slice(0, 6) ?? [];
     const fallbackMetrics = [
       {
         label: copy.progress,
         value: percent(dataset.overview.averageProgress),
-        detail: `${copy.completion}: ${percent(dataset.overview.completionRate)}`,
+        detail: `${dataset.learning.completedCourses}/${dataset.learning.assignedCourses} ${copy.assignments.toLowerCase()} · ${percent(dataset.overview.completionRate)}`,
       },
       {
-        label: copy.users,
+        label: copy.activeLearners,
         value: String(dataset.overview.activeLearners),
-        detail: `${percent(dataset.overview.activeLearnerRate)} activos`,
+        detail: `${percent(dataset.overview.activeLearnerRate)} - ${dataset.overview.assignedUsersCount} ${copy.assigned.toLowerCase()}`,
       },
       {
-        label: "Adopción SofLIA",
+        label: copy.sofliaAdoption,
         value: percent(dataset.overview.sofliaAdoptionRate),
-        detail: `${dataset.soflia.totalConversations} conversaciones`,
+        detail: `${dataset.soflia.totalConversations} conv. - ${dataset.soflia.totalMessages} msg.`,
       },
       {
         label: copy.quality,
@@ -369,27 +428,25 @@ class PremiumAnalyticsPdf {
         detail: `${dataset.quality.evidenceCount} evidencias`,
       },
       {
-        label: "Actividades",
+        label: copy.validatedSubmissions,
         value: percent(dataset.overview.activityCompletionRate),
         detail: `${dataset.activities.completedActivities}/${dataset.activities.totalActivities}`,
       },
       {
-        label: "Riesgo",
+        label: copy.riskSignals,
         value: String(dataset.overview.atRiskUsersCount),
-        detail: `${percent(dataset.overview.atRiskRate)} de usuarios`,
+        detail: `${percent(dataset.overview.atRiskRate)} - ${dataset.overview.assignedUsersCount} ${copy.assigned.toLowerCase()}`,
       },
     ];
-    this.metricGrid(
-      (metrics.length >= 4 ? metrics : fallbackMetrics).slice(0, 6),
-    );
+    this.metricGrid(fallbackMetrics);
 
     this.sectionTitle(copy.performance, 17);
     this.progressRows([
       { label: copy.progress, value: dataset.overview.averageProgress },
       { label: copy.completion, value: dataset.overview.completionRate },
-      { label: "Adopción SofLIA", value: dataset.overview.sofliaAdoptionRate },
+      { label: copy.sofliaAdoption, value: dataset.overview.sofliaAdoptionRate },
       { label: copy.quality, value: dataset.quality.overallScore },
-      { label: "Cumplimiento", value: dataset.overview.complianceRate },
+      { label: copy.withoutRiskSignals, value: dataset.overview.complianceRate },
     ]);
 
     pdf.setFont("helvetica", "normal");
@@ -445,11 +502,11 @@ class PremiumAnalyticsPdf {
     const segments = this.getWatchSegments();
     this.table(
       [
-        { label: this.copy.segment, width: 235 },
-        { label: this.copy.users, width: 62, align: "right" },
-        { label: this.copy.progress, width: 80, align: "right" },
-        { label: this.copy.completion, width: 80, align: "right" },
-        { label: this.copy.quality, width: 54, align: "right" },
+        { label: this.copy.segment, width: 225 },
+        { label: this.copy.users, width: 55, align: "right" },
+        { label: this.copy.progress, width: 74, align: "right" },
+        { label: this.copy.completion, width: 74, align: "right" },
+        { label: this.copy.evidence, width: 83, align: "right" },
       ],
       segments
         .slice(0, 10)
@@ -749,7 +806,7 @@ class PremiumAnalyticsPdf {
       pdf.setFontSize(6);
       pdf.setTextColor(...COLORS.subtle);
       pdf.text(
-        String(Math.round(max - (max / 4) * step)),
+        formatNumber(max - (max / 4) * step, max < 4 ? 1 : 0),
         chart.x - 8,
         gridY + 2,
         { align: "right" },
@@ -794,12 +851,12 @@ class PremiumAnalyticsPdf {
         color: COLORS.success,
       },
       {
-        label: "En progreso",
+        label: this.copy.inProgress,
         value: dataset.learning.inProgressCourses,
         color: COLORS.info,
       },
       {
-        label: "No iniciados",
+        label: this.copy.notStarted,
         value: dataset.learning.notStartedCourses,
         color: COLORS.subtle,
       },
@@ -851,19 +908,19 @@ class PremiumAnalyticsPdf {
     const height = 188;
     const leftX = PAGE.margin;
     const rightX = PAGE.margin + width + gap;
-    this.panel(leftX, this.y, width, height, "ADOPCIÓN", [
+    this.panel(leftX, this.y, width, height, this.copy.adoption, [
       { label: "SofLIA", value: this.dataset.overview.sofliaAdoptionRate },
       { label: "Notas", value: this.dataset.overview.notesAdoptionRate },
       {
-        label: "Actividades",
+        label: this.copy.validatedSubmissions,
         value: this.dataset.overview.activityCompletionRate,
       },
     ]);
-    this.panel(rightX, this.y, width, height, "CALIDAD", [
-      { label: "Evaluaciones", value: this.dataset.quality.quizScore },
-      { label: "Práctica", value: this.dataset.quality.activityScore },
-      { label: "SofLIA", value: this.dataset.quality.sofliaScore },
-      { label: "Notas", value: this.dataset.quality.notesScore },
+    this.panel(rightX, this.y, width, height, this.copy.evidence, [
+      { label: this.copy.assessments, value: this.dataset.quality.quizScore },
+      { label: this.copy.validatedSubmissions, value: this.dataset.quality.activityScore },
+      { label: this.copy.inTopicMessages, value: this.dataset.quality.sofliaScore },
+      { label: this.copy.notesWithContent, value: this.dataset.quality.notesScore },
     ]);
     this.y += height + 20;
   }
@@ -1000,12 +1057,15 @@ class PremiumAnalyticsPdf {
         this.pdf.setFont("helvetica", index === 0 ? "bold" : "normal");
         this.pdf.setFontSize(7);
         this.pdf.setTextColor(...COLORS.ink);
-        this.pdf.text(
-          cell,
-          alignX(x + 6, column.width - 12, column.align),
-          this.y + rowPadding + 7,
-          { align: column.align ?? "left" },
-        );
+        const textX = alignX(x + 6, column.width - 12, column.align);
+        cell.forEach((line, lineIndex) => {
+          this.pdf.text(
+            line,
+            textX,
+            this.y + rowPadding + 7 + lineIndex * 8,
+            { align: column.align ?? "left" },
+          );
+        });
         x += column.width;
       });
       this.y += height;
@@ -1026,9 +1086,9 @@ class PremiumAnalyticsPdf {
     actions.forEach((action) => {
       const lines = this.pdf.splitTextToSize(
         action.description,
-        PAGE.contentWidth - 142,
+        PAGE.contentWidth - 180,
       ) as string[];
-      const height = Math.max(66, lines.length * 10 + 30);
+      const height = Math.max(74, lines.length * 9 + 54);
       this.ensureSpace(height + 9);
       const color = action.priority === "high" ? COLORS.danger : COLORS.warning;
       this.pdf.setFillColor(...COLORS.surface);
@@ -1074,7 +1134,7 @@ class PremiumAnalyticsPdf {
       this.pdf.text(
         this.copy.users.toUpperCase(),
         PAGE.margin + PAGE.contentWidth - 24,
-        this.y + 47,
+        this.y + 41,
         { align: "right" },
       );
       this.y += height + 9;
@@ -1085,17 +1145,17 @@ class PremiumAnalyticsPdf {
   private priorityUsersTable(users: ReportsAnalyticsPriorityUser[]) {
     this.table(
       [
-        { label: this.copy.name, width: 185 },
-        { label: this.copy.risk, width: 58, align: "center" },
-        { label: this.copy.cause, width: 94 },
-        { label: this.copy.progress, width: 72, align: "right" },
-        { label: this.copy.overdue, width: 48, align: "right" },
-        { label: this.copy.lastActivity, width: 54, align: "right" },
+        { label: this.copy.name, width: 178 },
+        { label: this.copy.risk, width: 50, align: "center" },
+        { label: this.copy.cause, width: 118 },
+        { label: this.copy.progress, width: 62, align: "right" },
+        { label: this.copy.overdue, width: 45, align: "right" },
+        { label: this.copy.lastActivityShort, width: 58, align: "right" },
       ],
       users.map((user) => [
         user.displayName || user.email,
         this.riskLabel(user.riskLevel),
-        humanize(user.riskCause),
+        this.riskCauseLabel(user.riskCause),
         percent(user.averageProgress),
         user.overdueAssignments,
         user.lastActivityAt
@@ -1150,7 +1210,7 @@ class PremiumAnalyticsPdf {
 
     const missing = dataset.dataQuality.missingFields
       .slice(0, 4)
-      .map((item) => `${item.label}: ${item.value}`)
+      .map((item) => `${this.missingFieldLabel(item.label)}: ${item.value}`)
       .join(" · ");
     pdf.setFont("helvetica", "normal");
     pdf.setFontSize(8);
@@ -1264,19 +1324,31 @@ class PremiumAnalyticsPdf {
     return [
       ...this.dataset.segments.jobTitles.map((row) => ({
         ...row,
-        label: this.prefixedSegmentLabel(this.copy.jobTitle, row.label),
+        label: this.prefixedSegmentLabel(
+          this.copy.jobTitle,
+          this.segmentValueLabel("jobTitle", row.label),
+        ),
       })),
       ...this.dataset.segments.ageBands.map((row) => ({
         ...row,
-        label: this.prefixedSegmentLabel(this.copy.age, row.label),
+        label: this.prefixedSegmentLabel(
+          this.copy.age,
+          this.segmentValueLabel("age", row.label),
+        ),
       })),
       ...this.dataset.segments.gender.map((row) => ({
         ...row,
-        label: this.prefixedSegmentLabel(this.copy.gender, row.label),
+        label: this.prefixedSegmentLabel(
+          this.copy.gender,
+          this.segmentValueLabel("gender", row.label),
+        ),
       })),
       ...this.dataset.segments.roles.map((row) => ({
         ...row,
-        label: this.prefixedSegmentLabel(this.copy.role, row.label),
+        label: this.prefixedSegmentLabel(
+          this.copy.role,
+          this.segmentValueLabel("role", row.label),
+        ),
       })),
     ].sort(
       (left, right) =>
@@ -1301,6 +1373,47 @@ class PremiumAnalyticsPdf {
     return `${prefix} · ${normalized}`;
   }
 
+  private segmentValueLabel(
+    kind: "jobTitle" | "age" | "gender" | "role",
+    value: string,
+  ): string {
+    const normalized = cleanText(value);
+    const key = normalized.toLocaleLowerCase().replaceAll(" ", "_");
+    if (!key || key === "unspecified" || key === "not_specified") {
+      return this.copy.notSpecified;
+    }
+
+    if (kind === "age") {
+      const range = key.match(/^(\d{2})_(\d{2})$/);
+      if (range) return `${range[1]}–${range[2]}`;
+      const ageLabels: Record<ReportsAnalyticsLocale, Record<string, string>> = {
+        es: { under_25: "Menos de 25", "55_plus": "55 o más" },
+        en: { under_25: "Under 25", "55_plus": "55 or older" },
+        pt: { under_25: "Menos de 25", "55_plus": "55 ou mais" },
+      };
+      return ageLabels[this.locale][key] ?? normalized;
+    }
+
+    const labels: Record<
+      Exclude<typeof kind, "age">,
+      Record<ReportsAnalyticsLocale, Record<string, string>>
+    > = {
+      jobTitle: { es: {}, en: {}, pt: {} },
+      gender: {
+        es: { female: "Mujer", male: "Hombre", non_binary: "No binario" },
+        en: { female: "Female", male: "Male", non_binary: "Non-binary" },
+        pt: { female: "Feminino", male: "Masculino", non_binary: "Não binário" },
+      },
+      role: {
+        es: { owner: "Propietario", member: "Miembro", admin: "Administrador", instructor: "Instructor" },
+        en: { owner: "Owner", member: "Member", admin: "Administrator", instructor: "Instructor" },
+        pt: { owner: "Proprietário", member: "Membro", admin: "Administrador", instructor: "Instrutor" },
+      },
+    };
+
+    return labels[kind][this.locale][key] ?? normalized;
+  }
+
   private getHierarchyRows(): ReportsAnalyticsHierarchyRankingRow[] {
     return [
       ...this.dataset.rankings.regions,
@@ -1315,6 +1428,56 @@ class PremiumAnalyticsPdf {
       : level === "medium"
         ? this.copy.medium
         : this.copy.low;
+  }
+
+  private riskCauseLabel(cause: ReportsAnalyticsPriorityUserRiskCause) {
+    const labels: Record<
+      ReportsAnalyticsLocale,
+      Record<ReportsAnalyticsPriorityUserRiskCause, string>
+    > = {
+      es: {
+        overdue: "Tiene vencimientos",
+        not_started: "No ha iniciado",
+        inactive: "Sin actividad reciente",
+        low_progress: "Bajo avance",
+      },
+      en: {
+        overdue: "Has overdue work",
+        not_started: "Not started",
+        inactive: "No recent activity",
+        low_progress: "Low progress",
+      },
+      pt: {
+        overdue: "Tem pendências vencidas",
+        not_started: "Não iniciou",
+        inactive: "Sem atividade recente",
+        low_progress: "Baixo progresso",
+      },
+    };
+
+    return labels[this.locale][cause];
+  }
+
+  private missingFieldLabel(field: string): string {
+    const labels: Record<ReportsAnalyticsLocale, Record<string, string>> = {
+      es: {
+        date_of_birth: "Fecha de nacimiento",
+        gender: "Género",
+        job_title: "Puesto",
+      },
+      en: {
+        date_of_birth: "Date of birth",
+        gender: "Gender",
+        job_title: "Job title",
+      },
+      pt: {
+        date_of_birth: "Data de nascimento",
+        gender: "Gênero",
+        job_title: "Cargo",
+      },
+    };
+
+    return labels[this.locale][field] ?? humanize(field);
   }
 
   private addFooters() {

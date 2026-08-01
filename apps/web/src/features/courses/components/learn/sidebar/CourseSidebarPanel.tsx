@@ -197,6 +197,7 @@ export function CourseSidebarPanel({
                   </button>
                   <button
                     type="button"
+                    data-tour-id="course-learn--notes-tab"
                     role="tab"
                     aria-selected={activeSection === "notes"}
                     onClick={() => selectSection("notes")}

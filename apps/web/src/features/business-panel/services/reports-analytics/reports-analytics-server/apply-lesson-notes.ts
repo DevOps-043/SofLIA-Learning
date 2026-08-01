@@ -1,4 +1,3 @@
-import { clampPercentage } from '../reports-analytics.helpers'
 import { ensureCourse } from './ensure-course'
 import { getCourseIdFromLesson } from './get-course-id-from-lesson'
 import { pushAiSample } from './push-ai-sample'
@@ -24,7 +23,6 @@ export function applyLessonNotes(context: BuildContext, records: LessonNoteRecor
     if (!user) return
 
     const course = ensureCourse(context, courseId, null)
-    user.notesQualityScores.push(record.note_content ? clampPercentage(Math.min(record.note_content.length / 8, 100)) : 0)
     user.detail.notesCreated += 1
     course.notesCount += 1
     course.activeLearners.add(record.user_id)

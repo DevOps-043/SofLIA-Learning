@@ -1,4 +1,4 @@
-import type { TFunction } from 'i18next'
+type HierarchyLabelTranslator = (key: string, options?: Record<string, unknown>) => string
 
 function humanizeHierarchyType(value: string) {
   const words = value.trim().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').split(' ')
@@ -14,7 +14,7 @@ function humanizeHierarchyType(value: string) {
  * Resolves built-in hierarchy types through i18n and keeps custom database
  * values human-readable instead of exposing a missing translation key.
  */
-export function getHierarchyTypeLabel(type: string | null | undefined, t: TFunction) {
+export function getHierarchyTypeLabel(type: string | null | undefined, t: HierarchyLabelTranslator) {
   const rawType = type?.trim()
   if (!rawType) return t('hierarchy.nodeForm.types.custom')
 

@@ -3,7 +3,7 @@ import type { OrganizationNode, OrganizationNodeProperties } from '../../../type
 import type { HierarchyNodeModalMode } from './types';
 
 interface SaveHierarchyNodeParams {
-  managerId?: string;
+  managerId?: string | null;
   mode: HierarchyNodeModalMode;
   name: string;
   orgSlug?: string | null;
@@ -24,22 +24,24 @@ export async function saveHierarchyNode({
   type,
 }: SaveHierarchyNodeParams): Promise<void> {
   if (mode === 'edit' && targetNode) {
-    await DynamicHierarchyService.updateNode(
+    const result = await DynamicHierarchyService.updateNode(
       targetNode.id,
       { name, type, properties, manager_id: managerId },
       orgSlug,
     );
+    if (!result.success) throw new Error(result.error || 'Unable to update hierarchy node');
     return;
   }
 
-  await DynamicHierarchyService.createNode({
+  const result = await DynamicHierarchyService.createNode({
     structure_id: selectedStructureId,
     parent_id: targetNode?.id || null,
     name,
     type,
     properties,
-    manager_id: managerId,
+    manager_id: managerId ?? undefined,
   }, orgSlug);
+  if (!result.success) throw new Error(result.error || 'Unable to create hierarchy node');
 }
 
 export async function findRootNode(

@@ -1,14 +1,63 @@
 'use client'
 
-import { ChevronLeft, ChevronRight, Sparkles, X } from 'lucide-react'
+import { useId } from 'react'
+import {
+  Award,
+  BellRing,
+  BookOpenCheck,
+  Bot,
+  ChartSpline,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  CirclePlay,
+  CircleUserRound,
+  ClipboardCheck,
+  Compass,
+  LayoutDashboard,
+  ListTree,
+  MessagesSquare,
+  Network,
+  NotebookPen,
+  PanelsTopLeft,
+  Search,
+  Settings2,
+  SlidersHorizontal,
+  UsersRound,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import type { TooltipRenderProps } from 'react-joyride'
 import { useTranslation } from 'react-i18next'
 
-import { cn } from '@/shared/utils/cn'
-
 import { translateTourKey } from '../utils/tour.i18n'
-import { isMobileViewport } from '../utils/tour.helpers'
 import { TourProgress } from './TourProgress'
+import styles from './TourTooltip.module.css'
+
+function resolveStepIcon(target: unknown): LucideIcon {
+  const targetName = typeof target === 'string' ? target.toLowerCase() : ''
+
+  if (targetName.includes('notes')) return NotebookPen
+  if (targetName.includes('structure-selector')) return ListTree
+  if (/(hierarchy|tree-body|structure)/.test(targetName)) return Network
+  if (/(notifications|alert)/.test(targetName)) return BellRing
+  if (/(certificate|badge)/.test(targetName)) return Award
+  if (/(video|player)/.test(targetName)) return CirclePlay
+  if (/(question|community|chat)/.test(targetName)) return MessagesSquare
+  if (/(activit|quiz|practice|review)/.test(targetName)) return ClipboardCheck
+  if (/(soflia|assistant)/.test(targetName)) return Bot
+  if (/(settings|branding|configuration)/.test(targetName)) return Settings2
+  if (/(account|profile)/.test(targetName)) return CircleUserRound
+  if (/(users|workforce|team)/.test(targetName)) return UsersRound
+  if (/(stats|report|progress|kpi|radar|compliance|funnel|scatter|ranking|segments|trend|academic|insights|quality)/.test(targetName)) return ChartSpline
+  if (targetName.includes('search')) return Search
+  if (/(filter|selector|toggle)/.test(targetName)) return SlidersHorizontal
+  if (/(sidebar|top-nav|tabs|menu)/.test(targetName)) return PanelsTopLeft
+  if (/(course|lesson|module|content|resource|learning-path|workshop)/.test(targetName)) return BookOpenCheck
+  if (/(hero|workspace|header|page)/.test(targetName)) return LayoutDashboard
+
+  return Compass
+}
 
 export function TourTooltip({
   backProps,
@@ -21,69 +70,75 @@ export function TourTooltip({
   tooltipProps,
 }: TooltipRenderProps) {
   const { t, i18n } = useTranslation('tours')
-  const isMobile = isMobileViewport()
+  const titleId = useId()
+  const descriptionId = useId()
   const skipLabel = translateTourKey(t, i18n, 'actions.skip')
   const backLabel = translateTourKey(t, i18n, 'actions.back')
   const primaryLabel = translateTourKey(t, i18n, isLastStep ? 'actions.finish' : 'actions.next')
+  const guideLabel = translateTourKey(t, i18n, 'guideLabel')
+  const originalTarget = (step.data as { tourTarget?: unknown } | undefined)?.tourTarget
+  const StepIcon = resolveStepIcon(originalTarget ?? step.target)
 
   return (
     <section
       {...tooltipProps}
-      className={cn(
-        'joyride-tooltip-container pointer-events-auto relative flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-gray-800',
-        // Width: full viewport minus 32px margin, capped at 380px
-        'w-[min(calc(100vw-32px),380px)]',
-        // Height: no more than 80% of viewport height
-        'max-h-[min(420px,calc(100dvh-80px))]',
-        // Padding scales with screen size
-        'p-3 sm:p-4 md:p-5',
-      )}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
+      className={`${styles.tooltip} joyride-tooltip-container`}
     >
+      <span className={styles.topAccent} aria-hidden="true" />
+      <span className={styles.atmosphere} aria-hidden="true" />
+
       <button
         type="button"
         {...skipProps}
         aria-label={skipLabel}
         title={skipLabel}
-        className="absolute right-2.5 top-2.5 inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:text-gray-500 dark:hover:bg-white/10 dark:hover:text-gray-200 sm:right-3 sm:top-3 sm:h-8 sm:w-8"
+        className={styles.closeButton}
       >
-        <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+        <X aria-hidden="true" />
       </button>
 
-      <header className="flex shrink-0 items-start gap-2 border-b border-gray-100 pb-2.5 pr-8 dark:border-white/10 sm:pb-3 sm:pr-9">
-        <Sparkles className="mt-px h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" style={{ color: 'var(--org-accent-color, var(--color-accent))' }} aria-hidden="true" />
-        <h2 className="break-words text-sm font-semibold leading-snug text-gray-900 dark:text-white">
-          {step.title}
-        </h2>
+      <header className={styles.header}>
+        <span className={styles.iconShell} aria-hidden="true">
+          <StepIcon />
+          <span className={styles.iconDetail} />
+        </span>
+        <div className={styles.headingCopy}>
+          <p className={styles.eyebrow}>{guideLabel}</p>
+          <h2 id={titleId} className={styles.title}>{step.title}</h2>
+        </div>
       </header>
 
-      <div className="min-h-0 flex-1 overflow-y-auto py-3 pr-1 text-sm leading-relaxed text-gray-600 dark:text-gray-300 sm:py-4">
-        <div className="break-words">{step.content}</div>
+      <div id={descriptionId} className={styles.content}>
+        {step.content}
       </div>
 
-      <footer className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3 dark:border-white/10 sm:gap-3 sm:pt-4">
+      <footer className={styles.footer}>
         <TourProgress current={index} total={size} />
 
-        <div className="flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+        <div className={styles.actions}>
           {index > 0 ? (
             <button
               type="button"
               {...backProps}
               aria-label={backLabel}
               title={backLabel}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent dark:border-white/10 dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-gray-200 sm:h-9 sm:w-9"
+              className={styles.backButton}
             >
-              <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+              <ChevronLeft aria-hidden="true" />
             </button>
           ) : null}
 
           <button
             type="button"
             {...primaryProps}
-            className="inline-flex h-8 items-center gap-1 rounded-full px-3 text-sm font-medium transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent sm:h-9 sm:px-4"
-            style={{ backgroundColor: 'var(--org-accent-color, var(--color-accent))', color: 'var(--org-on-action-color, var(--color-primary))' }}
+            className={styles.primaryButton}
           >
             <span>{primaryLabel}</span>
-            {!isLastStep ? <ChevronRight className="h-3 w-3 sm:h-3.5 sm:w-3.5" aria-hidden="true" /> : null}
+            {isLastStep ? <Check aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
           </button>
         </div>
       </footer>

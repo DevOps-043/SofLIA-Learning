@@ -1,6 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'next/navigation'
 import { supabaseStorageService } from '../../../../../../core/services/supabaseStorage'
 import { useAuth } from '../../../../../auth/hooks/useAuth'
 import { HierarchyChatsService } from '../../../../services/hierarchyChats.service'
@@ -67,6 +68,8 @@ function toFileAttachment(metadata: HierarchyChatMessage['metadata'], fallbackNa
 export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicProps) => {
   const { user } = useAuth()
   const { t } = useTranslation('business')
+  const params = useParams()
+  const orgSlug = typeof params?.orgSlug === 'string' ? params.orgSlug : undefined
 
   const [chat, setChat] = useState<HierarchyChat | null>(null)
   const [messages, setMessages] = useState<HierarchyChatMessage[]>([])
@@ -124,7 +127,8 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
         const existingChats = await HierarchyChatsService.getChats(
           entityType,
           entityId,
-          chatType
+          chatType,
+          orgSlug,
         )
 
         let chatToUse: HierarchyChat | null = null
@@ -136,20 +140,19 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
             entity_type: entityType,
             entity_id: entityId,
             chat_type: chatType
-          })
+          }, orgSlug)
 
           if (result) {
             chatToUse = result.chat
           }
         }
 
-        if (chatToUse) {
-          setChat(chatToUse)
-          await loadMessages(chatToUse.id)
-          await markAsRead(chatToUse.id)
-          setError(null)
-          setError(t('hierarchy.chat.errors.create'))
-        }
+        if (!chatToUse) throw new Error(t('hierarchy.chat.errors.create'))
+
+        setChat(chatToUse)
+        await loadMessages(chatToUse.id)
+        await markAsRead(chatToUse.id)
+        setError(null)
       } catch (error: unknown) {
         setError(getErrorMessage(error, t('hierarchy.chat.errors.load')))
       } finally {
@@ -158,11 +161,11 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
     }
 
     loadChat()
-  }, [entityType, entityId, chatType])
+  }, [entityType, entityId, chatType, orgSlug])
 
   const loadMessages = async (chatId: string) => {
     try {
-      const result = await HierarchyChatsService.getChatWithMessages(chatId, { limit: 50 })
+      const result = await HierarchyChatsService.getChatWithMessages(chatId, { limit: 50 }, orgSlug)
       if (result) {
         setMessages(result.messages || [])
         setParticipants(result.participants || [])
@@ -174,7 +177,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
 
   const markAsRead = async (chatId: string) => {
     try {
-      await HierarchyChatsService.markAsRead(chatId)
+      await HierarchyChatsService.markAsRead(chatId, undefined, orgSlug)
     } catch (error) {
       techDebtLogger.error('Error marcando como leído:', error)
     }
@@ -271,7 +274,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
         content: finalContent || (metadata ? t('hierarchy.chat.attachment') : ''),
         message_type: selectedFile ? 'file' : 'text',
         metadata
-      })
+      }, orgSlug)
 
       if (newMessage) {
         setMessages(prev => [...prev, newMessage])
@@ -293,7 +296,8 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
       const updatedMessage = await HierarchyChatsService.updateMessage(
         chat.id,
         messageId,
-        { content: editContent.trim() }
+        { content: editContent.trim() },
+        orgSlug,
       )
 
       if (updatedMessage) {
@@ -312,7 +316,7 @@ export const useChatLogic = ({ entityType, entityId, chatType }: UseChatLogicPro
     if (!chat) return
 
     try {
-      const success = await HierarchyChatsService.deleteMessage(chat.id, messageId)
+      const success = await HierarchyChatsService.deleteMessage(chat.id, messageId, orgSlug)
       if (success) {
         setMessages(prev => prev.filter(msg => msg.id !== messageId))
       }

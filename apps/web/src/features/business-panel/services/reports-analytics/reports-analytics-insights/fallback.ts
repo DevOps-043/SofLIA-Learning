@@ -18,22 +18,27 @@ export function buildFallbackInsights(
   const ov = dataset.overview
 
   // Rankings — assumed sorted best-first by rankScore
-  const bestRegion = dataset.rankings.regions[0]
-  const worstRegion = dataset.rankings.regions[dataset.rankings.regions.length - 1]
-  const bestTeam = dataset.rankings.teams[0]
-  const worstTeam = dataset.rankings.teams[dataset.rankings.teams.length - 1]
+  const hasComparableRegions = dataset.rankings.regions.length > 1
+  const hasComparableTeams = dataset.rankings.teams.length > 1
+  const bestRegion = hasComparableRegions ? dataset.rankings.regions[0] : undefined
+  const worstRegion = hasComparableRegions
+    ? dataset.rankings.regions[dataset.rankings.regions.length - 1]
+    : undefined
+  const bestTeam = hasComparableTeams ? dataset.rankings.teams[0] : undefined
+  const worstTeam = hasComparableTeams
+    ? dataset.rankings.teams[dataset.rankings.teams.length - 1]
+    : undefined
 
   // Riskiest course by overdue count
   const riskCourse = [...dataset.courses]
     .filter((c) => c.overdueAssignments > 0)
     .sort((a, b) => b.overdueAssignments - a.overdueAssignments)[0]
-    ?? dataset.courses[0]
 
   // Weakest age band — exclude 'unspecified' sentinel and segments with no users
   const validAgeBands = dataset.segments.ageBands.filter(
     (b) => b.label !== REPORTS_ANALYTICS_UNSPECIFIED && b.users > 0,
   )
-  const weakestAgeBand = validAgeBands.length > 0
+  const weakestAgeBand = validAgeBands.length > 1
     ? [...validAgeBands].sort((a, b) => a.qualityScore - b.qualityScore)[0]
     : null
 
@@ -43,6 +48,7 @@ export function buildFallbackInsights(
     ov.averageProgress,
     ov.atRiskUsersCount,
     ov.complianceRate,
+    dataset.quality.evidenceCount,
   )
 
   // ─── Executive metrics (6) ─────────────────────────────────────────────────
@@ -60,7 +66,7 @@ export function buildFallbackInsights(
     {
       label: language.metricQuality,
       value: `${dataset.quality.overallScore}%`,
-      detail: language.metricQualityDetail(dataset.quality.quizScore, dataset.quality.activityScore, dataset.quality.sofliaScore),
+      detail: language.metricQualityDetail(dataset.quality.quizScore, dataset.quality.activityScore, dataset.quality.evidenceCount),
     },
     {
       label: language.metricAtRisk,
@@ -102,9 +108,13 @@ export function buildFallbackInsights(
     {
       title: language.qualityTitle,
       points: [
-        language.qualityPoint(dataset.quality.overallScore, dataset.quality.offTopicRate),
+        language.qualityPoint(dataset.quality.overallScore, dataset.quality.evidenceCount),
         weakestAgeBand
-          ? language.segmentPoint(weakestAgeBand.label, weakestAgeBand.qualityScore)
+          ? language.segmentPoint(
+            formatAgeBandLabel(weakestAgeBand.label, locale),
+            weakestAgeBand.qualityScore,
+            weakestAgeBand.users,
+          )
           : language.noSegment,
       ],
     },
@@ -123,12 +133,13 @@ export function buildFallbackInsights(
   }
 
   // ─── Recommendations (5) ──────────────────────────────────────────────────
-  const recommendations = [
-    language.recommendSoflia,
-    language.recommendHierarchy,
-    language.recommendQuality,
-    language.recommendInactive,
-  ]
+  const recommendations = [language.recommendSoflia, language.recommendQuality]
+  if (hasComparableRegions || hasComparableTeams) {
+    recommendations.push(language.recommendHierarchy)
+  }
+  if (ov.inactiveUsersCount > 0) {
+    recommendations.push(language.recommendInactive)
+  }
 
   // ─── Action plan (2 sections) ─────────────────────────────────────────────
   const actionPlan = [
@@ -230,4 +241,16 @@ export function buildFallbackInsights(
     segmentHighlights: segmentHighlights.length > 0 ? segmentHighlights : undefined,
     kudos: kudos.length > 0 ? kudos : undefined,
   }
+}
+
+function formatAgeBandLabel(label: string, locale: ReportsAnalyticsLocale): string {
+  const range = label.match(/^(\d{2})_(\d{2})$/)
+  if (range) return `${range[1]}–${range[2]}`
+  if (label === 'under_25') {
+    return locale === 'en' ? 'Under 25' : locale === 'pt' ? 'Menos de 25' : 'Menos de 25'
+  }
+  if (label === '55_plus') {
+    return locale === 'en' ? '55 or older' : locale === 'pt' ? '55 ou mais' : '55 o más'
+  }
+  return label.replaceAll('_', ' ')
 }

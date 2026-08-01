@@ -17,6 +17,13 @@ interface RouteContext {
 type HierarchyEntityType = 'region' | 'zone' | 'team' | 'node';
 type HierarchyChatType = 'horizontal' | 'vertical';
 
+const ENTITY_TABLE_BY_TYPE = {
+  region: 'organization_regions',
+  zone: 'organization_zones',
+  team: 'organization_teams',
+  node: 'organization_nodes',
+} as const;
+
 interface HierarchyChatRow {
   id: string;
   entity_type: HierarchyEntityType;
@@ -194,6 +201,22 @@ async function handlePost(
         chat: existingChat,
         created: false
       });
+    }
+
+    const { data: entity, error: entityError } = await supabase
+      .from(ENTITY_TABLE_BY_TYPE[entity_type])
+      .select('id')
+      .eq('id', entity_id)
+      .eq('organization_id', auth.organizationId)
+      .maybeSingle();
+
+    if (entityError) {
+      logger.error('Error verificando entidad para chat:', entityError);
+      return apiError('VERIFY_CHAT_ENTITY_FAILED', 'No se pudo verificar la entidad', 500);
+    }
+
+    if (!entity) {
+      return apiError('CHAT_ENTITY_NOT_FOUND', 'La entidad especificada no existe en esta organización', 404);
     }
 
     let levelRole: string | null = null;

@@ -71,16 +71,18 @@
   align-items: center;
   gap: 0.55rem;
   margin-bottom: 1rem;
-  color: var(--settings-hero-muted);
+  color: var(--settings-hero-muted) !important;
 }
 
 .eyebrow svg {
   width: 1rem;
 }
 
-.hero h1 {
+.hero h1,
+.heroTitle {
   max-width: 49rem;
   margin: 0;
+  color: var(--settings-hero-text) !important;
   font-family: var(--font-display, 'Newsreader', serif);
   font-size: clamp(2.1rem, 4vw, 4rem);
   font-weight: 400;
@@ -88,10 +90,11 @@
   letter-spacing: -0.035em;
 }
 
-.heroCopy > p {
+.heroCopy > p,
+.heroSubtitle {
   max-width: 44rem;
   margin: 1rem 0 0;
-  color: var(--settings-hero-muted);
+  color: var(--settings-hero-muted) !important;
   font-size: 0.95rem;
   line-height: 1.6;
 }
@@ -117,13 +120,13 @@
 .heroStatus span {
   display: grid;
   gap: 0.15rem;
-  color: var(--settings-hero-muted);
+  color: var(--settings-hero-muted) !important;
   font-size: 0.74rem;
   line-height: 1.4;
 }
 
 .heroStatus strong {
-  color: var(--settings-hero-text);
+  color: var(--settings-hero-text) !important;
   font-size: 0.8rem;
 }
 

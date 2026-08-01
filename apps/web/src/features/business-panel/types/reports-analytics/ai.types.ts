@@ -1,4 +1,5 @@
 import type { ReportsAnalyticsReportSectionId } from './core.types'
+import type { ReportsAnalyticsResponse } from './response.types'
 
 export type ReportsAnalyticsAiSampleSource =
   | 'soflia_message'
@@ -68,7 +69,14 @@ export interface ReportsAnalyticsAiInsights {
 
 export interface ReportsAnalyticsInsightsResponse {
   success: true
-  insights: ReportsAnalyticsAiInsights
+  insights: ReportsAnalyticsAiInsights | null
+  dataset?: ReportsAnalyticsResponse
+  reportDate: string | null
+  generatedAt: string | null
+  reportLocale: string | null
+  reportPeriod?: { from: string; to: string } | null
+  canGenerateToday: boolean
+  reused?: boolean
 }
 
 export interface ReportsAnalyticsReportSection {

@@ -36,7 +36,7 @@ export function applyActivityCompletions(context: BuildContext, records: Activit
     const qualityScore = clampPercentage(stepScore - attemptsPenalty - helpPenalty - redirectPenalty)
 
     user.detail.activityAttempts += Number(record.attempts_to_complete) || 0
-    user.activityQualityScores.push(qualityScore)
+    user.activityQualityScores.push(completed ? 100 : 0)
     course.activityTotal += 1
     course.activeLearners.add(record.user_id)
 

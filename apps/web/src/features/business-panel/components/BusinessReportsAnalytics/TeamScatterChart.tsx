@@ -24,10 +24,10 @@ interface TeamPoint {
 }
 
 function getTeamColor(point: TeamPoint, theme: ThemeTokens): string {
-  if (point.overdue > 0) return '#ef4444'
+  if (point.overdue > 0) return theme.dangerColor
   if (point.x >= 60 && point.y >= 60) return theme.successColor
-  if (point.x < 30 || point.y < 30) return '#ef4444'
-  return '#f59e0b'
+  if (point.x < 30 || point.y < 30) return theme.dangerColor
+  return theme.warningColor
 }
 
 interface CustomTooltipProps {
@@ -56,7 +56,7 @@ function CustomTooltip({ active, payload, theme, t }: CustomTooltipProps) {
         {t('reportsAnalytics.table.users')}: <span className="font-medium" style={{ color: theme.textColor }}>{d.z}</span>
       </p>
       {d.overdue > 0 && (
-        <p style={{ color: '#ef4444' }}>
+        <p style={{ color: theme.dangerColor }}>
           {t('reportsAnalytics.table.overdue')}: <span className="font-medium">{d.overdue}</span>
         </p>
       )}
@@ -88,7 +88,7 @@ export function TeamScatterChart({ data, theme, t }: TeamScatterChartProps) {
   const points: TeamPoint[] = teams.map((team) => ({
     name: team.name,
     x: Math.round(team.averageProgress),
-    y: Math.round(team.completionRate * 100),
+    y: Math.round(team.completionRate),
     z: team.users,
     overdue: team.overdueAssignments ?? 0,
   }))

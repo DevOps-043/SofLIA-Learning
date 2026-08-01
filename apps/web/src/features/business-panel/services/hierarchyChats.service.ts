@@ -19,7 +19,11 @@ import type {
   ChatMessageResponse
 } from '../types/hierarchy.types';
 
-const API_BASE = '/api/business/hierarchy/chats';
+export function getHierarchyChatsApiBase(orgSlug?: string | null) {
+  return orgSlug
+    ? `/api/${encodeURIComponent(orgSlug)}/business/hierarchy/chats`
+    : '/api/business/hierarchy/chats';
+}
 
 /**
  * Respuesta genérica de la API
@@ -36,10 +40,11 @@ interface ApiResponse<T> {
  */
 async function fetchApi<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  orgSlug?: string | null,
 ): Promise<ApiResponse<T>> {
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const response = await fetch(`${getHierarchyChatsApiBase(orgSlug)}${endpoint}`, {
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
@@ -53,7 +58,7 @@ async function fetchApi<T>(
     if (!response.ok) {
       return {
         success: false,
-        error: data.error || data.message || `Error ${response.status}`
+        error: data.message || data.error || `Error ${response.status}`
       };
     }
 
@@ -81,7 +86,8 @@ export class HierarchyChatsService {
   static async getChats(
     entityType: 'region' | 'zone' | 'team' | 'node',
     entityId: string,
-    chatType?: HierarchyChatType
+    chatType?: HierarchyChatType,
+    orgSlug?: string | null,
   ): Promise<HierarchyChat[]> {
     const params = new URLSearchParams({
       entity_type: entityType,
@@ -91,7 +97,7 @@ export class HierarchyChatsService {
       params.append('chat_type', chatType);
     }
 
-    const result = await fetchApi<{ chats: HierarchyChat[] }>(`?${params.toString()}`);
+    const result = await fetchApi<{ chats: HierarchyChat[] }>(`?${params.toString()}`, {}, orgSlug);
     if (!result.success && result.error) {
       // Lanzar error para que el componente pueda manejarlo
       throw new Error(result.error);
@@ -103,12 +109,13 @@ export class HierarchyChatsService {
    * Crea o obtiene un chat existente
    */
   static async getOrCreateChat(
-    request: CreateHierarchyChatRequest
+    request: CreateHierarchyChatRequest,
+    orgSlug?: string | null,
   ): Promise<{ chat: HierarchyChat; created: boolean } | null> {
     const result = await fetchApi<{ chat: HierarchyChat; created: boolean }>('', {
       method: 'POST',
       body: JSON.stringify(request)
-    });
+    }, orgSlug);
 
     if (!result.success && result.error) {
       // Lanzar error para que el componente pueda manejarlo
@@ -123,7 +130,8 @@ export class HierarchyChatsService {
    */
   static async getChatWithMessages(
     chatId: string,
-    options?: { limit?: number; before?: string }
+    options?: { limit?: number; before?: string },
+    orgSlug?: string | null,
   ): Promise<HierarchyChatWithMessagesResponse | null> {
     const params = new URLSearchParams();
     if (options?.limit) {
@@ -134,7 +142,7 @@ export class HierarchyChatsService {
     }
 
     const endpoint = `/${chatId}${params.toString() ? `?${params.toString()}` : ''}`;
-    const result = await fetchApi<HierarchyChatWithMessagesResponse>(endpoint);
+    const result = await fetchApi<HierarchyChatWithMessagesResponse>(endpoint, {}, orgSlug);
 
     return result.success && result.data ? result.data : null;
   }
@@ -144,7 +152,8 @@ export class HierarchyChatsService {
    */
   static async sendMessage(
     chatId: string,
-    request: SendChatMessageRequest
+    request: SendChatMessageRequest,
+    orgSlug?: string | null,
   ): Promise<HierarchyChatMessage | null> {
     const result = await fetchApi<{ message: HierarchyChatMessage }>(`/${chatId}/messages`, {
       method: 'POST',
@@ -152,7 +161,7 @@ export class HierarchyChatsService {
         ...request,
         chat_id: chatId
       })
-    });
+    }, orgSlug);
 
     return result.success && result.data?.message ? result.data.message : null;
   }
@@ -163,14 +172,16 @@ export class HierarchyChatsService {
   static async updateMessage(
     chatId: string,
     messageId: string,
-    request: UpdateChatMessageRequest
+    request: UpdateChatMessageRequest,
+    orgSlug?: string | null,
   ): Promise<HierarchyChatMessage | null> {
     const result = await fetchApi<{ message: HierarchyChatMessage }>(
       `/${chatId}/messages/${messageId}`,
       {
         method: 'PUT',
         body: JSON.stringify(request)
-      }
+      },
+      orgSlug,
     );
 
     return result.success && result.data?.message ? result.data.message : null;
@@ -181,11 +192,12 @@ export class HierarchyChatsService {
    */
   static async deleteMessage(
     chatId: string,
-    messageId: string
+    messageId: string,
+    orgSlug?: string | null,
   ): Promise<boolean> {
     const result = await fetchApi<{ message: string }>(`/${chatId}/messages/${messageId}`, {
       method: 'DELETE'
-    });
+    }, orgSlug);
 
     return result.success;
   }
@@ -195,12 +207,13 @@ export class HierarchyChatsService {
    */
   static async markAsRead(
     chatId: string,
-    request?: MarkMessagesReadRequest
+    request?: MarkMessagesReadRequest,
+    orgSlug?: string | null,
   ): Promise<boolean> {
     const result = await fetchApi<{ message: string }>(`/${chatId}/read`, {
       method: 'POST',
       body: JSON.stringify(request || {})
-    });
+    }, orgSlug);
 
     return result.success;
   }

@@ -8,6 +8,7 @@
     "startTour": "Iniciar tour"
   },
   "progress": "{{current}}/{{total}}",
+  "guideLabel": "Guía interactiva",
   "courseLearn": {
     "welcome": {
       "title": "Aprende con claridad",
@@ -23,7 +24,7 @@
     },
     "sidebar": {
       "title": "Contenido del curso",
-      "content": "Usa este panel para navegar módulos, lecciones, materiales y notas sin salir de la experiencia de aprendizaje."
+      "content": "El panel se divide en Contenido y Mis notas. En Contenido puedes recorrer los módulos, abrir lecciones y consultar sus actividades o materiales sin salir del curso."
     },
     "moduleProgress": {
       "title": "Avance del módulo",
@@ -32,6 +33,10 @@
     "currentLesson": {
       "title": "Lección actual",
       "content": "La lección resaltada marca dónde estás. Puedes cambiar de tema desde la lista cuando quieras continuar en otro punto."
+    },
+    "notes": {
+      "title": "Tus notas, siempre a la mano",
+      "content": "Mis notas reúne los apuntes que guardaste en este curso. El contador muestra cuántos tienes y, desde esta pestaña, puedes crear, abrir, editar o eliminar notas y continuar en tu Libro de apuntes."
     },
     "tabs": {
       "title": "Modos de trabajo",
@@ -164,10 +169,6 @@
     "stats": {
       "title": "Métricas generales",
       "content": "Estas tarjetas muestran usuarios activos, cursos asignados, completados, progreso, certificados, engagement e invitaciones."
-    },
-    "quickActions": {
-      "title": "Accesos rápidos",
-      "content": "Entra directo a tareas frecuentes como gestionar usuarios, asignar cursos, abrir reportes o configurar la organización."
     },
     "recentActivity": {
       "title": "Actividad reciente",

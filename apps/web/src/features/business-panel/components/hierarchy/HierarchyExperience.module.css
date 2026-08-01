@@ -8,6 +8,11 @@
   --hierarchy-text: var(--org-text-color, var(--color-contrast));
   --hierarchy-subtext: var(--org-text-secondary, var(--color-muted));
   --hierarchy-muted: color-mix(in srgb, var(--hierarchy-text) 52%, transparent);
+  --hierarchy-readable-accent: color-mix(
+    in srgb,
+    var(--hierarchy-accent) 68%,
+    var(--hierarchy-text)
+  );
   --hierarchy-border: var(
     --org-border-color,
     color-mix(in srgb, var(--hierarchy-text) 10%, transparent)
@@ -105,7 +110,7 @@
   align-items: center;
   gap: 0.65rem;
   margin: 0;
-  color: rgb(255 255 255 / 0.74);
+  color: rgb(255 255 255 / 0.8) !important;
   font-family: var(--font-system-label);
   font-size: 0.61rem;
   font-weight: 600;
@@ -124,7 +129,7 @@
 .heroTitle {
   max-width: 36rem;
   margin: 0.58rem 0 0;
-  color: var(--color-bg-light);
+  color: #fff !important;
   font-family: var(--font-system-display);
   font-size: clamp(2.4rem, 3.4vw, 3.15rem);
   font-weight: 300;
@@ -136,7 +141,7 @@
 .heroDescription {
   max-width: 34rem;
   margin: 0.7rem 0 0;
-  color: rgb(255 255 255 / 0.76);
+  color: rgb(255 255 255 / 0.82) !important;
   font-size: 0.84rem;
   line-height: 1.55;
 }
@@ -273,7 +278,7 @@
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--summary-tone) 22%, var(--hierarchy-border));
   border-radius: 0.85rem;
-  color: var(--summary-tone);
+  color: color-mix(in srgb, var(--summary-tone) 68%, var(--hierarchy-text));
   background: color-mix(in srgb, var(--summary-tone) 7%, transparent);
 }
 
@@ -367,7 +372,7 @@
   place-items: center;
   border: 1px solid color-mix(in srgb, var(--hierarchy-accent) 28%, var(--hierarchy-border));
   border-radius: 0.82rem;
-  color: var(--hierarchy-accent);
+  color: var(--hierarchy-readable-accent);
   background: color-mix(in srgb, var(--hierarchy-accent) 8%, transparent);
   box-shadow: 0 0.75rem 1.8rem color-mix(in srgb, var(--hierarchy-accent) 10%, transparent);
 }
@@ -546,6 +551,10 @@
   align-content: start;
   gap: 1rem;
   padding: 1.35rem;
+}
+
+.treeCanvasContent > [data-tour-id="business-panel-hierarchy--tree-body"] {
+  min-width: 0;
 }
 
 .emptyWorkspace {
@@ -745,6 +754,16 @@
   font-family: var(--font-system-label);
 }
 
+.sectionKicker {
+  margin: 0;
+  color: var(--hierarchy-muted);
+  font-size: 0.57rem;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
 .fieldLabel {
   display: inline-flex;
   align-items: center;
@@ -834,6 +853,26 @@
   background: color-mix(in srgb, var(--hierarchy-surface) 97%, transparent);
   box-shadow: 0 1.4rem 3.5rem rgb(2 12 23 / 0.24);
   backdrop-filter: blur(1rem) saturate(120%);
+}
+
+.managerSearchState {
+  display: flex;
+  min-height: 3.2rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--hierarchy-subtext);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.managerSearchState svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  flex: 0 0 auto;
+  color: var(--hierarchy-accent);
 }
 
 .selectOptionRow {
@@ -1217,7 +1256,7 @@
 
 .nodeLoadingKicker {
   margin: 0;
-  color: rgb(255 255 255 / 0.62);
+  color: rgb(255 255 255 / 0.72) !important;
   font-family: var(--font-system-label);
   font-size: 0.56rem;
   font-weight: 600;
@@ -1227,7 +1266,7 @@
 
 .nodeLoadingTitle {
   margin: 0.34rem 0 0;
-  color: var(--color-bg-light);
+  color: #fff !important;
   font-family: var(--font-system-display);
   font-size: clamp(1.65rem, 2.6vw, 2.3rem);
   font-weight: 300;
@@ -1238,7 +1277,7 @@
 .nodeLoadingDescription {
   max-width: 34rem;
   margin: 0.48rem 0 0;
-  color: rgb(255 255 255 / 0.68);
+  color: rgb(255 255 255 / 0.78) !important;
   font-size: 0.73rem;
   line-height: 1.5;
 }
@@ -1451,6 +1490,429 @@
 .treeRows {
   display: grid;
   gap: 0.4rem;
+}
+
+.orgMapShell {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.2rem;
+  background: var(--hierarchy-surface);
+  box-shadow:
+    0 0.8rem 2.2rem rgb(2 12 23 / 0.06),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
+}
+
+.orgMapTopbar {
+  display: flex;
+  min-height: 2.9rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--hierarchy-divider);
+  padding: 0.62rem 0.75rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 92%, var(--hierarchy-input));
+}
+
+.orgMapHint,
+.orgMapZoomValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.48rem;
+  color: var(--hierarchy-subtext);
+  font-size: 0.64rem;
+  font-weight: 550;
+}
+
+.orgMapHint svg {
+  width: 0.9rem;
+  height: 0.9rem;
+  color: var(--hierarchy-readable-accent);
+}
+
+.orgMapZoomValue {
+  min-width: 3.35rem;
+  justify-content: center;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 999px;
+  padding: 0.32rem 0.52rem;
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+  font-variant-numeric: tabular-nums;
+}
+
+.orgMapViewport {
+  --map-grid-size: 32px;
+  --map-grid-x: 0px;
+  --map-grid-y: 0px;
+
+  position: relative;
+  min-height: clamp(30rem, 53vh, 41rem);
+  overflow: hidden;
+  cursor: grab;
+  overscroll-behavior: contain;
+  touch-action: none;
+  background-color: color-mix(in srgb, var(--hierarchy-surface) 94%, var(--hierarchy-input));
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--hierarchy-text) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--hierarchy-text) 6%, transparent) 1px, transparent 1px),
+    radial-gradient(circle at 76% 22%, color-mix(in srgb, var(--hierarchy-accent) 6%, transparent), transparent 22rem);
+  background-position:
+    var(--map-grid-x) var(--map-grid-y),
+    var(--map-grid-x) var(--map-grid-y),
+    center;
+  background-size:
+    var(--map-grid-size) var(--map-grid-size),
+    var(--map-grid-size) var(--map-grid-size),
+    100% 100%;
+}
+
+.orgMapViewport[data-panning="true"] {
+  cursor: grabbing;
+}
+
+.orgMapWorld {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.orgMapConnections {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.orgMapConnections path {
+  fill: none;
+  stroke: color-mix(in srgb, var(--hierarchy-text) 20%, transparent);
+  stroke-linecap: round;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 180ms ease, stroke-width 180ms ease;
+}
+
+.orgMapConnections path[data-highlighted="true"] {
+  stroke: var(--hierarchy-readable-accent);
+  stroke-width: 3;
+}
+
+.orgMapNode {
+  --map-node-tone: var(--hierarchy-action);
+
+  position: absolute;
+  z-index: 2;
+  display: grid;
+  width: 10.5rem;
+  justify-items: center;
+  gap: 0.58rem;
+  color: var(--hierarchy-text);
+  text-align: center;
+  cursor: grab;
+  outline: none;
+  user-select: none;
+  transform: translate(-50%, -50%);
+}
+
+.orgMapNode[data-node-type="region"] {
+  --map-node-tone: var(--color-info);
+}
+
+.orgMapNode[data-node-type="zone"] {
+  --map-node-tone: var(--color-secondary);
+}
+
+.orgMapNode[data-node-type="team"] {
+  --map-node-tone: var(--hierarchy-warning);
+}
+
+.orgMapNode[data-node-type="area"],
+.orgMapNode[data-node-type="department"] {
+  --map-node-tone: var(--hierarchy-success);
+}
+
+.orgMapNode[data-dragging="true"] {
+  z-index: 8;
+  cursor: grabbing;
+}
+
+.orgMapNodeHalo {
+  position: absolute;
+  top: -0.65rem;
+  width: 6.45rem;
+  height: 6.45rem;
+  border: 1px dashed color-mix(in srgb, var(--map-node-tone) 30%, transparent);
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(0.82);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.orgMapNode:hover .orgMapNodeHalo,
+.orgMapNode:focus-visible .orgMapNodeHalo,
+.orgMapNode[data-selected="true"] .orgMapNodeHalo {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.orgMapNodeCircle {
+  position: relative;
+  display: grid;
+  width: 5.35rem;
+  height: 5.35rem;
+  place-items: center;
+  border: 2px solid color-mix(in srgb, var(--map-node-tone) 44%, var(--hierarchy-border));
+  border-radius: 50%;
+  color: color-mix(in srgb, var(--map-node-tone) 68%, var(--hierarchy-text));
+  background:
+    radial-gradient(circle at 34% 28%, color-mix(in srgb, var(--map-node-tone) 18%, transparent), transparent 58%),
+    color-mix(in srgb, var(--hierarchy-surface) 96%, var(--map-node-tone));
+  box-shadow:
+    0 0.85rem 1.8rem rgb(2 12 23 / 0.12),
+    inset 0 1px 0 rgb(255 255 255 / 0.12);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.orgMapNode:hover .orgMapNodeCircle,
+.orgMapNode:focus-visible .orgMapNodeCircle,
+.orgMapNode[data-selected="true"] .orgMapNodeCircle {
+  border-color: color-mix(in srgb, var(--map-node-tone) 78%, var(--hierarchy-text));
+  box-shadow:
+    0 1rem 2.2rem color-mix(in srgb, var(--map-node-tone) 20%, transparent),
+    0 0 0 0.42rem color-mix(in srgb, var(--map-node-tone) 9%, transparent);
+  transform: translateY(-0.16rem) scale(1.045);
+}
+
+.orgMapNode[data-dragging="true"] .orgMapNodeCircle {
+  transform: scale(1.08);
+}
+
+.orgMapNodeCircle > svg {
+  width: 1.75rem;
+  height: 1.75rem;
+  stroke-width: 1.55;
+}
+
+.orgMapNodeCount {
+  position: absolute;
+  right: -0.22rem;
+  bottom: 0.08rem;
+  display: grid;
+  min-width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  border: 2px solid var(--hierarchy-surface);
+  border-radius: 999px;
+  padding-inline: 0.2rem;
+  color: var(--hierarchy-on-action);
+  background: var(--hierarchy-action);
+  font-size: 0.58rem;
+  font-weight: 750;
+  line-height: 1;
+}
+
+.orgMapNodeLabel {
+  display: grid;
+  max-width: 10.5rem;
+  gap: 0.14rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.8rem;
+  padding: 0.42rem 0.65rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 94%, transparent);
+  box-shadow: 0 0.45rem 1rem rgb(2 12 23 / 0.07);
+  backdrop-filter: blur(0.65rem);
+}
+
+.orgMapNodeLabel strong {
+  overflow: hidden;
+  color: var(--hierarchy-text);
+  font-size: 0.74rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orgMapNodeLabel small {
+  overflow: hidden;
+  color: color-mix(in srgb, var(--map-node-tone) 60%, var(--hierarchy-text));
+  font-family: var(--font-system-label);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.orgMapControls {
+  position: absolute;
+  z-index: 20;
+  bottom: 0.85rem;
+  left: 0.85rem;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--hierarchy-surface) 94%, transparent);
+  box-shadow: 0 0.8rem 2rem rgb(2 12 23 / 0.13);
+  backdrop-filter: blur(0.9rem);
+}
+
+.orgMapControls button {
+  display: grid;
+  width: 2.55rem;
+  height: 2.55rem;
+  place-items: center;
+  border: 0;
+  border-right: 1px solid var(--hierarchy-divider);
+  color: var(--hierarchy-subtext);
+  background: transparent;
+  transition: color 160ms ease, background 160ms ease;
+}
+
+.orgMapControls button:last-child {
+  border-right: 0;
+}
+
+.orgMapControls button:hover,
+.orgMapControls button:focus-visible {
+  color: var(--hierarchy-text);
+  background: color-mix(in srgb, var(--hierarchy-action) 9%, var(--hierarchy-input));
+  outline: none;
+}
+
+.orgMapControls svg {
+  width: 1rem;
+  height: 1rem;
+  stroke-width: 1.8;
+}
+
+.mapSelectionPanel {
+  position: absolute;
+  z-index: 20;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: grid;
+  width: min(18rem, calc(100% - 1.7rem));
+  gap: 0.45rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 1.05rem;
+  padding: 0.95rem;
+  color: var(--hierarchy-text);
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--hierarchy-accent) 9%, transparent), transparent 10rem),
+    color-mix(in srgb, var(--hierarchy-surface) 95%, transparent);
+  box-shadow: 0 1rem 2.6rem rgb(2 12 23 / 0.18);
+  backdrop-filter: blur(1rem) saturate(130%);
+}
+
+.mapSelectionClose {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 0;
+  border-radius: 0.55rem;
+  color: var(--hierarchy-subtext);
+  background: transparent;
+}
+
+.mapSelectionClose:hover {
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+}
+
+.mapSelectionClose svg {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.mapSelectionType {
+  width: fit-content;
+  color: var(--hierarchy-readable-accent);
+  font-family: var(--font-system-label);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.mapSelectionPanel h3 {
+  overflow: hidden;
+  max-width: calc(100% - 1.9rem);
+  margin: 0;
+  color: var(--hierarchy-text);
+  font-family: var(--font-system-display);
+  font-size: 1.18rem;
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapSelectionMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  color: var(--hierarchy-subtext);
+  font-size: 0.62rem;
+}
+
+.mapSelectionMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.mapSelectionMeta svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.mapSelectionActions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 2.25rem 2.25rem;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.mapSelectionActions button {
+  display: inline-flex;
+  min-width: 0;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 1px solid var(--hierarchy-border);
+  border-radius: 0.68rem;
+  padding: 0.45rem 0.52rem;
+  color: var(--hierarchy-text);
+  background: var(--hierarchy-input);
+  font-size: 0.6rem;
+  font-weight: 650;
+}
+
+.mapSelectionActions button:hover {
+  border-color: color-mix(in srgb, var(--hierarchy-action) 34%, var(--hierarchy-border));
+  background: color-mix(in srgb, var(--hierarchy-action) 8%, var(--hierarchy-input));
+}
+
+.mapSelectionActions button[data-danger="true"] {
+  color: color-mix(in srgb, var(--hierarchy-danger) 78%, var(--hierarchy-text));
+}
+
+.mapSelectionActions svg {
+  width: 0.86rem;
+  height: 0.86rem;
+  flex: 0 0 auto;
 }
 
 .nodeBranch {
@@ -3779,6 +4241,28 @@
 
   .treeCanvasContent {
     padding: 0.85rem;
+  }
+
+  .orgMapViewport {
+    min-height: 27rem;
+  }
+
+  .orgMapHint span {
+    overflow: hidden;
+    max-width: 13rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mapSelectionPanel {
+    top: 0.65rem;
+    right: 0.65rem;
+    width: calc(100% - 1.3rem);
+  }
+
+  .orgMapControls {
+    bottom: 0.65rem;
+    left: 0.65rem;
   }
 
   .emptyWorkspaceMain {

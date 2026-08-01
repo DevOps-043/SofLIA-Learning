@@ -8,6 +8,7 @@
     "startTour": "Start tour"
   },
   "progress": "{{current}}/{{total}}",
+  "guideLabel": "Interactive guide",
   "courseLearn": {
     "welcome": {
       "title": "Learn With Clarity",
@@ -23,7 +24,7 @@
     },
     "sidebar": {
       "title": "Course Content",
-      "content": "Use this panel to move through modules, lessons, materials, and notes without leaving the learning experience."
+      "content": "The panel is divided into Content and My Notes. Content lets you browse modules, open lessons, and review their activities or materials without leaving the course."
     },
     "moduleProgress": {
       "title": "Module Progress",
@@ -32,6 +33,10 @@
     "currentLesson": {
       "title": "Current Lesson",
       "content": "The highlighted lesson marks where you are. You can switch topics from the list whenever you want to continue elsewhere."
+    },
+    "notes": {
+      "title": "Your Notes, Always at Hand",
+      "content": "My Notes brings together the notes you saved in this course. The counter shows how many you have, and from this tab you can create, open, edit, or delete notes and continue in your Notebook."
     },
     "tabs": {
       "title": "Work Modes",
@@ -164,10 +169,6 @@
     "stats": {
       "title": "General Metrics",
       "content": "These cards show active users, assigned courses, completions, progress, certificates, engagement, and invitations."
-    },
-    "quickActions": {
-      "title": "Quick Actions",
-      "content": "Jump straight into frequent tasks such as managing users, assigning courses, opening reports, or configuring the organization."
     },
     "recentActivity": {
       "title": "Recent Activity",

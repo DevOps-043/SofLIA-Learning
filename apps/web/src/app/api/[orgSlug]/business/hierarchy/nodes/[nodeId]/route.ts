@@ -170,6 +170,20 @@ async function handlePut(
 
         const supabase = createAdminClient();
 
+        if (body.manager_id) {
+            const { data: organizationUser, error: organizationUserError } = await supabase
+                .from('organization_users')
+                .select('user_id')
+                .eq('organization_id', auth.organizationId)
+                .eq('user_id', body.manager_id)
+                .eq('status', 'active')
+                .maybeSingle();
+
+            if (organizationUserError || !organizationUser) {
+                return apiError('MANAGER_NOT_IN_ORG', 'Manager must be an active organization user', 400);
+            }
+        }
+
         const { data, error } = await supabase
             .from('organization_nodes')
             .update(body)
@@ -180,36 +194,48 @@ async function handlePut(
 
         if (error) return apiError('UPDATE_NODE_FAILED', error.message, 500);
 
-        if (body.manager_id && body.manager_id !== null) {
-            await supabase
+        if (body.manager_id !== undefined) {
+            const { error: demoteError } = await supabase
                 .from('organization_node_users')
                 .update({ role: 'member' })
                 .eq('node_id', nodeId)
                 .eq('role', 'leader');
 
-            const { data: existingMember } = await supabase
+            if (demoteError) return apiError('UPDATE_NODE_MANAGER_FAILED', demoteError.message, 500);
+
+            if (body.manager_id === null) {
+                return NextResponse.json({ success: true, data });
+            }
+
+            const { data: existingMember, error: existingMemberError } = await supabase
                 .from('organization_node_users')
                 .select('id, role')
                 .eq('node_id', nodeId)
                 .eq('user_id', body.manager_id)
-                .single();
+                .maybeSingle();
+
+            if (existingMemberError) {
+                return apiError('UPDATE_NODE_MANAGER_FAILED', existingMemberError.message, 500);
+            }
 
             if (existingMember) {
-                await supabase
+                const { error: promoteError } = await supabase
                     .from('organization_node_users')
                     .update({ role: 'leader' })
                     .eq('id', existingMember.id);
+                if (promoteError) return apiError('UPDATE_NODE_MANAGER_FAILED', promoteError.message, 500);
             } else {
-                await supabase
+                const { error: insertManagerError } = await supabase
                     .from('organization_node_users')
                     .insert({
                         node_id: nodeId,
                         user_id: body.manager_id,
                         role: 'leader'
                     });
+                if (insertManagerError) return apiError('UPDATE_NODE_MANAGER_FAILED', insertManagerError.message, 500);
             }
         }
-        return NextResponse.json({ data });
+        return NextResponse.json({ success: true, data });
     } catch (error) {
         return apiError('INTERNAL_ERROR', 'Internal Server Error', 500);
     }

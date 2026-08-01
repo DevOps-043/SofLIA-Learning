@@ -1,5 +1,5 @@
 import { AlertTriangle, Building2, Layers3, Network, RefreshCw, Users } from 'lucide-react';
-import { NodeItem } from '../NodeItem';
+import { HierarchyMap } from './HierarchyMap';
 import type { BusinessTranslator } from './types';
 import type { useHierarchyTreeState } from './useHierarchyTreeState';
 import styles from '../HierarchyExperience.module.css';
@@ -54,21 +54,18 @@ export function HierarchyTreeBody({ onCreateStructure, onInitializeRootNode, sta
   }
 
   return (
-    <div className={styles.treeRows}>
-      {state.treeRoots.map((root) => (
-        <NodeItem
-          key={root.id}
-          node={root}
-          level={0}
-          onAddChild={(node) => state.openNodeModal('create', node)}
-          onEdit={(node) => state.openNodeModal('edit', node)}
-          onDelete={(node) => {
-            state.setNodeActionError(null);
-            state.setPendingDeleteNode(node);
-          }}
-        />
-      ))}
-    </div>
+    <HierarchyMap
+      nodes={state.nodes}
+      structureId={state.selectedStructureId as string}
+      orgSlug={state.orgSlug}
+      onAddChild={(node) => state.openNodeModal('create', node)}
+      onEdit={(node) => state.openNodeModal('edit', node)}
+      onDelete={(node) => {
+        state.setNodeActionError(null);
+        state.setPendingDeleteNode(node);
+      }}
+      t={t}
+    />
   );
 }
 

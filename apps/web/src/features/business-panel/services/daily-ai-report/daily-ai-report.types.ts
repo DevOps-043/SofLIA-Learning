@@ -15,6 +15,7 @@ export interface DailyAiReportRow {
   file_name: string
   byte_size: number
   model_name: string | null
+  report_payload: unknown | null
   generated_by_user_id: string | null
   created_at: string
 }
@@ -30,6 +31,7 @@ export interface DailyAiReportInsert {
   file_name: string
   byte_size: number
   model_name: string | null
+  report_payload?: unknown | null
   generated_by_user_id: string | null
 }
 
@@ -45,6 +47,10 @@ export interface DailyAiReportRequest {
    * distintos y cada una se genera una vez al día.
    */
   scopeKey?: string
+  /** Un solo informe por organizacion/dia, independientemente de idioma/filtros. */
+  onePerOrganizationDay?: boolean
+  /** Permite actualizar documentos legacy cuyo PDF existe pero carece de metadatos requeridos. */
+  isMetadataValid?: (metadata: unknown) => boolean
   generatedByUserId?: string | null
   /**
    * Solo se invoca cuando no existe el documento del día. Devuelve también el
@@ -58,14 +64,23 @@ export interface DailyAiReportPayload {
   bytes: Uint8Array
   fileName: string
   modelName?: string | null
+  metadata?: unknown
 }
 
-export interface DailyAiReportDocument {
-  bytes: Uint8Array
+export interface DailyAiReportRecord {
   fileName: string
   /** Día natural (zona horaria de la aplicación) al que pertenece el documento. */
   reportDate: string
   /** `true` si se reutilizó el documento ya generado hoy, sin llamar al modelo. */
   reused: boolean
   generatedAt: string
+  locale: string
+  metadata?: unknown
+  storagePath: string
 }
+
+export interface DailyAiReportDocument extends DailyAiReportRecord {
+  bytes: Uint8Array
+}
+
+export type DailyAiReportLookup = Omit<DailyAiReportRequest, 'generate' | 'generatedByUserId'>

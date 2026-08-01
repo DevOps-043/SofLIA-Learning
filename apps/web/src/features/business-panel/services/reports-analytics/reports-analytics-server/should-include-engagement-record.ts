@@ -1,5 +1,6 @@
 import { REPORTS_ANALYTICS_UNSPECIFIED, isAnyDateWithinPeriod } from '../reports-analytics.helpers'
 import type { BuildContext } from './build-context'
+import { organizationAssignmentKey } from './organization-assignment-key'
 
 export function shouldIncludeEngagementRecord(
   context: BuildContext,
@@ -11,10 +12,18 @@ export function shouldIncludeEngagementRecord(
   // Allow course-less engagement (e.g. general SofLIA chat). Reject only when
   // a specific course is set and it doesn't belong to this org.
   if (
-    context.orgCourseIds.size > 0 &&
+    context.orgCourseScopeReady &&
     courseId &&
     courseId !== REPORTS_ANALYTICS_UNSPECIFIED &&
     !context.orgCourseIds.has(courseId)
+  ) {
+    return false
+  }
+  if (
+    context.orgCourseScopeReady &&
+    courseId &&
+    courseId !== REPORTS_ANALYTICS_UNSPECIFIED &&
+    !context.orgAssignmentKeys.has(organizationAssignmentKey(userId, courseId))
   ) {
     return false
   }

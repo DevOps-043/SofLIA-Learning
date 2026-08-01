@@ -13,11 +13,17 @@ const RISK_LEVEL_ORDER: Record<ReportsAnalyticsPriorityUserRiskLevel, number> = 
   low: 2,
 }
 
-function classifyUser(
+export function classifyPriorityUser(
   user: ReportsAnalyticsUserDetailRow,
   referenceDate: Date,
 ): { riskLevel: ReportsAnalyticsPriorityUserRiskLevel; riskCause: ReportsAnalyticsPriorityUserRiskCause } | null {
   if (user.coursesAssigned === 0) return null
+  if (
+    user.overdueAssignments === 0 &&
+    user.coursesCompleted >= user.coursesAssigned
+  ) {
+    return null
+  }
 
   const inactiveThresholdMs = INACTIVE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000
   const isInactive =
@@ -47,7 +53,7 @@ export function computePriorityUsers(
   const priorityUsers: ReportsAnalyticsPriorityUser[] = []
 
   for (const user of userDetails) {
-    const classification = classifyUser(user, referenceDate)
+    const classification = classifyPriorityUser(user, referenceDate)
     if (!classification) continue
 
     priorityUsers.push({

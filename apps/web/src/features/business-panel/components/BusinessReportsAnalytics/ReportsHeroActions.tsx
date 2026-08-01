@@ -17,6 +17,8 @@ export function ReportsHeroActions({
   canUseData,
   isExporting,
   isGeneratingInsights,
+  canGenerateInsights,
+  hasInsights,
   locale,
   t,
   onExport,
@@ -25,6 +27,8 @@ export function ReportsHeroActions({
   canUseData: boolean
   isExporting: ReportsAnalyticsExportingState
   isGeneratingInsights: boolean
+  canGenerateInsights: boolean
+  hasInsights: boolean
   locale: ReportsAnalyticsLocale
   t: ReportsAnalyticsT
   onExport: ReportsAnalyticsExporter
@@ -35,7 +39,8 @@ export function ReportsHeroActions({
       <button
         type="button"
         onClick={() => onGenerateInsights(locale)}
-        disabled={!canUseData || isGeneratingInsights}
+        disabled={!canUseData || !canGenerateInsights || isGeneratingInsights}
+        title={!canGenerateInsights ? t('reportsAnalytics.ai.dailyLimitReached') : undefined}
         className={styles.heroPrimaryButton}
       >
         {isGeneratingInsights ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
@@ -50,7 +55,7 @@ export function ReportsHeroActions({
             key={action.format}
             type="button"
             onClick={() => onExport(action.format, locale)}
-            disabled={!canUseData || Boolean(isExporting)}
+            disabled={!canUseData || Boolean(isExporting) || (action.format === 'pdf' && !hasInsights)}
             className={styles.heroButton}
           >
             {isCurrentExport ? <Loader2 className="h-4 w-4 animate-spin" /> : <Icon className="h-4 w-4" />}

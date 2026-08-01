@@ -87,7 +87,7 @@ export function useNodeDashboardState(nodeId: string) {
     name: string,
     type: string,
     properties?: OrganizationNodeProperties,
-    managerId?: string
+    managerId?: string | null
   ) => {
     try {
       const payload: UpdateNodeRequest = {
@@ -96,11 +96,13 @@ export function useNodeDashboardState(nodeId: string) {
         properties,
         manager_id: managerId ?? null,
       }
-      await DynamicHierarchyService.updateNode(nodeId, payload)
-      fetchData()
+      const result = await DynamicHierarchyService.updateNode(nodeId, payload, orgSlug)
+      if (!result.success) throw new Error(result.error || 'Unable to update hierarchy node')
+      await fetchData()
       setShowEditModal(false)
     } catch (error) {
       techDebtLogger.error('Error updating node:', error)
+      throw error
     }
   }
 

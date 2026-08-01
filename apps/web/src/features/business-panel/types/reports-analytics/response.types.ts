@@ -78,6 +78,7 @@ export interface ReportsAnalyticsUserDetailRow {
   quizAverageScore: number
   lastActivityAt: string | null
   qualityScore: number
+  qualityEvidenceCount: number
 }
 
 export interface ReportsAnalyticsDataset extends ReportsAnalyticsResponse {

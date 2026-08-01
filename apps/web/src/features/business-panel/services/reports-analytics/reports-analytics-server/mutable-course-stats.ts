@@ -5,7 +5,7 @@ export interface MutableCourseStats {
   activeLearners: Set<string>
   completedUsers: Set<string>
   progressByUser: Map<string, number>
-  overdueAssignments: number
+  overdueUsers: Set<string>
   notesCount: number
   sofliaConversations: number
   activityTotal: number

@@ -12,7 +12,7 @@ export function finalizeCourses(context: BuildContext): ReportsAnalyticsCourseRo
       activeLearners: course.activeLearners.size,
       completedUsers: course.completedUsers.size,
       averageProgress: calculateAverage(Array.from(course.progressByUser.values())),
-      overdueAssignments: course.overdueAssignments,
+      overdueAssignments: course.overdueUsers.size,
       notesCount: course.notesCount,
       sofliaConversations: course.sofliaConversations,
       activityCompletionRate: calculatePercentage(course.activityCompleted, course.activityTotal),

@@ -1,5 +1,5 @@
 import type { ReportsAnalyticsSegmentRow, ReportsAnalyticsUserDetailRow } from '../../../types/reports-analytics.types'
-import { calculateAverage, calculatePercentage } from '../reports-analytics.helpers'
+import { calculatePercentage } from '../reports-analytics.helpers'
 
 export function buildSegmentRow(
   key: string,
@@ -15,12 +15,29 @@ export function buildSegmentRow(
     key,
     label,
     users: users.length,
-    averageProgress: calculateAverage(users.map((user) => user.averageProgress)),
+    averageProgress: weightedAverage(users, (user) => user.averageProgress, (user) => user.coursesAssigned),
     completionRate: calculatePercentage(completed, assigned),
-    averageCompletionDays: calculateAverage(users.map((user) => user.averageCompletionDays).filter((value) => value > 0)),
+    averageCompletionDays: weightedAverage(
+      users.filter((user) => user.averageCompletionDays > 0),
+      (user) => user.averageCompletionDays,
+      (user) => user.coursesCompleted,
+    ),
     sofliaAdoptionRate: calculatePercentage(sofliaUsers, users.length),
     notesAdoptionRate: calculatePercentage(notesUsers, users.length),
-    quizAverageScore: calculateAverage(users.map((user) => user.quizAverageScore)),
-    qualityScore: calculateAverage(users.map((user) => user.qualityScore)),
+    quizAverageScore: weightedAverage(users, (user) => user.quizAverageScore, (user) => user.quizAttempts),
+    qualityScore: weightedAverage(users, (user) => user.qualityScore, (user) => user.qualityEvidenceCount),
   }
+}
+
+function weightedAverage(
+  users: ReportsAnalyticsUserDetailRow[],
+  value: (user: ReportsAnalyticsUserDetailRow) => number,
+  weight: (user: ReportsAnalyticsUserDetailRow) => number,
+): number {
+  const totalWeight = users.reduce((sum, user) => sum + weight(user), 0)
+  if (totalWeight === 0) return 0
+
+  return Math.round(
+    (users.reduce((sum, user) => sum + value(user) * weight(user), 0) / totalWeight) * 10,
+  ) / 10
 }

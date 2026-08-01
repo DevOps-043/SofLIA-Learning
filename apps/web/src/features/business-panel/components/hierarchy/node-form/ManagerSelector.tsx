@@ -1,6 +1,7 @@
 'use client'
 
 import { Loader2, Search, X } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import styles from '../HierarchyExperience.module.css'
 import type { NodeManagerUser } from './node-form.utils'
@@ -25,6 +26,7 @@ export function ManagerSelector({
   onClearManager,
 }: ManagerSelectorProps) {
   const { t } = useTranslation('business')
+  const [isExpanded, setIsExpanded] = useState(false)
 
   return (
     <div className={styles.fieldGroup}>
@@ -53,22 +55,37 @@ export function ManagerSelector({
           </button>
         </div>
       ) : (
-        <div className={styles.selectRoot}>
+        <div
+          className={styles.selectRoot}
+          onBlur={event => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setIsExpanded(false)
+          }}
+        >
           <label className={styles.searchField}>
             <Search aria-hidden="true" />
             <input
               type="search"
               value={managerSearch}
               onChange={event => onSearchChange(event.target.value)}
+              onFocus={() => setIsExpanded(true)}
               placeholder={t('hierarchy.nodeForm.placeholders.searchUser')}
               className={styles.input}
             />
             {isSearchingManager ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
           </label>
 
-          {managerResults.length > 0 && managerSearch ? (
+          {isExpanded ? (
             <div className={styles.selectMenu} role="listbox">
-              {managerResults.map(user => (
+              {isSearchingManager ? (
+                <div className={styles.managerSearchState} role="status">
+                  <Loader2 className="animate-spin" aria-hidden="true" />
+                  <span>{t('hierarchy.nodeForm.searchingUsers', { defaultValue: 'Buscando usuarios…' })}</span>
+                </div>
+              ) : managerResults.length === 0 ? (
+                <p className={styles.managerSearchState}>
+                  {t('hierarchy.nodeForm.noUsers', { defaultValue: 'No hay usuarios disponibles en la organización.' })}
+                </p>
+              ) : managerResults.map(user => (
                 <button
                   key={user.id}
                   type="button"

@@ -6,10 +6,10 @@ export interface MutableUserStats {
   completedCourseIds: Set<string>
   progressByCourse: Map<string, number>
   completionDays: number[]
+  completionDaysByCourse: Map<string, number>
+  overdueCourseIds: Set<string>
   quizScores: number[]
   activityQualityScores: number[]
-  sofliaQualityScores: number[]
-  notesQualityScores: number[]
   lastActivityDates: string[]
   completedTrendCourseIds: Set<string>
 }

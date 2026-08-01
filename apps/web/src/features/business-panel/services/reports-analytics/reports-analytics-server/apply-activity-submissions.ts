@@ -41,7 +41,9 @@ export function applyActivitySubmissions(
     const qualityScore = getActivitySubmissionQualityScore(record, latestEvaluation)
 
     user.detail.activityAttempts += 1
-    user.activityQualityScores.push(qualityScore)
+    // El indicador organizacional usa el resultado observable (validada o no),
+    // no una ponderacion subjetiva basada en el nombre del estado.
+    user.activityQualityScores.push(completed ? 100 : 0)
     course.activityTotal += 1
     course.activeLearners.add(record.user_id)
 

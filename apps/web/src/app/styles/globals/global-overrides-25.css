@@ -32,7 +32,23 @@ html.is-apple-platform * {
 
 /* Keep the overlay below the floater so custom tooltip controls stay clickable. */
 .react-joyride__overlay {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
   z-index: 10000 !important;
+}
+
+/* The spotlight must be a genuinely transparent cut-out, never a filtered layer. */
+.react-joyride__spotlight {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* Defensive fallback: Joyride must not restore its pointer between hot reloads. */
+.react-joyride__arrow,
+[data-testid='arrow'] {
+  display: none !important;
 }
 
 /* Target the actual React Joyride v3 floater/tooltip containers. */

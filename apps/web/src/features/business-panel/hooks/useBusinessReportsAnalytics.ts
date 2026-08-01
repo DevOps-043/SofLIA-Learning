@@ -7,6 +7,7 @@ import type {
   ReportsAnalyticsAiInsights,
   ReportsAnalyticsExportFormat,
   ReportsAnalyticsInsightsResponse,
+  ReportsAnalyticsLocale,
   ReportsAnalyticsResponse,
   ReportsAnalyticsTimeGranularity,
 } from '../types/reports-analytics.types'
@@ -33,7 +34,10 @@ class ApiJsonResponseError extends Error {
   }
 }
 
-export function useBusinessReportsAnalytics(orgSlugOverride?: string) {
+export function useBusinessReportsAnalytics(
+  orgSlugOverride?: string,
+  locale: ReportsAnalyticsLocale = 'es',
+) {
   const params = useParams()
   const orgSlug = orgSlugOverride || (params?.orgSlug as string)
 
@@ -43,6 +47,11 @@ export function useBusinessReportsAnalytics(orgSlugOverride?: string) {
   // ── Mutation state (export, insights) — kept local, not SWR ───────────────
   const [isExporting, setIsExporting] = useState<ReportsAnalyticsExportFormat | null>(null)
   const [insights, setInsights] = useState<ReportsAnalyticsAiInsights | null>(null)
+  const [canGenerateInsights, setCanGenerateInsights] = useState(false)
+  const [insightsReportDate, setInsightsReportDate] = useState<string | null>(null)
+  const [insightsGeneratedAt, setInsightsGeneratedAt] = useState<string | null>(null)
+  const [insightsPeriod, setInsightsPeriod] = useState<{ from: string; to: string } | null>(null)
+  const [isLoadingPersistedInsights, setIsLoadingPersistedInsights] = useState(true)
   const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
   const [isExportingInsightsPdf, setIsExportingInsightsPdf] = useState(false)
   const [mutationError, setMutationError] = useState<string | null>(null)
@@ -82,10 +91,56 @@ export function useBusinessReportsAnalytics(orgSlugOverride?: string) {
     },
   )
 
-  // Clear stale insights when the filter set changes
+  // El informe vive en servidor: se recupera al volver a la pagina, iniciar otra
+  // sesion o usar otro equipo. Cambiar filtros no borra el ultimo corte diario.
   useEffect(() => {
+    if (!orgSlug) {
+      setIsLoadingPersistedInsights(false)
+      return
+    }
+
+    const controller = new AbortController()
     setInsights(null)
-  }, [queryString])
+    setInsightsReportDate(null)
+    setInsightsGeneratedAt(null)
+    setInsightsPeriod(null)
+    setCanGenerateInsights(false)
+    setIsLoadingPersistedInsights(true)
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/${orgSlug}/business/reports-analytics/insights?locale=${locale}`,
+          { credentials: 'include', signal: controller.signal },
+        )
+        const payload = await readApiJson<ReportsAnalyticsInsightsResponse & { error?: string }>(
+          response,
+          'analytics_insights_lookup_failed',
+        )
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error || 'analytics_insights_lookup_failed')
+        }
+
+        setInsights(payload.insights)
+        setCanGenerateInsights(payload.canGenerateToday)
+        setInsightsReportDate(payload.reportDate)
+        setInsightsGeneratedAt(payload.generatedAt)
+        setInsightsPeriod(payload.reportPeriod ?? null)
+      } catch (lookupError) {
+        if (!controller.signal.aborted) {
+          // El POST conserva la restriccion diaria en servidor y puede recuperar
+          // un informe existente aunque esta lectura inicial haya fallado.
+          setCanGenerateInsights(true)
+          setMutationError(lookupError instanceof Error ? lookupError.message : 'analytics_insights_lookup_failed')
+        }
+      } finally {
+        if (!controller.signal.aborted) setIsLoadingPersistedInsights(false)
+      }
+    })()
+
+    return () => controller.abort()
+  }, [locale, orgSlug])
 
   const error =
     swrError instanceof Error ? swrError.message : mutationError
@@ -140,7 +195,7 @@ export function useBusinessReportsAnalytics(orgSlugOverride?: string) {
 
   const generateInsights = useCallback(
     async (locale: string) => {
-      if (!orgSlug || !data) return
+      if (!orgSlug || !data || !canGenerateInsights) return
 
       setIsGeneratingInsights(true)
       setMutationError(null)
@@ -161,14 +216,25 @@ export function useBusinessReportsAnalytics(orgSlugOverride?: string) {
           throw new Error(payload.error || 'analytics_insights_failed')
         }
 
-        setInsights((payload as ReportsAnalyticsInsightsResponse).insights)
+        if (!payload.insights) {
+          throw new Error('analytics_insights_payload_missing')
+        }
+
+        setInsights(payload.insights)
+        setCanGenerateInsights(payload.canGenerateToday)
+        setInsightsReportDate(payload.reportDate)
+        setInsightsGeneratedAt(payload.generatedAt)
+        setInsightsPeriod(payload.reportPeriod ?? null)
+        if (payload.dataset) {
+          void swrMutate(payload.dataset, { revalidate: false })
+        }
       } catch (insightsError) {
         setMutationError(insightsError instanceof Error ? insightsError.message : 'analytics_insights_failed')
       } finally {
         setIsGeneratingInsights(false)
       }
     },
-    [data, filters, orgSlug],
+    [canGenerateInsights, data, filters, locale, orgSlug, swrMutate],
   )
 
   const exportInsightsPdf = useCallback(
@@ -211,6 +277,11 @@ export function useBusinessReportsAnalytics(orgSlugOverride?: string) {
   return {
     data: data ?? null,
     insights,
+    canGenerateInsights: canGenerateInsights && !isLoadingPersistedInsights,
+    insightsReportDate,
+    insightsGeneratedAt,
+    insightsPeriod,
+    isLoadingPersistedInsights,
     filters,
     isLoading,       // true only on first load (no cached data yet)
     isValidating,    // true when fetching with previous data visible — use for subtle refresh indicators

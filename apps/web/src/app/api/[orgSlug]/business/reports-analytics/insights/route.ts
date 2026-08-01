@@ -3,12 +3,15 @@ import { ZodError } from "zod";
 
 import { apiError } from "@/lib/api/errors";
 import { requireBusiness } from "@/lib/auth/requireBusiness";
-import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/utils/logger";
 import { withZodBody } from "@/lib/api/with-validation";
-import { getOrganizationAnalyticsDailyReport } from "@/features/business-panel/services/reports-analytics/org-analytics-daily-report.server.service";
-import { generateReportsAnalyticsInsights } from "@/features/business-panel/services/reports-analytics/reports-analytics.insights.service";
-import { fetchReportsAnalyticsDataset } from "@/features/business-panel/services/reports-analytics/reports-analytics.server.service";
+import { currentDailyReportDate } from "@/features/business-panel/services/daily-ai-report";
+import {
+  getLatestOrganizationAnalyticsReportDocument,
+  getLatestOrganizationAnalyticsReportRecord,
+  getOrganizationAnalyticsDailyReport,
+  readOrganizationAnalyticsReportPayload,
+} from "@/features/business-panel/services/reports-analytics/org-analytics-daily-report.server.service";
 import type {
   ReportsAnalyticsFilters,
   ReportsAnalyticsLocale,
@@ -27,6 +30,38 @@ type RouteContext = {
   params: Promise<{ orgSlug: string }>;
 };
 
+export async function GET(request: NextRequest, { params }: RouteContext) {
+  try {
+    const { orgSlug } = await params;
+    const auth = await requireBusiness({ organizationSlug: orgSlug });
+    if (auth instanceof NextResponse) return auth;
+    if (!auth.organizationId) return forbiddenResponse();
+
+    const locale = normalizeLocale(request.nextUrl.searchParams.get("locale"));
+    const record = await getLatestOrganizationAnalyticsReportRecord({
+      organizationId: auth.organizationId,
+      locale,
+    });
+    const payload = readOrganizationAnalyticsReportPayload(record?.metadata);
+
+    return NextResponse.json(
+      {
+        success: true,
+        insights: payload?.insights ?? null,
+        reportDate: record?.reportDate ?? null,
+        generatedAt: payload?.insights.generatedAt ?? record?.generatedAt ?? null,
+        reportLocale: record?.locale ?? null,
+        reportPeriod: payload?.dataset.period ?? null,
+        canGenerateToday: !record || !payload || record.reportDate !== currentDailyReportDate(),
+      },
+      { headers: { "Cache-Control": "private, no-cache, no-store, must-revalidate" } },
+    );
+  } catch (error) {
+    logger.error("Reports analytics persisted insights lookup failed", error);
+    return apiError("REPORT_INSIGHTS_LOOKUP_FAILED", "Error al consultar el analisis IA", 500);
+  }
+}
+
 async function handlePost(
   _request: NextRequest,
   body: ReportsAnalyticsInsightsBody,
@@ -44,12 +79,18 @@ async function handlePost(
     if (body.format === "pdf") {
       // Esta es exactamente la misma operación que usa "Descargar PDF". El
       // servicio diario resuelve un único documento por ámbito, filtros y día.
-      const document = await getOrganizationAnalyticsDailyReport({
+      const document = await getLatestOrganizationAnalyticsReportDocument({
         organizationId: auth.organizationId,
-        filters,
         locale,
-        generatedByUserId: auth.userId,
       });
+
+      if (!document) {
+        return apiError(
+          "REPORT_INSIGHTS_REQUIRED",
+          "Genera primero el analisis diario antes de exportarlo",
+          409,
+        );
+      }
 
       const responseBody = document.bytes.buffer.slice(
         document.bytes.byteOffset,
@@ -68,20 +109,34 @@ async function handlePost(
       });
     }
 
-    const supabase = await createClient();
-    const dataset = await fetchReportsAnalyticsDataset(
-      supabase,
-      auth.organizationId,
+    const document = await getOrganizationAnalyticsDailyReport({
+      organizationId: auth.organizationId,
       filters,
-    );
-    const insights = await generateReportsAnalyticsInsights({
-      dataset,
       locale,
-      requestedByUserId: auth.userId,
+      generatedByUserId: auth.userId,
     });
+    const payload = readOrganizationAnalyticsReportPayload(document.metadata);
+
+    if (!payload) {
+      return apiError(
+        "REPORT_INSIGHTS_PAYLOAD_MISSING",
+        "El informe diario no contiene un analisis recuperable",
+        500,
+      );
+    }
 
     return NextResponse.json(
-      { success: true, insights },
+      {
+        success: true,
+        insights: payload.insights,
+        dataset: payload.dataset,
+        reportDate: document.reportDate,
+        generatedAt: payload.insights.generatedAt,
+        reportLocale: document.locale,
+        reportPeriod: payload.dataset.period,
+        canGenerateToday: false,
+        reused: document.reused,
+      },
       {
         headers: {
           "Cache-Control": "private, no-cache, no-store, must-revalidate",
@@ -159,4 +214,8 @@ function forbiddenResponse(): NextResponse {
     "No tienes una organizacion asignada",
     403,
   );
+}
+
+function normalizeLocale(value: string | null): ReportsAnalyticsLocale {
+  return value === "en" || value === "pt" ? value : "es";
 }

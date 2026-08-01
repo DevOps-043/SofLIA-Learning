@@ -1,5 +1,6 @@
 import { isAnyDateOnOrBefore } from '../reports-analytics.helpers'
 import type { BuildContext } from './build-context'
+import { organizationAssignmentKey } from './organization-assignment-key'
 
 export function shouldIncludeStateRecord(
   context: BuildContext,
@@ -9,9 +10,14 @@ export function shouldIncludeStateRecord(
 ): boolean {
   if (!context.users.has(userId)) return false
   // Reject records for courses that don't belong to this org.
-  // orgCourseIds is populated by applyAssignments (which runs first) so it is
-  // already complete by the time enrollments and lesson progress are applied.
-  if (context.orgCourseIds.size > 0 && courseId && !context.orgCourseIds.has(courseId)) return false
+  // applyAssignments precarga el conjunto completo antes de filtrar su primera
+  // fila, por lo que aqui nunca depende del orden devuelto por la base.
+  if (context.orgCourseScopeReady && courseId && !context.orgCourseIds.has(courseId)) return false
+  if (
+    context.orgCourseScopeReady &&
+    courseId &&
+    !context.orgAssignmentKeys.has(organizationAssignmentKey(userId, courseId))
+  ) return false
   if (context.filters.courseId && courseId !== context.filters.courseId) return false
   return isAnyDateOnOrBefore(dates, context.filters.to)
 }

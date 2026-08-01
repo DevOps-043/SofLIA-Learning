@@ -1,4 +1,4 @@
-import { REPORTS_ANALYTICS_UNSPECIFIED, calculateAverage, clampPercentage } from '../reports-analytics.helpers'
+import { REPORTS_ANALYTICS_UNSPECIFIED } from '../reports-analytics.helpers'
 import { ensureCourse } from './ensure-course'
 import { pushAiSample } from './push-ai-sample'
 import { pushLastActivity } from './push-last-activity'
@@ -39,21 +39,6 @@ export function applyLiaConversations(
 
     const conversationMessages = messagesByConversation.get(conversation.conversation_id) || []
     const userMessages = conversationMessages.filter((message) => message.role === 'user')
-    const offTopicMessages = userMessages.filter((message) => message.is_off_topic).length
-    const redirectedMessages = conversationMessages.filter((message) => message.lia_redirected).length
-    const questionMessages = userMessages.filter((message) => message.contains_question).length
-    const sentimentScores = conversationMessages
-      .map((message) => Number(message.sentiment_score))
-      .filter((value) => Number.isFinite(value))
-    const sentimentScore = sentimentScores.length > 0
-      ? clampPercentage(((calculateAverage(sentimentScores) + 1) / 2) * 100)
-      : 70
-    const sofliaQualityScore = clampPercentage(
-      sentimentScore -
-        Math.min(25, offTopicMessages * 8) -
-        Math.min(15, redirectedMessages * 5) +
-        Math.min(10, questionMessages * 2),
-    )
     const messageCount =
       Number(conversation.total_messages) ||
       conversationMessages.length ||
@@ -63,7 +48,6 @@ export function applyLiaConversations(
 
     user.detail.sofliaConversations += 1
     user.detail.sofliaMessages += messageCount
-    user.sofliaQualityScores.push(sofliaQualityScore)
     course.sofliaConversations += 1
     course.activeLearners.add(conversation.user_id)
     pushLastActivity(user, conversation.started_at, conversation.ended_at, conversation.created_at, conversation.updated_at)

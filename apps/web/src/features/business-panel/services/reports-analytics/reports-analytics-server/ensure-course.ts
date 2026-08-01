@@ -23,7 +23,7 @@ export function ensureCourse(
     activeLearners: new Set<string>(),
     completedUsers: new Set<string>(),
     progressByUser: new Map<string, number>(),
-    overdueAssignments: 0,
+    overdueUsers: new Set<string>(),
     notesCount: 0,
     sofliaConversations: 0,
     activityTotal: 0,

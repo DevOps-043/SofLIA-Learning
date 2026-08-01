@@ -25,6 +25,7 @@ type ReportsAnalyticsVariables = CSSProperties & Record<`--reports-${string}`, s
 export function BusinessReportsAnalytics({ orgSlug }: BusinessReportsAnalyticsProps = {}) {
   const { t: tRaw } = useTranslation('business')
   const { language } = useLanguage()
+  const locale = language as ReportsAnalyticsLocale
   const theme = useBusinessPanelTheme()
   const { autoStartIfNeeded } = useTour(businessPanelReportsTour)
 
@@ -48,9 +49,11 @@ export function BusinessReportsAnalytics({ orgSlug }: BusinessReportsAnalyticsPr
     exportAnalytics,
     generateInsights,
     exportInsightsPdf,
-  } = useBusinessReportsAnalytics(orgSlug)
+    canGenerateInsights,
+    insightsGeneratedAt,
+    insightsPeriod,
+  } = useBusinessReportsAnalytics(orgSlug, locale)
 
-  const locale = language as ReportsAnalyticsLocale
   const t: ReportsAnalyticsT = (key) => tRaw(key)
   const reportsVariables: ReportsAnalyticsVariables = {
     '--reports-accent': theme.accentColor,
@@ -74,6 +77,8 @@ export function BusinessReportsAnalytics({ orgSlug }: BusinessReportsAnalyticsPr
           data={data}
           isExporting={isExporting}
           isGeneratingInsights={isGeneratingInsights}
+          canGenerateInsights={canGenerateInsights}
+          hasInsights={Boolean(insights)}
           locale={locale}
           theme={theme}
           t={t}
@@ -112,6 +117,9 @@ export function BusinessReportsAnalytics({ orgSlug }: BusinessReportsAnalyticsPr
             insights={insights}
             isExportingInsightsPdf={isExportingInsightsPdf}
             isGeneratingInsights={isGeneratingInsights}
+            canGenerateInsights={canGenerateInsights}
+            insightsGeneratedAt={insightsGeneratedAt}
+            insightsPeriod={insightsPeriod}
             locale={locale}
             theme={theme}
             t={t}

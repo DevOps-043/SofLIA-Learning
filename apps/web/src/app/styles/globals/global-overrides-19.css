@@ -40,17 +40,17 @@
 }
 
 /* Texto en modo claro (excluye elementos dentro de hero banners oscuros) */
-.light .business-panel-content h1:not([class*="hero"]),
-.light .business-panel-content h2:not([class*="hero"]),
-.light .business-panel-content h3:not([class*="hero"]),
-.light .business-panel-content h4:not([class*="hero"]),
-.light .business-panel-content label:not([class*="hero"]),
-.light .business-panel-content p:not([class*="hero"]),
-.light .business-panel-layout h1:not([class*="hero"]),
-.light .business-panel-layout h2:not([class*="hero"]),
-.light .business-panel-layout h3:not([class*="hero"]),
-.light .business-panel-layout h4:not([class*="hero"]),
-.light .business-panel-layout label:not([class*="hero"]) {
+.light .business-panel-content h1:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-content h2:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-content h3:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-content h4:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-content label:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-content p:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-layout h1:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-layout h2:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-layout h3:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-layout h4:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *),
+.light .business-panel-layout label:not([class*="hero"]):not(:where([class*="hero"], .hero, header) *) {
   color: var(--org-text-color, var(--color-legacy-1e293b));
 }
 

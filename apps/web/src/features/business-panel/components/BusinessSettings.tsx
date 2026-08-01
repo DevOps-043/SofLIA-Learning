@@ -105,8 +105,8 @@ export function BusinessSettings() {
               <Settings2 aria-hidden="true" />
               Configuración de la organización
             </span>
-            <h1>Un espacio claro para administrar tu operación.</h1>
-            <p>
+            <h1 className={styles.heroTitle}>Un espacio claro para administrar tu operación.</h1>
+            <p className={styles.heroSubtitle}>
               Identidad, acceso y marca organizados por intención, sin ruido visual.
             </p>
           </div>
