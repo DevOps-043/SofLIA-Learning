@@ -1,6 +1,7 @@
 import { logger } from '@/lib/logger'
 import { analyzeTimeEstimationTarget } from '../courseTimeEstimation.rules'
-import { AI_BATCH_SIZE, getGeminiApiKey } from './config'
+import { isAiPurposeAvailable } from '@/lib/ai/providers/ai-text-gateway.server'
+import { AI_BATCH_SIZE } from './config'
 import { buildFallbackResult } from './fallback'
 import { reviewChunkWithGemini } from './gemini-review'
 import { chunkArray } from './utils'
@@ -25,8 +26,9 @@ export class CourseTimeEstimationService {
     const analyses = this.analyzeTargets(targets)
     const resultsById = createFallbackResults(analyses)
 
-    if (!getGeminiApiKey() || analyses.length === 0) {
-      warnMissingGeminiKey(courseTitle, analyses.length)
+    const isAiAvailable = await isAiPurposeAvailable('course_time_estimation')
+    if (!isAiAvailable || analyses.length === 0) {
+      warnMissingAiCredentials(courseTitle, analyses.length, isAiAvailable)
       return resolveResults(analyses, resultsById)
     }
 
@@ -53,11 +55,15 @@ function resolveResults(
   })
 }
 
-function warnMissingGeminiKey(courseTitle: string, targetCount: number) {
-  if (targetCount === 0 || getGeminiApiKey()) return
+function warnMissingAiCredentials(
+  courseTitle: string,
+  targetCount: number,
+  isAiAvailable: boolean,
+) {
+  if (targetCount === 0 || isAiAvailable) return
 
   logger.warn(
-    'Course time estimation is using deterministic fallback because Gemini API key is missing',
+    'Course time estimation is using deterministic fallback: el proveedor de IA configurado no tiene credenciales',
     { courseTitle, targetCount },
   )
 }

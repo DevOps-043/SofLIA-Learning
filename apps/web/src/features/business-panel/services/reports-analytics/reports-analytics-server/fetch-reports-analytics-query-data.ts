@@ -1,6 +1,7 @@
 import { fetchActivityEvaluations } from './fetch-activity-evaluations'
 import { fetchActivityCompletionRecords } from './fetch-activity-completion-records'
 import { fetchActivitySubmissionRecords } from './fetch-activity-submission-records'
+import { fetchActiveOrganizationHierarchy } from './fetch-active-organization-hierarchy'
 import { fetchAssignmentRecords } from './fetch-assignment-records'
 import { fetchEnrollmentRecords } from './fetch-enrollment-records'
 import { fetchLessonNoteRecords } from './fetch-lesson-note-records'
@@ -12,7 +13,9 @@ import { fetchOrganizationTeams } from './fetch-organization-teams'
 import { fetchOrganizationUsers } from './fetch-organization-users'
 import { fetchOrganizationZones } from './fetch-organization-zones'
 import { fetchQuizSubmissionRecords } from './fetch-quiz-submission-records'
+import { mapActiveHierarchyToAnalytics } from './map-active-hierarchy-to-analytics'
 import { uniqueValues } from './unique-values'
+import type { AnalyticsHierarchyData } from './active-organization-hierarchy'
 import type { AnalyticsQueryData } from './analytics-query-data'
 import type { ReportsAnalyticsSupabaseClient } from './reports-analytics-supabase-client'
 import type { ReportsAnalyticsUntypedSupabaseClient } from './reports-analytics-untyped-supabase-client'
@@ -23,15 +26,23 @@ export async function fetchReportsAnalyticsQueryData(
   organizationId: string,
   filters: ReportsAnalyticsFilters,
 ): Promise<AnalyticsQueryData> {
-  const organizationUsers = await fetchOrganizationUsers(supabase, organizationId)
-  const organizationUserIds = uniqueValues(organizationUsers.map((record) => record.user_id))
   const hierarchySupabase = supabase as unknown as ReportsAnalyticsUntypedSupabaseClient
+  const [organizationUsers, activeHierarchy] = await Promise.all([
+    fetchOrganizationUsers(supabase, organizationId),
+    fetchActiveOrganizationHierarchy(hierarchySupabase, organizationId),
+  ])
+  const organizationUserIds = uniqueValues(organizationUsers.map((record) => record.user_id))
   const dateRange = { from: filters.from, to: filters.to }
+  const hierarchyDataPromise: Promise<AnalyticsHierarchyData> = activeHierarchy
+    ? Promise.resolve(mapActiveHierarchyToAnalytics(organizationUsers, activeHierarchy))
+    : Promise.all([
+        fetchOrganizationRegions(hierarchySupabase, organizationId),
+        fetchOrganizationZones(hierarchySupabase, organizationId),
+        fetchOrganizationTeams(hierarchySupabase, organizationId),
+      ]).then(([regions, zones, teams]) => ({ organizationUsers, regions, zones, teams }))
 
   const [
-    regions,
-    zones,
-    teams,
+    hierarchyData,
     assignments,
     enrollments,
     lessonProgress,
@@ -41,9 +52,7 @@ export async function fetchReportsAnalyticsQueryData(
     liaConversations,
     quizSubmissions,
   ] = await Promise.all([
-    fetchOrganizationRegions(hierarchySupabase, organizationId),
-    fetchOrganizationZones(hierarchySupabase, organizationId),
-    fetchOrganizationTeams(hierarchySupabase, organizationId),
+    hierarchyDataPromise,
     fetchAssignmentRecords(supabase, organizationId),
     fetchEnrollmentRecords(supabase, organizationUserIds),         // structural: no date filter
     fetchLessonProgressRecords(supabase, organizationUserIds, dateRange),
@@ -60,10 +69,10 @@ export async function fetchReportsAnalyticsQueryData(
   ])
 
   return {
-    organizationUsers,
-    regions,
-    zones,
-    teams,
+    organizationUsers: hierarchyData.organizationUsers,
+    regions: hierarchyData.regions,
+    zones: hierarchyData.zones,
+    teams: hierarchyData.teams,
     assignments,
     enrollments,
     lessonProgress,

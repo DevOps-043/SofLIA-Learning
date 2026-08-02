@@ -1,8 +1,11 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
-import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
+import { selectPromptVariant } from '@/lib/ai/prompts'
+import {
+  generateAiText,
+  isAiPurposeAvailable,
+} from '@/lib/ai/providers/ai-text-gateway.server'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireBusinessUser } from '@/lib/auth/requireBusiness'
@@ -11,6 +14,10 @@ import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
 import { loadBusinessUserLearningPaths } from '@/features/learning-paths/services/learning-path-dashboard.server'
 import { LearningPathDefaultsService } from '@/features/learning-paths/services/learning-path-defaults.server'
+import {
+  buildPreviewInstructionForGoogle,
+  buildPreviewInstructionForOpenAi,
+} from './preview-prompt'
 import { learningPreviewSchema, type LearningPreviewBody } from './schema'
 
 interface RouteContext {
@@ -68,15 +75,11 @@ interface GeminiPreviewResult {
 }
 
 type PreviewResponsePayload = GeminiPreviewResult & {
-  source: 'gemini' | 'fallback' | 'cache'
+  source: 'gemini' | 'openai' | 'fallback' | 'cache'
   model: string
 }
 
-const GEMINI_PREVIEW_TIMEOUT_MS = 3500
-
-function getGeminiApiKey() {
-  return process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || null
-}
+const AI_PREVIEW_TIMEOUT_MS = 3500
 
 function normalizePreviewLocale(locale?: string): 'es' | 'en' | 'pt' {
   const normalized = locale?.toLowerCase().trim()
@@ -226,11 +229,10 @@ async function generatePreviewWithGemini(input: {
   courseTitles?: string[]
   locale?: string
 }) {
-  const apiKey = getGeminiApiKey()
   const settings = await getAiModelSettings('learning_preview')
   const modelName = settings.model
 
-  if (!apiKey) {
+  if (!(await isAiPurposeAvailable('learning_preview'))) {
     return {
       ...buildFallbackPreview(input),
       source: 'fallback' as const,
@@ -248,43 +250,34 @@ async function generatePreviewWithGemini(input: {
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({
-      model: modelName,
-      systemInstruction: [
-        `You are SofLIA, an AI learning analyst. Respond in ${language}.`,
-        'Use only the provided course or learning-path data.',
-        'Prioritize the real description when present. If the description is short or missing, infer cautiously from the title and course sequence.',
-        'Do not invent duration, price, ratings, instructor credentials, or unavailable content.',
-        'Return only valid JSON with this exact shape: {"description":"...","points":["...","...","..."]}.',
-        'description: 45-70 words, practical, clear, and user-facing.',
-        'points: exactly 3 short learning outcomes or reasons to take the course/path.',
-      ].join('\n'),
+    const result = await generateAiText({
+      circuitBreakerName: 'learning-preview',
+      prompt: JSON.stringify(prompt),
+      purpose: 'learning_preview',
+      // No administrable: la respuesta se parsea como JSON obligatoriamente.
+      responseAsJson: true,
+      systemInstruction: (profile) =>
+        selectPromptVariant<[string]>(
+          profile,
+          {
+            google: buildPreviewInstructionForGoogle,
+            openai: buildPreviewInstructionForOpenAi,
+          },
+          language,
+        ),
+      timeoutMs: AI_PREVIEW_TIMEOUT_MS,
     })
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: JSON.stringify(prompt) }],
-        },
-      ],
-      generationConfig: buildManagedGenerationConfig(settings, {
-        // No administrable: la respuesta se parsea como JSON obligatoriamente.
-        responseMimeType: 'application/json',
-      }),
-    })
-
-    const parsed = parseGeminiPreview(result.response.text())
+    const parsed = parseGeminiPreview(result.text)
     if (parsed) {
       return {
         ...parsed,
-        source: 'gemini' as const,
-        model: modelName,
+        source: result.provider === 'openai' ? ('openai' as const) : ('gemini' as const),
+        model: result.model,
       }
     }
   } catch (error) {
-    logger.error('Learning preview Gemini generation failed', error)
+    logger.error('Learning preview AI generation failed', error)
   }
 
   return {
@@ -373,7 +366,7 @@ async function getPreviewResult(input: {
 
   const generated = await withTimeout(
     generatePreviewWithGemini(input),
-    GEMINI_PREVIEW_TIMEOUT_MS,
+    AI_PREVIEW_TIMEOUT_MS,
   )
   const result = generated || fallback
 

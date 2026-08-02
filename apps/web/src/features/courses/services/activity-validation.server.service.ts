@@ -1,13 +1,17 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
-import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
-import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
-import { extractVisibleGeminiText } from '@/lib/gemini/client'
+import { selectPromptVariant, type PromptModelProfile } from '@/lib/ai/prompts'
+import {
+  generateAiText,
+  isAiPurposeAvailable,
+} from '@/lib/ai/providers/ai-text-gateway.server'
 import {
   activityEvaluationFeedbackSchema,
-  type ActivityConfig,
   type ActivityEvaluationFeedback,
 } from '../types/activity-config'
+import {
+  buildValidationPromptForGoogle,
+  type SubmissionForValidation,
+} from './activity-validation.google.prompt'
+import { buildValidationPromptForOpenAi } from './activity-validation.openai.prompt'
 import {
   CourseActivityError,
   type CourseActivityContext,
@@ -17,84 +21,6 @@ import {
   getActivitySubmissionRequirementIssues,
   summarizeActivitySubmissionRequirementIssues,
 } from './activity-submission-requirements.service'
-
-type SubmissionForValidation = {
-  evidencePayload: Record<string, unknown> | null
-  responsePayload: Record<string, unknown>
-  responseText: string | null
-}
-
-function stringifyPretty(value: unknown) {
-  return JSON.stringify(value ?? {}, null, 2)
-}
-
-function buildRubricText(activityConfig: ActivityConfig) {
-  if (activityConfig.interactionType === 'soflia_dialogue') {
-    return activityConfig.rubric
-      .map((item) =>
-        item.description ? `- ${item.label}: ${item.description}` : `- ${item.label}`,
-      )
-      .join('\n')
-  }
-
-  if (!activityConfig.validation.rubric.length) {
-    return '- Evalua si la respuesta cumple con la consigna y es util para el usuario.'
-  }
-
-  return activityConfig.validation.rubric
-    .map((item) => {
-      if (!item.description) {
-        return `- ${item.label}`
-      }
-
-      return `- ${item.label}: ${item.description}`
-    })
-    .join('\n')
-}
-
-function buildValidationPrompt(input: {
-  context: CourseActivityContext
-  submission: SubmissionForValidation
-}) {
-  const { context, submission } = input
-  const rubricText = buildRubricText(context.resolvedActivityConfig!)
-
-  return `
-Eres SofLIA evaluando una actividad de aprendizaje.
-
-Debes responder SOLO un JSON valido con esta estructura exacta:
-{
-  "resultStatus": "pass" | "revise" | "error",
-  "summary": "string",
-  "strengths": ["string"],
-  "improvements": ["string"],
-  "suggestedNextStep": "string"
-}
-
-Reglas:
-- Usa "pass" si la respuesta cumple razonablemente la actividad.
-- Usa "revise" si hay errores relevantes, vacios importantes o falta evidencia necesaria.
-- Usa "error" solo si la entrada esta vacia, es ininterpretable o no se puede evaluar.
-- La retroalimentacion debe ser breve, concreta y formativa.
-- No reescribas toda la respuesta del usuario.
-- No agregues markdown, texto extra ni bloques de codigo.
-
-Actividad:
-- Titulo: ${String(context.activity.activity_title || context.activity.activity_id)}
-- Tipo: ${String(context.activity.activity_type || 'activity')}
-- Descripcion: ${String(context.activity.activity_description || '')}
-- Configuracion interactiva: ${stringifyPretty(context.resolvedActivityConfig)}
-- Contenido/instrucciones: ${String(context.activity.activity_content || '')}
-
-Rubrica:
-${rubricText}
-
-Respuesta del usuario:
-- responseText: ${submission.responseText || ''}
-- responsePayload: ${stringifyPretty(submission.responsePayload)}
-- evidencePayload: ${stringifyPretty(submission.evidencePayload)}
-`.trim()
-}
 
 function parseGeminiJsonResponse(rawResponse: string): ActivityEvaluationFeedback {
   const trimmedResponse = rawResponse.trim()
@@ -137,40 +63,37 @@ export async function evaluateActivitySubmissionWithSoflia(input: {
     )
   }
 
-  const googleApiKey = process.env.GOOGLE_API_KEY
-  if (!googleApiKey) {
+  if (!(await isAiPurposeAvailable('activity_validation'))) {
     throw new CourseActivityError(
       'VALIDATION_UNAVAILABLE',
       503,
-      'La validacion SofLIA no esta disponible en este entorno',
+      'La validacion SofLIA no esta disponible: falta la clave del proveedor de IA configurado',
     )
   }
 
-  const genAI = new GoogleGenerativeAI(googleApiKey)
-  const settings = await getAiModelSettings('activity_validation')
-  const modelName = settings.model
-  const model = genAI.getGenerativeModel({
-    model: modelName,
-    generationConfig: buildManagedGenerationConfig(settings, {
-      // No administrable: la respuesta se parsea como JSON obligatoriamente.
-      responseMimeType: 'application/json',
-    }),
-  })
-
   try {
-    const result = await model.generateContent(
-      buildValidationPrompt({
-        context,
-        submission,
-      }),
-    )
+    const result = await generateAiText({
+      circuitBreakerName: 'activity-validation',
+      prompt: (profile: PromptModelProfile) =>
+        selectPromptVariant(
+          profile,
+          {
+            google: buildValidationPromptForGoogle,
+            openai: buildValidationPromptForOpenAi,
+          },
+          { context, submission },
+        ),
+      purpose: 'activity_validation',
+      // No administrable: la respuesta se parsea como JSON obligatoriamente.
+      responseAsJson: true,
+    })
 
-    // extractVisibleGeminiText descarta partes de razonamiento interno del
-    // modelo que romperian el parseo JSON o filtrarian texto no destinado al usuario.
-    const feedback = parseGeminiJsonResponse(extractVisibleGeminiText(result.response))
+    // El gateway ya descarta las partes de razonamiento interno del modelo, que
+    // romperian el parseo JSON o filtrarian texto no destinado al usuario.
+    const feedback = parseGeminiJsonResponse(result.text)
     return {
       feedback,
-      modelName,
+      modelName: result.model,
     }
   } catch (error) {
     throw new CourseActivityError(

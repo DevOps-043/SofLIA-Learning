@@ -16,14 +16,16 @@
 import 'server-only'
 
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import type { PromptModelProfile } from '@/lib/ai/prompts'
+import type { AiPromptInput } from '@/lib/ai/providers/ai-text-gateway.server'
 import { generateStructuredContent } from '@/lib/ai/structured-generation.server'
+import { buildEnrichmentPrompt } from './notebook-enrichment.prompt'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { evaluatePromptInjectionRisk } from '@/lib/security/prompt-injection-detector'
 import { writeSecurityAuditLogAsync } from '@/lib/security/security-audit-log'
 import { logger } from '@/lib/utils/logger'
 import { flexibleFrom } from './notebook-enrichment.server.service'
 import {
-  buildEnrichmentPrompt,
   AI_ENRICHMENT_JSON_SCHEMA,
   clip,
   computeNoteContentHash,
@@ -77,7 +79,7 @@ export interface EnrichmentBatchResult {
 async function generateEnrichment(input: {
   note: NoteRow
   noteText: string
-  prompt: string
+  prompt: AiPromptInput
 }): Promise<NormalizedEnrichment> {
   const settings = await getAiModelSettings('notebook_enrichment')
   const result = await generateStructuredContent({
@@ -92,7 +94,7 @@ async function generateEnrichment(input: {
     // El razonamiento del modelo se descuenta de este presupuesto: por debajo de
     // ~2.000 tokens el JSON llega truncado (ver purposes.ts).
     maxOutputTokens: settings.maxOutputTokens ?? 2_048,
-    model: settings.model,
+    purpose: 'notebook_enrichment',
     operation: 'notebook_enrichment',
     prompt: input.prompt,
     schema: structuredAiEnrichmentOutputSchema,
@@ -279,11 +281,12 @@ async function processJob(client: AdminClient, job: JobRow): Promise<'done' | 's
   const enrichment = await generateEnrichment({
     note,
     noteText,
-    prompt: buildEnrichmentPrompt({
-      existingTags,
-      noteText,
-      noteTitle: note.note_title,
-    }),
+    prompt: (profile: PromptModelProfile) =>
+      buildEnrichmentPrompt(profile, {
+        existingTags,
+        noteText,
+        noteTitle: note.note_title,
+      }),
   })
 
   await persistMetadata(client, note, enrichment, job.content_hash)

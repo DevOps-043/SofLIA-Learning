@@ -8,6 +8,17 @@ import {
   createInviteLinkAction,
 } from './handlers/enrollment.actions'
 import type { RegisteredAction } from './types'
+import {
+  assignCourseToUserAction,
+  assignCourseToHierarchyNodeAction,
+  assignLearningPathToUserAction,
+  assignUserToHierarchyNodeAction,
+  createOrganizationStructureAction,
+  createOrganizationHierarchyNodeAction,
+  generateOrganizationAnalyticsReportAction,
+  removeUserCoursesAction,
+  removeUserFromOrganizationAction,
+} from './handlers/organization-operations.actions'
 
 /**
  * Catálogo de acciones administrativas que SofLIA puede PROPONER.
@@ -24,6 +35,15 @@ const ACTION_DEFINITIONS: readonly RegisteredAction[] = [
   createUserAction,
   addDefaultCourseAction,
   createInviteLinkAction,
+  removeUserFromOrganizationAction,
+  removeUserCoursesAction,
+  assignCourseToUserAction,
+  assignLearningPathToUserAction,
+  generateOrganizationAnalyticsReportAction,
+  createOrganizationHierarchyNodeAction,
+  assignUserToHierarchyNodeAction,
+  assignCourseToHierarchyNodeAction,
+  createOrganizationStructureAction,
 ]
 
 const ACTIONS_BY_ID = new Map<string, RegisteredAction>(

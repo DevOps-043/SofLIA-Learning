@@ -1,9 +1,11 @@
 import type { SessionUserRecord } from '@/features/auth/services/session.types';
 import { sanitizeContextPayload } from '@/lib/security/context-sanitizer';
 
+import { buildPromptModelProfile } from '@/lib/ai/prompts';
+
 import {
   buildFullContext,
-  appendPersonalizationPrompt,
+  buildPersonalizationSection,
 } from '../chat/chat-context.builder';
 import { resolveActiveOrganizationContext } from '../chat/organization-context.service';
 import { fetchPlatformContext } from '../chat/platform-context.service';
@@ -15,6 +17,15 @@ import { buildLiaLiveVoiceGuardrails } from './voice-guardrails';
 
 const MAX_REQUEST_CONTEXT_STRING_LENGTH = 1200;
 const MAX_BASE_PROMPT_LENGTH = 38_000;
+
+/**
+ * Modelo de referencia para elegir el dialecto de prompt de la sesión de voz.
+ *
+ * La API Live impone su propio modelo (no es administrable desde el panel), así
+ * que aquí solo se necesita un identificador que sitúe al dialecto en la familia
+ * correcta: Gemini 3.x, con razonamiento interno.
+ */
+const LIA_LIVE_MODEL_FOR_PROMPT_VARIANT = 'gemini-3.5-flash';
 const MAX_SYSTEM_INSTRUCTION_LENGTH = 52_000;
 
 type ContextRecord = Record<string, unknown>;
@@ -99,8 +110,17 @@ export async function buildLiaLiveSystemInstruction(
   ]);
 
   const fullContext = await buildFullContext(platformContext, requestContext);
-  let basePrompt = getLIASystemPrompt(fullContext);
-  basePrompt = await appendPersonalizationPrompt(basePrompt, user.id);
+
+  // La API Live es exclusiva de Gemini: aqui no hay eleccion de proveedor que
+  // resolver, asi que el perfil se fija a Google y se usa la variante original.
+  const promptProfile = buildPromptModelProfile({
+    model: LIA_LIVE_MODEL_FOR_PROMPT_VARIANT,
+    provider: 'google',
+  });
+
+  const basePrompt =
+    getLIASystemPrompt(promptProfile, fullContext) +
+    (await buildPersonalizationSection(user.id));
 
   const instruction = [
     truncatePromptSection(basePrompt, MAX_BASE_PROMPT_LENGTH),

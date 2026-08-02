@@ -1,7 +1,14 @@
 import { randomBytes } from 'node:crypto'
 import { z } from 'zod'
 import { AdminUsersService } from '@/features/admin/services/adminUsers.service'
-import { resolveTargetUser } from '../entity-resolution'
+import { isPlatformAdminRole } from '@/lib/auth/platform-role'
+import { createAdminClient } from '@/lib/supabase/admin'
+import {
+  EntityNotFoundError,
+  resolveTargetUser,
+  type ResolvedTargetUser,
+} from '../entity-resolution'
+import { getPlatformBanBlockReason } from '../platform-action.permissions'
 import { defineAction } from '../types'
 
 /**
@@ -17,6 +24,43 @@ const setUserBanSchema = z.object({
 
 type SetUserBanParams = z.infer<typeof setUserBanSchema>
 
+async function assertUserBanAllowed(params: {
+  actorId: string
+  banned: boolean
+  target: ResolvedTargetUser
+}): Promise<void> {
+  const targetIsPlatformAdmin = isPlatformAdminRole(params.target.platformRole)
+  let activePlatformAdminCount: number | undefined
+
+  if (params.banned && targetIsPlatformAdmin) {
+    const { data, error } = await createAdminClient()
+      .from('users')
+      .select('id, platform_role, is_banned')
+      // Patrón fijo; el filtro solo reduce filas antes de aplicar la
+      // normalización canónica de rol en memoria.
+      .ilike('platform_role', '%administrador%')
+
+    if (error) {
+      throw new EntityNotFoundError(
+        'No se pudo verificar cuántos superadministradores siguen activos. No se ejecutó ningún cambio.',
+      )
+    }
+
+    activePlatformAdminCount = (data ?? []).filter((candidate) =>
+      candidate.is_banned !== true && isPlatformAdminRole(candidate.platform_role),
+    ).length
+  }
+
+  const reason = getPlatformBanBlockReason({
+    actorId: params.actorId,
+    targetId: params.target.id,
+    targetIsPlatformAdmin,
+    activePlatformAdminCount,
+    banned: params.banned,
+  })
+  if (reason) throw new EntityNotFoundError(reason)
+}
+
 export const setUserBanAction = defineAction<SetUserBanParams>({
   id: 'set_user_ban',
   risk: 'sensitive',
@@ -29,8 +73,13 @@ export const setUserBanAction = defineAction<SetUserBanParams>({
   },
   schema: setUserBanSchema,
 
-  async preview(params) {
+  async preview(params, context) {
     const user = await resolveTargetUser(params.user)
+    await assertUserBanAllowed({
+      actorId: context.adminUserId,
+      banned: params.banned,
+      target: user,
+    })
 
     const warnings: string[] = []
     if (params.banned) {
@@ -55,6 +104,11 @@ export const setUserBanAction = defineAction<SetUserBanParams>({
 
   async execute(params, context) {
     const user = await resolveTargetUser(params.user)
+    await assertUserBanAllowed({
+      actorId: context.adminUserId,
+      banned: params.banned,
+      target: user,
+    })
 
     await AdminUsersService.updateUser(
       user.id,
@@ -70,6 +124,7 @@ export const setUserBanAction = defineAction<SetUserBanParams>({
     return {
       summary: `Usuario "${user.displayName}" ${params.banned ? 'baneado' : 'reactivado'} correctamente.`,
       details: { userId: user.id, banned: params.banned },
+      navigateTo: `/admin/users?panelUser=${user.id}&panelTab=account`,
     }
   },
 })
@@ -146,6 +201,7 @@ export const createUserAction = defineAction<CreateUserParams>({
         userId: user.id,
         temporaryPassword,
       },
+      navigateTo: `/admin/users?panelUser=${user.id}&panelTab=profile`,
     }
   },
 })

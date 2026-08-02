@@ -1,4 +1,5 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import type { AiInlineDataPart } from '../../lib/ai/providers';
 import type { Json } from '../../lib/supabase/types';
 import { REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES } from './report-problem.contract';
 import type {
@@ -286,12 +287,14 @@ export function serializeReportProblemMetadata(
   return JSON.parse(JSON.stringify(metadata)) as Json;
 }
 
-export function toInlineImagePart(attachment: LiaImageAttachment): {
-  inlineData: {
-    mimeType: string;
-    data: string;
-  };
-} | null {
+/**
+ * Convierte un adjunto de imagen al fragmento binario neutral que entiende el
+ * gateway de IA. Devuelve `null` si el adjunto no supera la validación, para que
+ * un adjunto malformado se descarte en silencio en lugar de romper el turno.
+ */
+export function toInlineImagePart(
+  attachment: LiaImageAttachment,
+): AiInlineDataPart | null {
   const validationError = validateImageAttachment(attachment);
 
   if (validationError) {
@@ -305,9 +308,8 @@ export function toInlineImagePart(attachment: LiaImageAttachment): {
   }
 
   return {
-    inlineData: {
-      mimeType: parsedData.mimeType,
-      data: parsedData.base64Data,
-    },
+    data: parsedData.base64Data,
+    mimeType: parsedData.mimeType,
+    type: 'inlineData',
   };
 }

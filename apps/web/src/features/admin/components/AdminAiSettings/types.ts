@@ -1,4 +1,6 @@
 import type {
+  AiProvider,
+  AiProviderSelection,
   AiPurposeCapabilities,
   AiPurposeGroup,
   AiThinkingLevel,
@@ -19,6 +21,12 @@ export interface AdminAiPurpose {
   id: string
   labelKey: string
   settings: ResolvedAiModelSettings | null
+  /**
+   * Proveedores que este propósito puede usar. Un propósito multimodal
+   * (dictado, vídeo) solo admite Gemini, y el selector debe reflejarlo en lugar
+   * de dejar guardar una configuración que fallaría al usarse.
+   */
+  supportedProviders: AiProvider[]
 }
 
 export interface AdminAiSettingsResponse {
@@ -30,6 +38,7 @@ export interface AdminAiSettingsResponse {
 export interface PurposeFormState {
   maxOutputTokens: string
   model: string
+  provider: AiProviderSelection
   temperature: string
   thinkingLevel: AiThinkingLevel
 }

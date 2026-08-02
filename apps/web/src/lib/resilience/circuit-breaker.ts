@@ -82,6 +82,17 @@ export const CIRCUIT_BREAKER_DEFAULTS = {
     retryBaseDelayMs: 500,
     retryMaxDelayMs: 2_000,
   },
+  // Perfil propio para OpenAI: una caída de un proveedor de IA no debe abrir el
+  // circuito del otro ni heredar su tolerancia. El timeout es mayor porque los
+  // modelos de razonamiento (serie `o`, GPT-5) invierten tiempo antes del primer
+  // token, y `maxRetries` es 0 porque el SDK de OpenAI ya se configura sin
+  // reintentos propios y un 429 aquí conviene propagarlo en lugar de insistir.
+  openai: {
+    timeoutMs: 45_000,
+    errorThresholdPercentage: 50,
+    resetTimeoutMs: 60_000,
+    maxRetries: 0,
+  },
   googleCalendar: {
     timeoutMs: 10_000,
     errorThresholdPercentage: 50,
@@ -345,6 +356,7 @@ function getCircuitBreaker(options: CircuitBreakerOptions): CircuitBreaker {
 }
 
 function resolveProviderDefaults(provider: string): Omit<CircuitBreakerOptions, 'name'> {
+  if (provider.includes('openai')) return CIRCUIT_BREAKER_DEFAULTS.openai
   if (provider.includes('gemini')) return CIRCUIT_BREAKER_DEFAULTS.gemini
   if (provider.includes('calendar') || provider.includes('google-oauth')) {
     return CIRCUIT_BREAKER_DEFAULTS.googleCalendar

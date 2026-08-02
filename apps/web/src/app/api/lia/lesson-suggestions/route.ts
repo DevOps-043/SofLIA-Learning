@@ -1,6 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
+import { isAiPurposeAvailable } from '@/lib/ai/providers/ai-text-gateway.server'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { SessionService } from '@/features/auth/services/session.service'
@@ -137,10 +138,9 @@ async function handlePost(
       return NextResponse.json(response)
     }
 
-    const apiKey = process.env.GOOGLE_API_KEY
-    if (!apiKey) {
+    if (!(await isAiPurposeAvailable('lia_lesson_suggestions'))) {
       techDebtLogger.error(
-        '[lesson-suggestions] GOOGLE_API_KEY missing; degrading gracefully',
+        '[lesson-suggestions] el proveedor de IA configurado no tiene credenciales; se degrada sin sugerencias',
       )
       return NextResponse.json(
         {
@@ -159,7 +159,6 @@ async function handlePost(
       const suggestions = await generateLessonSuggestions({
         snapshot,
         contentHash,
-        apiKey,
       })
 
       generatedAt = await upsertCachedSuggestions(

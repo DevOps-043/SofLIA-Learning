@@ -35,7 +35,7 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
     // Verify the structure exists and belongs to this org.
     const { data: structure, error: fetchError } = await supabase
       .from('organization_structures')
-      .select('id, name')
+      .select('id, name, is_default')
       .eq('id', structureId)
       .eq('organization_id', auth.organizationId)
       .single()
@@ -73,6 +73,34 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
     if (deleteError) {
       logger.error('Error eliminando estructura:', { code: deleteError.code, message: deleteError.message })
       return apiError('DELETE_STRUCTURE_FAILED', 'Error al eliminar la estructura', 500)
+    }
+
+    // Keep one canonical structure for analytics and other server-side consumers.
+    // This also repairs legacy organizations where no structure was marked default.
+    const { data: remainingDefault } = await supabase
+      .from('organization_structures')
+      .select('id')
+      .eq('organization_id', auth.organizationId)
+      .eq('is_default', true)
+      .limit(1)
+      .maybeSingle()
+
+    if (!remainingDefault) {
+      const { data: replacement } = await supabase
+        .from('organization_structures')
+        .select('id')
+        .eq('organization_id', auth.organizationId)
+        .order('name', { ascending: true })
+        .order('id', { ascending: true })
+        .limit(1)
+        .maybeSingle()
+
+      if (replacement) {
+        await supabase
+          .from('organization_structures')
+          .update({ is_default: true, updated_at: new Date().toISOString() })
+          .eq('id', replacement.id)
+      }
     }
 
     return NextResponse.json({ success: true })

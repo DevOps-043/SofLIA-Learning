@@ -24,7 +24,7 @@ function LiaSidePanelContent() {
     typewriterReveal, isResponding,
     isSpeaking, isVoiceEnabled, toggleVoiceEnabled, isVoiceTogglePending,
     isDictationEnabled, isDictating, isProcessingDictation, interimTranscript, finalTranscript, dictationError, setDictationError, toggleDictation, stopDictation,
-    liveVoiceStatus, isLiveVoiceActive, isAssistantLiveSpeaking, stopLiveVoice,
+    liveVoiceStatus, isLiveVoiceActive, isAssistantLiveSpeaking, toggleLiveVoice, stopLiveVoice,
     isOptionsMenuOpen, setIsOptionsMenuOpen, optionsMenuRef,
     isPersonalizationOpen, setIsPersonalizationOpen,
     isAvatarExpanded, setIsAvatarExpanded,
@@ -113,6 +113,7 @@ function LiaSidePanelContent() {
                 isLightTheme={isLightTheme}
                 isConnecting={liveVoiceStatus === 'connecting'}
                 isAssistantSpeaking={isAssistantLiveSpeaking}
+                status={liveVoiceStatus}
                 onStop={stopLiveVoice}
               />
             ) : (
@@ -143,13 +144,13 @@ function LiaSidePanelContent() {
                   isDictating={isDictating}
                   isDictationEnabled={isDictationEnabled}
                   isVoiceEnabled={isVoiceEnabled}
-                  isLiveVoiceActive={isLiveVoiceActive}
                   isLiveVoiceConnecting={liveVoiceStatus === 'connecting'}
                   isProcessingDictation={isProcessingDictation}
                   interimTranscript={interimTranscript}
                   finalTranscript={finalTranscript}
                   stopDictation={stopDictation}
                   toggleDictation={toggleDictation}
+                  toggleLiveVoice={toggleLiveVoice}
                   handleSendMessage={handleSendMessage}
                   isResponding={isResponding}
                 />

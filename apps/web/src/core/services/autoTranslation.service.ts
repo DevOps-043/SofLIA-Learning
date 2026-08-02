@@ -1,11 +1,12 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 
 import type { SupportedLanguage } from '../i18n/i18n'
-import { calculateGeminiMetadata, trackAICall } from '../../lib/ai/usage-monitor'
+import { calculateAiUsageMetadata, trackAICall } from '../../lib/ai/usage-monitor'
+import { buildTranslationSystemPrompt } from './ai-small-prompts'
 import {
-  generateGeminiText,
-  getGeminiApiKey,
-} from '../../lib/gemini/client'
+  generateAiText,
+  isAiPurposeAvailable,
+} from '../../lib/ai/providers/ai-text-gateway.server'
 
 type TargetLanguage = SupportedLanguage
 type SourceLanguage = 'es' | 'en' | 'pt'
@@ -17,15 +18,19 @@ interface TranslationOptions {
 }
 
 export class AutoTranslationService {
-  private static isConfigured(): boolean {
-    const isConfigured = Boolean(getGeminiApiKey())
+  /**
+   * Comprueba la credencial del proveedor CONFIGURADO para la traducción, no la
+   * de Gemini: si el propósito se cambia a un modelo de OpenAI desde el panel,
+   * la clave que debe existir es la de OpenAI.
+   */
+  private static async isConfigured(): Promise<boolean> {
+    const isConfigured = await isAiPurposeAvailable('auto_translation')
 
     if (!isConfigured) {
-      techDebtLogger.error('[AutoTranslationService] GEMINI_API_KEY no esta configurada.')
-      techDebtLogger.error('[AutoTranslationService] Variables de entorno disponibles:', {
-        hasGeminiKey: Boolean(process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY),
-        nodeEnv: process.env.NODE_ENV,
-      })
+      techDebtLogger.error(
+        '[AutoTranslationService] El proveedor de IA configurado para la traducción no tiene credenciales.',
+        { nodeEnv: process.env.NODE_ENV },
+      )
     }
 
     return isConfigured
@@ -52,8 +57,10 @@ export class AutoTranslationService {
       return text
     }
 
-    if (!this.isConfigured()) {
-      techDebtLogger.warn('[AutoTranslationService] Gemini no configurado, retornando texto original.')
+    if (!(await this.isConfigured())) {
+      techDebtLogger.warn(
+        '[AutoTranslationService] Proveedor de IA no configurado, retornando texto original.',
+      )
       return text
     }
 
@@ -67,16 +74,6 @@ export class AutoTranslationService {
     const targetLangName = languageNames[targetLanguage]
     const contextPrompt = options.context ? `\n\nContexto: ${options.context}` : ''
 
-    const systemPrompt = `Eres un traductor profesional especializado en contenido educativo y tecnologico.
-Tu tarea es traducir texto del ${sourceLangName} al ${targetLangName} manteniendo:
-- El tono profesional y preciso
-- La terminologia tecnica correcta
-- El formato y estructura original
-- La claridad y precision del contenido educativo
-
-${options.preserveFormatting ? 'IMPORTANTE: Manten todos los saltos de linea, numeracion, listas y formato del texto original.' : ''}
-
-Responde UNICAMENTE con la traduccion, sin explicaciones ni comentarios adicionales.`
 
     const userPrompt = `Traduce el siguiente texto del ${sourceLangName} al ${targetLangName}.${contextPrompt}
 
@@ -87,21 +84,24 @@ Traduccion:`
 
     try {
       const startTime = Date.now()
-      const result = await generateGeminiText({
+      const result = await generateAiText({
         circuitBreakerName: 'gemini-auto-translation',
-        generationConfig: {
-          // No administrable: el presupuesto se dimensiona por longitud del texto
-          // a traducir; fijarlo desde el panel truncaría traducciones largas.
-          maxOutputTokens: Math.min(4000, Math.ceil(text.length * 2)),
-        },
+        // No administrable: el presupuesto se dimensiona por longitud del texto
+        // a traducir; fijarlo desde el panel truncaría traducciones largas.
+        maxOutputTokens: Math.min(4000, Math.ceil(text.length * 2)),
         prompt: userPrompt,
         purpose: 'auto_translation',
-        systemInstruction: systemPrompt,
+        systemInstruction: (profile) =>
+          buildTranslationSystemPrompt(profile, {
+            preserveFormatting: Boolean(options.preserveFormatting),
+            sourceLangName,
+            targetLangName,
+          }),
       })
       const responseTime = Date.now() - startTime
 
       if (result.usage) {
-        await trackAICall(calculateGeminiMetadata(
+        await trackAICall(calculateAiUsageMetadata(
           result.usage,
           result.model,
           'auto-translation',

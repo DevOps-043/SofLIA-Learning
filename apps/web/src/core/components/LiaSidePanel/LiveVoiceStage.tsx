@@ -10,6 +10,14 @@ interface LiveVoiceStageProps {
   isLightTheme: boolean;
   isConnecting: boolean;
   isAssistantSpeaking: boolean;
+  status?:
+    | 'idle'
+    | 'connecting'
+    | 'listening'
+    | 'processing'
+    | 'preparing-audio'
+    | 'speaking'
+    | 'error';
   onStop: () => void;
 }
 
@@ -20,15 +28,25 @@ export function LiveVoiceStage({
   isLightTheme,
   isConnecting,
   isAssistantSpeaking,
+  status = 'listening',
   onStop,
 }: LiveVoiceStageProps) {
   const ringDuration = isAssistantSpeaking ? 1.8 : 3.2;
   const ringOpacity = isAssistantSpeaking ? [0.12, 0.34, 0.12] : [0.05, 0.16, 0.05];
   const ringScale = isAssistantSpeaking ? [0.9, 1.18, 0.9] : [0.96, 1.05, 0.96];
+  const statusLabel = isConnecting || status === 'connecting'
+    ? 'Preparando micrófono…'
+    : status === 'processing'
+    ? 'SofLIA está pensando…'
+    : status === 'preparing-audio'
+    ? 'Preparando la voz de SofLIA…'
+    : isAssistantSpeaking || status === 'speaking'
+    ? 'SofLIA está hablando…'
+    : 'Te escucho…';
 
   return (
     <section
-      aria-label={isConnecting ? 'Conectando voz en vivo de SofLIA' : 'Voz en vivo de SofLIA activa'}
+      aria-label={isConnecting ? 'Conectando conversación por voz con SofLIA' : 'Conversación por voz con SofLIA activa'}
       data-testid="lia-live-voice-stage"
       style={{
         flex: 1,
@@ -110,11 +128,24 @@ export function LiveVoiceStage({
         />
       </div>
 
+      <p
+        aria-live="polite"
+        style={{
+          margin: '20px 0 0',
+          color: themeColors.textPrimary,
+          fontSize: '15px',
+          fontWeight: 600,
+          letterSpacing: '0.01em',
+        }}
+      >
+        {statusLabel}
+      </p>
+
       <button
         type="button"
         onClick={onStop}
-        aria-label="Detener voz en vivo"
-        title="Detener voz en vivo"
+        aria-label="Detener conversación por voz"
+        title="Detener conversación por voz"
         style={{
           position: 'absolute',
           bottom: 'calc(28px + env(safe-area-inset-bottom, 0px))',

@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
+import { buildCourseCompendiumPromptForGoogle } from '../course-compendium.google.prompt'
+
 import {
   buildCompiledNotesHtml,
-  buildCourseCompendiumPrompt,
   buildCourseSynthesisHtmlFromModel,
   type CompendiumLesson,
 } from '../course-compendium.builder'
@@ -39,7 +40,7 @@ function makeNote(overrides: Partial<LessonNote> = {}): LessonNote {
 
 describe('buildCourseCompendiumPrompt', () => {
   it('includes the course outline and note extracts', () => {
-    const prompt = buildCourseCompendiumPrompt({
+    const prompt = buildCourseCompendiumPromptForGoogle({
       courseTitle: 'IA para equipos',
       lessons: [makeLesson()],
       notesByLesson: new Map([
@@ -56,7 +57,7 @@ describe('buildCourseCompendiumPrompt', () => {
   })
 
   it('handles the no-notes case with an explicit instruction', () => {
-    const prompt = buildCourseCompendiumPrompt({
+    const prompt = buildCourseCompendiumPromptForGoogle({
       courseTitle: 'Curso',
       lessons: [makeLesson()],
       notesByLesson: new Map(),

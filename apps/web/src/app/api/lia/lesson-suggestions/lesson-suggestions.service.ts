@@ -1,11 +1,6 @@
-import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
-import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
+import type { PromptModelProfile } from '@/lib/ai/prompts'
+import { generateAiText } from '@/lib/ai/providers/ai-text-gateway.server'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import {
-  GoogleGenerativeAI,
-  HarmBlockThreshold,
-  HarmCategory,
-} from '@google/generative-ai'
 
 import { buildLessonSuggestionsPrompt } from './lesson-suggestions.prompt'
 import {
@@ -16,7 +11,7 @@ import {
   type LessonSuggestionItem,
 } from './lesson-suggestions.types'
 
-const GEMINI_TIMEOUT_MS = 20_000
+const AI_TIMEOUT_MS = 20_000
 
 export class LessonSuggestionsGenerationError extends Error {
   readonly cause?: unknown
@@ -120,93 +115,39 @@ function buildSuggestionItems(
   }))
 }
 
-async function withTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-): Promise<T> {
-  let timeoutHandle: ReturnType<typeof setTimeout> | undefined
-
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    timeoutHandle = setTimeout(() => {
-      reject(
-        new LessonSuggestionsGenerationError(
-          `Gemini request exceeded ${String(timeoutMs)}ms`,
-        ),
-      )
-    }, timeoutMs)
-  })
-
-  try {
-    return await Promise.race([promise, timeoutPromise])
-  } finally {
-    if (timeoutHandle) {
-      clearTimeout(timeoutHandle)
-    }
-  }
-}
-
 export interface GenerateLessonSuggestionsArgs {
   snapshot: LessonContextSnapshot
   contentHash: string
-  apiKey: string
+  /**
+   * Modelo explícito. Salta la configuración del panel; el proveedor se deduce
+   * de su nombre. Reservado para pruebas y diagnóstico.
+   */
   modelName?: string
 }
 
 export async function generateLessonSuggestions(
   args: GenerateLessonSuggestionsArgs,
 ): Promise<LessonSuggestionItem[]> {
-  const { snapshot, contentHash, apiKey, modelName } = args
+  const { snapshot, contentHash, modelName } = args
 
-  const prompt = buildLessonSuggestionsPrompt(snapshot)
-  const settings = await getAiModelSettings('lia_lesson_suggestions')
-  const genAI = new GoogleGenerativeAI(apiKey)
-  const model = genAI.getGenerativeModel({
-    model: modelName || settings.model,
-    safetySettings: [
-      {
-        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
-      },
-      {
-        category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-        threshold: HarmBlockThreshold.BLOCK_NONE,
-      },
-    ],
-    generationConfig: buildManagedGenerationConfig(settings, {
-      // No administrable: la respuesta se parsea como JSON obligatoriamente.
-      responseMimeType: 'application/json',
-    }),
+  const result = await generateAiText({
+    circuitBreakerName: 'lia-lesson-suggestions',
+    ...(modelName ? { model: modelName } : {}),
+    prompt: (profile: PromptModelProfile) => buildLessonSuggestionsPrompt(profile, snapshot),
+    purpose: 'lia_lesson_suggestions',
+    // No administrable: la respuesta se parsea como JSON obligatoriamente.
+    responseAsJson: true,
+    timeoutMs: AI_TIMEOUT_MS,
   })
 
-  const result = await withTimeout(
-    model.generateContent({
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt }],
-        },
-      ],
-    }),
-    GEMINI_TIMEOUT_MS,
-  )
+  const rawText = result.text
 
-  const rawText = result.response.text()
-  const finishReason = result.response.candidates?.[0]?.finishReason
-  const usage = result.response.usageMetadata
-
-  if (finishReason && finishReason !== 'STOP') {
-    techDebtLogger.warn('[lesson-suggestions] Gemini finished with non-STOP reason', {
-      finishReason,
+  if (result.truncated) {
+    techDebtLogger.warn('[lesson-suggestions] respuesta truncada por presupuesto de tokens', {
+      model: result.model,
+      provider: result.provider,
       rawLength: rawText.length,
-      usage,
+      usage: result.usage,
     })
   }
 

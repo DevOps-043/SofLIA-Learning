@@ -17,6 +17,7 @@ export type ActionConfirmationIntent = 'confirm' | 'cancel' | 'unclear'
 const CONFIRM_PATTERNS = [
   /^confirmo\b/,
   /^confirmado\b/,
+  /^confirma(?:\s+por favor)?[.!]?$/,
   /^s[ií],?\s+(confirmo|ejec[uú]tal[ao]|adelante|hazlo|procede)\b/,
   /^s[ií]$/,
   /^ejec[uú]tal[ao]\b/,
@@ -63,4 +64,12 @@ export function detectActionConfirmationIntent(
   return CONFIRM_PATTERNS.some((pattern) => pattern.test(normalized))
     ? 'confirm'
     : 'unclear'
+}
+
+/** Comando fuerte usado para cortar loops cuando el token pendiente se perdió. */
+export function isExplicitActionConfirmationCommand(message: string): boolean {
+  const normalized = message.trim().toLowerCase()
+  return /^(?:confirm(?:o|a|ado)|ejec[uú]tal[ao]?|ejecuta|h[aá]zlo|procede|adelante|dale|aprobado)(?:\s+por favor)?[.!]?$/.test(
+    normalized,
+  )
 }

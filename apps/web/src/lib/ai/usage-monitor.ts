@@ -1,3 +1,5 @@
+import type { AiUsage } from './providers/types'
+
 export interface AIUsageLog {
   completionTokens: number
   estimatedCost: number
@@ -23,6 +25,11 @@ export interface AICallMetadata {
 
 const usageLogs: AIUsageLog[] = []
 
+// Precios en USD por cada 1.000 tokens. Se usan para el control de gasto diario
+// por usuario, no para facturación: una diferencia de céntimos es tolerable, pero
+// tarificar un modelo caro con la tarifa de uno barato NO lo es, porque el tope
+// de coste dejaría de proteger. De ahí que cada familia de modelos tenga entrada
+// propia y el respaldo sea el modelo más caro conocido de su proveedor.
 const MODEL_PRICING = {
   'gemini-3.5-flash': {
     input: 0.0015,
@@ -36,13 +43,58 @@ const MODEL_PRICING = {
     input: 0.00025,
     output: 0.0015,
   },
+  'gpt-5': {
+    input: 0.00125,
+    output: 0.01,
+  },
+  'gpt-5-mini': {
+    input: 0.00025,
+    output: 0.002,
+  },
+  'gpt-5-nano': {
+    input: 0.00005,
+    output: 0.0004,
+  },
+  'gpt-4.1': {
+    input: 0.002,
+    output: 0.008,
+  },
+  'gpt-4.1-mini': {
+    input: 0.0004,
+    output: 0.0016,
+  },
+  'o-series': {
+    input: 0.0015,
+    output: 0.006,
+  },
 } as const
 
-function resolvePricingKey(model: string): keyof typeof MODEL_PRICING {
-  if (model.includes('gemini-3.5-flash')) return 'gemini-3.5-flash'
-  if (model.includes('gemini-3-flash-preview')) return 'gemini-3.5-flash'
-  if (model.includes('gemini-3.1-pro-preview')) return 'gemini-3.1-pro-preview'
-  if (model.includes('gemini-3.1-flash-lite')) return 'gemini-3.1-flash-lite'
+type ModelPricingKey = keyof typeof MODEL_PRICING
+
+/**
+ * El orden importa: las variantes más específicas se comprueban primero para que
+ * `gpt-5-mini` no se tarifique como `gpt-5`.
+ */
+function resolvePricingKey(model: string): ModelPricingKey {
+  const normalized = model.toLowerCase()
+
+  if (normalized.includes('gemini-3.5-flash')) return 'gemini-3.5-flash'
+  if (normalized.includes('gemini-3-flash-preview')) return 'gemini-3.5-flash'
+  if (normalized.includes('gemini-3.1-pro-preview')) return 'gemini-3.1-pro-preview'
+  if (normalized.includes('gemini-3.1-flash-lite')) return 'gemini-3.1-flash-lite'
+
+  if (normalized.includes('gpt-5-nano')) return 'gpt-5-nano'
+  if (normalized.includes('gpt-5-mini')) return 'gpt-5-mini'
+  if (normalized.includes('gpt-5')) return 'gpt-5'
+  if (normalized.includes('gpt-4.1-mini')) return 'gpt-4.1-mini'
+  if (normalized.includes('gpt-4.1')) return 'gpt-4.1'
+  if (/(?:^|[^a-z])o[1-9](?:-|$)/.test(normalized)) return 'o-series'
+
+  // Un modelo desconocido de OpenAI se tarifica con la tarifa más alta conocida
+  // de ese proveedor: preferimos sobreestimar el gasto y cortar antes, a
+  // subestimarlo y descubrirlo en la factura.
+  if (normalized.startsWith('gpt-') || normalized.startsWith('ft:')) return 'gpt-5'
+
   return 'gemini-3.5-flash'
 }
 
@@ -186,8 +238,13 @@ export function calculateAIMetadata(
   }
 }
 
-export function calculateGeminiMetadata(
-  usage: { candidatesTokenCount?: number; promptTokenCount?: number; totalTokenCount?: number },
+/**
+ * Traduce el consumo en nomenclatura neutral de la plataforma (`AiUsage`) al
+ * formato interno de métricas, que conserva los nombres estilo OpenAI por
+ * compatibilidad con lo ya registrado.
+ */
+export function calculateAiUsageMetadata(
+  usage: AiUsage,
   model: string,
   endpoint: string,
   userId?: string,
@@ -195,9 +252,9 @@ export function calculateGeminiMetadata(
 ): AICallMetadata {
   return calculateAIMetadata(
     {
-      completion_tokens: usage.candidatesTokenCount || 0,
-      prompt_tokens: usage.promptTokenCount || 0,
-      total_tokens: usage.totalTokenCount || 0,
+      completion_tokens: usage.outputTokens || 0,
+      prompt_tokens: usage.inputTokens || 0,
+      total_tokens: usage.totalTokens || 0,
     },
     model,
     endpoint,

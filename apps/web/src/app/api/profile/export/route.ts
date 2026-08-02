@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { recordSecurityEvent } from '@/lib/security/security-events';
+import { stripBugReportTokens } from '@/app/api/lia/chat/lia-report-workflow.service';
+import { stripActionInternalContent } from '@/app/api/lia/chat/superadmin/actions/confirmation-token';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -91,7 +93,13 @@ export async function GET() {
       },
       assistant: {
         conversations: conversations.data ?? [],
-        messages: messages.data ?? [],
+        messages: (messages.data ?? []).map((message) => ({
+          ...message,
+          content:
+            message.role === 'assistant'
+              ? stripActionInternalContent(stripBugReportTokens(message.content))
+              : message.content,
+        })),
       },
       notifications: notifications.data ?? [],
     },

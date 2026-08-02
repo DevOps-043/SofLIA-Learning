@@ -51,6 +51,39 @@ class SuperadminGrant {
 
 export type PlatformSuperadminGrant = SuperadminGrant
 
+class OrganizationAdminGrant {
+  readonly adminUserId: string
+  readonly capability = 'admin-actions' as const
+  readonly organizationId: string
+  readonly organizationSlug: string
+  readonly actorAuthority: 'platform-superadmin' | 'organization-admin'
+  readonly organizationRole: 'owner' | 'admin' | null
+
+  constructor(params: {
+    adminUserId: string
+    organizationId: string
+    organizationSlug: string
+    actorAuthority: 'platform-superadmin' | 'organization-admin'
+    organizationRole: 'owner' | 'admin' | null
+  }) {
+    const {
+      adminUserId,
+      organizationId,
+      organizationSlug,
+      actorAuthority,
+      organizationRole,
+    } = params
+    this.adminUserId = adminUserId
+    this.organizationId = organizationId
+    this.organizationSlug = organizationSlug
+    this.actorAuthority = actorAuthority
+    this.organizationRole = organizationRole
+  }
+}
+
+export type OrganizationAdminActionGrant = OrganizationAdminGrant
+export type AdminActionGrant = PlatformSuperadminGrant | OrganizationAdminActionGrant
+
 /**
  * Guard de runtime: rechaza cualquier objeto que no haya sido emitido por
  * `authorizePlatformSuperadmin` (un cast de TypeScript no basta para eludirlo).
@@ -73,6 +106,29 @@ export function assertPlatformSuperadminGrant(
   }
 }
 
+export function isOrganizationAdminActionGrant(
+  grant: AdminActionGrant,
+): grant is OrganizationAdminActionGrant {
+  return grant instanceof OrganizationAdminGrant
+}
+
+/** Guard común para el motor de acciones (superadmin u org admin). */
+export function assertAdminActionGrant(
+  grant: unknown,
+): asserts grant is AdminActionGrant {
+  const isValid =
+    (grant instanceof SuperadminGrant && grant.capability === 'admin-actions') ||
+    grant instanceof OrganizationAdminGrant
+
+  if (!isValid) {
+    recordSecurityEvent('access-denied', {
+      resourceType: 'admin-copilot',
+      reasons: ['soflia-admin:invalid-action-grant'],
+    })
+    throw new Error('SofLIA: acceso a acciones sin grant válido')
+  }
+}
+
 /**
  * Determina si la página actual pertenece al panel de superadmin.
  * Estricta: solo `/admin` exacto o `/admin/...` (query y hash se ignoran).
@@ -84,6 +140,40 @@ export function isSuperadminPanelPage(currentPage: string | null | undefined): b
     path === SUPERADMIN_PANEL_PATH_PREFIX ||
     path.startsWith(`${SUPERADMIN_PANEL_PATH_PREFIX}/`)
   )
+}
+
+export function isOrganizationAdminPanelPage(
+  currentPage: string | null | undefined,
+  organizationSlug: string,
+): boolean {
+  if (typeof currentPage !== 'string' || !currentPage.trim()) return false
+  const path = currentPage.split(/[?#]/)[0].trim()
+  const prefix = `/${organizationSlug}/business-panel`
+  return path === prefix || path.startsWith(`${prefix}/`)
+}
+
+async function verifyActiveOrganizationScope(
+  organizationId: string,
+  organizationSlug: string,
+): Promise<boolean> {
+  const { data, error } = await createAdminClient()
+    .from('organizations')
+    .select('id')
+    .eq('id', organizationId)
+    .eq('slug', organizationSlug)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  if (error || !data) {
+    logger.warn('SofLIA acciones: organización inactiva o contexto ID/slug inválido', {
+      organizationId,
+      organizationSlug,
+      error: error?.message,
+    })
+    return false
+  }
+
+  return true
 }
 
 /**
@@ -178,6 +268,163 @@ export async function authorizePlatformSuperadmin(
   }
 
   return new SuperadminGrant(sessionUserId, capability)
+}
+
+export interface AuthorizeOrganizationAdminParams {
+  sessionUserId: string
+  currentPage: string | null | undefined
+  promptRiskAction: PromptRiskAction
+  organizationId: string
+  organizationSlug: string
+}
+
+export interface AuthorizePlatformAdminOrganizationParams
+  extends AuthorizeOrganizationAdminParams {
+  sessionUserRole: string | null
+}
+
+/**
+ * Emite un grant ORGANIZACIONAL para un superadmin que está trabajando desde
+ * el business-panel de un tenant. Mantener el grant ligado a la organización
+ * evita que su rol global convierta una orden contextual en una acción fuera
+ * de la organización visible.
+ */
+export async function authorizePlatformSuperadminOrganizationActions(
+  params: AuthorizePlatformAdminOrganizationParams,
+): Promise<OrganizationAdminActionGrant | null> {
+  if (
+    !params.sessionUserId ||
+    !params.organizationId ||
+    !params.organizationSlug ||
+    !isPlatformAdminRole(params.sessionUserRole) ||
+    params.promptRiskAction !== 'allow' ||
+    !isOrganizationAdminPanelPage(params.currentPage, params.organizationSlug)
+  ) {
+    return null
+  }
+
+  const rateLimit = checkRateLimit(
+    `soflia-platform-admin:organization-actions:${params.organizationId}:${params.sessionUserId}`,
+    RateLimitTier.ADMIN,
+  )
+  if (!rateLimit.allowed) {
+    recordSecurityEvent('rate-limit-triggered', {
+      actorId: params.sessionUserId,
+      resourceType: 'organization-admin-copilot',
+      reasons: ['soflia-platform-admin:organization-actions:rate-limited'],
+      metadata: { organizationId: params.organizationId },
+    })
+    return null
+  }
+
+  const [isVerifiedAdmin, isVerifiedOrganization] = await Promise.all([
+    verifyAdminRoleInDatabase(params.sessionUserId),
+    verifyActiveOrganizationScope(params.organizationId, params.organizationSlug),
+  ])
+  if (!isVerifiedAdmin || !isVerifiedOrganization) {
+    recordSecurityEvent('access-denied', {
+      actorId: params.sessionUserId,
+      resourceType: 'organization-admin-copilot',
+      reasons: ['soflia-platform-admin:organization-scope-role-reverification-failed'],
+      metadata: { organizationId: params.organizationId },
+    })
+    return null
+  }
+
+  return new OrganizationAdminGrant({
+    adminUserId: params.sessionUserId,
+    organizationId: params.organizationId,
+    organizationSlug: params.organizationSlug,
+    actorAuthority: 'platform-superadmin',
+    organizationRole: null,
+  })
+}
+
+/**
+ * Autoriza acciones para owner/admin de una organización concreta. El grant
+ * queda ligado a ese tenant y no puede reutilizarse tras navegar a otro.
+ */
+export async function authorizeOrganizationAdminActions(
+  params: AuthorizeOrganizationAdminParams,
+): Promise<OrganizationAdminActionGrant | null> {
+  if (
+    !params.sessionUserId ||
+    !params.organizationId ||
+    !params.organizationSlug ||
+    params.promptRiskAction !== 'allow' ||
+    !isOrganizationAdminPanelPage(params.currentPage, params.organizationSlug)
+  ) {
+    return null
+  }
+
+  const rateLimit = checkRateLimit(
+    `soflia-org-admin:admin-actions:${params.organizationId}:${params.sessionUserId}`,
+    RateLimitTier.ADMIN,
+  )
+  if (!rateLimit.allowed) {
+    recordSecurityEvent('rate-limit-triggered', {
+      actorId: params.sessionUserId,
+      resourceType: 'organization-admin-copilot',
+      reasons: ['soflia-org-admin:admin-actions:rate-limited'],
+      metadata: { organizationId: params.organizationId },
+    })
+    return null
+  }
+
+  const supabase = createAdminClient()
+  const [
+    { data: user, error: userError },
+    { data: membership, error: membershipError },
+    isVerifiedOrganization,
+  ] =
+    await Promise.all([
+      supabase
+        .from('users')
+        .select('is_banned')
+        .eq('id', params.sessionUserId)
+        .single(),
+      supabase
+        .from('organization_users')
+        .select('role, status')
+        .eq('organization_id', params.organizationId)
+        .eq('user_id', params.sessionUserId)
+        .single(),
+      verifyActiveOrganizationScope(params.organizationId, params.organizationSlug),
+    ])
+
+  const role = typeof membership?.role === 'string'
+    ? membership.role.toLowerCase().trim()
+    : ''
+  const status = typeof membership?.status === 'string'
+    ? membership.status.toLowerCase().trim()
+    : ''
+  const authorized =
+    !userError &&
+    !membershipError &&
+    Boolean(user) &&
+    Boolean(membership) &&
+    isVerifiedOrganization &&
+    user?.is_banned !== true &&
+    status === 'active' &&
+    (role === 'owner' || role === 'admin')
+
+  if (!authorized) {
+    recordSecurityEvent('access-denied', {
+      actorId: params.sessionUserId,
+      resourceType: 'organization-admin-copilot',
+      reasons: ['soflia-org-admin:membership-reverification-failed'],
+      metadata: { organizationId: params.organizationId },
+    })
+    return null
+  }
+
+  return new OrganizationAdminGrant({
+    adminUserId: params.sessionUserId,
+    organizationId: params.organizationId,
+    organizationSlug: params.organizationSlug,
+    actorAuthority: 'organization-admin',
+    organizationRole: role as 'owner' | 'admin',
+  })
 }
 
 export { isPlatformAdminRole, PLATFORM_ADMIN_ROLE }

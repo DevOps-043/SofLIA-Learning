@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { SessionService } from '@/features/auth/services/session.service'
-import { generateGeminiText } from '@/lib/gemini/client'
+import { generateAiText } from '@/lib/ai/providers/ai-text-gateway.server'
 import { logger } from '@/lib/utils/logger'
 
 export const runtime = 'nodejs'
@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       userId: user.id,
     })
 
-    const transcription = await generateGeminiText({
+    const transcription = await generateAiText({
       circuitBreakerName: 'gemini-lia-dictation',
       purpose: 'lia_dictation',
       prompt: [
@@ -101,12 +101,12 @@ export async function POST(request: NextRequest) {
           text:
             `Transcribe el audio en ${requestedLanguage}. ` +
             'Responde solo con el texto transcrito, sin explicaciones, etiquetas ni formato.',
+          type: 'text',
         },
         {
-          inlineData: {
-            data: audioBase64,
-            mimeType: audioFile.type || 'audio/mpeg',
-          },
+          data: audioBase64,
+          mimeType: audioFile.type || 'audio/mpeg',
+          type: 'inlineData',
         },
       ],
     })

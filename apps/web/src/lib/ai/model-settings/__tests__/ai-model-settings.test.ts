@@ -6,7 +6,9 @@ import { buildThinkingConfig } from '../thinking'
 import type { ResolvedAiModelSettings } from '../types'
 import {
   aiModelSettingsUpdateSchema,
+  assertProviderIsResolvable,
   assertUpdateMatchesCapabilities,
+  UnresolvableAiProviderError,
   UnsupportedAiCapabilityError,
 } from '../validation'
 
@@ -183,6 +185,8 @@ describe('buildManagedGenerationConfig', () => {
     maxOutputTokens: 1000,
     model: 'gemini-3.5-flash',
     modelSource: 'default',
+    provider: 'google',
+    providerSelection: 'auto',
     purpose: 'lia_general',
     temperature: 0.5,
     thinkingLevel: 'default',
@@ -247,5 +251,142 @@ describe('validación de la actualización', () => {
     expect(() =>
       assertUpdateMatchesCapabilities('auto_translation', { maxOutputTokens: 2000 }),
     ).toThrow(UnsupportedAiCapabilityError)
+  })
+
+  it('acepta identificadores de modelo afinado de OpenAI (con dos puntos)', () => {
+    const result = aiModelSettingsUpdateSchema.safeParse({
+      model: 'ft:gpt-4.1-mini:acme::AbC123',
+    })
+    expect(result.success).toBe(true)
+  })
+})
+
+describe('resolución del proveedor', () => {
+  it('deduce el proveedor del nombre del modelo cuando la selección es automática', () => {
+    expect(
+      assertProviderIsResolvable({
+        currentModel: 'gemini-3.5-flash',
+        currentProviderSelection: 'auto',
+        purposeId: 'lia_general',
+        update: { model: 'gpt-5.1' },
+      }),
+    ).toBe('openai')
+  })
+
+  it('respeta el proveedor fijado a mano aunque el modelo sugiera otro', () => {
+    expect(
+      assertProviderIsResolvable({
+        currentModel: 'gemini-3.5-flash',
+        currentProviderSelection: 'auto',
+        purposeId: 'lia_general',
+        update: { provider: 'openai' },
+      }),
+    ).toBe('openai')
+  })
+
+  it('rechaza un modelo sin proveedor deducible en lugar de asumir uno', () => {
+    // Guardar una errata con un proveedor por defecto convertiría el error en un
+    // fallo silencioso cuando un empleado use la funcionalidad.
+    expect(() =>
+      assertProviderIsResolvable({
+        currentModel: 'gemini-3.5-flash',
+        currentProviderSelection: 'auto',
+        purposeId: 'lia_general',
+        update: { model: 'gtp-5.1' },
+      }),
+    ).toThrow(UnresolvableAiProviderError)
+  })
+
+  it('permite un modelo desconocido si se elige el proveedor explícitamente', () => {
+    expect(
+      assertProviderIsResolvable({
+        currentModel: 'gemini-3.5-flash',
+        currentProviderSelection: 'auto',
+        purposeId: 'lia_general',
+        update: { model: 'modelo-corporativo-nuevo', provider: 'openai' },
+      }),
+    ).toBe('openai')
+  })
+
+  it('rechaza un proveedor que el propósito no admite', () => {
+    // El dictado envía audio en línea: hoy solo lo atiende Gemini.
+    expect(() =>
+      assertProviderIsResolvable({
+        currentModel: 'gemini-3.5-flash',
+        currentProviderSelection: 'auto',
+        purposeId: 'lia_dictation',
+        update: { model: 'gpt-5.1' },
+      }),
+    ).toThrow(UnresolvableAiProviderError)
+  })
+})
+
+describe('provider en la configuración resuelta', () => {
+  const originalEnv = { ...process.env }
+
+  beforeEach(() => {
+    selectMock.mockReset()
+    delete process.env.GEMINI_MODEL
+    delete process.env.LIA_CHAT_GEMINI_MODEL
+  })
+
+  afterEach(() => {
+    process.env = { ...originalEnv }
+  })
+
+  it('deduce OpenAI cuando el override guarda un modelo gpt sin proveedor explícito', async () => {
+    selectMock.mockResolvedValue({
+      data: [
+        {
+          max_output_tokens: 2048,
+          model: 'gpt-5.1',
+          provider: null,
+          purpose: 'lia_general',
+          temperature: 0.3,
+          thinking_level: 'default',
+          updated_at: '2026-08-01T00:00:00.000Z',
+        },
+      ],
+      error: null,
+    })
+    const { getAiModelSettings } = await loadService()
+
+    const settings = await getAiModelSettings('lia_general')
+
+    expect(settings.provider).toBe('openai')
+    expect(settings.providerSelection).toBe('auto')
+  })
+
+  it('respeta el proveedor fijado a mano en la columna', async () => {
+    selectMock.mockResolvedValue({
+      data: [
+        {
+          max_output_tokens: null,
+          model: 'modelo-corporativo',
+          provider: 'openai',
+          purpose: 'lia_general',
+          temperature: null,
+          thinking_level: 'default',
+          updated_at: '2026-08-01T00:00:00.000Z',
+        },
+      ],
+      error: null,
+    })
+    const { getAiModelSettings } = await loadService()
+
+    const settings = await getAiModelSettings('lia_general')
+
+    expect(settings.provider).toBe('openai')
+    expect(settings.providerSelection).toBe('openai')
+  })
+
+  it('degrada a Google cuando no hay override y el default es un modelo de Gemini', async () => {
+    selectMock.mockResolvedValue({ data: [], error: null })
+    const { getAiModelSettings } = await loadService()
+
+    const settings = await getAiModelSettings('lia_general')
+
+    expect(settings.provider).toBe('google')
+    expect(settings.providerSelection).toBe('auto')
   })
 })

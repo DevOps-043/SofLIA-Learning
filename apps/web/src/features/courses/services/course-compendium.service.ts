@@ -15,7 +15,10 @@
 import { z } from 'zod'
 
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import type { PromptModelProfile } from '@/lib/ai/prompts'
+import type { AiPromptInput } from '@/lib/ai/providers/ai-text-gateway.server'
 import { generateStructuredContent } from '@/lib/ai/structured-generation.server'
+import { buildCourseCompendiumPrompt } from './course-compendium.prompt'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Json } from '@/lib/supabase/types'
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
@@ -24,7 +27,6 @@ import { logger } from '@/lib/utils/logger'
 import { NoteService } from './note.service'
 import {
   buildCompiledNotesHtml,
-  buildCourseCompendiumPrompt,
   buildCourseSynthesisHtmlFromModel,
   buildDeterministicCourseSynthesisHtml,
   clip,
@@ -179,7 +181,7 @@ async function findExistingCompendium(
 
 async function generateSynthesisHtml(input: {
   generation: GenerateCourseCompendiumInput
-  prompt: string
+  prompt: AiPromptInput
   untrustedText: string
 }): Promise<string> {
   const settings = await getAiModelSettings('course_compendium')
@@ -193,7 +195,7 @@ async function generateSynthesisHtml(input: {
     },
     jsonSchema: COURSE_SYNTHESIS_JSON_SCHEMA,
     maxOutputTokens: settings.maxOutputTokens ?? 8_192,
-    model: settings.model,
+    purpose: 'course_compendium',
     operation: 'course_compendium',
     prompt: input.prompt,
     schema: courseSynthesisSchema,
@@ -320,11 +322,12 @@ export async function generateCourseCompendium(
     ])
     const notesByLesson = groupNotesByLesson(notes)
 
-    const prompt = buildCourseCompendiumPrompt({
-      courseTitle: input.courseTitle,
-      lessons,
-      notesByLesson,
-    })
+    const prompt = (profile: PromptModelProfile) =>
+      buildCourseCompendiumPrompt(profile, {
+        courseTitle: input.courseTitle,
+        lessons,
+        notesByLesson,
+      })
     let quality: 'ai' | 'deterministic' = 'ai'
     let warning: string | undefined
     let synthesisHtml: string

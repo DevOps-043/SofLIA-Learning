@@ -2,7 +2,12 @@ import 'server-only'
 
 import { ServiceStatus, StatusErrorClassification } from '@aprende-y-aplica/shared'
 
-import { generateGeminiText, getGeminiApiKey } from '@/lib/gemini/client'
+import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
+import {
+  generateAiText,
+  hasAiProviderCredentials,
+} from '@/lib/ai/providers/ai-text-gateway.server'
+import type { AiProvider } from '@/lib/ai/providers/provider-registry'
 import {
   CircuitBreakerOpenError,
   ExternalHttpError,
@@ -11,52 +16,82 @@ import {
 } from '@/lib/resilience/circuit-breaker'
 import { extractErrorMessage, type StatusCheckResult } from './types'
 
-// Dedicated breaker so probe traffic never pollutes the production breakers'
-// rolling windows (gemini-ai-chat, gemini-dialogue-tutor, etc.).
-const STATUS_CHECK_CIRCUIT_BREAKER_NAME = 'gemini-status-check'
-const GEMINI_CHECK_TIMEOUT_MS = 8_000
-const GEMINI_DEGRADED_LATENCY_MS = 5_000
+/**
+ * Sonda de disponibilidad del proveedor de IA que atiende a SofLIA.
+ *
+ * SONDEA EL PROVEEDOR CONFIGURADO, no Gemini de forma fija: si un
+ * superadministrador cambia `lia_general` a un modelo de OpenAI, comprobar
+ * Gemini informaría de un servicio que ya no se usa y ocultaría una caída real.
+ */
+
+// Breaker propio para que el tráfico de la sonda no contamine las ventanas
+// móviles de los breakers de producción (gemini-ai-chat, gemini-dialogue-tutor…).
+const STATUS_CHECK_CIRCUIT_BREAKER_NAME = 'ai-status-check'
+const AI_CHECK_TIMEOUT_MS = 8_000
+const AI_DEGRADED_LATENCY_MS = 5_000
+
+/**
+ * Prefijos de los breakers de producción por proveedor. Se comprueban para
+ * detectar una caída en curso sin gastar otra llamada a la API, algo relevante
+ * cuando la avería es agotamiento de cuota: sondear quemaría cuota y retrasaría
+ * la recuperación.
+ */
+const PRODUCTION_BREAKER_SUFFIX: Record<AiProvider, string> = {
+  google: ':google',
+  openai: ':openai',
+}
+
+function findOpenProductionBreaker(provider: AiProvider): string | null {
+  const suffix = PRODUCTION_BREAKER_SUFFIX[provider]
+
+  const openBreaker = getCircuitBreakerSnapshots().find(
+    (snapshot) =>
+      snapshot.name.endsWith(suffix)
+      && !snapshot.name.startsWith(STATUS_CHECK_CIRCUIT_BREAKER_NAME)
+      && snapshot.state === 'open',
+  )
+
+  return openBreaker?.name ?? null
+}
 
 export async function checkGeminiStatus(): Promise<StatusCheckResult> {
   const startedAt = performance.now()
 
-  if (!getGeminiApiKey()) {
+  // Nunca lanza: degrada a entorno/defaults si la base falla.
+  const settings = await getAiModelSettings('lia_general')
+
+  if (!hasAiProviderCredentials(settings.provider)) {
     return {
       status: ServiceStatus.DOWN,
       latencyMs: 0,
       errorClassification: StatusErrorClassification.GENERIC_OUTAGE,
-      errorDetail: 'GEMINI_API_KEY_MISSING',
+      errorDetail: `AI_API_KEY_MISSING:${settings.provider}`,
     }
   }
 
-  // If any production Gemini breaker is already open we are mid-outage: report
-  // DOWN immediately without spending another API call (relevant when the outage
-  // is quota exhaustion — probing would burn quota and delay recovery).
-  const openProductionBreaker = getCircuitBreakerSnapshots().find(
-    (snapshot) =>
-      snapshot.name.startsWith('gemini-')
-      && snapshot.name !== STATUS_CHECK_CIRCUIT_BREAKER_NAME
-      && snapshot.state === 'open',
-  )
+  const openProductionBreaker = findOpenProductionBreaker(settings.provider)
   if (openProductionBreaker) {
     return {
       status: ServiceStatus.DOWN,
       latencyMs: 0,
       errorClassification: StatusErrorClassification.GENERIC_OUTAGE,
-      errorDetail: `circuit_breaker_open:${openProductionBreaker.name}`,
+      errorDetail: `circuit_breaker_open:${openProductionBreaker}`,
     }
   }
 
   try {
-    await generateGeminiText({
+    await generateAiText({
       circuitBreakerName: STATUS_CHECK_CIRCUIT_BREAKER_NAME,
+      maxOutputTokens: 1,
+      model: settings.model,
       prompt: 'ping',
-      generationConfig: { maxOutputTokens: 1, temperature: 0 },
-      timeoutMs: GEMINI_CHECK_TIMEOUT_MS,
+      provider: settings.provider,
+      temperature: 0,
+      timeoutMs: AI_CHECK_TIMEOUT_MS,
     })
 
     const latencyMs = Math.round(performance.now() - startedAt)
-    if (latencyMs > GEMINI_DEGRADED_LATENCY_MS) {
+    if (latencyMs > AI_DEGRADED_LATENCY_MS) {
       return {
         status: ServiceStatus.DEGRADED,
         latencyMs,
@@ -98,12 +133,16 @@ export function classifyGeminiError(error: unknown, latencyMs: number): StatusCh
   const httpStatus = extractHttpStatus(error)
   const detail = truncateDetail(extractErrorMessage(error))
 
-  // Billing/quota signatures per Google docs: 429 RESOURCE_EXHAUSTED (quota/rate
-  // exhausted, including prepaid balance at $0) and 400 FAILED_PRECONDITION
-  // (billing not enabled / not supported for the project region).
+  // Firmas de facturación/cuota de ambos proveedores:
+  // - Google: 429 RESOURCE_EXHAUSTED (cuota o saldo prepago a 0) y 400
+  //   FAILED_PRECONDITION (facturación no habilitada o región no soportada).
+  // - OpenAI: 429 con `insufficient_quota` o `rate_limit_exceeded`, y 402
+  //   cuando el proyecto se queda sin crédito.
   const isBillingQuota =
     httpStatus === 429
+    || httpStatus === 402
     || /RESOURCE_EXHAUSTED/i.test(detail)
+    || /insufficient_quota|rate_limit_exceeded|billing_hard_limit/i.test(detail)
     || (httpStatus === 400 && /FAILED_PRECONDITION/i.test(detail))
     || /FAILED_PRECONDITION/i.test(detail)
 
@@ -124,10 +163,11 @@ export function classifyGeminiError(error: unknown, latencyMs: number): StatusCh
   }
 }
 
-// The @google/generative-ai SDK throws GoogleGenerativeAIFetchError with a
-// `status` field in recent versions, but older shapes only embed the code in the
-// message ("[429 Too Many Requests] ..."). ExternalHttpError (circuit breaker)
-// carries it typed. Try each shape defensively.
+// El SDK de Google lanza GoogleGenerativeAIFetchError con un campo `status` en
+// las versiones recientes, pero las formas antiguas solo incrustan el código en
+// el mensaje ("[429 Too Many Requests] ..."). El de OpenAI expone `status`
+// directamente. ExternalHttpError (circuit breaker) lo lleva tipado. Se prueba
+// cada forma de manera defensiva.
 function extractHttpStatus(error: unknown): number | null {
   if (error instanceof ExternalHttpError) return error.status
 

@@ -1,6 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 
-import { calculateGeminiMetadata, trackAICall } from '../../lib/ai/usage-monitor'
+import { calculateAiUsageMetadata, trackAICall } from '../../lib/ai/usage-monitor'
+import { buildLanguageDetectionSystemPrompt } from './ai-small-prompts'
 
 type DetectableLanguage = 'es' | 'en' | 'pt'
 
@@ -20,33 +21,24 @@ export class LanguageDetectionService {
     }
 
     try {
-      const systemPrompt = `Eres un detector de idiomas especializado.
-Identifica el idioma del texto proporcionado.
-
-Idiomas soportados:
-- es para espanol
-- en para ingles
-- pt para portugues brasileno
-
-Responde UNICAMENTE con el codigo del idioma: es, en o pt.`
 
       const userPrompt = `Cual es el idioma del siguiente texto?
 
 Texto:
 ${text.substring(0, 1000)}${text.length > 1000 ? '...' : ''}`
 
-      const { generateGeminiText } = await import('../../lib/gemini/client')
+      const { generateAiText } = await import('../../lib/ai/providers/ai-text-gateway.server')
       const startTime = Date.now()
-      const result = await generateGeminiText({
+      const result = await generateAiText({
         circuitBreakerName: 'gemini-language-detection',
         prompt: userPrompt,
         purpose: 'language_detection',
-        systemInstruction: systemPrompt,
+        systemInstruction: buildLanguageDetectionSystemPrompt,
       })
       const responseTime = Date.now() - startTime
 
       if (result.usage) {
-        await trackAICall(calculateGeminiMetadata(
+        await trackAICall(calculateAiUsageMetadata(
           result.usage,
           result.model,
           'language-detection',

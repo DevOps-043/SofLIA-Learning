@@ -1,5 +1,9 @@
+import type { PromptModelProfile } from '@/lib/ai/prompts'
+import {
+  generateAiText,
+  isAiPurposeAvailable,
+} from '@/lib/ai/providers/ai-text-gateway.server'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { buildDeadlinePrompt } from './deadline-prompt'
 import type {
   AggregatedCourseDeadlineContext,
@@ -33,19 +37,23 @@ export async function calculateDeadlineOptions(
   context: AggregatedCourseDeadlineContext,
 ): Promise<{ deadlines: DeadlineDays; reasoning: AiDeadlineReasoning }> {
   const fallback = buildFallback(context)
-  const apiKey = process.env.GOOGLE_API_KEY
 
-  if (!apiKey) {
+  if (!(await isAiPurposeAvailable('course_time_estimation'))) {
     return fallback
   }
 
   try {
-    const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
-      model: 'gemini-3.5-flash',
-      generationConfig: { responseMimeType: 'application/json' },
+    // Comparte el propósito `course_time_estimation`: ambas llamadas estiman
+    // esfuerzo a partir del contenido del curso y no tiene sentido que un
+    // administrador las configure por separado.
+    const result = await generateAiText({
+      circuitBreakerName: 'deadline-suggestions',
+      prompt: (profile: PromptModelProfile) => buildDeadlinePrompt(profile, context),
+      purpose: 'course_time_estimation',
+      // No administrable: la respuesta se parsea como JSON obligatoriamente.
+      responseAsJson: true,
     })
-    const result = await model.generateContent(buildDeadlinePrompt(context))
-    const aiData = JSON.parse(result.response.text())
+    const aiData = JSON.parse(result.text)
 
     return {
       deadlines: {

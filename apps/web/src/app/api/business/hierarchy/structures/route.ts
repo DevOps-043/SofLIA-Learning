@@ -5,6 +5,7 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { requireBusiness } from '@/lib/auth/requireBusiness';
 import { createClient } from '@/lib/supabase/server';
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import type { Json } from '@/lib/supabase/types';
 
 import {
   createStructureSchema,
@@ -47,9 +48,29 @@ async function handlePost(_request: NextRequest, body: CreateStructureBody) {
     return apiError('NO_ORGANIZATION', 'Organization context missing', 400);
   }
 
+  const { data: existingDefault, error: defaultError } = await supabase
+    .from('organization_structures')
+    .select('id')
+    .eq('organization_id', organizationId)
+    .eq('is_default', true)
+    .limit(1)
+    .maybeSingle();
+
+  if (defaultError) {
+    return apiError('CREATE_STRUCTURE_FAILED', defaultError.message, 500);
+  }
+
   const { data, error } = await supabase
     .from('organization_structures')
-    .insert({ name: body.name, organization_id: organizationId })
+    .insert({
+      name: body.name,
+      description: body.description ?? null,
+      template: body.template ?? null,
+      metadata: (body.metadata ?? null) as Json,
+      organization_id: organizationId,
+      created_by: auth.userId,
+      is_default: !existingDefault,
+    })
     .select()
     .single();
 

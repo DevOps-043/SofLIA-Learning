@@ -1769,7 +1769,7 @@
   },
   "aiSettings": {
     "title": "AI models",
-    "subtitle": "Configure the Gemini model, token limit, temperature and thinking level for each AI use across the platform. General SofLIA and SofLIA inside course activities are configured separately.",
+    "subtitle": "Configure the provider, model, token limit, temperature and reasoning level for every AI use in the platform. Type the model name (for example gemini-3.5-flash or gpt-5.1) and the platform detects the provider automatically.",
     "propagationNotice": "Changes apply without a redeploy. They may take up to a minute to propagate to every server instance.",
     "loadError": "The AI model configuration could not be loaded.",
     "groups": {
@@ -1784,7 +1784,8 @@
       "maxOutputTokens": "Max output tokens",
       "temperature": "Temperature",
       "thinkingLevel": "Thinking level",
-      "inheritedPlaceholder": "Inherited"
+      "inheritedPlaceholder": "Inherited",
+      "provider": "Provider"
     },
     "thinkingLevels": {
       "default": "Provider default",
@@ -1890,7 +1891,29 @@
       "structuredFallback": {
         "label": "Structured generation (fallback)",
         "description": "Model used by JSON-schema generations that do not declare their own purpose."
+      },
+      "quizFeedback": {
+        "label": "Quiz feedback",
+        "description": "Explains their answers to the learner after completing a quiz."
+      },
+      "notebookAssistant": {
+        "label": "Notebook assistant",
+        "description": "Answers questions and rewrites notes inside the notebook editor."
+      },
+      "userForensics": {
+        "label": "User forensic analysis",
+        "description": "Summarizes a user activity audit for the super admin."
       }
+    },
+    "providers": {
+      "auto": "Detect automatically",
+      "google": "Google Gemini",
+      "openai": "OpenAI"
+    },
+    "provider": {
+      "detectedHint": "Requests will go to {{provider}}.",
+      "unknownHint": "This model is not recognized. Pick the provider manually to save.",
+      "lockedHint": "This use sends audio or video and is currently supported only by Google Gemini."
     }
   }
 }

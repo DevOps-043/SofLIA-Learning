@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { buildEnrichmentPromptForGoogle } from '../notebook-enrichment.google.prompt'
+
 import {
-  buildEnrichmentPrompt,
   clip,
   computeNoteContentHash,
   normalizeAiOutput,
@@ -121,7 +122,7 @@ describe('clip', () => {
 
 describe('buildEnrichmentPrompt', () => {
   it('frames the note content as data inside <apunte> markers', () => {
-    const prompt = buildEnrichmentPrompt({
+    const prompt = buildEnrichmentPromptForGoogle({
       existingTags: ['ia'],
       noteText: 'Contenido del apunte',
       noteTitle: 'Mi título',

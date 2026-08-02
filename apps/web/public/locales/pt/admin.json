@@ -1769,7 +1769,7 @@
   },
   "aiSettings": {
     "title": "Modelos de IA",
-    "subtitle": "Configure o modelo do Gemini, o limite de tokens, a temperatura e o nível de raciocínio de cada uso de IA da plataforma. A SofLIA geral e a SofLIA dentro das atividades de um curso sao configuradas separadamente.",
+    "subtitle": "Configure o provedor, o modelo, o limite de tokens, a temperatura e o nível de raciocínio de cada uso de IA da plataforma. Escreva o nome do modelo (por exemplo gemini-3.5-flash ou gpt-5.1) e a plataforma detecta o provedor automaticamente.",
     "propagationNotice": "As alterações são aplicadas sem novo deploy. Podem levar até um minuto para se propagar a todas as instâncias do servidor.",
     "loadError": "Não foi possível carregar a configuração dos modelos de IA.",
     "groups": {
@@ -1784,7 +1784,8 @@
       "maxOutputTokens": "Máximo de tokens de saída",
       "temperature": "Temperatura",
       "thinkingLevel": "Nível de raciocínio",
-      "inheritedPlaceholder": "Herdado"
+      "inheritedPlaceholder": "Herdado",
+      "provider": "Provedor"
     },
     "thinkingLevels": {
       "default": "Padrão do provedor",
@@ -1890,7 +1891,29 @@
       "structuredFallback": {
         "label": "Geração estruturada (reserva)",
         "description": "Modelo usado por gerações com esquema JSON que não declaram um propósito próprio."
+      },
+      "quizFeedback": {
+        "label": "Retorno do quiz",
+        "description": "Explica ao aluno as respostas depois de concluir um questionário."
+      },
+      "notebookAssistant": {
+        "label": "Assistente do caderno",
+        "description": "Responde perguntas e reescreve anotações dentro do editor do caderno."
+      },
+      "userForensics": {
+        "label": "Análise forense de usuário",
+        "description": "Resume a auditoria de atividade de um usuário para o superadministrador."
       }
+    },
+    "providers": {
+      "auto": "Detectar automaticamente",
+      "google": "Google Gemini",
+      "openai": "OpenAI"
+    },
+    "provider": {
+      "detectedHint": "Será enviado para {{provider}}.",
+      "unknownHint": "Este modelo não é reconhecido. Escolha o provedor manualmente para poder salvar.",
+      "lockedHint": "Este uso envia áudio ou vídeo e hoje só é compatível com o Google Gemini."
     }
   }
 }

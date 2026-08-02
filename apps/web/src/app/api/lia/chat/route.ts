@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import type { AiContentPart } from '@/lib/ai/providers';
+import type { PromptModelProfile } from '@/lib/ai/prompts';
 import {
-  GoogleGenerativeAI,
-  HarmCategory,
-  HarmBlockThreshold,
-  type Part,
-} from '@google/generative-ai';
+  generateAiText,
+  isAiPurposeAvailable,
+  streamAiText,
+  type GenerateAiTextParams,
+} from '@/lib/ai/providers/ai-text-gateway.server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
 import {
@@ -25,24 +27,21 @@ import {
   type ChatRequest,
   type PlatformContext,
 } from './platform-context.service';
-import { resolveActiveOrganizationContext } from './organization-context.service';
+import {
+  resolveActiveOrganizationContext,
+  resolvePlatformAdminOrganizationContext,
+} from './organization-context.service';
 import { getLIASystemPrompt } from './system-prompt.service';
 import {
   buildFullContext,
-  appendPersonalizationPrompt,
-  appendBugReportContext,
+  buildPersonalizationSection,
+  buildBugReportContextSection,
   buildCleanHistory,
 } from './chat-context.builder';
 import { buildCurrentTurnPrompt } from './prompt-current-turn.service';
 import { processAIResponse } from './chat-response.formatter';
 import { toInlineImagePart } from '@/core/reporting/report-problem.server';
-import {
-  CIRCUIT_BREAKER_DEFAULTS,
-  executeWithCircuitBreaker,
-} from '@/lib/resilience/circuit-breaker';
-import { resolveGeminiModel } from '@/lib/gemini/client';
-import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service';
-import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config';
+
 import { logger } from '@/lib/logger';
 import {
   BUG_REPORT_CONFIRMATION_REMINDER,
@@ -57,7 +56,6 @@ import {
   submitConfirmedBugReport,
   type LiaChatProcessingBody,
 } from './lia-report-workflow.service';
-import type { ChatSession } from '@google/generative-ai';
 import {
   getLatestAssistantMessageContent,
   persistConversationTurn,
@@ -68,17 +66,27 @@ import {
   finalizeSuperadminResponse,
   resolveSuperadminTurn,
 } from './superadmin/superadmin-turn';
-import { hasActionBlock, stripActionTokens } from './superadmin/actions';
+import {
+  createActionBlockStreamMask,
+  hasActionBlock,
+  stripActionInternalContent,
+  stripActionBlock,
+  stripActionTokens,
+} from './superadmin/actions';
 import { liaChatSchema, type LiaChatBody } from '../_schemas';
 import { SessionService } from '@/features/auth/services/session.service';
+import {
+  isOrganizationAdminPanelPage,
+  isPlatformAdminRole,
+} from './superadmin/authorization';
 
 type SecurityAssessment = ReturnType<typeof evaluatePromptInjectionRisk>;
 
 function buildCurrentMessageParts(
   promptWithContext: string,
   attachments: ChatRequest['messages'][number]['attachments']
-): Part[] {
-  const parts: Part[] = [{ text: promptWithContext }];
+): AiContentPart[] {
+  const parts: AiContentPart[] = [{ text: promptWithContext, type: 'text' }];
 
   if (!attachments?.length) {
     return parts;
@@ -87,6 +95,7 @@ function buildCurrentMessageParts(
   parts.push({
     text:
       'El usuario adjunto evidencia visual. Usa las imagenes como contexto para entender mejor el problema o la pregunta.',
+    type: 'text',
   });
 
   attachments.forEach((attachment) => {
@@ -104,7 +113,15 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-function buildAssistantStreamResponse(content: string): Response {
+function buildAssistantStreamResponse(
+  content: string,
+  navigateTo?: string | null,
+  downloads: Array<{
+    url: string
+    method: 'POST'
+    body: Record<string, string | number | boolean>
+  }> = [],
+): Response {
   const encoder = new TextEncoder();
   const readable = new ReadableStream({
     start(controller) {
@@ -115,7 +132,13 @@ function buildAssistantStreamResponse(content: string): Response {
         if (index >= content.length) {
           controller.enqueue(
             encoder.encode(
-              'data: ' + JSON.stringify({ done: true }) + '\n\n'
+              'data: ' +
+                JSON.stringify({
+                  done: true,
+                  navigateTo: navigateTo || undefined,
+                  downloads: downloads.length ? downloads : undefined,
+                }) +
+                '\n\n'
             )
           );
           controller.close();
@@ -154,14 +177,26 @@ function buildAssistantResponse(
     conversation_id: string;
     user_message_id: string;
   } | null,
+  navigateTo?: string | null,
+  downloads: Array<{
+    url: string
+    method: 'POST'
+    body: Record<string, string | number | boolean>
+  }> = [],
 ) {
+  // Último candado de salida: ningún marcador interno puede llegar a pantalla,
+  // transcripción o TTS aunque una rama futura olvide retirarlo.
+  const visibleContent = stripActionInternalContent(content);
+
   if (shouldStream) {
-    return buildAssistantStreamResponse(content);
+    return buildAssistantStreamResponse(visibleContent, navigateTo, downloads);
   }
 
   return NextResponse.json({
     chat_provenance: chatProvenance || undefined,
-    message: { role: 'assistant', content },
+    navigate_to: navigateTo || undefined,
+    downloads: downloads.length ? downloads : undefined,
+    message: { role: 'assistant', content: visibleContent },
   });
 }
 
@@ -231,14 +266,13 @@ async function finalizeStreamedAssistantResponse(params: {
  * bloque oculto en lugar de descartarlo y garantiza la petición de confirmación
  * al cierre.
  */
-async function streamGeminiResponse(params: {
-  chatSession: ChatSession;
-  parts: Part[];
+async function streamAiResponse(params: {
+  aiRequest: GenerateAiTextParams;
   body: LiaChatBody;
   requestContext: ChatRequest['context'];
   securityAssessment: SecurityAssessment;
 }): Promise<Response> {
-  const { chatSession, parts, body, requestContext, securityAssessment } = params;
+  const { aiRequest, body, requestContext, securityAssessment } = params;
 
   const encoder = new TextEncoder();
   // `fullText` conserva la salida CRUDA del modelo (con el bloque oculto de
@@ -259,20 +293,16 @@ async function streamGeminiResponse(params: {
       };
 
       try {
-        const streamResult = await executeWithCircuitBreaker(
-          'gemini-lia-chat',
-          () => chatSession.sendMessageStream(parts),
-          CIRCUIT_BREAKER_DEFAULTS.gemini,
-        );
+        // El gateway aplica el circuit breaker al abrir el stream y emite solo
+        // texto visible (descarta las partes de razonamiento interno).
+        const aiStream = await streamAiText(aiRequest);
 
-        for await (const chunk of streamResult.stream) {
-          const piece = chunk.text();
-          if (!piece) continue;
+        for await (const piece of aiStream.textChunks) {
           fullText += piece;
           emit(tokenMask.push(piece));
         }
       } catch (streamError) {
-        logger.error('LIA chat: error durante el streaming de Gemini', streamError);
+        logger.error('LIA chat: error durante el streaming del proveedor de IA', streamError);
         if (!fullText) {
           const fallback =
             'En este momento no puedo responder por un problema temporal del servicio de IA. ' +
@@ -315,6 +345,98 @@ async function streamGeminiResponse(params: {
   });
 }
 
+/**
+ * Emite el texto administrativo conforme lo genera el LLM y oculta el JSON de
+ * la acción. Al cerrar el stream valida la propuesta contra BD y agrega la
+ * confirmación firmada. El audio puede sintetizar los primeros lotes mientras
+ * el modelo y la vista previa terminan los siguientes.
+ */
+async function streamAdminActionResponse(params: {
+  aiRequest: GenerateAiTextParams;
+  body: LiaChatBody;
+  requestContext: ChatRequest['context'];
+  securityAssessment: SecurityAssessment;
+  turn: Awaited<ReturnType<typeof resolveSuperadminTurn>>;
+}): Promise<Response> {
+  const { aiRequest, body, requestContext, securityAssessment, turn } = params;
+  const encoder = new TextEncoder();
+
+  const readable = new ReadableStream({
+    async start(controller) {
+      let fullText = '';
+      let emittedVisible = '';
+      const actionMask = createActionBlockStreamMask();
+
+      const emit = (text: string) => {
+        if (!text) return;
+        emittedVisible += text;
+        controller.enqueue(
+          encoder.encode(
+            'data: ' + JSON.stringify({ content: text, done: false }) + '\n\n',
+          ),
+        );
+      };
+
+      try {
+        const aiStream = await streamAiText(aiRequest);
+        for await (const piece of aiStream.textChunks) {
+          fullText += piece;
+          emit(actionMask.push(piece));
+        }
+        emit(actionMask.flush());
+
+        const contentWithAction = await finalizeSuperadminResponse({
+          turn,
+          assistantContent: fullText,
+        });
+        const securedContent = enforceSecurityResponsePolicy({
+          content: stripActionTokens(contentWithAction),
+          assessment: securityAssessment,
+        });
+
+        // `processProposedAction` conserva el texto natural y agrega al final la
+        // confirmación. Solo enviamos esa parte nueva para no repetir el audio.
+        if (securedContent.startsWith(emittedVisible)) {
+          emit(securedContent.slice(emittedVisible.length));
+        } else {
+          const modelVisible = stripActionBlock(fullText);
+          if (securedContent.startsWith(modelVisible)) {
+            emit(securedContent.slice(modelVisible.length));
+          }
+        }
+
+        await persistConversationTurn({
+          conversationId: body.conversationId,
+          userId: requestContext?.userId,
+          requestContext,
+          userMessage: body.messages[body.messages.length - 1],
+          assistantContent: contentWithAction,
+        });
+      } catch (streamError) {
+        logger.error('LIA chat: error durante streaming administrativo', streamError);
+        emit(
+          `${emittedVisible ? '\n\n' : ''}⚠️ No pude dejar lista la confirmación. ` +
+            'No se ejecutó ningún cambio; inténtalo nuevamente.',
+        );
+      } finally {
+        controller.enqueue(
+          encoder.encode('data: ' + JSON.stringify({ done: true }) + '\n\n'),
+        );
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(readable, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'X-Accel-Buffering': 'no',
+    },
+  });
+}
+
 function isGeminiAccessConfigurationError(errorMessage: string): boolean {
   const normalizedMessage = errorMessage.toLowerCase();
   return (
@@ -341,13 +463,14 @@ async function handlePost(
     const { messages, context: requestContext, stream = true } = body;
     shouldStream = stream;
 
-    // Verify API Key
-    const googleApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-    if (!googleApiKey) {
-      logger.error('GEMINI_API_KEY no esta configurada');
+    // Se comprueba la credencial del proveedor CONFIGURADO para SofLIA, no la de
+    // Gemini: si un superadministrador cambia `lia_general` a un modelo de
+    // OpenAI, la clave que debe existir es la de OpenAI.
+    if (!(await isAiPurposeAvailable('lia_general'))) {
+      logger.error('El proveedor de IA configurado para SofLIA no tiene credenciales');
       return apiError(
-        'GEMINI_API_KEY_MISSING',
-        'GEMINI_API_KEY no esta configurada',
+        'AI_PROVIDER_KEY_MISSING',
+        'El proveedor de IA configurado no tiene credenciales',
         500,
       );
     }
@@ -361,17 +484,13 @@ async function handlePost(
       : requestContext;
 
     // Atribución autoritativa del usuario desde la sesión del servidor.
-    // No se confía en `context.userId` del cliente: si llega vacío, el turno NO
-    // se persistía (uso de SofLIA sin contabilizar en las estadísticas); si se
-    // falsifica, se atribuía a otro usuario. Tomamos el id de la sesión real y,
-    // como respaldo, conservamos el del cliente si no hay sesión disponible.
+    // No se confía en `context.userId` del cliente: un actor sin sesión podría
+    // falsificarlo para leer o anexar mensajes a una conversación ajena. Solo
+    // la identidad autenticada del servidor puede persistir historial u obtener
+    // capacidades administrativas; el chat puede degradar sin persistencia.
     const sessionUser = await SessionService.getCurrentUser().catch(() => null);
-    const authoritativeUserId =
-      sessionUser?.id ||
-      (typeof sanitizedRequestContext?.userId === 'string'
-        ? sanitizedRequestContext.userId
-        : undefined);
-    if (sanitizedRequestContext && authoritativeUserId) {
+    const authoritativeUserId = sessionUser?.id;
+    if (sanitizedRequestContext) {
       sanitizedRequestContext.userId = authoritativeUserId;
     }
 
@@ -404,7 +523,7 @@ async function handlePost(
     }
 
     // Build enriched context
-    const activeOrganizationContext = await resolveActiveOrganizationContext({
+    let activeOrganizationContext = await resolveActiveOrganizationContext({
       userId: sanitizedRequestContext?.userId,
       requestedOrganizationId:
         typeof sanitizedRequestContext?.organizationId === 'string'
@@ -412,20 +531,39 @@ async function handlePost(
           : undefined,
       currentPage: sanitizedRequestContext?.currentPage,
     });
+    if (
+      isPlatformAdminRole(sessionUser?.platform_role) &&
+      (!activeOrganizationContext ||
+        !isOrganizationAdminPanelPage(
+          sanitizedRequestContext?.currentPage,
+          activeOrganizationContext.organizationSlug,
+        ))
+    ) {
+      activeOrganizationContext = await resolvePlatformAdminOrganizationContext(
+        sanitizedRequestContext?.currentPage,
+      );
+    }
+    if (sanitizedRequestContext && activeOrganizationContext) {
+      // El tenant resuelto por el servidor prevalece sobre organizationId/slug
+      // enviados por el cliente. Todo el turno (prompt, historial y acciones)
+      // queda así referido a la misma organización autorizada.
+      sanitizedRequestContext.organizationId = activeOrganizationContext.organizationId;
+      sanitizedRequestContext.organizationSlug = activeOrganizationContext.organizationSlug;
+      sanitizedRequestContext.organizationName = activeOrganizationContext.organizationName;
+    }
     const platformContext = await fetchPlatformContext({
       userId: sanitizedRequestContext?.userId,
       organizationContext: activeOrganizationContext,
     });
     const fullContext: PlatformContext = await buildFullContext(platformContext, sanitizedRequestContext);
 
-    // Build system prompt
-    let systemPrompt = getLIASystemPrompt(fullContext);
-    systemPrompt += buildPromptInjectionGuardrailPrompt(securityAssessment);
-
-    // Append personalization settings
-    if (sanitizedRequestContext?.userId) {
-      systemPrompt = await appendPersonalizationPrompt(systemPrompt, sanitizedRequestContext.userId);
-    }
+    // Las piezas dinámicas del prompt se resuelven ANTES (son asíncronas: leen
+    // base de datos). La composición final se difiere a una función del dialecto
+    // porque el proveedor —y con él la forma de redactar— no se conoce hasta que
+    // el gateway resuelve la configuración del propósito.
+    const personalizationSection = sanitizedRequestContext?.userId
+      ? await buildPersonalizationSection(sanitizedRequestContext.userId)
+      : '';
 
     // Validate last message
     const lastMessage = sanitizedLastMessage;
@@ -438,7 +576,10 @@ async function handlePost(
     }
 
     const latestAssistantContent = body.conversationId
-      ? await getLatestAssistantMessageContent(body.conversationId)
+      ? await getLatestAssistantMessageContent(
+          body.conversationId,
+          authoritativeUserId,
+        )
       : null;
     const activeBugReportDraft = latestAssistantContent
       ? extractBugReportDraftToken(latestAssistantContent)
@@ -448,8 +589,8 @@ async function handlePost(
     // consulta global de usuarios y ejecución de acciones administrativas.
     // La autorización es fail-closed y vive en superadmin/authorization (rol de
     // sesión + panel + riesgo de inyección + rate limit + re-verificación en BD).
-    // Para Business/BusinessUser el turno queda inerte: sin secciones de prompt
-    // y sin capacidad de ejecutar nada.
+    // Los owners/admins del business-panel reciben solo el catálogo ligado a su
+    // tenant. Business-user y cualquier otra superficie quedan inertes.
     const currentPage =
       typeof sanitizedRequestContext?.currentPage === 'string'
         ? sanitizedRequestContext.currentPage
@@ -461,6 +602,7 @@ async function handlePost(
       request,
       latestAssistantContent,
       userMessage: lastMessage.content,
+      activeOrganizationContext,
     });
 
     // El admin confirmó (o canceló) una acción propuesta: se resuelve sin pasar
@@ -477,10 +619,13 @@ async function handlePost(
       return buildAssistantResponse(
         superadminTurn.immediateResponse,
         shouldStream,
+        null,
+        superadminTurn.navigationPath,
+        superadminTurn.downloads,
       );
     }
 
-    systemPrompt += await buildSuperadminPromptSections({
+    const superadminSection = await buildSuperadminPromptSections({
       turn: superadminTurn,
       sessionUser,
       currentPage,
@@ -488,6 +633,8 @@ async function handlePost(
       recentUserMessages: sanitizedMessages
         .filter((entry) => entry.role === 'user')
         .map((entry) => entry.content),
+      isVoiceInteraction:
+        sanitizedRequestContext?.interactionMode === 'voice-conversation',
     });
 
     if (activeBugReportDraft) {
@@ -523,9 +670,7 @@ async function handlePost(
       hasPendingDraft: Boolean(activeBugReportDraft),
     });
 
-    // Optionally append bug-report context
-    systemPrompt = await appendBugReportContext(
-      systemPrompt,
+    const bugReportContextSection = await buildBugReportContextSection(
       lastMessage.content,
       bugReportIntent.isBugReport,
       fullContext.currentPage,
@@ -533,45 +678,63 @@ async function handlePost(
       Boolean(activeBugReportDraft)
     );
 
-    if (activeBugReportDraft) {
-      systemPrompt += buildPendingBugReportPromptSection(activeBugReportDraft);
-    }
+    const pendingDraftSection = activeBugReportDraft
+      ? buildPendingBugReportPromptSection(activeBugReportDraft)
+      : '';
 
-    // Initialize Gemini
-    const genAI = new GoogleGenerativeAI(googleApiKey);
-    // Modelo general de SofLIA: configurado desde el panel de superadmin bajo el
-    // propósito `lia_general` (independiente del modelo de las actividades de curso).
-    const liaSettings = await getAiModelSettings('lia_general');
-    const modelName = resolveGeminiModel(liaSettings.model);
-    const liaGenerationConfig = buildManagedGenerationConfig(liaSettings);
-
-    const model = genAI.getGenerativeModel({
-      model: modelName,
-      safetySettings: [
-        { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-      ],
-      generationConfig: liaGenerationConfig,
-    });
-
+    // Modelo, proveedor y DIALECTO de SofLIA: configurados desde el panel de
+    // superadmin bajo el propósito `lia_general`. El gateway resuelve los tres y
+    // entrega el dialecto a esta función, de modo que el mismo prompt se redacta
+    // en el idioma de Gemini o en el de OpenAI sin duplicar contenido.
     const cleanHistory = buildCleanHistory(sanitizedMessages);
-    const messageWithContext = buildCurrentTurnPrompt(systemPrompt, lastMessage.content);
 
-    const chatSession = model.startChat({
+    const buildPromptParts = (profile: PromptModelProfile) => {
+      const systemPrompt = [
+        getLIASystemPrompt(profile, fullContext),
+        buildPromptInjectionGuardrailPrompt(securityAssessment),
+        personalizationSection,
+        superadminSection,
+        bugReportContextSection,
+        pendingDraftSection,
+      ]
+        .filter(Boolean)
+        .join('');
+
+      return buildCurrentMessageParts(
+        buildCurrentTurnPrompt(profile, systemPrompt, lastMessage.content),
+        lastMessage.attachments,
+      );
+    };
+
+    const aiRequest = {
+      circuitBreakerName: 'gemini-lia-chat',
       history: cleanHistory,
-      generationConfig: liaGenerationConfig,
-    });
-
-    const messageParts = buildCurrentMessageParts(messageWithContext, lastMessage.attachments);
+      prompt: buildPromptParts,
+      purpose: 'lia_general' as const,
+    };
 
     // Streaming REAL: solo en el flujo común. Los turnos de reporte ya
     // identificados y los de superadmin con acciones habilitadas requieren
     // reescribir el contenido (token de confirmación) antes de enviarlo, por lo
     // que se mantienen en modo buffered. Cuando el reporte nace en un turno que
     // aquí parecía común, el streaming lo cubre: enmascara el bloque oculto y lo
-    // conserva al persistir (ver `streamGeminiResponse`).
+    // conserva al persistir (ver `streamAiResponse`).
+    const canStreamAdminAction =
+      shouldStream &&
+      superadminTurn.isEnabled &&
+      !bugReportIntent.isBugReport &&
+      !activeBugReportDraft;
+
+    if (canStreamAdminAction) {
+      return await streamAdminActionResponse({
+        aiRequest,
+        body,
+        requestContext: sanitizedRequestContext,
+        securityAssessment,
+        turn: superadminTurn,
+      });
+    }
+
     const canStreamLive =
       shouldStream &&
       !bugReportIntent.isBugReport &&
@@ -579,21 +742,16 @@ async function handlePost(
       !superadminTurn.isEnabled;
 
     if (canStreamLive) {
-      return await streamGeminiResponse({
-        chatSession,
-        parts: messageParts,
+      return await streamAiResponse({
+        aiRequest,
         body,
         requestContext: sanitizedRequestContext,
         securityAssessment,
       });
     }
 
-    const result = await executeWithCircuitBreaker(
-      'gemini-lia-chat',
-      () => chatSession.sendMessage(messageParts),
-      CIRCUIT_BREAKER_DEFAULTS.gemini,
-    );
-    const finalContent = result.response.text();
+    const result = await generateAiText(aiRequest);
+    const finalContent = result.text;
 
     // El modelo propuso una acción administrativa: se convierte en una solicitud
     // de confirmación firmada. El token viaja en el mensaje PERSISTIDO (el turno

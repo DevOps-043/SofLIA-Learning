@@ -14,8 +14,8 @@ import type { AudioRef } from './tts-client.types';
  */
 export interface StreamingSpeechPlayerOptions {
   /**
-   * Se invoca con `true` cuando hay síntesis/reproducción activa y con `false`
-   * cuando la cola queda vacía o se detiene. Útil para indicadores de UI.
+   * Se invoca con `true` justo cuando el audio va a empezar a reproducirse y con
+   * `false` cuando termina. La espera de síntesis no cuenta como "hablando".
    */
   onPlayingChange?: (playing: boolean) => void;
 }
@@ -200,13 +200,11 @@ export class StreamingSpeechPlayer {
       });
     synthesis.catch(() => { /* se maneja al consumir en la cadena */ });
 
-    if (this.activeCount === 0 && !this.stopped) {
-      this.onPlayingChange?.(true);
-    }
     this.activeCount += 1;
 
     this.chain = this.chain.then(async () => {
       let started = false;
+      let audioPlaying = false;
       const markStarted = (event: StreamingSpeechChunkStartEvent) => {
         if (!started) {
           started = true;
@@ -235,18 +233,28 @@ export class StreamingSpeechPlayer {
           return;
         }
 
-        // A punto de reproducir → revela el texto en sincronía con el audio.
-        markStarted({ audioAvailable: true });
         await new Promise<void>((resolve) => {
-          playAudioBlob(blob as Blob, this.audioRef, { onFinish: () => resolve() }).catch(() => resolve());
+          playAudioBlob(blob as Blob, this.audioRef, {
+            onStart: () => {
+              // `audio.play()` ya resolvió: a partir de aquí SofLIA sí está
+              // hablando y la animación puede comenzar sin adelantarse.
+              markStarted({ audioAvailable: true });
+              audioPlaying = true;
+              this.onPlayingChange?.(true);
+            },
+            onFinish: () => resolve(),
+          }).catch(() => {
+            markStarted({ audioAvailable: false });
+            resolve();
+          });
           if (this.controller.signal.aborted) { resolve(); return; }
           this.controller.signal.addEventListener('abort', () => resolve(), { once: true });
         });
       } finally {
-        this.activeCount -= 1;
-        if (this.activeCount === 0 && !this.stopped) {
+        if (audioPlaying) {
           this.onPlayingChange?.(false);
         }
+        this.activeCount -= 1;
       }
     });
 

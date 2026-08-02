@@ -2,8 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
+import { buildLessonAutoNotePromptForGoogle } from '../lesson-auto-note.google.prompt'
+
 import {
-  buildLessonAutoNotePrompt,
   buildLessonAutoNotePromptInputFromRows,
   resolveLessonAutoNotePersistenceDecision,
 } from '../lesson-auto-note.service'
@@ -248,7 +249,7 @@ describe('lesson auto-note prompt context', () => {
   })
 
   it('uses the required structured JSON sections and rules in the generation prompt', () => {
-    const prompt = buildLessonAutoNotePrompt({
+    const prompt = buildLessonAutoNotePromptForGoogle({
       activityNotes: ['Actividad: respuesta del usuario y retroalimentacion.'],
       courseTitle: 'Curso IA',
       dialogueHighlights: ['SofLIA: fragmento clave. Usuario: accion propuesta.'],

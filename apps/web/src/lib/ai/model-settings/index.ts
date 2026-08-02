@@ -13,9 +13,12 @@
 export {
   AI_MODEL_PURPOSES,
   AI_MODEL_SETTINGS_LIMITS,
+  PLATFORM_DEFAULT_AI_PROVIDER,
   PLATFORM_DEFAULT_GEMINI_MODEL,
   getAiModelPurpose,
+  getPurposeSupportedProviders,
   isAiModelPurposeId,
+  isProviderSupportedByPurpose,
   type AiModelPurpose,
   type AiModelPurposeId,
 } from './purposes'
@@ -42,8 +45,21 @@ export type {
 } from './types'
 
 export {
+  UnresolvableAiProviderError,
   UnsupportedAiCapabilityError,
   aiModelSettingsUpdateSchema,
+  assertProviderIsResolvable,
   assertUpdateMatchesCapabilities,
   type AiModelSettingsUpdateInput,
 } from './validation'
+
+export {
+  AI_PROVIDERS,
+  AI_PROVIDER_SELECTIONS,
+  inferAiProvider,
+  isAiProvider,
+  isAiProviderSelection,
+  resolveAiProvider,
+  type AiProvider,
+  type AiProviderSelection,
+} from '../providers/provider-registry'

@@ -62,6 +62,7 @@ export const createOrganizationAction = defineAction<CreateOrganizationParams>({
         organizationId: company.id,
         slug: company.slug ?? null,
       },
+      navigateTo: `/admin/companies/${company.id}/edit`,
     }
   },
 })
@@ -105,6 +106,7 @@ export const setOrganizationBrandingAction = defineAction<SetBrandingParams>({
     return {
       summary: `Branding personalizado ${params.enabled ? 'activado' : 'desactivado'} para "${organization.name}".`,
       details: { organizationId: organization.id, brandingEnabled: params.enabled },
+      navigateTo: `/admin/companies/${organization.id}/edit?tab=customization`,
     }
   },
 })

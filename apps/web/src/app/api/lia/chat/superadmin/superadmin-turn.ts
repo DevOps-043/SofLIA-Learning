@@ -5,12 +5,15 @@ import { buildAdminUserLookupPromptSection } from '../admin-user-lookup'
 import { isPlatformAdminRole } from './authorization'
 import {
   authorizeAdminActions,
+  authorizeOrganizationActions,
+  authorizePlatformOrganizationActions,
   buildActionContext,
   buildAdminActionsPromptSection,
   processProposedAction,
   tryExecutePendingAction,
 } from './actions'
 import type { ActionContext } from './actions/types'
+import type { ActionDownloadRequest } from './actions/types'
 
 /**
  * Turno de SofLIA en modo superadmin.
@@ -40,12 +43,18 @@ export interface SuperadminTurn {
    * una acción pendiente). Si viene, la ruta debe devolverla tal cual.
    */
   immediateResponse: string | null
+  /** Navegación estructurada posterior a una ejecución exitosa. */
+  navigationPath: string | null
+  /** Descargas internas autorizadas derivadas de las acciones confirmadas. */
+  downloads: ActionDownloadRequest[]
 }
 
 const INERT_TURN: SuperadminTurn = {
   isEnabled: false,
   actionContext: null,
   immediateResponse: null,
+  navigationPath: null,
+  downloads: [],
 }
 
 export interface ResolveSuperadminTurnParams {
@@ -57,6 +66,10 @@ export interface ResolveSuperadminTurnParams {
   latestAssistantContent: string | null
   /** Mensaje actual del admin. */
   userMessage: string
+  activeOrganizationContext?: {
+    organizationId: string
+    organizationSlug: string
+  } | null
 }
 
 /**
@@ -68,17 +81,38 @@ export async function resolveSuperadminTurn(
 ): Promise<SuperadminTurn> {
   const { sessionUser } = params
 
-  // Filtro barato antes de tocar la BD: la autorización real (panel, riesgo,
-  // rate limit, re-verificación en BD) la hace `authorizeAdminActions`.
-  if (!sessionUser || !isPlatformAdminRole(sessionUser.platform_role)) {
+  if (!sessionUser) {
     return INERT_TURN
   }
 
-  const grant = await authorizeAdminActions({
-    sessionUser,
-    currentPage: params.currentPage,
-    promptRiskAction: params.promptRiskAction,
-  })
+  let grant = null
+  if (isPlatformAdminRole(sessionUser.platform_role)) {
+    grant = await authorizeAdminActions({
+      sessionUser,
+      currentPage: params.currentPage,
+      promptRiskAction: params.promptRiskAction,
+    })
+
+    // Un superadmin dentro del business-panel debe actuar con alcance del tenant
+    // visible, no perder todas sus capacidades ni recibir alcance global.
+    if (!grant && params.activeOrganizationContext) {
+      grant = await authorizePlatformOrganizationActions({
+        sessionUser,
+        currentPage: params.currentPage,
+        promptRiskAction: params.promptRiskAction,
+        organizationId: params.activeOrganizationContext.organizationId,
+        organizationSlug: params.activeOrganizationContext.organizationSlug,
+      })
+    }
+  } else if (params.activeOrganizationContext) {
+    grant = await authorizeOrganizationActions({
+          sessionUser,
+          currentPage: params.currentPage,
+          promptRiskAction: params.promptRiskAction,
+          organizationId: params.activeOrganizationContext.organizationId,
+          organizationSlug: params.activeOrganizationContext.organizationSlug,
+        })
+  }
 
   if (!grant) {
     return INERT_TURN
@@ -86,13 +120,19 @@ export async function resolveSuperadminTurn(
 
   const actionContext = buildActionContext({ grant, request: params.request })
 
-  const immediateResponse = await tryExecutePendingAction({
+  const pendingAction = await tryExecutePendingAction({
     context: actionContext,
     latestAssistantContent: params.latestAssistantContent,
     userMessage: params.userMessage,
   })
 
-  return { isEnabled: true, actionContext, immediateResponse }
+  return {
+    isEnabled: true,
+    actionContext,
+    immediateResponse: pendingAction?.message ?? null,
+    navigationPath: pendingAction?.navigateTo ?? null,
+    downloads: pendingAction?.downloads ?? [],
+  }
 }
 
 /**
@@ -106,19 +146,31 @@ export async function buildSuperadminPromptSections(params: {
   currentPage: string | null | undefined
   promptRiskAction: PromptRiskAction
   recentUserMessages: string[]
+  isVoiceInteraction?: boolean
 }): Promise<string> {
   if (!params.turn.isEnabled || !params.sessionUser) {
     return ''
   }
 
-  const lookupSection = await buildAdminUserLookupPromptSection({
-    sessionUser: params.sessionUser,
-    currentPage: params.currentPage,
-    promptRiskAction: params.promptRiskAction,
-    recentUserMessages: params.recentUserMessages,
-  })
+  const lookupSection = params.turn.actionContext?.actorScope === 'platform'
+    ? await buildAdminUserLookupPromptSection({
+        sessionUser: params.sessionUser,
+        currentPage: params.currentPage,
+        promptRiskAction: params.promptRiskAction,
+        recentUserMessages: params.recentUserMessages,
+      })
+    : ''
 
-  return lookupSection + buildAdminActionsPromptSection()
+  const voiceSection = params.isVoiceInteraction
+    ? '\n\n### INTERACCIÓN ADMINISTRATIVA POR VOZ\n' +
+      'El mensaje actual proviene de reconocimiento de voz y puede contener errores de transcripción. ' +
+      'Interpreta y enriquece la intención usando las entidades verificadas. Si es una acción, presenta un ' +
+      'resumen claro de lo entendido y emite la propuesta para que el sistema pida una sola confirmación. ' +
+      'No ejecutes ni des por hecha la acción; no pidas confirmaciones adicionales. Solo pregunta si falta ' +
+      'un dato obligatorio o hay más de una entidad posible. Responde de forma breve y natural para locución.\n'
+    : ''
+
+  return lookupSection + buildAdminActionsPromptSection(params.turn.actionContext ?? undefined) + voiceSection
 }
 
 /**

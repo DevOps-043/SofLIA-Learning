@@ -1,11 +1,10 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
-import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
-import { logger } from '@/lib/utils/logger'
 import {
-  buildReportsAnalyticsAiPayload,
-  withReportsAnalyticsAiTimeout,
-} from '../reports-analytics.ai-payload.service'
+  generateAiText,
+  isAiPurposeAvailable,
+} from '@/lib/ai/providers/ai-text-gateway.server'
+import { logger } from '@/lib/utils/logger'
+import { buildReportsAnalyticsAiPayload } from '../reports-analytics.ai-payload.service'
 import { buildFallbackReportsAnalyticsBlueprint } from './fallback'
 import { parseReportsAnalyticsBlueprint } from './parse'
 import { buildBlueprintSystemPrompt } from './prompt'
@@ -17,44 +16,35 @@ export async function generateReportsAnalyticsReportBlueprint({
   locale,
   format,
 }: GenerateReportsAnalyticsReportBlueprintParams) {
-  const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
   const settings = await getAiModelSettings('reports_analytics_blueprint')
   const model = settings.model
 
-  if (!apiKey) {
+  if (!(await isAiPurposeAvailable('reports_analytics_blueprint'))) {
     return buildFallbackReportsAnalyticsBlueprint(dataset, locale, model, format)
   }
 
   try {
-    const genAI = new GoogleGenerativeAI(apiKey)
-    const generativeModel = genAI.getGenerativeModel({
-      model,
-      systemInstruction: buildBlueprintSystemPrompt(locale, format),
+    const result = await generateAiText({
+      circuitBreakerName: 'reports-analytics-blueprint',
+      prompt: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)),
+      purpose: 'reports_analytics_blueprint',
+      // No administrable: la respuesta se parsea como JSON obligatoriamente.
+      responseAsJson: true,
+      systemInstruction: (dialect) => buildBlueprintSystemPrompt(dialect, locale, format),
+      timeoutMs: parsePositiveInt(process.env.REPORTS_ANALYTICS_AI_TIMEOUT_MS, 12_000),
     })
-    const result = await withReportsAnalyticsAiTimeout(
-      generativeModel.generateContent({
-        contents: [{
-          role: 'user',
-          parts: [{ text: JSON.stringify(buildReportsAnalyticsAiPayload(dataset)) }],
-        }],
-        generationConfig: buildManagedGenerationConfig(settings, {
-          // No administrable: la respuesta se parsea como JSON obligatoriamente.
-          responseMimeType: 'application/json',
-        }),
-      }),
-      parsePositiveInt(process.env.REPORTS_ANALYTICS_AI_TIMEOUT_MS, 12_000),
-    )
-    const parsed = parseReportsAnalyticsBlueprint(result.response.text(), {
+
+    const parsed = parseReportsAnalyticsBlueprint(result.text, {
       dataset,
       locale,
-      model,
+      model: result.model,
       format,
-      source: 'gemini',
+      source: result.provider === 'openai' ? 'openai' : 'gemini',
     })
 
     if (parsed) return parsed
   } catch (error) {
-    logger.error('Reports analytics Gemini blueprint failed', error)
+    logger.error('Reports analytics AI blueprint failed', error)
   }
 
   return buildFallbackReportsAnalyticsBlueprint(dataset, locale, model, format)

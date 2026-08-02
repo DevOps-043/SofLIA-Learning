@@ -146,6 +146,7 @@ export function buildUpdatePayload(
 
   return {
     model: form.model.trim(),
+    provider: form.provider,
     ...(capabilities.maxOutputTokens
       ? { maxOutputTokens: parseOptionalNumber(form.maxOutputTokens) }
       : {}),

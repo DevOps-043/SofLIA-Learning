@@ -59,7 +59,7 @@ export interface InfoHoverCardContent {
   progress?: number
   status?: string
   loading?: boolean
-  source?: 'gemini' | 'fallback'
+  source?: 'gemini' | 'openai' | 'fallback'
   model?: string
 }
 
@@ -71,7 +71,7 @@ export interface GeminiPreviewResponse {
   success?: boolean
   description?: string
   points?: string[]
-  source?: 'gemini' | 'fallback'
+  source?: 'gemini' | 'openai' | 'fallback'
   model?: string
 }
 

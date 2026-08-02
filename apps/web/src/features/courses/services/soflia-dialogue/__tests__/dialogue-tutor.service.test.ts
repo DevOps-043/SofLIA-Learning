@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-// Isolate the tutor unit: no Gemini client nor org-context loading in tests.
-vi.mock('@/lib/gemini/client', () => ({
-  generateGeminiText: vi.fn(),
-  getGeminiApiKey: () => '',
-  resolveGeminiModel: () => 'test-model',
+// Isolate the tutor unit: no AI provider call nor org-context loading in tests.
+// `isAiPurposeAvailable` returns false so the tutor takes its deterministic
+// fallback path, which is what these cases assert.
+vi.mock('@/lib/ai/providers/ai-text-gateway.server', () => ({
+  generateAiText: vi.fn(),
+  isAiPurposeAvailable: () => Promise.resolve(false),
 }))
 vi.mock('@/lib/lia-context/services/organization-ai-context.service', () => ({
   buildOrganizationAiContextPromptSection: () => '',

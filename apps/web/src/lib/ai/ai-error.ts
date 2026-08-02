@@ -1,11 +1,16 @@
 /**
- * Extracción del detalle de un error de la API de Gemini.
+ * Extracción del detalle de un error de un proveedor de IA (Gemini u OpenAI).
  *
- * MOTIVO: un fallo de Gemini se registraba solo como `error.message`, que en los
- * 4xx queda como un texto opaco. Sin el código HTTP, el estado de la API
- * (`INVALID_ARGUMENT`, `RESOURCE_EXHAUSTED`, …) ni el motivo, un 400 en
- * producción no es diagnosticable: no se distingue un esquema inválido de un
- * límite de tokens o de una clave sin permisos.
+ * MOTIVO: un fallo del proveedor se registraba solo como `error.message`, que en
+ * los 4xx queda como un texto opaco. Sin el código HTTP, el estado de la API
+ * (`INVALID_ARGUMENT`, `RESOURCE_EXHAUSTED`, `insufficient_quota`, …) ni el
+ * motivo, un 400 en producción no es diagnosticable: no se distingue un esquema
+ * inválido de un límite de tokens o de una clave sin permisos.
+ *
+ * POR QUÉ SIRVE PARA AMBOS PROVEEDORES: las dos APIs devuelven el detalle en un
+ * objeto `error` anidado (`{ error: { message, status|type, code } }`), bien como
+ * propiedad del error lanzado, bien embebido como JSON dentro del mensaje. Este
+ * módulo lee las dos formas, por lo que no necesita saber de quién viene.
  *
  * PRIVACIDAD: solo se extraen metadatos del error. El prompt y el contenido del
  * usuario NUNCA se incluyen; el mensaje se recorta para evitar que un eco del
@@ -17,15 +22,15 @@
 /** Longitud máxima del mensaje registrado, por si la API refleja parte del input. */
 const MAX_LOGGED_MESSAGE_LENGTH = 300
 
-export interface GeminiErrorDetails {
+export interface AiProviderErrorDetails {
+  /** Estado canónico del proveedor (INVALID_ARGUMENT, insufficient_quota…). */
+  apiStatus: string | null
   /** Código HTTP devuelto por la API (400, 429, 503…), si se pudo determinar. */
   httpStatus: number | null
-  /** Estado canónico de Google (INVALID_ARGUMENT, RESOURCE_EXHAUSTED…). */
-  apiStatus: string | null
-  /** Motivo específico cuando la API lo detalla. */
-  reason: string | null
   /** Mensaje recortado y seguro para registrar. */
   message: string
+  /** Motivo específico cuando la API lo detalla. */
+  reason: string | null
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -43,9 +48,9 @@ function readString(value: unknown): string | null {
 }
 
 /**
- * Algunos SDK entregan el cuerpo de error de Google embebido como JSON dentro
- * del mensaje (`[400 Bad Request] {"error":{...}}`). Se intenta recuperar ese
- * objeto para no perder el motivo real.
+ * Algunos SDK entregan el cuerpo de error del proveedor embebido como JSON
+ * dentro del mensaje (`[400 Bad Request] {"error":{...}}`). Se intenta recuperar
+ * ese objeto para no perder el motivo real.
  */
 function parseEmbeddedErrorBody(message: string): Record<string, unknown> | null {
   const firstBrace = message.indexOf('{')
@@ -70,10 +75,10 @@ function readHttpStatusFromMessage(message: string): number | null {
 }
 
 /**
- * Normaliza cualquier error lanzado por los SDK de Gemini a un objeto de
- * metadatos apto para registrar.
+ * Normaliza cualquier error lanzado por los SDK de IA a un objeto de metadatos
+ * apto para registrar.
  */
-export function describeGeminiError(error: unknown): GeminiErrorDetails {
+export function describeAiProviderError(error: unknown): AiProviderErrorDetails {
   const rawMessage =
     error instanceof Error ? error.message : typeof error === 'string' ? error : ''
   const message = rawMessage.slice(0, MAX_LOGGED_MESSAGE_LENGTH)
@@ -92,11 +97,20 @@ export function describeGeminiError(error: unknown): GeminiErrorDetails {
     readNumber(asRecord(errorRecord?.response)?.status) ??
     readHttpStatusFromMessage(rawMessage)
 
-  const apiStatus = readString(nested?.status) ?? readString(errorRecord?.statusText)
+  // Gemini usa `status` ("RESOURCE_EXHAUSTED"); OpenAI usa `type`
+  // ("insufficient_quota", "invalid_request_error") y, cuando lo detalla, un
+  // `code` textual ("rate_limit_exceeded").
+  const apiStatus =
+    readString(nested?.status) ??
+    readString(nested?.type) ??
+    readString(errorRecord?.statusText)
 
   const details = Array.isArray(nested?.details) ? nested.details : []
   const reason =
-    readString(asRecord(details[0])?.reason) ?? readString(errorRecord?.reason)
+    readString(asRecord(details[0])?.reason) ??
+    readString(nested?.code) ??
+    readString(errorRecord?.code) ??
+    readString(errorRecord?.reason)
 
   return {
     apiStatus,
@@ -107,7 +121,7 @@ export function describeGeminiError(error: unknown): GeminiErrorDetails {
 }
 
 /** `true` cuando el error corresponde a una petición rechazada por inválida (400). */
-export function isGeminiBadRequest(error: unknown): boolean {
-  const { apiStatus, httpStatus } = describeGeminiError(error)
+export function isAiProviderBadRequest(error: unknown): boolean {
+  const { apiStatus, httpStatus } = describeAiProviderError(error)
   return httpStatus === 400 || apiStatus === 'INVALID_ARGUMENT'
 }

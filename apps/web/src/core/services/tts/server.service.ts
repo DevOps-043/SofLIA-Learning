@@ -3,6 +3,7 @@ import 'server-only';
 import type { TextToSpeechContext, TextToSpeechRequestPayload } from './types';
 import {
   DEFAULT_ELEVENLABS_MODEL_ID,
+  DEFAULT_ELEVENLABS_REALTIME_MODEL_ID,
   DEFAULT_ELEVENLABS_VOICE_ID,
   DEFAULT_TTS_OUTPUT_FORMAT,
   getTTSSynthesisTimeoutMs,
@@ -43,7 +44,15 @@ function getElevenLabsVoiceId() {
   return process.env.ELEVENLABS_VOICE_ID || DEFAULT_ELEVENLABS_VOICE_ID;
 }
 
-function getElevenLabsModelId() {
+function isRealtimeContext(context?: TextToSpeechContext) {
+  return context === 'chat' || context === 'chat_continuation';
+}
+
+function getElevenLabsModelId(context?: TextToSpeechContext) {
+  if (isRealtimeContext(context)) {
+    return process.env.ELEVENLABS_REALTIME_MODEL_ID || DEFAULT_ELEVENLABS_REALTIME_MODEL_ID;
+  }
+
   return process.env.ELEVENLABS_MODEL_ID || DEFAULT_ELEVENLABS_MODEL_ID;
 }
 
@@ -72,7 +81,7 @@ export async function synthesizeSpeech(payload: TextToSpeechRequestPayload) {
     signal: AbortSignal.timeout(getTTSSynthesisTimeoutMs()),
     body: JSON.stringify({
       text: payload.text,
-      model_id: getElevenLabsModelId(),
+      model_id: getElevenLabsModelId(payload.context),
       voice_settings: payload.voiceSettings,
       speed: payload.speed,
     }),
@@ -97,7 +106,7 @@ export function resolveTTSCacheDescriptor(
   return {
     provider: TTS_CACHE_PROVIDER_ID,
     voice: getElevenLabsVoiceId(),
-    model: getElevenLabsModelId(),
+    model: getElevenLabsModelId(payload.context),
     context: payload.context ?? 'chat',
   };
 }

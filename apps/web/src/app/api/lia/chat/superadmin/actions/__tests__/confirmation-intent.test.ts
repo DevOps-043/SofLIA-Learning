@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import { detectActionConfirmationIntent } from '../confirmation-intent'
+import {
+  detectActionConfirmationIntent,
+  isExplicitActionConfirmationCommand,
+} from '../confirmation-intent'
 
 describe('detectActionConfirmationIntent', () => {
   it('confirms only on explicit, unambiguous affirmations', () => {
     for (const message of [
       'confirmo',
       'Confirmo.',
+      'confirma',
+      'Confirma por favor.',
       'sí',
       'Sí, confirmo',
       'ejecútala',
@@ -39,5 +44,12 @@ describe('detectActionConfirmationIntent', () => {
   it('treats unrelated messages as unclear, never as confirmation', () => {
     expect(detectActionConfirmationIntent('¿cuántos usuarios hay?')).toBe('unclear')
     expect(detectActionConfirmationIntent('')).toBe('unclear')
+  })
+
+  it('detecta comandos explícitos para evitar regenerar propuestas sin token', () => {
+    expect(isExplicitActionConfirmationCommand('confirma')).toBe(true)
+    expect(isExplicitActionConfirmationCommand('Confirmo.')).toBe(true)
+    expect(isExplicitActionConfirmationCommand('sí')).toBe(false)
+    expect(isExplicitActionConfirmationCommand('crea otra estructura')).toBe(false)
   })
 })

@@ -1,9 +1,9 @@
-import { generateGeminiText } from '@/lib/gemini/client'
+import { generateAiText } from '@/lib/ai/providers/ai-text-gateway.server'
 
 import { AI_MODERATION_ENABLED } from './config'
 import { parseAIAnalysis } from './ai-analysis'
 import { buildAIModerationUserPrompt } from './ai-user-prompt'
-import { AI_MODERATION_SYSTEM_PROMPT } from './ai-system-prompt'
+import { buildAiModerationSystemPrompt } from './ai-system-prompt'
 import {
   createDisabledResult,
   createErrorResult,
@@ -22,11 +22,11 @@ export async function analyzeContentWithGemini(
   }
 
   try {
-    const result = await generateGeminiText({
+    const result = await generateAiText({
       circuitBreakerName: 'gemini-content-moderation',
-      prompt: buildAIModerationUserPrompt(content, context),
+      prompt: (dialect) => buildAIModerationUserPrompt(dialect, content, context),
       purpose: 'ai_moderation',
-      systemInstruction: AI_MODERATION_SYSTEM_PROMPT,
+      systemInstruction: buildAiModerationSystemPrompt,
     })
 
     const analysis = parseAIAnalysis(

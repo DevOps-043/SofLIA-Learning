@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { NextRequest, NextResponse } from 'next/server'
 
 import {
@@ -19,51 +18,13 @@ import {
   persistChatNoteProvenance,
   resolveChatNoteProvenance,
 } from '@/features/courses/services/chat-note-provenance.server.service'
+import { generateNoteTitle } from '@/features/courses/services/note-title.server.service'
 import { NoteService } from '@/features/courses/services/note.service'
 import { enqueueNoteEnrichment } from '@/features/notebook/services/notebook-enrichment.server.service'
-import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { normalizeNoteContentHtml } from '@/lib/notes/generated-note-html'
 import { createAdminClient } from '@/lib/supabase/admin'
-
-async function generateNoteTitle(noteContent: string): Promise<string> {
-  try {
-    const googleApiKey = process.env.GOOGLE_API_KEY
-
-    if (!googleApiKey) {
-      return 'Nota de estudio'
-    }
-
-    const { model: geminiModel } = await getAiModelSettings('lesson_auto_note')
-    const genAI = new GoogleGenerativeAI(googleApiKey)
-    const model = genAI.getGenerativeModel({ model: geminiModel })
-    const plainContent = noteContent.replace(/<[^>]*>?/gm, '').substring(0, 1500)
-
-    const prompt = `Eres un asistente experto en educacion que genera titulos cortos, profesionales y descriptivos para notas de estudio.
-
-Contenido de la nota: "${plainContent}"
-
-Instrucciones:
-1. El titulo debe ser muy corto (maximo 5 palabras).
-2. Debe capturar la esencia principal del contenido.
-3. Evita palabras genericas como "Nota sobre" o "Resumen de".
-4. Responde UNICAMENTE con el texto del titulo, sin comillas, sin puntos finales y sin explicaciones.
-5. Idioma: Espanol.`
-
-    const result = await model.generateContent(prompt)
-    const response = await result.response
-    const generatedTitle = response.text().trim().replace(/^["']|["']$/g, '').replace(/\.$/, '')
-
-    if (generatedTitle && !generatedTitle.toLowerCase().includes('error')) {
-      return generatedTitle
-    }
-
-    return 'Nota de estudio'
-  } catch {
-    return 'Nota de estudio'
-  }
-}
 
 async function handlePost(
   request: NextRequest,

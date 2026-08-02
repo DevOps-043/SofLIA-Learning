@@ -8,6 +8,8 @@ import { PremiumSelect } from '@/features/business-panel/components/PremiumSelec
 import {
   AI_MODEL_SETTINGS_LIMITS,
   AI_THINKING_LEVELS,
+  inferAiProvider,
+  type AiProviderSelection,
   type AiThinkingLevel,
 } from '@/lib/ai/model-settings'
 import { cn } from '@/utils/cn'
@@ -30,6 +32,7 @@ function buildInitialForm(purpose: AdminAiPurpose): PurposeFormState {
         ? ''
         : String(settings.maxOutputTokens),
     model: settings?.model ?? purpose.defaults.model,
+    provider: settings?.providerSelection ?? 'auto',
     temperature:
       settings?.temperature === null || settings?.temperature === undefined
         ? ''
@@ -72,6 +75,23 @@ export function PurposeSettingsCard({
     value: level,
   }))
 
+  // Solo se ofrecen los proveedores que el propósito admite: los que envían
+  // audio o vídeo en línea únicamente funcionan con Gemini.
+  const providerOptions = [
+    { label: t('aiSettings.providers.auto'), value: 'auto' },
+    ...purpose.supportedProviders.map((provider) => ({
+      label: t(`aiSettings.providers.${provider}`),
+      value: provider,
+    })),
+  ]
+  const isProviderLocked = purpose.supportedProviders.length < 2
+
+  // Proveedor que se usará con lo que hay escrito AHORA en el formulario, para
+  // que el administrador vea el efecto de su cambio antes de guardar.
+  const detectedProvider = inferAiProvider(form.model)
+  const effectiveProvider = form.provider === 'auto' ? detectedProvider : form.provider
+  const isProviderUnknown = form.provider === 'auto' && detectedProvider === null
+
   const isInherited = !purpose.settings?.hasDatabaseOverride
   const sourceLabel = isInherited
     ? t(`aiSettings.source.${purpose.settings?.modelSource ?? 'default'}`)
@@ -89,16 +109,29 @@ export function PurposeSettingsCard({
           </p>
         </div>
 
-        <span
-          className={cn(
-            'shrink-0 rounded-full px-2.5 py-1 text-[10px] font-medium',
-            isInherited
-              ? 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-400'
-              : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
-          )}
-        >
-          {sourceLabel}
-        </span>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <span
+            className={cn(
+              'rounded-full px-2.5 py-1 text-[10px] font-medium',
+              effectiveProvider === 'openai'
+                ? 'bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400'
+                : 'bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400',
+            )}
+          >
+            {t(`aiSettings.providers.${effectiveProvider ?? 'google'}`)}
+          </span>
+
+          <span
+            className={cn(
+              'rounded-full px-2.5 py-1 text-[10px] font-medium',
+              isInherited
+                ? 'bg-gray-100 text-gray-600 dark:bg-white/10 dark:text-gray-400'
+                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400',
+            )}
+          >
+            {sourceLabel}
+          </span>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -114,6 +147,38 @@ export function PurposeSettingsCard({
             type="text"
             value={form.model}
           />
+
+          <p
+            className={cn(
+              'mt-1.5 text-[11px]',
+              isProviderUnknown
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-gray-500 dark:text-gray-400',
+            )}
+          >
+            {isProviderUnknown
+              ? t('aiSettings.provider.unknownHint')
+              : t('aiSettings.provider.detectedHint', {
+                  provider: t(`aiSettings.providers.${effectiveProvider ?? 'google'}`),
+                })}
+          </p>
+        </div>
+
+        <div className="sm:col-span-2">
+          <span className={LABEL_CLASSES}>{t('aiSettings.fields.provider')}</span>
+          <PremiumSelect
+            onChange={(value) =>
+              setForm((prev) => ({ ...prev, provider: value as AiProviderSelection }))
+            }
+            options={providerOptions}
+            placeholder={t('aiSettings.providers.auto')}
+            value={form.provider}
+          />
+          {isProviderLocked ? (
+            <p className="mt-1.5 text-[11px] text-gray-500 dark:text-gray-400">
+              {t('aiSettings.provider.lockedHint')}
+            </p>
+          ) : null}
         </div>
 
         {purpose.capabilities.maxOutputTokens ? (
@@ -193,7 +258,10 @@ export function PurposeSettingsCard({
             'hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50',
             'dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100',
           )}
-          disabled={isSaving || !form.model.trim()}
+          // Se bloquea el guardado cuando el proveedor no puede resolverse: la
+          // API lo rechazaría igualmente, y avisar aquí evita el viaje de ida y
+          // vuelta y un toast de error por una errata en el nombre del modelo.
+          disabled={isSaving || !form.model.trim() || isProviderUnknown}
           onClick={() => onSave(purpose.id, form)}
           type="button"
         >

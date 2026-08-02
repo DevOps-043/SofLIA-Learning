@@ -31,7 +31,23 @@ describe('LiveVoiceStage', () => {
 
     expect(html).toContain('data-testid="lia-live-voice-stage"');
     expect(html).toContain('alt="SofLIA"');
-    expect(html).toContain('aria-label="Detener voz en vivo"');
+    expect(html).toContain('aria-label="Detener conversación por voz"');
     expect(html).not.toContain('Escribe un mensaje');
+  });
+
+  it('does not claim SofLIA is speaking while ElevenLabs is still preparing audio', () => {
+    const html = renderToStaticMarkup(
+      <LiveVoiceStage
+        themeColors={themeColors}
+        isLightTheme
+        isConnecting={false}
+        isAssistantSpeaking={false}
+        status="preparing-audio"
+        onStop={vi.fn()}
+      />,
+    );
+
+    expect(html).toContain('Preparando la voz de SofLIA…');
+    expect(html).not.toContain('SofLIA está hablando…');
   });
 });

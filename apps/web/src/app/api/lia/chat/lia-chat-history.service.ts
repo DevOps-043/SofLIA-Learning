@@ -1,6 +1,5 @@
 import 'server-only'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { resolveGeminiModel } from '@/lib/gemini/client'
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../../../lib/supabase/types';
@@ -15,7 +14,7 @@ import { enqueueLessonAutoNoteJob } from '@/features/notebook/services/notebook-
  */
 async function resolveLiaChatModel(): Promise<string> {
   const settings = await getAiModelSettings('lia_general');
-  return resolveGeminiModel(settings.model);
+  return settings.model;
 }
 
 interface PersistConversationTurnParams {
@@ -162,14 +161,26 @@ export function isValidUUID(value: string): boolean {
 }
 
 export async function getLatestAssistantMessageContent(
-  conversationId: string
+  conversationId: string,
+  userId?: string,
 ): Promise<string | null> {
-  if (!isValidUUID(conversationId)) {
+  if (!isValidUUID(conversationId) || !userId) {
     return null;
   }
 
   try {
     const supabaseAdmin = createSupabaseAdminClient();
+    const { data: conversation, error: conversationError } = await supabaseAdmin
+      .from('lia_conversations')
+      .select('conversation_id')
+      .eq('conversation_id', conversationId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (conversationError || !conversation) {
+      return null;
+    }
+
     const { data, error } = await supabaseAdmin
       .from('lia_messages')
       .select('content')
@@ -220,6 +231,28 @@ export async function persistConversationTurn({
       resolveEnrollmentScope(supabaseAdmin, userId, requestContext),
       resolveActivityId(supabaseAdmin, requestContext),
     ]);
+
+    const { data: existingConversation, error: existingConversationError } =
+      await supabaseAdmin
+        .from('lia_conversations')
+        .select('user_id')
+        .eq('conversation_id', conversationId)
+        .maybeSingle();
+
+    if (existingConversationError) {
+      techDebtLogger.error(
+        'Error verificando propiedad de conversacion de SofLIA:',
+        existingConversationError,
+      );
+      return null;
+    }
+    if (existingConversation && existingConversation.user_id !== userId) {
+      techDebtLogger.warn('Intento de reutilizar una conversacion de otro usuario', {
+        conversationId,
+        userId,
+      });
+      return null;
+    }
 
     const { error: upsertError } = await supabaseAdmin
       .from('lia_conversations')

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 
 import { getAllAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
-import { AI_MODEL_PURPOSES } from '@/lib/ai/model-settings/purposes'
+import {
+  AI_MODEL_PURPOSES,
+  getPurposeSupportedProviders,
+} from '@/lib/ai/model-settings/purposes'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/utils/logger'
 
@@ -33,6 +36,7 @@ export async function GET() {
       id: purpose.id,
       labelKey: purpose.labelKey,
       settings: settingsByPurpose.get(purpose.id) ?? null,
+      supportedProviders: getPurposeSupportedProviders(purpose),
     }))
 
     return NextResponse.json(

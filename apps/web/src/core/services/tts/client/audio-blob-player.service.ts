@@ -62,6 +62,7 @@ export async function playAudioBlob(
 
   try {
     await audio.play()
+    options.onStart?.()
   } catch (error) {
     cleanup()
     throw error

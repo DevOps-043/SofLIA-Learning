@@ -1438,6 +1438,7 @@ export type Database = {
         Row: {
           max_output_tokens: number | null
           model: string
+          provider: string | null
           purpose: string
           temperature: number | null
           thinking_level: string
@@ -1447,6 +1448,7 @@ export type Database = {
         Insert: {
           max_output_tokens?: number | null
           model: string
+          provider?: string | null
           purpose: string
           temperature?: number | null
           thinking_level?: string
@@ -1456,6 +1458,7 @@ export type Database = {
         Update: {
           max_output_tokens?: number | null
           model?: string
+          provider?: string | null
           purpose?: string
           temperature?: number | null
           thinking_level?: string

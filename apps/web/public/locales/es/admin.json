@@ -1769,7 +1769,7 @@
   },
   "aiSettings": {
     "title": "Modelos de IA",
-    "subtitle": "Configura el modelo de Gemini, el límite de tokens, la temperatura y el nivel de razonamiento de cada uso de IA de la plataforma. SofLIA general y SofLIA dentro de las actividades de un curso se configuran por separado.",
+    "subtitle": "Configura el proveedor, el modelo, el límite de tokens, la temperatura y el nivel de razonamiento de cada uso de IA de la plataforma. Escribe el nombre del modelo (por ejemplo gemini-3.5-flash o gpt-5.1) y la plataforma detecta el proveedor automáticamente.",
     "propagationNotice": "Los cambios se aplican sin necesidad de redesplegar. Pueden tardar hasta un minuto en propagarse a todas las instancias del servidor.",
     "loadError": "No se pudo cargar la configuración de modelos de IA.",
     "groups": {
@@ -1784,7 +1784,8 @@
       "maxOutputTokens": "Máximo de tokens de salida",
       "temperature": "Temperatura",
       "thinkingLevel": "Nivel de razonamiento",
-      "inheritedPlaceholder": "Heredado"
+      "inheritedPlaceholder": "Heredado",
+      "provider": "Proveedor"
     },
     "thinkingLevels": {
       "default": "Por defecto del proveedor",
@@ -1890,7 +1891,29 @@
       "structuredFallback": {
         "label": "Generación estructurada (respaldo)",
         "description": "Modelo usado por generaciones con esquema JSON que no declaran un propósito propio."
+      },
+      "quizFeedback": {
+        "label": "Retroalimentación de quiz",
+        "description": "Explica al alumno sus respuestas tras completar un cuestionario."
+      },
+      "notebookAssistant": {
+        "label": "Asistente del cuaderno",
+        "description": "Responde y reescribe apuntes dentro del editor del cuaderno."
+      },
+      "userForensics": {
+        "label": "Análisis forense de usuario",
+        "description": "Resume la auditoría de actividad de un usuario para el superadministrador."
       }
+    },
+    "providers": {
+      "auto": "Detectar automáticamente",
+      "google": "Google Gemini",
+      "openai": "OpenAI"
+    },
+    "provider": {
+      "detectedHint": "Se enviará a {{provider}}.",
+      "unknownHint": "No se reconoce este modelo. Elige el proveedor manualmente para poder guardar.",
+      "lockedHint": "Este uso envía audio o vídeo y hoy solo lo admite Google Gemini."
     }
   }
 }

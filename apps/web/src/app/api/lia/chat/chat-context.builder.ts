@@ -1,3 +1,4 @@
+import type { AiTurn } from '@/lib/ai/providers'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 /**
  * Chat Context Builder
@@ -150,10 +151,16 @@ export async function buildFullContext(
 /**
  * Appends LIA personalization settings to the base system prompt.
  */
-export async function appendPersonalizationPrompt(
-  basePrompt: string,
-  userId: string
-): Promise<string> {
+/**
+ * Sección de personalización del usuario, o cadena vacía si no tiene ninguna.
+ *
+ * Devuelve el FRAGMENTO en lugar de concatenarlo sobre el prompt recibido: el
+ * prompt base depende del dialecto del proveedor, que solo se conoce dentro del
+ * gateway, mientras que esta consulta es asíncrona y debe resolverse antes. Al
+ * separar "obtener el contenido" de "componer el prompt", lo asíncrono ocurre
+ * fuera y la composición queda síncrona.
+ */
+export async function buildPersonalizationSection(userId: string): Promise<string> {
   try {
     const { SofLIAPersonalizationService } = await import(
       '@/core/services/lia-personalization.service'
@@ -161,24 +168,24 @@ export async function appendPersonalizationPrompt(
     const personalizationSettings =
       await SofLIAPersonalizationService.getSettings(userId);
     if (personalizationSettings) {
-      const personalizationPrompt =
-        SofLIAPersonalizationService.buildPersonalizationPrompt(
-          personalizationSettings
-        );
-      return basePrompt + personalizationPrompt;
+      return SofLIAPersonalizationService.buildPersonalizationPrompt(
+        personalizationSettings
+      );
     }
   } catch (error) {
     techDebtLogger.warn('Error cargando personalizacion de LIA:', error);
   }
-  return basePrompt;
+  return '';
 }
 
 /**
- * Optionally appends bug-report context to the system prompt
- * when the user's message has a technical platform issue intent.
+ * Contexto técnico de la página, solo cuando el mensaje del usuario parece
+ * reportar un fallo de la plataforma. Cadena vacía en cualquier otro caso.
+ *
+ * Igual que `buildPersonalizationSection`, devuelve el fragmento y no el prompt
+ * concatenado, para que la composición final pueda depender del dialecto.
  */
-export async function appendBugReportContext(
-  systemPrompt: string,
+export async function buildBugReportContextSection(
   lastMessageContent: string,
   isBugReportFlag: boolean,
   currentPage?: string,
@@ -192,47 +199,55 @@ export async function appendBugReportContext(
     hasPendingDraft,
   });
 
-  if (isBugReport && currentPage) {
-    try {
-      const { PageContextService } = await import(
-        '../../../../lib/lia-context/services/page-context.service'
-      );
-      const bugContext = PageContextService.buildBugReportContext(currentPage);
-      if (bugContext && !bugContext.includes('No hay metadata')) {
-        return systemPrompt + '\n\n---\n\n' + bugContext;
-      }
-    } catch (error) {
-      techDebtLogger.warn('Error obteniendo contexto de bug:', error);
+  if (!isBugReport || !currentPage) return '';
+
+  try {
+    const { PageContextService } = await import(
+      '../../../../lib/lia-context/services/page-context.service'
+    );
+    const bugContext = PageContextService.buildBugReportContext(currentPage);
+    if (bugContext && !bugContext.includes('No hay metadata')) {
+      return `---\n\n${bugContext}`;
     }
+  } catch (error) {
+    techDebtLogger.warn('Error obteniendo contexto de bug:', error);
   }
 
-  return systemPrompt;
+  return '';
 }
 
 /**
- * Prepares the clean Gemini chat history from the messages array.
- * Removes system messages, drops the last user message, and deduplicates consecutive roles.
+ * Prepara el historial de conversación en el formato neutral del gateway de IA.
+ *
+ * Elimina los mensajes de sistema, descarta el último mensaje del usuario (que
+ * viaja como prompt del turno) y fusiona turnos consecutivos del mismo rol.
+ *
+ * El historial DEBE empezar por un turno del usuario: Gemini rechaza un
+ * historial que abra con un turno del asistente, así que se recortan los turnos
+ * iniciales del asistente en lugar de dejar que el proveedor falle.
  */
 export function buildCleanHistory(
   messages: Array<{ role: string; content: string }>
-): Array<{ role: string; parts: [{ text: string }] }> {
-  let history = messages
+): AiTurn[] {
+  let history: AiTurn[] = messages
     .filter((m) => m.role !== 'system')
     .slice(0, -1)
     .map((m) => ({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }] as [{ text: string }],
+      parts: [{ text: m.content, type: 'text' as const }],
+      role: m.role === 'assistant' ? 'assistant' : 'user',
     }));
 
-  while (history.length > 0 && history[0].role === 'model') {
+  while (history.length > 0 && history[0].role === 'assistant') {
     history = history.slice(1);
   }
 
-  const cleanHistory: typeof history = [];
+  const cleanHistory: AiTurn[] = [];
   for (const msg of history) {
     const lastMsg = cleanHistory[cleanHistory.length - 1];
-    if (lastMsg && lastMsg.role === msg.role) {
-      lastMsg.parts[0].text += '\n' + msg.parts[0].text;
+    const lastPart = lastMsg?.parts[0];
+
+    if (lastMsg && lastMsg.role === msg.role && lastPart?.type === 'text') {
+      lastPart.text += '\n' + msg.parts.map((part) => (part.type === 'text' ? part.text : '')).join('');
     } else {
       cleanHistory.push(msg);
     }

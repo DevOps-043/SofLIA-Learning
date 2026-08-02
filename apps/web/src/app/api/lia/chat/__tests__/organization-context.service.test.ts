@@ -1,10 +1,52 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const platformOrganization = vi.hoisted(() => ({
+  data: {
+    id: 'acme-id',
+    name: 'Acme',
+    slug: 'acme',
+    industry: 'Tecnología',
+    company_size: '100',
+    company_type: 'B2B',
+    company_mission: 'Aprender',
+    company_country: 'México',
+  } as Record<string, string> | null,
+  error: null as { message: string } | null,
+}))
+
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
+    from: () => {
+      const builder = {
+        select: () => builder,
+        eq: () => builder,
+        maybeSingle: async () => platformOrganization,
+      }
+      return builder
+    },
+  }),
+}))
 import {
   extractOrganizationSlugFromPage,
   resolveActiveOrganizationContext,
+  resolvePlatformAdminOrganizationContext,
   type OrganizationContextRepository,
   type ResolvedOrganizationContext,
 } from '../organization-context.service'
+
+beforeEach(() => {
+  platformOrganization.data = {
+    id: 'acme-id',
+    name: 'Acme',
+    slug: 'acme',
+    industry: 'Tecnología',
+    company_size: '100',
+    company_type: 'B2B',
+    company_mission: 'Aprender',
+    company_country: 'México',
+  }
+  platformOrganization.error = null
+})
 
 function createRepositoryStub(overrides?: {
   byId?: ResolvedOrganizationContext | null
@@ -107,5 +149,31 @@ describe('organization-context.service', () => {
     expect(extractOrganizationSlugFromPage('/courses/ia-para-lideres/learn')).toBe(
       undefined,
     )
+  })
+
+  it('resuelve para superadmin la organización visible aunque no tenga membresía', async () => {
+    const context = await resolvePlatformAdminOrganizationContext(
+      '/acme/business-panel/hierarchy',
+    )
+
+    expect(context).toMatchObject({
+      organizationId: 'acme-id',
+      organizationSlug: 'acme',
+      organizationName: 'Acme',
+    })
+  })
+
+  it('no resuelve organización privilegiada desde business-user', async () => {
+    expect(await resolvePlatformAdminOrganizationContext(
+      '/acme/business-user/dashboard',
+    )).toBeNull()
+  })
+
+  it('no concede contexto privilegiado si la organización ya no está activa', async () => {
+    platformOrganization.data = null
+
+    expect(await resolvePlatformAdminOrganizationContext(
+      '/acme/business-panel/hierarchy',
+    )).toBeNull()
   })
 })

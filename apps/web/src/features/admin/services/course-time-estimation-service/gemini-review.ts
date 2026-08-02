@@ -1,12 +1,9 @@
-import { GoogleGenerativeAI } from '@google/generative-ai'
 import { logger } from '@/lib/logger'
-import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
-import { buildManagedGenerationConfig } from '@/lib/ai/model-settings/generation-config'
 import {
-  GLOBAL_MAX_MINUTES,
-  GLOBAL_MIN_MINUTES,
-  getGeminiApiKey,
-} from './config'
+  generateAiText,
+  isAiPurposeAvailable,
+} from '@/lib/ai/providers/ai-text-gateway.server'
+import { GLOBAL_MAX_MINUTES, GLOBAL_MIN_MINUTES } from './config'
 import { parseGeminiResponse } from './gemini-response'
 import { buildSystemPrompt } from './system-prompt'
 import { buildUserPrompt } from './user-prompt'
@@ -21,34 +18,30 @@ export async function reviewChunkWithGemini(
   analyses: TimeEstimationAnalysis[],
   userId?: string,
 ): Promise<Map<string, TimeEstimationResult>> {
-  const apiKey = getGeminiApiKey()
-  if (!apiKey) {
+  if (!(await isAiPurposeAvailable('course_time_estimation'))) {
     return new Map()
   }
 
-  const settings = await getAiModelSettings('course_time_estimation')
-  const model = new GoogleGenerativeAI(apiKey).getGenerativeModel({
-    model: settings.model,
-    generationConfig: buildManagedGenerationConfig(settings, {
-      // No administrable: la respuesta se parsea como JSON obligatoriamente.
-      responseMimeType: 'application/json',
-    }),
+  const result = await generateAiText({
+    circuitBreakerName: 'course-time-estimation',
+    prompt: buildUserPrompt(courseTitle, analyses),
+    purpose: 'course_time_estimation',
+    // No administrable: la respuesta se parsea como JSON obligatoriamente.
+    responseAsJson: true,
+    systemInstruction: buildSystemPrompt,
   })
-  const result = await model.generateContent([
-    { text: buildSystemPrompt() },
-    { text: buildUserPrompt(courseTitle, analyses) },
-  ])
 
-  logger.info('Gemini reviewed course time estimation batch', {
+  logger.info('AI reviewed course time estimation batch', {
     courseTitle,
-    model: settings.model,
+    model: result.model,
+    provider: result.provider,
     targetCount: analyses.length,
     userId,
   })
 
-  const rawContent = result.response.text()
+  const rawContent = result.text
   if (!rawContent) {
-    throw new Error('Gemini returned an empty estimation payload')
+    throw new Error('El proveedor devolvio una estimacion vacia')
   }
 
   const reviewedItems = parseGeminiResponse(rawContent).items || []

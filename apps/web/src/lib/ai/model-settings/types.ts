@@ -1,3 +1,4 @@
+import type { AiProvider, AiProviderSelection } from '../providers/provider-registry'
 import type { AiThinkingLevel } from './thinking'
 
 /**
@@ -45,6 +46,18 @@ export interface AiModelPurposeDefinition {
    * altere el comportamiento vigente y para permitir rollback sin migración.
    */
   legacyModelEnvVars: readonly string[]
+  /**
+   * Proveedores capaces de atender este propósito. Omitirlo significa "todos".
+   *
+   * No todos son intercambiables: el dictado envía audio en línea y el
+   * procesamiento de vídeo envía vídeo, capacidades que hoy solo tiene Gemini a
+   * través de este contrato. Se declara SOLO en los propósitos restringidos, para
+   * que la excepción destaque en el catálogo en vez de repetir la misma lista en
+   * las veinte entradas. El panel usa este dato para impedir seleccionar un
+   * proveedor que rompería la funcionalidad, en vez de descubrirlo cuando un
+   * usuario la utilice.
+   */
+  supportedProviders?: readonly AiProvider[]
 }
 
 /** Origen del que se resolvió cada valor efectivo. Útil para el panel y para diagnóstico. */
@@ -52,14 +65,21 @@ export type AiModelSettingsSource = 'database' | 'environment' | 'default'
 
 /** Configuración efectiva ya resuelta y lista para enviar al proveedor. */
 export interface ResolvedAiModelSettings {
+  /** `true` cuando existe una fila de override en base de datos. */
+  hasDatabaseOverride: boolean
   maxOutputTokens: number | null
   model: string
   modelSource: AiModelSettingsSource
+  /** Proveedor efectivo al que se enviará la llamada. */
+  provider: AiProvider
+  /**
+   * Selección guardada. `auto` indica que el proveedor se dedujo del nombre del
+   * modelo; el panel lo necesita para distinguir "deducido" de "fijado a mano".
+   */
+  providerSelection: AiProviderSelection
   purpose: string
   temperature: number | null
   thinkingLevel: AiThinkingLevel
-  /** `true` cuando existe una fila de override en base de datos. */
-  hasDatabaseOverride: boolean
   updatedAt: string | null
 }
 
@@ -67,6 +87,7 @@ export interface ResolvedAiModelSettings {
 export interface AiModelSettingsUpdate {
   maxOutputTokens?: number | null
   model?: string
+  provider?: AiProviderSelection
   temperature?: number | null
   thinkingLevel?: AiThinkingLevel
 }

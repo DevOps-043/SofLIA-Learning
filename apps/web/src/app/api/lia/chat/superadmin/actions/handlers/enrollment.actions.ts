@@ -74,6 +74,7 @@ export const addDefaultCourseAction = defineAction<AddDefaultCourseParams>({
     return {
       summary: `El curso "${course.title}" quedó como predeterminado de "${organization.name}"${params.applyNow ? ' y se aplicó a los usuarios existentes' : ''}.`,
       details: { ruleId, organizationId: organization.id, courseId: course.id },
+      navigateTo: `/admin/companies/${organization.id}/edit?tab=courses`,
     }
   },
 })
@@ -165,6 +166,7 @@ export const createInviteLinkAction = defineAction<CreateInviteLinkParams>({
         organizationId: organization.id,
         expiresAt,
       },
+      navigateTo: `/admin/companies/${organization.id}/edit?tab=users`,
     }
   },
 })

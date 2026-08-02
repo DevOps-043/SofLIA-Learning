@@ -26,6 +26,7 @@ describe('StreamingSpeechPlayer', () => {
     requestTTSAudioMock.mockReset();
     playAudioBlobMock.mockReset();
     playAudioBlobMock.mockImplementation(async (_blob, _audioRef, options) => {
+      options?.onStart?.();
       options?.onFinish?.();
     });
   });
@@ -76,6 +77,28 @@ describe('StreamingSpeechPlayer', () => {
     expect(player.enqueue('Uno más.')).toBe(false);
 
     await flushMicrotasks(120);
+    player.stop();
+  });
+
+  it('reports speaking only after synthesis has produced playable audio', async () => {
+    let resolveSynthesis: ((blob: Blob) => void) | undefined;
+    requestTTSAudioMock.mockImplementation(() => new Promise<Blob>((resolve) => {
+      resolveSynthesis = resolve;
+    }));
+    const playingChanges: boolean[] = [];
+    const player = new StreamingSpeechPlayer({
+      onPlayingChange: (playing) => playingChanges.push(playing),
+    });
+
+    player.enqueue('Hola, ya estoy lista.');
+    await flushMicrotasks();
+
+    expect(playingChanges).toEqual([]);
+
+    resolveSynthesis?.(new Blob(['audio']));
+    await flushMicrotasks();
+
+    expect(playingChanges).toEqual([true, false]);
     player.stop();
   });
 });

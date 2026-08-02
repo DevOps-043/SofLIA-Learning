@@ -97,7 +97,7 @@ export interface ReportsAnalyticsExportArtifactPlan {
 export interface ReportsAnalyticsReportBlueprint {
   generatedAt: string
   model: string
-  source: 'gemini' | 'fallback'
+  source: 'gemini' | 'openai' | 'fallback'
   summary: string
   sections: ReportsAnalyticsReportSection[]
   featuredMetrics: ReportsAnalyticsAiInsightMetric[]

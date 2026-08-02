@@ -2,10 +2,11 @@ import {
   calculateCost,
   logAIUsage,
 } from '@/lib/ai/usage-monitor'
+import type { AiTurn } from '@/lib/ai/providers'
 import {
-  generateGeminiText,
-  getGeminiApiKey,
-} from '@/lib/gemini/client'
+  generateAiText,
+  isAiPurposeAvailable,
+} from '@/lib/ai/providers/ai-text-gateway.server'
 import { logger } from '../../../lib/utils/logger'
 import {
   LANGUAGE_CONFIG,
@@ -31,24 +32,27 @@ export async function callGemini(
   userId: string | null = null,
   isSystemMessage = false,
 ): Promise<{ response: string; metadata?: AiProviderMetadata }> {
-  if (!getGeminiApiKey()) {
-    throw new Error('Gemini API key not configured')
+  // Se comprueba la credencial del proveedor CONFIGURADO para el propósito, no
+  // la de Gemini: si un administrador cambia SofLIA a un modelo de OpenAI, la
+  // clave que debe existir es la de OpenAI.
+  if (!(await isAiPurposeAvailable('lia_general'))) {
+    throw new Error('AI provider API key not configured')
   }
 
-  const history = conversationHistory
+  const history: AiTurn[] = conversationHistory
     .filter((msg) => msg.role !== 'system')
     .map((msg) => ({
-      role: msg.role === 'assistant' ? 'model' as const : 'user' as const,
-      parts: [{ text: msg.content }],
+      parts: [{ text: msg.content, type: 'text' as const }],
+      role: msg.role === 'assistant' ? 'assistant' : 'user',
     }))
 
   const prompt = isSystemMessage
     ? `Instruccion interna de SofLIA:\n${message}`
     : message
 
-  // Modelo, tokens, temperatura y nivel de razonamiento provienen del propósito
-  // `lia_general`, administrable desde el panel de superadmin.
-  const result = await generateGeminiText({
+  // Modelo, proveedor, tokens, temperatura y nivel de razonamiento provienen del
+  // propósito `lia_general`, administrable desde el panel de superadmin.
+  const result = await generateAiText({
     circuitBreakerName: 'gemini-ai-chat',
     history,
     prompt,
@@ -58,14 +62,15 @@ export async function callGemini(
 
   const modelName = result.model
 
-  logger.info('[Gemini] Mensaje de SofLIA procesado', {
+  logger.info('[SofLIA] Mensaje procesado', {
     messageLength: message.length,
     model: modelName,
+    provider: result.provider,
   })
 
-  const promptTokens = result.usage?.promptTokenCount || 0
-  const completionTokens = result.usage?.candidatesTokenCount || 0
-  const totalTokens = result.usage?.totalTokenCount || 0
+  const promptTokens = result.usage?.inputTokens || 0
+  const completionTokens = result.usage?.outputTokens || 0
+  const totalTokens = result.usage?.totalTokens || 0
   const estimatedCost = calculateCost(promptTokens, completionTokens, modelName)
   const promptCost = calculateCost(promptTokens, 0, modelName)
   const completionCost = calculateCost(0, completionTokens, modelName)

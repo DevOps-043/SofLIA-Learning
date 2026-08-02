@@ -1,3 +1,4 @@
+import { AI_PROVIDERS, type AiProvider } from '../providers/provider-registry'
 import type { AiModelPurposeDefinition } from './types'
 
 /**
@@ -22,17 +23,29 @@ import type { AiModelPurposeDefinition } from './types'
 export const PLATFORM_DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash'
 
 /**
+ * Proveedor al que se atribuye un propósito cuando el nombre del modelo no
+ * permite deducirlo y no hay selección explícita. Es Gemini porque todos los
+ * defaults del catálogo son modelos de Gemini: mantiene el comportamiento
+ * histórico ante cualquier valor heredado del entorno que no reconozcamos.
+ */
+export const PLATFORM_DEFAULT_AI_PROVIDER: AiProvider = 'google'
+
+/**
  * Límites de validación, compartidos por el formulario del panel y por la API.
- * Deben permanecer alineados con los CHECK constraints de la migración
- * `20260722140000_create_ai_model_settings.sql`.
+ * Deben permanecer alineados con los CHECK constraints de las migraciones
+ * `20260722140000_create_ai_model_settings.sql` y
+ * `20260801120000_add_ai_model_settings_provider.sql`.
  */
 // El mínimo de tokens es 1, no un valor "seguro" alto: el presupuesto adecuado
 // depende del propósito. Un clasificador legítimamente usa poquísimos tokens
 // (detección de idioma: ~10, devuelve "es"/"en"/"pt"; intención: ~200, un JSON
 // corto). Un mínimo global alto rechazaría esos defaults al guardarlos.
+//
+// `modelPattern` admite además `:` porque los modelos afinados de OpenAI se
+// identifican como `ft:gpt-4.1-mini:organizacion::AbC123`.
 export const AI_MODEL_SETTINGS_LIMITS = {
   maxOutputTokens: { max: 65_536, min: 1 },
-  modelPattern: /^[a-zA-Z0-9][a-zA-Z0-9._-]{2,119}$/,
+  modelPattern: /^[a-zA-Z0-9][a-zA-Z0-9._:-]{2,119}$/,
   temperature: { max: 2, min: 0 },
 } as const
 
@@ -41,6 +54,14 @@ const ALL_CAPABILITIES = {
   temperature: true,
   thinkingLevel: true,
 } as const
+
+/**
+ * Propósitos que solo puede atender Gemini porque envían contenido binario
+ * (audio, vídeo) que el contrato neutral únicamente sabe traducir a ese
+ * proveedor. OpenAI cubre esos casos con APIs distintas (transcripción), no con
+ * generación de texto, por lo que no es un cambio de modelo sino de integración.
+ */
+const GOOGLE_ONLY: readonly AiProvider[] = ['google']
 
 export const AI_MODEL_PURPOSES = [
   // ── SofLIA (asistente conversacional) ────────────────────────────────────
@@ -87,6 +108,8 @@ export const AI_MODEL_PURPOSES = [
     id: 'lia_dictation',
     labelKey: 'aiSettings.purposes.liaDictation.label',
     legacyModelEnvVars: ['GEMINI_TRANSCRIPTION_MODEL'],
+    // Envía el audio dictado como contenido en línea.
+    supportedProviders: GOOGLE_ONLY,
   },
   {
     capabilities: ALL_CAPABILITIES,
@@ -163,6 +186,20 @@ export const AI_MODEL_PURPOSES = [
     group: 'courses',
     id: 'lesson_auto_note',
     labelKey: 'aiSettings.purposes.lessonAutoNote.label',
+    legacyModelEnvVars: ['GEMINI_MODEL'],
+  },
+  {
+    capabilities: ALL_CAPABILITIES,
+    defaults: {
+      maxOutputTokens: 4_096,
+      model: PLATFORM_DEFAULT_GEMINI_MODEL,
+      temperature: 0.3,
+      thinkingLevel: 'default',
+    },
+    descriptionKey: 'aiSettings.purposes.quizFeedback.description',
+    group: 'courses',
+    id: 'quiz_feedback',
+    labelKey: 'aiSettings.purposes.quizFeedback.label',
     legacyModelEnvVars: ['GEMINI_MODEL'],
   },
   {
@@ -280,6 +317,20 @@ export const AI_MODEL_PURPOSES = [
     legacyModelEnvVars: ['GEMINI_MODEL'],
   },
   {
+    capabilities: ALL_CAPABILITIES,
+    defaults: {
+      maxOutputTokens: 4_096,
+      model: PLATFORM_DEFAULT_GEMINI_MODEL,
+      temperature: 0.4,
+      thinkingLevel: 'default',
+    },
+    descriptionKey: 'aiSettings.purposes.notebookAssistant.description',
+    group: 'content',
+    id: 'notebook_assistant',
+    labelKey: 'aiSettings.purposes.notebookAssistant.label',
+    legacyModelEnvVars: ['GEMINI_MODEL'],
+  },
+  {
     capabilities: {
       // El presupuesto se calcula por longitud del texto a traducir; fijarlo
       // truncaría traducciones largas.
@@ -330,6 +381,8 @@ export const AI_MODEL_PURPOSES = [
     id: 'video_processing',
     labelKey: 'aiSettings.purposes.videoProcessing.label',
     legacyModelEnvVars: ['GEMINI_MODEL'],
+    // Envía el vídeo subido como contenido en línea.
+    supportedProviders: GOOGLE_ONLY,
   },
 
   // ── Plataforma ───────────────────────────────────────────────────────────
@@ -346,6 +399,26 @@ export const AI_MODEL_PURPOSES = [
     id: 'ai_moderation',
     labelKey: 'aiSettings.purposes.moderation.label',
     legacyModelEnvVars: ['AI_MODERATION_GEMINI_MODEL', 'GEMINI_MODEL'],
+  },
+  {
+    capabilities: {
+      // El presupuesto no estaba fijado en el punto de llamada: un informe
+      // forense se trunca si se limita sin conocer el volumen auditado.
+      maxOutputTokens: false,
+      temperature: true,
+      thinkingLevel: true,
+    },
+    defaults: {
+      maxOutputTokens: null,
+      model: PLATFORM_DEFAULT_GEMINI_MODEL,
+      temperature: 0.2,
+      thinkingLevel: 'default',
+    },
+    descriptionKey: 'aiSettings.purposes.userForensics.description',
+    group: 'platform',
+    id: 'user_forensics',
+    labelKey: 'aiSettings.purposes.userForensics.label',
+    legacyModelEnvVars: ['GEMINI_MODEL'],
   },
   {
     capabilities: {
@@ -394,4 +467,26 @@ export function getAiModelPurpose(id: AiModelPurposeId): AiModelPurpose {
   }
 
   return purpose
+}
+
+/**
+ * Proveedores que pueden atender un propósito. Un propósito sin restricción
+ * declarada los admite todos.
+ *
+ * El parámetro es la definición completa y no un `Pick` de `supportedProviders`
+ * porque ese `Pick` sería un "weak type" (solo propiedades opcionales) y
+ * TypeScript rechazaría los propósitos que no declaran la restricción, que son
+ * justamente la mayoría.
+ */
+export function getPurposeSupportedProviders(
+  purpose: AiModelPurposeDefinition,
+): readonly AiProvider[] {
+  return purpose.supportedProviders ?? AI_PROVIDERS
+}
+
+export function isProviderSupportedByPurpose(
+  purpose: AiModelPurposeDefinition,
+  provider: AiProvider,
+): boolean {
+  return getPurposeSupportedProviders(purpose).includes(provider)
 }

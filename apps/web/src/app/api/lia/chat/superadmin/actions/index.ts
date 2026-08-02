@@ -2,18 +2,26 @@ import type { NextRequest } from 'next/server'
 import type { SessionUserRecord } from '@/features/auth/services/session.types'
 import type { PromptRiskAction } from '@/lib/security/prompt-injection-detector.types'
 import {
+  authorizeOrganizationAdminActions,
+  authorizePlatformSuperadminOrganizationActions,
   authorizePlatformSuperadmin,
+  isOrganizationAdminActionGrant,
+  type AdminActionGrant,
   type PlatformSuperadminGrant,
 } from '../authorization'
 import { parseActionProposal, stripActionBlock } from './action-parser'
 import { buildAdminActionsPromptSection } from './actions.prompt'
-import { detectActionConfirmationIntent } from './confirmation-intent'
+import {
+  detectActionConfirmationIntent,
+  isExplicitActionConfirmationCommand,
+} from './confirmation-intent'
 import {
   extractVerifiedActionToken,
   stripActionTokens,
 } from './confirmation-token'
 import { buildActionProposalMessage, executeConfirmedAction } from './executor'
 import type { ActionContext } from './types'
+import type { ActionDownloadRequest } from './types'
 
 /**
  * Copiloto de acciones administrativas de SofLIA — punto de entrada del módulo.
@@ -26,8 +34,15 @@ import type { ActionContext } from './types'
  *   processProposedAction()          → convierte la propuesta en confirmación
  */
 
-export { stripActionTokens } from './confirmation-token'
-export { hasActionBlock, stripActionBlock } from './action-parser'
+export {
+  stripActionInternalContent,
+  stripActionTokens,
+} from './confirmation-token'
+export {
+  createActionBlockStreamMask,
+  hasActionBlock,
+  stripActionBlock,
+} from './action-parser'
 export { buildAdminActionsPromptSection } from './actions.prompt'
 
 export interface AdminActionsAuthorizationParams {
@@ -52,16 +67,57 @@ export async function authorizeAdminActions(
   })
 }
 
+export async function authorizeOrganizationActions(params: {
+  sessionUser: SessionUserRecord
+  currentPage: string | null | undefined
+  promptRiskAction: PromptRiskAction
+  organizationId: string
+  organizationSlug: string
+}) {
+  return authorizeOrganizationAdminActions({
+    sessionUserId: params.sessionUser.id,
+    currentPage: params.currentPage,
+    promptRiskAction: params.promptRiskAction,
+    organizationId: params.organizationId,
+    organizationSlug: params.organizationSlug,
+  })
+}
+
+export async function authorizePlatformOrganizationActions(params: {
+  sessionUser: SessionUserRecord
+  currentPage: string | null | undefined
+  promptRiskAction: PromptRiskAction
+  organizationId: string
+  organizationSlug: string
+}) {
+  return authorizePlatformSuperadminOrganizationActions({
+    sessionUserId: params.sessionUser.id,
+    sessionUserRole: params.sessionUser.platform_role,
+    currentPage: params.currentPage,
+    promptRiskAction: params.promptRiskAction,
+    organizationId: params.organizationId,
+    organizationSlug: params.organizationSlug,
+  })
+}
+
 /** Construye el contexto de ejecución que reciben los handlers. */
 export function buildActionContext(params: {
-  grant: PlatformSuperadminGrant
+  grant: AdminActionGrant
   request: NextRequest
 }): ActionContext {
   const { grant, request } = params
+  const isOrganizationAdmin = isOrganizationAdminActionGrant(grant)
 
   return {
     grant,
     adminUserId: grant.adminUserId,
+    actorScope: isOrganizationAdmin ? 'organization' : 'platform',
+    actorAuthority: isOrganizationAdmin
+      ? grant.actorAuthority
+      : 'platform-superadmin',
+    organizationRole: isOrganizationAdmin ? grant.organizationRole : null,
+    organizationId: isOrganizationAdmin ? grant.organizationId : null,
+    organizationSlug: isOrganizationAdmin ? grant.organizationSlug : null,
     requestInfo: {
       ip:
         request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
@@ -87,21 +143,41 @@ export async function tryExecutePendingAction(params: {
   context: ActionContext
   latestAssistantContent: string | null
   userMessage: string
-}): Promise<string | null> {
+}): Promise<{
+  message: string
+  navigateTo?: string
+  downloads?: ActionDownloadRequest[]
+} | null> {
   const { context, latestAssistantContent, userMessage } = params
 
-  if (!latestAssistantContent) return null
+  if (!latestAssistantContent) {
+    return isExplicitActionConfirmationCommand(userMessage)
+      ? {
+          message:
+            'No pude recuperar la acción pendiente y no ejecuté ningún cambio. Vuelve a pedirme la acción para preparar una confirmación nueva.',
+        }
+      : null
+  }
 
   const token = extractVerifiedActionToken({
     assistantContent: latestAssistantContent,
     adminUserId: context.adminUserId,
+    actorScope: context.actorScope,
+    organizationId: context.organizationId,
   })
-  if (!token) return null
+  if (!token) {
+    return isExplicitActionConfirmationCommand(userMessage)
+      ? {
+          message:
+            'La confirmación pendiente ya no es válida y no ejecuté ningún cambio. Vuelve a pedirme la acción para generar una confirmación nueva.',
+        }
+      : null
+  }
 
   const intent = detectActionConfirmationIntent(userMessage)
 
   if (intent === 'cancel') {
-    return 'Entendido, cancelo la acción. No se ejecutó ningún cambio.'
+    return { message: 'Entendido, cancelo la acción. No se ejecutó ningún cambio.' }
   }
 
   if (intent !== 'confirm') {
@@ -111,7 +187,11 @@ export async function tryExecutePendingAction(params: {
   }
 
   const result = await executeConfirmedAction({ token, context })
-  return result.message
+  return {
+    message: result.message,
+    navigateTo: result.navigateTo,
+    downloads: result.downloads,
+  }
 }
 
 /**
@@ -141,7 +221,7 @@ export async function processProposedAction(params: {
   }
 
   const proposal = await buildActionProposalMessage({
-    proposal: outcome.proposal,
+    proposals: outcome.proposals,
     context,
   })
 

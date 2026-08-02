@@ -1,11 +1,14 @@
+import { buildPromptModelProfile } from '@/lib/ai/prompts'
+
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
 import { buildDialogueEvaluationRecoveryMessage } from '../dialogue-technical-recovery.service'
-import { buildEvaluatorPrompt, evaluateDialogueTurn } from '../dialogue-evaluator.service'
+import { evaluateDialogueTurn } from '../dialogue-evaluator.service'
+import { buildEvaluatorPromptForGoogle } from '../dialogue-evaluator.google.prompt'
+import { buildTutorPromptForGoogle } from '../dialogue-tutor.google.prompt'
 import {
-  buildTutorPrompt,
   generateDialogueTutorMessage,
   normalizeTutorMessageForDisplay,
   resolveDialogueTutorMaxOutputTokens,
@@ -88,9 +91,11 @@ const policy: DialoguePolicyDecision = {
   hintToUse: null,
 }
 
+
+
 describe('dialogue organization context prompts', () => {
   it('adds verified organization context to evaluator prompt', () => {
-    const prompt = buildEvaluatorPrompt({
+    const prompt = buildEvaluatorPromptForGoogle({
       config,
       organizationAiContext,
       previousEvaluations: [],
@@ -106,7 +111,7 @@ describe('dialogue organization context prompts', () => {
   })
 
   it('adds verified organization context to tutor prompt', () => {
-    const prompt = buildTutorPrompt({
+    const prompt = buildTutorPromptForGoogle({
       config,
       evaluation,
       organizationAiContext,
@@ -122,7 +127,7 @@ describe('dialogue organization context prompts', () => {
   })
 
   it('calibrates the evaluator to grade concepts, never literal wording from the video', () => {
-    const prompt = buildEvaluatorPrompt({
+    const prompt = buildEvaluatorPromptForGoogle({
       config,
       organizationAiContext,
       previousEvaluations: [],
@@ -138,7 +143,7 @@ describe('dialogue organization context prompts', () => {
   })
 
   it('pins accumulated criteria from earlier turns into the evaluator prompt', () => {
-    const prompt = buildEvaluatorPrompt({
+    const prompt = buildEvaluatorPromptForGoogle({
       accumulatedCriteriaMet: ['impact'],
       config,
       organizationAiContext,
@@ -152,7 +157,7 @@ describe('dialogue organization context prompts', () => {
   })
 
   it('asks the evaluator for student-facing feedback to avoid a second tutor call', () => {
-    const prompt = buildEvaluatorPrompt({
+    const prompt = buildEvaluatorPromptForGoogle({
       config,
       organizationAiContext,
       previousEvaluations: [],
@@ -214,7 +219,7 @@ describe('dialogue organization context prompts', () => {
   })
 
   it('calibra los ejemplos al cargo del estudiante', () => {
-    const prompt = buildTutorPrompt({
+    const prompt = buildTutorPromptForGoogle({
       config,
       evaluation,
       organizationAiContext,
@@ -229,7 +234,7 @@ describe('dialogue organization context prompts', () => {
   })
 
   it('prohibe inventar datos de empresa que no esten en el contexto', () => {
-    const prompt = buildEvaluatorPrompt({
+    const prompt = buildEvaluatorPromptForGoogle({
       config,
       organizationAiContext: {
         organizationId: 'org-2',
@@ -249,7 +254,7 @@ describe('dialogue organization context prompts', () => {
   })
 
   it('omite las reglas de rol cuando la membresia no tiene cargo', () => {
-    const prompt = buildTutorPrompt({
+    const prompt = buildTutorPromptForGoogle({
       config,
       evaluation,
       organizationAiContext: {

@@ -1,13 +1,11 @@
 // ============================================
 // ORQUESTADOR DEL PROMPT DE SISTEMA DE SofLIA
-// Importa sub-modulos y reexporta la misma API publica.
 // ============================================
 
-import {
-  GLOBAL_UI_CONTEXT,
-  LIA_BUG_REPORT_CONFIRMATION_OVERRIDE,
-} from './prompt-base.service';
-import { LIA_SYSTEM_PROMPT } from './prompt-main-v2.service';
+import type { PromptModelProfile } from '@/lib/ai/prompts';
+
+import { buildLiaSystemPrompt } from './prompt-base.service';
+import { GLOBAL_UI_CONTEXT } from './prompt-ui-glossary';
 import { buildUserContextSection } from './prompt-context.service';
 import {
   buildBusinessRoutesSection,
@@ -15,33 +13,45 @@ import {
 } from './prompt-instructions.service';
 import type { PlatformContext } from './platform-context.service';
 
-export { LIA_SYSTEM_PROMPT } from './prompt-main-v2.service';
+export { buildLiaSystemPrompt } from './prompt-base.service';
 
-export function getLIASystemPrompt(context?: PlatformContext): string {
+/**
+ * Reescribe las rutas del glosario para la organización activa.
+ *
+ * El glosario se escribió con rutas sin prefijo de organización; en un tenant
+ * concreto esas rutas dan 404. Sustituirlas evita que SofLIA proponga enlaces
+ * rotos, que es el fallo que más rápido destruye la confianza en el asistente.
+ */
+function applyOrganizationRoutes(glossary: string, orgSlug: string): string {
+  if (!orgSlug) return glossary;
+
+  const orgPrefix = `/${orgSlug}`;
+
+  return glossary
+    .replace(/\(\/business-panel\//g, `(${orgPrefix}/business-panel/`)
+    .replace(/\(\/business-user\//g, `(${orgPrefix}/business-user/`)
+    .replace(/Ruta base: \/business-panel/g, `Ruta base: ${orgPrefix}/business-panel`)
+    .replace(/Ruta base: \/business-user/g, `Ruta base: ${orgPrefix}/business-user`);
+}
+
+/**
+ * Prompt de sistema completo de SofLIA para el proveedor destino.
+ *
+ * El glosario de pantallas y el contexto del usuario son DATOS: se adjuntan
+ * igual en las dos variantes. Lo que cambia según el proveedor es únicamente el
+ * prompt base de comportamiento.
+ */
+export function getLIASystemPrompt(
+  profile: PromptModelProfile,
+  context?: PlatformContext,
+): string {
+  const basePrompt = buildLiaSystemPrompt(profile);
   let prompt = context
-    ? buildBusinessRoutesSection(context, LIA_SYSTEM_PROMPT)
-    : LIA_SYSTEM_PROMPT;
+    ? buildBusinessRoutesSection(context, basePrompt)
+    : basePrompt;
 
-  prompt += LIA_BUG_REPORT_CONFIRMATION_OVERRIDE;
-
-  const orgSlug = context?.organizationSlug || '';
-  const orgPrefix = orgSlug ? `/${orgSlug}` : '';
-
-  let globalContext = GLOBAL_UI_CONTEXT;
-  if (orgSlug) {
-    globalContext = globalContext
-      .replace(/\(\/business-panel\//g, `(${orgPrefix}/business-panel/`)
-      .replace(/\(\/business-user\//g, `(${orgPrefix}/business-user/`)
-      .replace(
-        /Ruta base: \/business-panel/g,
-        `Ruta base: ${orgPrefix}/business-panel`,
-      )
-      .replace(
-        /Ruta base: \/business-user/g,
-        `Ruta base: ${orgPrefix}/business-user`,
-      );
-  }
-  prompt += '\n' + globalContext + '\n';
+  prompt +=
+    '\n' + applyOrganizationRoutes(GLOBAL_UI_CONTEXT, context?.organizationSlug || '') + '\n';
 
   if (context) {
     prompt += '\n\n## Contexto Actual de SOFLIA\n';

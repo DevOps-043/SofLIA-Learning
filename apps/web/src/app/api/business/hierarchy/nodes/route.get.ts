@@ -28,6 +28,7 @@ interface OrganizationNodeRow {
     position: number | null;
     is_active?: boolean | null;
     manager: OrganizationNodeManager | null;
+    member_counts?: Array<{ count: number }>;
 }
 
 interface StructureOrganizationRow {
@@ -78,7 +79,8 @@ export async function GET(request: Request) {
         *,
         manager:manager_id (
             id, first_name, last_name, email, profile_picture_url
-        )
+        ),
+        member_counts:organization_node_users(count)
     `)
         .eq('structure_id', structureId)
         .order('depth')
@@ -92,5 +94,10 @@ export async function GET(request: Request) {
     // Let's return flat list to let client build tree or build it here?
     // Let's return flat nodes, easier for client storage/manipulation sometimes, 
     // but if we want simple, let's return flat. The frontend service seemed to expect "nodes" array.
-    return NextResponse.json({ nodes: (nodes || []) as OrganizationNodeRow[] });
+    const nodesWithMemberCounts = ((nodes || []) as OrganizationNodeRow[]).map((node) => {
+        const { member_counts: counts, ...rest } = node;
+        return { ...rest, members_count: counts?.[0]?.count || 0 };
+    });
+
+    return NextResponse.json({ nodes: nodesWithMemberCounts });
 }

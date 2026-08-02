@@ -37,9 +37,17 @@ export type LessonSuggestionsRequest = z.infer<typeof lessonSuggestionsRequestSc
 export type LessonSuggestionItem = z.infer<typeof lessonSuggestionItemSchema>
 export type LessonSuggestionsResponse = z.infer<typeof lessonSuggestionsResponseSchema>
 export type LessonSuggestionsActivityFocus = z.infer<typeof lessonSuggestionsActivityFocusSchema>
-export type LessonSuggestionsLanguage = SupportedLanguage extends 'es' | 'en' | 'pt'
-  ? SupportedLanguage
-  : 'es' | 'en' | 'pt'
+/**
+ * Idiomas en los que se generan sugerencias.
+ *
+ * Se deriva de `SupportedLanguage` con `Extract` en lugar de un condicional
+ * `A extends B ? A : B`: ese condicional quedaba diferido para TypeScript y
+ * hacía que indexar `Record<LessonSuggestionsLanguage, string>` con un valor de
+ * este tipo se resolviera como `any` implícito. `Extract` se evalúa de inmediato
+ * sobre una unión concreta y expresa la misma intención: seguir a
+ * `SupportedLanguage`, pero solo con los idiomas que este módulo soporta.
+ */
+export type LessonSuggestionsLanguage = Extract<SupportedLanguage, 'es' | 'en' | 'pt'>
 
 export interface LessonContextSnapshot {
   lessonId: string

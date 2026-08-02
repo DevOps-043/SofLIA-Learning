@@ -1,25 +1,33 @@
-import { GoogleGenAI } from '@google/genai'
 import type { ZodType } from 'zod'
 
-import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
-import { buildThinkingConfig, type AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
-import { describeGeminiError } from '@/lib/ai/gemini-error'
-
+import { describeAiProviderError } from '@/lib/ai/ai-error'
+import type { AiModelPurposeId } from '@/lib/ai/model-settings/purposes'
+import type { AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
+import {
+  generateAiText,
+  type AiPromptInput,
+} from '@/lib/ai/providers/ai-text-gateway.server'
+import type { AiProvider } from '@/lib/ai/providers/provider-registry'
 import { evaluatePromptInjectionRisk } from '@/lib/security/prompt-injection-detector'
 import { writeSecurityAuditLogAsync } from '@/lib/security/security-audit-log'
 import { logger } from '@/lib/utils/logger'
 
-const DEFAULT_MODEL = 'gemini-3.5-flash'
+/**
+ * Generación con esquema JSON, independiente del proveedor.
+ *
+ * La salida se parsea y se valida con Zod antes de que ningún punto de llamada
+ * la muestre o la persista: el esquema guía al modelo (`responseJsonSchema` en
+ * Gemini, `text.format.json_schema` en OpenAI), pero Zod es la garantía real de
+ * forma.
+ *
+ * RESILIENCIA: el aislamiento por fallos lo aporta el circuit breaker del
+ * gateway, con un breaker por operación y proveedor. Este módulo no mantiene
+ * circuito propio: duplicarlo daría dos ventanas de conteo desincronizadas y
+ * dejaría estas llamadas fuera de los snapshots que consulta el panel de estado.
+ */
+
 const DEFAULT_TIMEOUT_MS = 25_000
-const CIRCUIT_FAILURE_THRESHOLD = 3
-const CIRCUIT_COOLDOWN_MS = 60_000
-
-interface CircuitState {
-  failures: number
-  openedUntil: number | null
-}
-
-const circuits = new Map<string, CircuitState>()
+const DEFAULT_TEMPERATURE = 0.2
 
 export interface StructuredGenerationAuditContext {
   action: string
@@ -33,9 +41,22 @@ export interface StructuredGenerationInput<T> {
   audit?: StructuredGenerationAuditContext
   jsonSchema: Record<string, unknown>
   maxOutputTokens: number
+  /**
+   * Modelo explícito. Salta la configuración del panel; el proveedor se deduce
+   * de su nombre. Omitirlo (lo habitual) hace que manden `purpose` y el panel.
+   */
   model?: string
   operation: string
-  prompt: string
+  /**
+   * Contenido del turno. Admite una funcion del perfil del modelo para que el
+   * punto de llamada elija la variante de prompt del proveedor destino.
+   */
+  prompt: AiPromptInput
+  /**
+   * Propósito administrado del que heredar modelo y proveedor. Por defecto,
+   * `structured_generation_fallback`.
+   */
+  purpose?: AiModelPurposeId
   schema: ZodType<T>
   temperature?: number
   /** Nivel de razonamiento; normalmente proviene del propósito administrado. */
@@ -48,15 +69,9 @@ export interface StructuredGenerationInput<T> {
 export interface StructuredGenerationResult<T> {
   model: string
   promptTokens: number | null
+  provider: AiProvider
   responseTokens: number | null
   value: T
-}
-
-export class StructuredGenerationCircuitOpenError extends Error {
-  constructor(operation: string) {
-    super(`AI_CIRCUIT_OPEN:${operation}`)
-    this.name = 'StructuredGenerationCircuitOpenError'
-  }
 }
 
 function normalizeJsonText(value: string): string {
@@ -65,39 +80,6 @@ function normalizeJsonText(value: string): string {
     .replace(/^```(?:json)?\s*/i, '')
     .replace(/\s*```$/i, '')
     .trim()
-}
-
-function getCircuit(operation: string): CircuitState {
-  const existing = circuits.get(operation)
-  if (existing) return existing
-  const state = { failures: 0, openedUntil: null }
-  circuits.set(operation, state)
-  return state
-}
-
-function assertCircuitAvailable(operation: string): void {
-  const circuit = getCircuit(operation)
-  if (!circuit.openedUntil) return
-
-  if (circuit.openedUntil <= Date.now()) {
-    circuit.failures = 0
-    circuit.openedUntil = null
-    return
-  }
-
-  throw new StructuredGenerationCircuitOpenError(operation)
-}
-
-function recordFailure(operation: string): void {
-  const circuit = getCircuit(operation)
-  circuit.failures += 1
-  if (circuit.failures >= CIRCUIT_FAILURE_THRESHOLD) {
-    circuit.openedUntil = Date.now() + CIRCUIT_COOLDOWN_MS
-  }
-}
-
-function recordSuccess(operation: string): void {
-  circuits.set(operation, { failures: 0, openedUntil: null })
 }
 
 function audit(
@@ -119,14 +101,17 @@ function audit(
 }
 
 /**
- * Shared schema-bound Gemini client for notebook generation. Model output is
- * parsed as JSON and validated before any caller renders or persists it.
+ * Nombre del esquema exigido por OpenAI. Se deriva de la operación porque es lo
+ * único estable y descriptivo que aporta el punto de llamada; la API solo admite
+ * letras, números, guion y guion bajo, con un máximo de 64 caracteres.
  */
+function buildSchemaName(operation: string): string {
+  return operation.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 64) || 'structured_output'
+}
+
 export async function generateStructuredContent<T>(
   input: StructuredGenerationInput<T>,
 ): Promise<StructuredGenerationResult<T>> {
-  assertCircuitAvailable(input.operation)
-
   if (input.untrustedText) {
     const risk = evaluatePromptInjectionRisk({ message: input.untrustedText })
     if (risk.action === 'block') {
@@ -139,51 +124,38 @@ export async function generateStructuredContent<T>(
     }
   }
 
-  const apiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
-  if (!apiKey) throw new Error('GEMINI_API_KEY no esta configurada.')
+  // El modelo explícito del punto de llamada tiene precedencia; el propósito
+  // cubre a quien no declare uno, y `structured_generation_fallback` es el
+  // propósito de respaldo administrable desde el panel.
+  const purpose: AiModelPurposeId = input.purpose ?? 'structured_generation_fallback'
 
-  // El propósito administrado del punto de llamada tiene precedencia; el
-  // propósito de respaldo cubre a quien no declare uno explícito.
-  const fallbackSettings = input.model
-    ? null
-    : await getAiModelSettings('structured_generation_fallback')
-  const model = input.model || fallbackSettings?.model || DEFAULT_MODEL
-  const thinkingConfig = buildThinkingConfig(
-    input.thinkingLevel ?? fallbackSettings?.thinkingLevel ?? 'default',
-  )
-  const controller = new AbortController()
-  const timeoutMs = input.timeoutMs ?? DEFAULT_TIMEOUT_MS
-  const timeout = setTimeout(() => controller.abort(), timeoutMs)
+  // Se conserva para el registro de errores: si la llamada falla antes de
+  // resolverse, el modelo efectivo todavía no se conoce.
+  let effectiveModel = input.model ?? `(propósito: ${purpose})`
 
   try {
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: { timeout: timeoutMs },
+    const response = await generateAiText({
+      circuitBreakerName: `structured-generation-${input.operation}`,
+      jsonSchema: { name: buildSchemaName(input.operation), schema: input.jsonSchema },
+      maxOutputTokens: input.maxOutputTokens,
+      ...(input.model ? { model: input.model } : {}),
+      prompt: input.prompt,
+      purpose,
+      temperature: input.temperature ?? DEFAULT_TEMPERATURE,
+      ...(input.thinkingLevel ? { thinkingLevel: input.thinkingLevel } : {}),
+      timeoutMs: input.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     })
-    const response = await ai.models.generateContent({
-      contents: input.prompt,
-      model,
-      config: {
-        abortSignal: controller.signal,
-        maxOutputTokens: input.maxOutputTokens,
-        responseJsonSchema: input.jsonSchema,
-        responseMimeType: 'application/json',
-        temperature: input.temperature ?? 0.2,
-        ...(thinkingConfig ? { thinkingConfig } : {}),
-      },
-    })
+    effectiveModel = response.model
 
-    // `MAX_TOKENS` produce texto vacío o JSON truncado. Sin este dato el fallo
-    // llega como "JSON inválido" y se confunde con un error del modelo, cuando
-    // en realidad el presupuesto de salida (compartido con el razonamiento en
-    // los modelos gemini-3.x) es demasiado bajo para el propósito.
-    const finishReason = response.candidates?.[0]?.finishReason
-    const truncated = finishReason === 'MAX_TOKENS'
-
-    const rawText = normalizeJsonText(response.text || '')
+    // Una respuesta truncada se distingue de una inválida porque la causa y la
+    // solución son distintas: la primera se arregla subiendo `maxOutputTokens`
+    // del propósito en el panel. En los modelos con razonamiento interno, este
+    // consume del mismo presupuesto, así que ocurre con más frecuencia de lo que
+    // sugiere el tamaño del JSON esperado.
+    const rawText = normalizeJsonText(response.text)
     if (!rawText) {
       throw new Error(
-        truncated
+        response.truncated
           ? 'AI_OUTPUT_TRUNCATED_MAX_TOKENS'
           : 'AI_EMPTY_STRUCTURED_RESPONSE',
       )
@@ -194,35 +166,40 @@ export async function generateStructuredContent<T>(
       parsed = JSON.parse(rawText)
     } catch {
       throw new Error(
-        truncated ? 'AI_OUTPUT_TRUNCATED_MAX_TOKENS' : 'AI_INVALID_JSON_RESPONSE',
+        response.truncated ? 'AI_OUTPUT_TRUNCATED_MAX_TOKENS' : 'AI_INVALID_JSON_RESPONSE',
       )
     }
 
     const value = input.schema.parse(parsed)
-    recordSuccess(input.operation)
 
-    const promptTokens = response.usageMetadata?.promptTokenCount ?? null
-    const responseTokens = response.usageMetadata?.candidatesTokenCount ?? null
+    const promptTokens = response.usage?.inputTokens ?? null
+    const responseTokens = response.usage?.outputTokens ?? null
     audit(input.audit, 'success', {
-      model,
+      model: response.model,
       operation: input.operation,
       promptTokens,
+      provider: response.provider,
       responseTokens,
     })
 
-    return { model, promptTokens, responseTokens, value }
+    return {
+      model: response.model,
+      promptTokens,
+      provider: response.provider,
+      responseTokens,
+      value,
+    }
   } catch (error) {
-    recordFailure(input.operation)
     // Se registra el detalle completo del error de la API (código HTTP, estado
     // canónico y motivo), no solo el mensaje: un 400 opaco no permite distinguir
     // un esquema inválido de un límite de tokens o de una clave sin permisos.
-    const details = describeGeminiError(error)
+    const details = describeAiProviderError(error)
     logger.warn('Structured AI generation failed', {
       apiStatus: details.apiStatus,
       error: details.message,
       httpStatus: details.httpStatus,
       maxOutputTokens: input.maxOutputTokens,
-      model,
+      model: effectiveModel,
       operation: input.operation,
       reason: details.reason,
     })
@@ -233,12 +210,5 @@ export async function generateStructuredContent<T>(
       operation: input.operation,
     })
     throw error
-  } finally {
-    clearTimeout(timeout)
   }
-}
-
-/** Test-only reset kept explicit so circuit tests never leak process state. */
-export function resetStructuredGenerationCircuits(): void {
-  circuits.clear()
 }

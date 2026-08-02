@@ -1,7 +1,8 @@
 'use client'
 
 import type { CSSProperties } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 import { ToastNotification } from '@/core/components/ToastNotification/ToastNotification'
@@ -26,6 +27,8 @@ export default function BusinessPanelUsersPage() {
   const { t } = useTranslation('business')
   const theme = useBusinessPanelTheme()
   const logic = useBusinessUsersPageLogic()
+  const searchParams = useSearchParams()
+  const actionDeepLinkHandled = useRef(false)
   const { autoStartIfNeeded } = useTour(businessPanelUsersTour)
 
   useEffect(() => {
@@ -33,6 +36,30 @@ export default function BusinessPanelUsersPage() {
       return autoStartIfNeeded()
     }
   }, [autoStartIfNeeded, logic.isInitialLoading])
+
+  // Destino estructurado de SofLIA: abre un modal real solo cuando el usuario
+  // ya fue localizado por el filtro de la URL. No acepta nombres de modal libres.
+  useEffect(() => {
+    if (actionDeepLinkHandled.current || logic.isInitialLoading || logic.isLoading) return
+    const userId = searchParams.get('panelUser')
+    const panel = searchParams.get('panel')
+    if (!userId || (panel !== 'stats' && panel !== 'edit')) {
+      actionDeepLinkHandled.current = true
+      return
+    }
+
+    const target = logic.users.find((user) => user.id === userId)
+    if (target) {
+      if (panel === 'stats') {
+        logic.setStatsUser(target)
+        logic.setIsStatsModalOpen(true)
+      } else {
+        logic.setEditingUser(target)
+        logic.setIsEditModalOpen(true)
+      }
+    }
+    actionDeepLinkHandled.current = true
+  }, [logic, searchParams])
 
   // Solo el arranque en frío sustituye la página entera. Cambiar de pestaña
   // recarga el recurso, pero la cabecera, las estadísticas y los filtros deben

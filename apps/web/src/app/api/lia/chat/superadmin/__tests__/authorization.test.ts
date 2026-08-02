@@ -5,6 +5,14 @@ const mockState = {
     | { platform_role: string | null; is_banned: boolean }
     | null,
   dbError: null as { message: string } | null,
+  membership: { role: 'admin', status: 'active' } as
+    | { role: string | null; status: string | null }
+    | null,
+  membershipError: null as { message: string } | null,
+  organization: { id: '22222222-2222-2222-2222-222222222222' } as
+    | { id: string }
+    | null,
+  organizationError: null as { message: string } | null,
   rateLimitAllowed: true,
 }
 
@@ -12,13 +20,19 @@ const recordSecurityEventMock = vi.fn()
 
 vi.mock('@/lib/supabase/admin', () => ({
   createAdminClient: () => ({
-    from: () => ({
-      select: () => ({
-        eq: () => ({
-          single: async () => ({ data: mockState.dbUser, error: mockState.dbError }),
-        }),
-      }),
-    }),
+    from: (table: string) => {
+      const builder = {
+        select: () => builder,
+        eq: () => builder,
+        single: async () => table === 'organization_users'
+          ? { data: mockState.membership, error: mockState.membershipError }
+          : { data: mockState.dbUser, error: mockState.dbError },
+        maybeSingle: async () => table === 'organizations'
+          ? { data: mockState.organization, error: mockState.organizationError }
+          : { data: null, error: null },
+      }
+      return builder
+    },
   }),
 }))
 
@@ -41,6 +55,9 @@ vi.mock('@/lib/logger', () => ({
 import {
   assertPlatformSuperadminGrant,
   authorizePlatformSuperadmin,
+  authorizePlatformSuperadminOrganizationActions,
+  authorizeOrganizationAdminActions,
+  isOrganizationAdminPanelPage,
   isSuperadminPanelPage,
   type SuperadminCapability,
 } from '../authorization'
@@ -60,8 +77,152 @@ function authorizedParams(capability: SuperadminCapability = 'admin-actions') {
 beforeEach(() => {
   mockState.dbUser = { platform_role: 'Administrador', is_banned: false }
   mockState.dbError = null
+  mockState.membership = { role: 'admin', status: 'active' }
+  mockState.membershipError = null
+  mockState.organization = { id: '22222222-2222-2222-2222-222222222222' }
+  mockState.organizationError = null
   mockState.rateLimitAllowed = true
   recordSecurityEventMock.mockClear()
+})
+
+describe('organization admin authorization', () => {
+  const params = {
+    sessionUserId: ADMIN_ID,
+    currentPage: '/acme/business-panel/users',
+    promptRiskAction: 'allow' as const,
+    organizationId: '22222222-2222-2222-2222-222222222222',
+    organizationSlug: 'acme',
+  }
+
+  it('acepta únicamente el business-panel de la organización ligada', () => {
+    expect(isOrganizationAdminPanelPage('/acme/business-panel', 'acme')).toBe(true)
+    expect(isOrganizationAdminPanelPage('/acme/business-panel/users', 'acme')).toBe(true)
+    expect(isOrganizationAdminPanelPage('/otra/business-panel/users', 'acme')).toBe(false)
+    expect(isOrganizationAdminPanelPage('/acme/business-user/dashboard', 'acme')).toBe(false)
+  })
+
+  it('concede un grant ligado al tenant a owners/admins activos', async () => {
+    const grant = await authorizeOrganizationAdminActions(params)
+    expect(grant).toMatchObject({
+      adminUserId: ADMIN_ID,
+      organizationId: params.organizationId,
+      organizationSlug: 'acme',
+      actorAuthority: 'organization-admin',
+      organizationRole: 'admin',
+    })
+
+    mockState.membership = { role: ' OWNER ', status: ' ACTIVE ' }
+    expect(await authorizeOrganizationAdminActions(params)).toMatchObject({
+      actorAuthority: 'organization-admin',
+      organizationRole: 'owner',
+    })
+  })
+
+  it('concede al superadmin un grant ligado al tenant desde business-panel', async () => {
+    mockState.membership = { role: 'member', status: 'active' }
+
+    const grant = await authorizePlatformSuperadminOrganizationActions({
+      ...params,
+      sessionUserRole: 'Administrador',
+    })
+
+    expect(grant).toMatchObject({
+      adminUserId: ADMIN_ID,
+      organizationId: params.organizationId,
+      organizationSlug: 'acme',
+      actorAuthority: 'platform-superadmin',
+      organizationRole: null,
+    })
+  })
+
+  it('mantiene al superadmin encerrado en el business-panel del tenant visible', async () => {
+    expect(await authorizePlatformSuperadminOrganizationActions({
+      ...params,
+      sessionUserRole: 'Administrador',
+      currentPage: '/other/business-panel/hierarchy',
+    })).toBeNull()
+  })
+
+  it('deniega miembros normales, membresías suspendidas y otra superficie', async () => {
+    mockState.membership = { role: 'member', status: 'active' }
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+
+    mockState.membership = { role: 'admin', status: 'suspended' }
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+
+    mockState.membership = { role: 'owner', status: 'active' }
+    expect(await authorizeOrganizationAdminActions({
+      ...params,
+      currentPage: '/other/business-panel/users',
+    })).toBeNull()
+  })
+
+  it('deniega todos los estados de membresía que no sean active', async () => {
+    for (const status of ['invited', 'suspended', 'removed', null]) {
+      mockState.membership = { role: 'admin', status }
+      expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+    }
+  })
+
+  it('deniega usuarios baneados y fallos al revalidar usuario o membresía', async () => {
+    mockState.dbUser = { platform_role: 'BusinessUser', is_banned: true }
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+
+    mockState.dbUser = null
+    mockState.dbError = { message: 'users unavailable' }
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+
+    mockState.dbError = null
+    mockState.membership = null
+    mockState.membershipError = { message: 'membership unavailable' }
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+  })
+
+  it('deniega un tenant inactivo, inexistente o cuyo ID/slug no coincide', async () => {
+    mockState.organization = null
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+    expect(await authorizePlatformSuperadminOrganizationActions({
+      ...params,
+      sessionUserRole: 'Administrador',
+    })).toBeNull()
+
+    mockState.organizationError = { message: 'organization unavailable' }
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+  })
+
+  it('deniega el business-user, /admin y el business-panel de otro tenant', async () => {
+    for (const currentPage of [
+      '/acme/business-user/dashboard',
+      '/admin',
+      '/other/business-panel',
+      undefined,
+    ]) {
+      expect(await authorizeOrganizationAdminActions({ ...params, currentPage })).toBeNull()
+    }
+  })
+
+  it('deniega riesgo de inyección y exceso de frecuencia', async () => {
+    expect(await authorizeOrganizationAdminActions({
+      ...params,
+      promptRiskAction: 'guard',
+    })).toBeNull()
+
+    mockState.rateLimitAllowed = false
+    expect(await authorizeOrganizationAdminActions(params)).toBeNull()
+    expect(await authorizePlatformSuperadminOrganizationActions({
+      ...params,
+      sessionUserRole: 'Administrador',
+    })).toBeNull()
+  })
+
+  it('revalida el rol global del superadmin al operar dentro de una organización', async () => {
+    mockState.dbUser = { platform_role: 'BusinessUser', is_banned: false }
+
+    expect(await authorizePlatformSuperadminOrganizationActions({
+      ...params,
+      sessionUserRole: 'Administrador',
+    })).toBeNull()
+  })
 })
 
 describe('isSuperadminPanelPage', () => {

@@ -5,10 +5,11 @@ import { withZodBody } from '@/lib/api/with-validation';
 import { logger } from '@/lib/utils/logger';
 import { SessionService } from '../../../features/auth/services/session.service';
 import {
-  calculateGeminiMetadata,
+  calculateAiUsageMetadata,
   trackAICall,
 } from '../../../lib/ai/usage-monitor';
-import { generateGeminiText } from '../../../lib/gemini/client';
+import { generateAiText } from '@/lib/ai/providers/ai-text-gateway.server'
+import { buildIntentSystemPrompt } from './intent-prompt'
 import {
   aiIntentRequestSchema,
   aiIntentResultSchema,
@@ -31,39 +32,20 @@ async function handlePost(
 
     const { message } = body;
     const startTime = Date.now();
-    const result = await generateGeminiText({
+    const result = await generateAiText({
       circuitBreakerName: 'gemini-ai-intent',
       purpose: 'lia_intent',
       prompt: `Mensaje del usuario:
 ${message}
 
 Devuelve SOLO el JSON solicitado.`,
-      systemInstruction: `Eres un clasificador de intenciones para una plataforma educativa.
-Analiza el mensaje del usuario y devuelve SOLO un JSON con este formato:
-{
-  "intent": "create_prompt" | "navigate" | "question" | "feedback" | "general",
-  "confidence": 0.0 a 1.0,
-  "entities": {
-    "promptTopic": "tema del prompt si aplica",
-    "targetPage": "pagina destino si aplica",
-    "category": "categoria si aplica"
-  }
-}
-
-Intenciones:
-- create_prompt: Usuario quiere crear un prompt o plantilla de IA
-- navigate: Usuario quiere ir a otra seccion del sitio
-- question: Usuario hace una pregunta
-- feedback: Usuario da opinion o reporta problema
-- general: Conversacion general
-
-NO incluyas ningun texto adicional, SOLO el JSON.`,
+      systemInstruction: buildIntentSystemPrompt,
     });
     const responseTime = Date.now() - startTime;
 
     if (result.usage) {
       await trackAICall(
-        calculateGeminiMetadata(
+        calculateAiUsageMetadata(
           result.usage,
           result.model,
           'ai-intent',

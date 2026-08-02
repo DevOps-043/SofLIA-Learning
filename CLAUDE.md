@@ -17,7 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 3D / WebGL: React Three Fiber 9.x, @react-three/drei, Three.js 0.181.x (business-user dashboard)
 - Video: hls.js 1.x (HLS streaming), video.js 8.x, YouTube embed
 - Data Visualization: Nivo charts (v0.99.0), Recharts 3.x, Tremor
-- AI: Google Gemini via `@google/genai` 2.x + `@google/generative-ai` 0.24.x
+- AI: multi-provider — Google Gemini via `@google/genai` 2.x + `@google/generative-ai` 0.24.x, and OpenAI via `openai` 7.x (Responses API). Provider selectable per purpose from `/admin/ai-settings`
 - Internationalization: next-i18next, react-i18next (Spanish, English, Portuguese)
 - Calendar: FullCalendar 6.x (Study Planner), react-big-calendar 1.x
 - Animations: Framer Motion 12.x (authenticated pages), GSAP 3.14.x (landing only), CSS @keyframes (landing only)
@@ -148,7 +148,7 @@ shared/    → Cannot import from anywhere (pure infrastructure)
 `components/`, `contexts/`, `hoc/`, `hooks/`, `i18n/`, `layout/`, `lib/`, `middleware/`, `providers/`, `reporting/`, `services/`, `stores/`, `theme/`, `types/`, `utils/`
 
 **lib/ subdirectories:**
-`ai/`, `ai-moderation/`, `analytics/`, `api/`, `auth/`, `cache/`, `course-content/`, `course-import/`, `data/`, `gemini/`, `holidays/`, `lia/`, `lia-context/`, `logger/`, `media/`, `middleware/`, `nanobana/`, `oauth/`, `observability/`, `openapi/`, `performance/`, `privacy/`, `queue/`, `rate-limit/`, `reading/`, `resilience/`, `rrweb/`, `sanitize/`, `schemas/`, `scorm/`, `security/`, `services/`, `slug/`, `subscription/`, `supabase/`, `upload/`, `utils/`, `validation/`
+`ai/`, `ai-moderation/`, `analytics/`, `api/`, `auth/`, `cache/`, `course-content/`, `course-import/`, `data/`, `holidays/`, `lia/`, `lia-context/`, `logger/`, `media/`, `middleware/`, `nanobana/`, `oauth/`, `observability/`, `openapi/`, `performance/`, `privacy/`, `queue/`, `rate-limit/`, `reading/`, `resilience/`, `rrweb/`, `sanitize/`, `schemas/`, `scorm/`, `security/`, `services/`, `slug/`, `subscription/`, `supabase/`, `upload/`, `utils/`, `validation/`
 
 ### Backend Organization (apps/api/src/)
 
@@ -416,6 +416,9 @@ SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 GOOGLE_API_KEY=
 GEMINI_API_KEY=
+OPENAI_API_KEY=          # Proveedor OpenAI (nunca NEXT_PUBLIC_*)
+OPENAI_ORGANIZATION=     # Opcional: imputa el consumo a una organizacion
+OPENAI_PROJECT=          # Opcional: imputa el consumo a un proyecto
 USER_JWT_SECRET=
 ```
 
@@ -660,48 +663,89 @@ The `BusinessUser` dashboard uses Three.js for atmospheric 3D backgrounds:
 - LearningPathView: Rich horizontal scroll view of assigned LP courses with hover previews — organized in `components/LearningPathView/` (28 sub-files)
 - ModernNavbar: Glassmorphism navbar with org branding — `components/modern-navbar/`
 
-## AI Model Settings (Gemini)
+## AI Model Settings (multi-provider: Gemini + OpenAI)
 
-Model, max output tokens, temperature and **thinking level** are configured **per purpose in the database**, not in `.env`. Super-admins change them at `/admin/ai-settings` with no redeploy.
+Provider, model, max output tokens, temperature and **thinking level** are configured **per purpose in the database**, not in `.env`. Super-admins change them at `/admin/ai-settings` with no redeploy.
+
+**Provider is inferred from the model name.** An admin only types `gemini-3.5-flash` or `gpt-5.1` and the platform routes to Google or OpenAI. An explicit provider (`google`/`openai`) is the escape hatch for names the registry doesn't recognize yet (stored as `ai_model_settings.provider`; `NULL` = auto).
+
+Unrecognized model names are **rejected on save** rather than defaulting to a provider — a typo must fail in the panel, not silently in production.
 
 **Precedence (per purpose):** database override → legacy env var → code default.
 Absence of a DB row means "inherit", so deploying changes nothing until an admin overrides something.
 
 **Key files:**
+- `lib/ai/providers/ai-text-gateway.server.ts` — **single entry point**: `generateAiText()`, `streamAiText()`, `isAiPurposeAvailable()`, `hasAiProviderCredentials()`
+- `lib/ai/providers/provider-registry.ts` — model→provider inference + OpenAI capability heuristics (pure; usable in the browser)
+- `lib/ai/providers/google.adapter.server.ts` / `openai.adapter.server.ts` — per-provider translation of the neutral contract
+- `lib/ai/providers/types.ts` — neutral contract (`AiContentPart`, `AiTurn`, `AiGenerationResult`, `AiTextStream`)
+- `lib/ai/providers/openai-reasoning.ts` — thinking level → OpenAI `reasoning.effort`
+- `lib/ai/prompts/` — **prompt variants**: `buildPromptModelProfile()`, `selectPromptVariant()` (pure, usable in the browser)
+- `lib/ai/ai-error.ts` — `describeAiProviderError()`, parses both providers' error shapes
 - `lib/ai/model-settings/purposes.ts` — catalog of purposes (source of truth; add a purpose here and it appears in the panel)
 - `lib/ai/model-settings/ai-model-settings.server.service.ts` — resolver with 60s in-process cache; **degrades to env/defaults if the DB read fails** (never breaks SofLIA)
-- `lib/ai/model-settings/generation-config.ts` — `buildManagedGenerationConfig()` for raw-SDK call sites
-- `lib/ai/model-settings/thinking.ts` — thinking level → `thinkingConfig.thinkingBudget`
+- `lib/ai/model-settings/thinking.ts` — thinking level → `thinkingConfig.thinkingBudget` (Gemini)
 - API: `GET /api/admin/ai-settings`, `PUT|DELETE /api/admin/ai-settings/[purpose]` (`requireAdmin`)
 - UI: `features/admin/components/AdminAiSettings/`, i18n under `admin.aiSettings.*`
-- DB: `ai_model_settings` (+ `ai_model_settings_audit`, written by trigger) — service-role only, RLS with no client policies. Migration `20260722140000`
+- DB: `ai_model_settings` (+ `ai_model_settings_audit`, written by trigger) — service-role only, RLS with no client policies. Migrations `20260722140000`, `20260801120000` (provider column)
 
 **Separate models per purpose** — notably `lia_general` (SofLIA chat) vs `soflia_dialogue_tutor` / `soflia_dialogue_evaluator` (SofLIA inside course activities).
 
+**Purposes restricted to Google** (`supportedProviders: ['google']`): `lia_dictation` and `video_processing` send inline audio/video, which OpenAI covers with different APIs. The panel hides the other provider for them.
+
+**Env vars:** `GOOGLE_API_KEY`/`GEMINI_API_KEY` (Google) and `OPENAI_API_KEY` (+ optional `OPENAI_ORGANIZATION`, `OPENAI_PROJECT`, `OPENAI_STORE_RESPONSES`). Never create a `NEXT_PUBLIC_OPENAI_*` — it would ship the key in the browser bundle.
+
+### Prompt variants (one hand-written prompt per provider)
+
+A prompt tuned for Gemini is not a good prompt for OpenAI. Every AI prompt in the platform has **two hand-written texts**, never one template rendered two ways:
+
+- `*.google*.ts` — the **original prompt, frozen**. Calibrated with real usage; it must not be touched to improve OpenAI.
+- `*.openai*.ts` — a **copy, rewritten** for OpenAI models. Each file documents in its header what it changed and why.
+- `*.ts` (the selector) — picks one via `selectPromptVariant(profile, { google, openai }, ...args)`.
+
+The gateway builds a `PromptModelProfile` from the *resolved* provider + model + thinking level and hands it to the prompt builder.
+
+**Why separate texts and not a shared template:** a common prompt with swappable pieces ends up being the lowest common denominator — mediocre in both. And editing shared wording to help OpenAI would silently degrade Gemini's already-validated behaviour. With separate variants, a change in one **cannot** affect the other.
+
+Typical adaptations in the OpenAI copies: no ``` fence prohibition (the API guarantees JSON), no uppercase emphasis, no repeated rules, decision trees instead of prose warnings, XML-ish tags for untrusted data, and reasoning hints only when `profile.reasonsInternally` is false (asking GPT-5/o-series to "think step by step" burns their reasoning budget).
+
+`src/lib/ai/prompts/__tests__/frozen-google-prompts.test.ts` guards the invariant: it fails if any Gemini variant loses its original wording. **Every AI purpose is covered** — 18 frozen prompts across SofLIA chat, courses, analytics, notebook, moderation, forensics and the auxiliary services.
+
 **Usage:**
 ```typescript
-// Via generateGeminiText — resolves model, tokens, temperature and thinking automatically
-await generateGeminiText({ circuitBreakerName: '...', prompt, purpose: 'lia_general' })
+// Resolves provider, model, tokens, temperature and reasoning automatically
+await generateAiText({ circuitBreakerName: '...', prompt, purpose: 'lia_general' })
 
-// Raw SDK call sites
-const settings = await getAiModelSettings('reports_analytics_insights')
-model = genAI.getGenerativeModel({
-  model: settings.model,
-  generationConfig: buildManagedGenerationConfig(settings, { responseMimeType: 'application/json' }),
+// Two hand-written prompts; the selector picks the one for the resolved provider
+await generateAiText({
+  circuitBreakerName: '...',
+  prompt: (profile) => buildMyPrompt(profile, data),
+  purpose: 'reports_analytics_insights',
+  systemInstruction: (profile) => buildMySystemPrompt(profile, locale),
 })
+
+// Streaming (SofLIA chat): neutral async iterable of visible text chunks
+const { textChunks } = await streamAiText({ circuitBreakerName: '...', prompt, purpose: 'lia_general' })
+for await (const piece of textChunks) { /* ... */ }
+
+// JSON output: `responseAsJson` (free-form) or `jsonSchema` (schema-bound)
+await generateAiText({ ..., purpose: 'ai_moderation', responseAsJson: true })
 ```
 
 **Rules:**
+- **Never instantiate a provider SDK directly** — always go through `generateAiText`/`streamAiText`. A raw SDK call makes the panel lie: changing the model there would have no effect on that route.
 - Never read `process.env.GEMINI_MODEL` (or `*_GEMINI_MODEL`) in new code — declare a purpose instead
-- Values a call site must control (e.g. `responseMimeType: 'application/json'`) go in the overrides argument, not the DB
+- Never check `GOOGLE_API_KEY` to decide whether AI is available — use `isAiPurposeAvailable(purpose)`, which checks the *configured* provider's credentials
+- Values a call site must control (e.g. JSON output) go in the call arguments, not the DB
+- Documented exceptions that stay on the raw Gemini SDK: `api/admin/ai/process-video` (File API upload flow) and `api/lia/live-token` (Gemini Live voice protocol). Both are pinned to `supportedProviders: ['google']`.
 - Exception: `GEMINI_TTS_MODEL` stays env-only on purpose — it is part of the audio cache key and is derived synchronously
 
 ## SofLIA AI Assistant
 
-AI-powered chat using Google Gemini:
+AI-powered chat over Gemini or OpenAI (selectable per purpose from the admin panel):
 - Feature: `features/lia/components/` (chat UI and history)
-- Config: `lib/lia/`, `lib/lia-config.ts`, `lib/lia-context/`, `lib/gemini/`
-- Model settings: **database-driven**, not env vars — see "AI Model Settings" below (purpose `lia_general`)
+- Config: `lib/lia/`, `lib/lia-config.ts`, `lib/lia-context/`, `lib/ai/providers/`
+- Model settings: **database-driven**, not env vars — see "AI Model Settings" (purpose `lia_general`)
 - Multilingual (ES, EN, PT) with automatic language detection
 - Context-aware: course lessons, study planner, dashboard, general
 - Persistent conversation history with editable titles

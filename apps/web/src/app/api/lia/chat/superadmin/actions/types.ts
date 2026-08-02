@@ -1,5 +1,7 @@
 import type { z } from 'zod'
-import type { PlatformSuperadminGrant } from '../authorization'
+import type { AdminActionGrant } from '../authorization'
+
+export type AdminActionScope = 'platform' | 'organization'
 
 /**
  * Contratos del motor de acciones administrativas de SofLIA.
@@ -35,8 +37,19 @@ export type ActionRisk =
 export interface ActionExecutionResult {
   /** Resumen en lenguaje natural de lo que ocurrió realmente. */
   summary: string
-  /** Datos relevantes del resultado (ids creados, enlaces, etc.). */
+  /** Datos internos para auditoría; nunca se muestran ni se envían al TTS. */
   details?: Record<string, string | number | boolean | null>
+  /** Ruta interna a la que debe navegar la interfaz después de ejecutar. */
+  navigateTo?: string
+  /** Descargas internas que el cliente puede iniciar después de confirmar. */
+  downloads?: ActionDownloadRequest[]
+}
+
+/** Efecto de descarga cerrado: nunca admite URLs ni métodos arbitrarios. */
+export interface ActionDownloadRequest {
+  url: string
+  method: 'POST'
+  body: Record<string, string | number | boolean>
 }
 
 /**
@@ -53,9 +66,18 @@ export interface ActionPreview {
 /** Contexto de ejecución que el motor entrega a cada handler. */
 export interface ActionContext {
   /** Grant verificado (capacidad `admin-actions`). */
-  grant: PlatformSuperadminGrant
-  /** Id del superadmin que ejecuta (para atribución en los servicios admin). */
+  grant: AdminActionGrant
+  /** Id del administrador que ejecuta (para atribución y auditoría). */
   adminUserId: string
+  /** Alcance autorizado de este turno. */
+  actorScope: AdminActionScope
+  /** Autoridad real del actor, incluso cuando ambos operan con alcance org. */
+  actorAuthority: 'platform-superadmin' | 'organization-admin'
+  /** Rol organizacional revalidado; null para el superadmin de plataforma. */
+  organizationRole: 'owner' | 'admin' | null
+  /** Organización inmutable del turno cuando el actor es un admin de organización. */
+  organizationId: string | null
+  organizationSlug: string | null
   /** IP y user-agent, para la trazabilidad de los servicios admin existentes. */
   requestInfo: { ip: string; userAgent: string }
 }
@@ -73,6 +95,8 @@ export interface ActionContext {
 export interface ActionDefinition<TParams> {
   id: string
   risk: ActionRisk
+  /** Superficies desde las que esta acción puede proponerse y ejecutarse. */
+  allowedScopes?: readonly AdminActionScope[]
   /** Descripción para el catálogo que ve el modelo en el system prompt. */
   description: string
   /** Ejemplo de parámetros para el catálogo del system prompt. */
@@ -99,6 +123,7 @@ export type ActionParamsParseResult =
 export interface RegisteredAction {
   id: string
   risk: ActionRisk
+  allowedScopes: readonly AdminActionScope[]
   description: string
   paramsExample: Record<string, unknown>
   parseParams(rawParams: unknown): ActionParamsParseResult
@@ -117,6 +142,7 @@ export function defineAction<TParams>(
   return {
     id: definition.id,
     risk: definition.risk,
+    allowedScopes: definition.allowedScopes ?? ['platform'],
     description: definition.description,
     paramsExample: definition.paramsExample,
 
@@ -153,14 +179,22 @@ export interface ValidatedActionProposal {
   params: unknown
 }
 
+export interface ConfirmedActionItem {
+  actionId: string
+  params: unknown
+}
+
 /** Payload del token de confirmación firmado (HMAC, ver confirmation-token.ts). */
 export interface ActionConfirmationTokenPayload {
-  /** Id de la acción en el registro. */
-  actionId: string
-  /** Parámetros ya validados y normalizados en la fase de propuesta. */
-  params: unknown
+  /** Lote ordenado. Los campos singulares se conservan para tokens anteriores. */
+  actions?: ConfirmedActionItem[]
+  actionId?: string
+  params?: unknown
   /** Admin al que se le emitió: impide que otra sesión reutilice el token. */
   adminUserId: string
+  /** Impide confirmar el token después de cambiar de superficie u organización. */
+  actorScope?: AdminActionScope
+  organizationId?: string | null
   /** Expiración (ms epoch). Verificada por `verifyToken`. */
   exp: number
 }

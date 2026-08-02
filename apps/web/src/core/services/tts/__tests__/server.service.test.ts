@@ -12,6 +12,7 @@ const ENV_KEYS = [
   'NEXT_PUBLIC_ELEVENLABS_API_KEY',
   'ELEVENLABS_VOICE_ID',
   'ELEVENLABS_MODEL_ID',
+  'ELEVENLABS_REALTIME_MODEL_ID',
 ] as const
 
 const originalEnv = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]))
@@ -89,6 +90,20 @@ describe('tts server service', () => {
         model: DEFAULT_ELEVENLABS_MODEL_ID,
         context: 'reading',
       })
+    })
+
+    it('usa Flash para el chat sin alterar el modelo de las lecturas', async () => {
+      process.env.ELEVENLABS_API_KEY = 'server-key'
+      delete process.env.ELEVENLABS_MODEL_ID
+      delete process.env.ELEVENLABS_REALTIME_MODEL_ID
+      global.fetch = vi.fn().mockResolvedValue(new Response()) as typeof fetch
+
+      await synthesizeSpeech({ text: 'Respuesta breve', context: 'chat' })
+      await synthesizeSpeech({ text: 'Lectura extensa', context: 'reading' })
+
+      const calls = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls
+      expect(JSON.parse((calls[0][1] as RequestInit).body as string).model_id).toBe('eleven_flash_v2_5')
+      expect(JSON.parse((calls[1][1] as RequestInit).body as string).model_id).toBe(DEFAULT_ELEVENLABS_MODEL_ID)
     })
   })
 })

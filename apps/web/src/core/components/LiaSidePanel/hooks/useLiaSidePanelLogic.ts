@@ -18,11 +18,11 @@ export function useLiaSidePanelLogic() {
     isOpen: environment.isOpen,
     language: environment.language,
     pageContext: environment.pageContext,
-    currentConversationId: environment.currentConversationId,
     settings: environment.liaSettings,
     updateSettings: environment.updateLiaSettings,
     inputRef: state.inputRef,
     setInputValue: state.setInputValue,
+    sendMessage: environment.sendMessage,
   });
 
   // Fuente única del revelado "máquina de escribir": MessagesDisplay lo usa para

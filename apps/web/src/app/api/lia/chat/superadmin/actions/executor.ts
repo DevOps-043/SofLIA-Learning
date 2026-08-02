@@ -1,12 +1,18 @@
 import { logger } from '@/lib/logger'
 import { recordSecurityEvent } from '@/lib/security/security-events'
-import { assertPlatformSuperadminGrant } from '../authorization'
+import { assertAdminActionGrant } from '../authorization'
 import { buildActionConfirmationMarker } from './confirmation-token'
 import { EntityNotFoundError } from './entity-resolution'
 import { findActionDefinition } from './registry'
+import {
+  buildActionAuditDetails,
+  buildVisibleActionExecutionMessage,
+} from './action-result.visibility'
 import type {
+  ActionDownloadRequest,
   ActionContext,
   ActionConfirmationTokenPayload,
+  ConfirmedActionItem,
   ValidatedActionProposal,
 } from './types'
 
@@ -24,32 +30,37 @@ import type {
 
 /** Texto que se muestra al admin para que confirme, con el token embebido. */
 export function buildActionConfirmationRequest(params: {
-  preview: { summary: string; warnings?: string[] }
-  proposal: ValidatedActionProposal
+  previews: Array<{ summary: string; warnings?: string[] }>
+  proposals: ValidatedActionProposal[]
   context: ActionContext
 }): string {
-  assertPlatformSuperadminGrant(params.context.grant, 'admin-actions')
+  assertAdminActionGrant(params.context.grant)
 
-  const { preview, proposal, context } = params
+  const { previews, proposals, context } = params
+  const plural = proposals.length > 1
 
-  let message = '**Confirma esta acción antes de que la ejecute:**\n\n'
-  message += `- ${preview.summary}\n`
-
-  if (preview.warnings?.length) {
-    message += '\n'
-    for (const warning of preview.warnings) {
-      message += `> ⚠️ ${warning}\n`
+  let message = `**Confirma ${plural ? 'estas acciones' : 'esta acción'} antes de que ${plural ? 'las' : 'la'} ejecute:**\n\n`
+  previews.forEach((preview, index) => {
+    message += `${index + 1}. ${preview.summary}\n`
+    if (preview.warnings?.length) {
+      for (const warning of preview.warnings) {
+        message += `   > ⚠️ ${warning}\n`
+      }
     }
-  }
+  })
 
   message +=
-    '\nResponde **"confirmo"** para ejecutarla, o dime qué cambiar. ' +
+    `\nSe ejecutarán en este orden. Responde **"confirmo"** para ${plural ? 'ejecutarlas' : 'ejecutarla'}, o dime qué cambiar. ` +
     'No haré nada hasta que confirmes.\n'
 
   message += buildActionConfirmationMarker({
-    actionId: proposal.definition.id,
-    params: proposal.params,
+    actions: proposals.map((proposal) => ({
+      actionId: proposal.definition.id,
+      params: proposal.params,
+    })),
     adminUserId: context.adminUserId,
+    actorScope: context.actorScope,
+    organizationId: context.organizationId,
   })
 
   return message
@@ -61,18 +72,25 @@ export function buildActionConfirmationRequest(params: {
  * SofLIA se lo explique al admin en lugar de ofrecer una confirmación inválida.
  */
 export async function buildActionProposalMessage(params: {
-  proposal: ValidatedActionProposal
+  proposals: ValidatedActionProposal[]
   context: ActionContext
 }): Promise<{ status: 'ready'; message: string } | { status: 'failed'; reason: string }> {
-  const { proposal, context } = params
-  assertPlatformSuperadminGrant(context.grant, 'admin-actions')
+  const { proposals, context } = params
+  assertAdminActionGrant(context.grant)
+
+  if (proposals.some((proposal) => !proposal.definition.allowedScopes.includes(context.actorScope))) {
+    return { status: 'failed', reason: 'Esta acción no está permitida en este panel.' }
+  }
 
   try {
-    const preview = await proposal.definition.preview(proposal.params, context)
+    const previews = []
+    for (const proposal of proposals) {
+      previews.push(await proposal.definition.preview(proposal.params, context))
+    }
 
     return {
       status: 'ready',
-      message: buildActionConfirmationRequest({ preview, proposal, context }),
+      message: buildActionConfirmationRequest({ previews, proposals, context }),
     }
   } catch (error) {
     if (error instanceof EntityNotFoundError) {
@@ -97,19 +115,98 @@ export async function buildActionProposalMessage(params: {
 export async function executeConfirmedAction(params: {
   token: ActionConfirmationTokenPayload
   context: ActionContext
-}): Promise<{ status: 'executed'; message: string } | { status: 'failed'; message: string }> {
+}): Promise<
+  | {
+      status: 'executed'
+      message: string
+      navigateTo?: string
+      downloads?: ActionDownloadRequest[]
+    }
+  | {
+      status: 'failed'
+      message: string
+      navigateTo?: string
+      downloads?: ActionDownloadRequest[]
+    }
+> {
   const { token, context } = params
-  assertPlatformSuperadminGrant(context.grant, 'admin-actions')
+  assertAdminActionGrant(context.grant)
 
-  const definition = findActionDefinition(token.actionId)
+  const actions = normalizeConfirmedActions(token)
+  if (actions.length === 0 || actions.length > 5) {
+    return { status: 'failed', message: 'La confirmación no contiene acciones válidas. No se ejecutó nada.' }
+  }
+
+  const completed: Array<{
+    message: string
+    navigateTo?: string
+    downloads?: ActionDownloadRequest[]
+  }> = []
+
+  for (const action of actions) {
+    const result = await executeConfirmedActionItem({ action, context })
+    if (result.status === 'failed') {
+      if (completed.length === 0) return result
+      return {
+        status: 'failed',
+        message:
+          `${completed.map((item, index) => `${index + 1}. ${item.message}`).join('\n')}\n\n` +
+          `❌ El lote se detuvo en la acción ${completed.length + 1}. ${result.message}`,
+        navigateTo: [...completed].reverse().find((item) => item.navigateTo)?.navigateTo,
+        downloads: completed.flatMap((item) => item.downloads ?? []),
+      }
+    }
+    completed.push(result)
+  }
+
+  return {
+    status: 'executed',
+    message: completed.length === 1
+      ? completed[0].message
+      : completed.map((item, index) => `${index + 1}. ${item.message}`).join('\n'),
+    navigateTo: [...completed].reverse().find((item) => item.navigateTo)?.navigateTo,
+    downloads: completed.flatMap((item) => item.downloads ?? []),
+  }
+}
+
+function normalizeConfirmedActions(token: ActionConfirmationTokenPayload): ConfirmedActionItem[] {
+  if (Array.isArray(token.actions)) return token.actions
+  if (typeof token.actionId === 'string' && token.actionId) {
+    return [{ actionId: token.actionId, params: token.params }]
+  }
+  return []
+}
+
+async function executeConfirmedActionItem(params: {
+  action: ConfirmedActionItem
+  context: ActionContext
+}): Promise<
+  | {
+      status: 'executed'
+      message: string
+      navigateTo?: string
+      downloads?: ActionDownloadRequest[]
+    }
+  | { status: 'failed'; message: string }
+> {
+  const { action, context } = params
+
+  const definition = findActionDefinition(action.actionId)
   if (!definition) {
     return {
       status: 'failed',
-      message: `La acción "${token.actionId}" ya no está disponible. No se ejecutó nada.`,
+      message: `La acción "${action.actionId}" ya no está disponible.`,
     }
   }
 
-  const parsedParams = definition.parseParams(token.params)
+  if (!definition.allowedScopes.includes(context.actorScope)) {
+    return {
+      status: 'failed',
+      message: 'Esta acción no está permitida para tu alcance administrativo. No se ejecutó nada.',
+    }
+  }
+
+  const parsedParams = definition.parseParams(action.params)
   if (!parsedParams.success) {
     return {
       status: 'failed',
@@ -123,39 +220,36 @@ export async function executeConfirmedAction(params: {
     recordSecurityEvent('admin-operation', {
       actorId: context.adminUserId,
       actorRole: 'administrador',
-      resourceType: 'superadmin-action',
+      resourceType: context.actorScope === 'platform' ? 'superadmin-action' : 'organization-admin-action',
       result: 'success',
       metadata: {
         operation: 'lia-admin-action',
         actionId: definition.id,
         risk: definition.risk,
-        details: result.details ?? null,
+        details: buildActionAuditDetails(result.details) ?? null,
+        organizationId: context.organizationId,
       },
     })
 
-    let message = `✅ ${result.summary}`
-    if (result.details) {
-      const detailLines = Object.entries(result.details)
-        .filter(([, value]) => value !== null && value !== undefined)
-        .map(([key, value]) => `- ${key}: ${value}`)
-      if (detailLines.length > 0) {
-        message += `\n\n${detailLines.join('\n')}`
-      }
+    return {
+      status: 'executed',
+      message: buildVisibleActionExecutionMessage(result),
+      navigateTo: result.navigateTo,
+      downloads: result.downloads,
     }
-
-    return { status: 'executed', message }
   } catch (error) {
     // Se audita el intento fallido: un error en una acción privilegiada es
     // información de seguridad, no solo un fallo funcional.
     recordSecurityEvent('admin-operation', {
       actorId: context.adminUserId,
       actorRole: 'administrador',
-      resourceType: 'superadmin-action',
+      resourceType: context.actorScope === 'platform' ? 'superadmin-action' : 'organization-admin-action',
       result: 'error',
       metadata: {
         operation: 'lia-admin-action',
         actionId: definition.id,
         risk: definition.risk,
+        organizationId: context.organizationId,
       },
     })
     logger.error('SofLIA acciones: fallo al ejecutar la acción', error)

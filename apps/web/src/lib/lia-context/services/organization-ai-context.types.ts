@@ -54,7 +54,10 @@ export interface OrganizationMembershipResponse
 
 export interface OrganizationMembershipQueryBuilder
   extends OrganizationMembershipResponse {
-  eq: (column: string, value: string) => OrganizationMembershipQueryBuilder
+  eq: (
+    column: string,
+    value: string | boolean,
+  ) => OrganizationMembershipQueryBuilder
   order: (
     column: string,
     options: { ascending: boolean },

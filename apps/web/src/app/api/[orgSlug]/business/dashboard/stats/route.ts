@@ -6,16 +6,39 @@ import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
 
 interface OrganizationUserStatsRow {
+  user_id: string | null
   created_at: string | null
   joined_at: string | null
   status: string | null
 }
 
 interface DashboardAssignmentRow {
+  user_id: string | null
+  course_id: string | null
   assigned_at: string | null
   completed_at: string | null
   completion_percentage: number | null
   status: string | null
+  updated_at: string | null
+}
+
+interface DashboardEnrollmentRow {
+  user_id: string | null
+  course_id: string | null
+  enrolled_at: string | null
+  started_at: string | null
+  completed_at: string | null
+  last_accessed_at: string | null
+  overall_progress_percentage: number | null
+  enrollment_status: string | null
+  updated_at: string | null
+}
+
+interface DashboardCertificateRow {
+  certificate_id: string
+  user_id: string | null
+  course_id: string | null
+  created_at: string | null
 }
 
 interface BusinessDashboardAggregate {
@@ -36,16 +59,12 @@ interface BusinessDashboardAggregate {
   average_progress: number
   recent_average_progress: number
   previous_average_progress: number
-}
-
-interface BusinessDashboardStatsRpcClient {
-  rpc(
-    fn: 'get_business_dashboard_stats',
-    args: { target_organization_id: string },
-  ): PromiseLike<{
-    data: BusinessDashboardAggregate[] | BusinessDashboardAggregate | null
-    error: { message?: string } | null
-  }>
+  total_certificates: number
+  recent_certificates: number
+  previous_certificates: number
+  engagement_rate: number
+  recent_active_learners: number
+  previous_active_learners: number
 }
 
 type DashboardSupabaseClient = Awaited<ReturnType<typeof createClient>>
@@ -80,6 +99,12 @@ function normalizeAggregate(
     average_progress: toNumber(aggregate?.average_progress),
     recent_average_progress: toNumber(aggregate?.recent_average_progress),
     previous_average_progress: toNumber(aggregate?.previous_average_progress),
+    total_certificates: toNumber(aggregate?.total_certificates),
+    recent_certificates: toNumber(aggregate?.recent_certificates),
+    previous_certificates: toNumber(aggregate?.previous_certificates),
+    engagement_rate: toNumber(aggregate?.engagement_rate),
+    recent_active_learners: toNumber(aggregate?.recent_active_learners),
+    previous_active_learners: toNumber(aggregate?.previous_active_learners),
   }
 }
 
@@ -116,6 +141,14 @@ function buildDashboardStats(aggregate: BusinessDashboardAggregate) {
     aggregate.recent_average_progress,
     aggregate.previous_average_progress,
   )
+  const certificateGrowth = percentChange(
+    aggregate.recent_certificates,
+    aggregate.previous_certificates,
+  )
+  const engagementGrowth = percentChange(
+    aggregate.recent_active_learners,
+    aggregate.previous_active_learners,
+  )
 
   return {
     activeUsers: {
@@ -150,6 +183,22 @@ function buildDashboardStats(aggregate: BusinessDashboardAggregate) {
           ? 'positive'
           : 'negative',
     },
+    certificates: {
+      value: String(aggregate.total_certificates),
+      change: withSign(certificateGrowth),
+      changeType:
+        aggregate.recent_certificates >= aggregate.previous_certificates
+          ? 'positive'
+          : 'negative',
+    },
+    engagement: {
+      value: `${Math.round(aggregate.engagement_rate)}%`,
+      change: withSign(engagementGrowth),
+      changeType:
+        aggregate.recent_active_learners >= aggregate.previous_active_learners
+          ? 'positive'
+          : 'negative',
+    },
     invitedUsers: {
       value: String(aggregate.invited_org_users + aggregate.pending_invitations),
       change: withSign(invitedChange),
@@ -160,8 +209,8 @@ function buildDashboardStats(aggregate: BusinessDashboardAggregate) {
       linksCount: aggregate.bulk_link_usage,
     },
     averageProgress: Math.round(aggregate.average_progress),
-    engagementRate: 0,
-    certificates: 0,
+    engagementRate: Math.round(aggregate.engagement_rate),
+    certificatesCount: aggregate.total_certificates,
     activity: [],
     usersChange,
     usersChangeType:
@@ -171,34 +220,12 @@ function buildDashboardStats(aggregate: BusinessDashboardAggregate) {
     assignmentsChange,
     completedChange,
     progressChange,
-    engagementGrowth: '0%',
-    certificateGrowth: '0%',
+    engagementGrowth,
+    certificateGrowth,
   }
 }
 
-async function loadDashboardAggregateFromRpc(
-  supabase: DashboardSupabaseClient,
-  organizationId: string,
-): Promise<BusinessDashboardAggregate | null> {
-  const { data, error } = await (
-    supabase as unknown as BusinessDashboardStatsRpcClient
-  ).rpc('get_business_dashboard_stats', {
-    target_organization_id: organizationId,
-  })
-
-  if (error) {
-    logger.warn('Business dashboard stats RPC unavailable, using fallback', {
-      organizationId,
-      error: error.message,
-    })
-    return null
-  }
-
-  const aggregate = Array.isArray(data) ? data[0] : data
-  return normalizeAggregate(aggregate)
-}
-
-async function loadDashboardAggregateFallback(
+async function loadDashboardAggregateComprehensive(
   supabase: DashboardSupabaseClient,
   organizationId: string,
 ): Promise<BusinessDashboardAggregate> {
@@ -213,16 +240,17 @@ async function loadDashboardAggregateFallback(
     { data: assignments, error: assignmentsError },
     { count: pendingInvitationCount, error: invitationsError },
     { data: bulkLinks, error: linksError },
+    { data: certificatesData, error: certificatesError },
   ] = await Promise.all([
     supabase
       .from('organization_users')
-      .select('status, joined_at, created_at')
+      .select('user_id, status, joined_at, created_at')
       .eq('organization_id', organizationId)
       .in('status', ['active', 'invited'])
       .returns<OrganizationUserStatsRow[]>(),
     supabase
       .from('organization_course_assignments')
-      .select('status, completion_percentage, assigned_at, completed_at')
+      .select('user_id, course_id, status, completion_percentage, assigned_at, completed_at, updated_at')
       .eq('organization_id', organizationId)
       .returns<DashboardAssignmentRow[]>(),
     supabase
@@ -235,18 +263,26 @@ async function loadDashboardAggregateFallback(
       .select('current_uses')
       .eq('organization_id', organizationId)
       .returns<Array<{ current_uses: number | null }>>(),
+    supabase
+      .from('user_course_certificates')
+      .select('certificate_id, user_id, course_id, created_at')
+      .eq('organization_id', organizationId)
+      .returns<DashboardCertificateRow[]>(),
   ])
 
   if (usersError) logger.error('Error fetching organization users:', usersError)
   if (assignmentsError) logger.error('Error fetching assignments:', assignmentsError)
   if (invitationsError) logger.error('Error fetching pending invitations:', invitationsError)
   if (linksError) logger.error('Error fetching bulk invite links:', linksError)
+  if (certificatesError) logger.error('Error fetching certificates:', certificatesError)
 
+  const activeUsersSet = new Set<string>()
   const aggregate = normalizeAggregate(null)
 
   for (const user of orgUsers || []) {
     if (user.status === 'active') {
       aggregate.active_users += 1
+      if (user.user_id) activeUsersSet.add(user.user_id)
       if (user.joined_at && new Date(user.joined_at) >= thirtyDaysAgo) {
         aggregate.recent_active_users += 1
       } else if (
@@ -276,36 +312,120 @@ async function loadDashboardAggregateFallback(
     0,
   )
 
+  const activeUserIds = Array.from(activeUsersSet)
+  let enrollmentsData: DashboardEnrollmentRow[] = []
+
+  if (activeUserIds.length > 0) {
+    const { data: enrollments, error: enrollmentsError } = await supabase
+      .from('user_course_enrollments')
+      .select('user_id, course_id, enrollment_status, overall_progress_percentage, enrolled_at, started_at, completed_at, last_accessed_at, updated_at')
+      .in('user_id', activeUserIds)
+      .returns<DashboardEnrollmentRow[]>()
+
+    if (enrollmentsError) logger.error('Error fetching enrollments:', enrollmentsError)
+    else enrollmentsData = enrollments || []
+  }
+
+  interface CombinedCourseState {
+    userId: string
+    courseId: string
+    progress: number
+    isCompleted: boolean
+    assignedAt: Date | null
+    completedAt: Date | null
+    lastActivityAt: Date | null
+  }
+
+  const courseStateMap = new Map<string, CombinedCourseState>()
+
+  for (const assignment of assignments || []) {
+    if (!assignment.user_id || !assignment.course_id) continue
+    const key = `${assignment.user_id}:${assignment.course_id}`
+    const progress = Math.min(100, Math.max(0, assignment.completion_percentage || 0))
+    const assignedAt = assignment.assigned_at ? new Date(assignment.assigned_at) : null
+    const completedAt = assignment.completed_at ? new Date(assignment.completed_at) : null
+    const isCompleted = assignment.status === 'completed' || progress >= 100 || Boolean(completedAt)
+    const lastActivityAt = completedAt || (assignment.updated_at ? new Date(assignment.updated_at) : null)
+
+    courseStateMap.set(key, {
+      userId: assignment.user_id,
+      courseId: assignment.course_id,
+      progress,
+      isCompleted,
+      assignedAt,
+      completedAt,
+      lastActivityAt,
+    })
+  }
+
+  for (const enrollment of enrollmentsData) {
+    if (!enrollment.user_id || !enrollment.course_id) continue
+    const key = `${enrollment.user_id}:${enrollment.course_id}`
+    const progress = Math.min(100, Math.max(0, Number(enrollment.overall_progress_percentage) || 0))
+    const completedAt = enrollment.completed_at ? new Date(enrollment.completed_at) : null
+    const isCompleted = enrollment.enrollment_status === 'completed' || progress >= 100 || Boolean(completedAt)
+    const enrolledAt = enrollment.enrolled_at ? new Date(enrollment.enrolled_at) : null
+    const lastActivityAt = completedAt ||
+      (enrollment.last_accessed_at ? new Date(enrollment.last_accessed_at) : null) ||
+      (enrollment.updated_at ? new Date(enrollment.updated_at) : null) ||
+      (enrollment.started_at ? new Date(enrollment.started_at) : null)
+
+    const existing = courseStateMap.get(key)
+    if (existing) {
+      existing.progress = Math.max(existing.progress, progress)
+      existing.isCompleted = existing.isCompleted || isCompleted || existing.progress >= 100
+      if (completedAt && (!existing.completedAt || completedAt > existing.completedAt)) {
+        existing.completedAt = completedAt
+      }
+      if (lastActivityAt && (!existing.lastActivityAt || lastActivityAt > existing.lastActivityAt)) {
+        existing.lastActivityAt = lastActivityAt
+      }
+    } else {
+      courseStateMap.set(key, {
+        userId: enrollment.user_id,
+        courseId: enrollment.course_id,
+        progress,
+        isCompleted,
+        assignedAt: enrolledAt,
+        completedAt,
+        lastActivityAt,
+      })
+    }
+  }
+
   let totalProgress = 0
   let recentProgress = 0
   let previousProgress = 0
+  const activeLearnersSet = new Set<string>()
+  const recentActiveLearnersSet = new Set<string>()
+  const previousActiveLearnersSet = new Set<string>()
 
-  for (const assignment of assignments || []) {
-    const completion = assignment.completion_percentage || 0
-    const assignedAt = assignment.assigned_at
-      ? new Date(assignment.assigned_at)
-      : null
-    const completedAt = assignment.completed_at
-      ? new Date(assignment.completed_at)
-      : null
-    const isCompleted = assignment.status === 'completed' || completion >= 100
-
+  for (const state of courseStateMap.values()) {
     aggregate.total_assignments += 1
-    totalProgress += completion
-    if (isCompleted) aggregate.completed_assignments += 1
+    totalProgress += state.progress
+    if (state.isCompleted) aggregate.completed_assignments += 1
 
-    if (assignedAt && assignedAt >= thirtyDaysAgo) {
+    if (state.assignedAt && state.assignedAt >= thirtyDaysAgo) {
       aggregate.recent_assignments += 1
-      recentProgress += completion
-    } else if (assignedAt && assignedAt >= previousPeriodStart) {
+      recentProgress += state.progress
+    } else if (state.assignedAt && state.assignedAt >= previousPeriodStart) {
       aggregate.previous_assignments += 1
-      previousProgress += completion
+      previousProgress += state.progress
     }
 
-    if (isCompleted && completedAt && completedAt >= thirtyDaysAgo) {
+    if (state.isCompleted && state.completedAt && state.completedAt >= thirtyDaysAgo) {
       aggregate.recent_completed += 1
-    } else if (isCompleted && completedAt && completedAt >= previousPeriodStart) {
+    } else if (state.isCompleted && state.completedAt && state.completedAt >= previousPeriodStart) {
       aggregate.previous_completed += 1
+    }
+
+    if (state.progress > 0 || state.isCompleted || state.lastActivityAt) {
+      activeLearnersSet.add(state.userId)
+      if (state.lastActivityAt && state.lastActivityAt >= thirtyDaysAgo) {
+        recentActiveLearnersSet.add(state.userId)
+      } else if (state.lastActivityAt && state.lastActivityAt >= previousPeriodStart) {
+        previousActiveLearnersSet.add(state.userId)
+      }
     }
   }
 
@@ -321,6 +441,32 @@ async function loadDashboardAggregateFallback(
     aggregate.previous_assignments > 0
       ? previousProgress / aggregate.previous_assignments
       : 0
+
+  let totalCertificates = 0
+  let recentCertificates = 0
+  let previousCertificates = 0
+
+  for (const cert of certificatesData || []) {
+    totalCertificates += 1
+    const createdAt = cert.created_at ? new Date(cert.created_at) : null
+    if (createdAt && createdAt >= thirtyDaysAgo) {
+      recentCertificates += 1
+    } else if (createdAt && createdAt >= previousPeriodStart) {
+      previousCertificates += 1
+    }
+  }
+
+  aggregate.total_certificates = totalCertificates
+  aggregate.recent_certificates = recentCertificates
+  aggregate.previous_certificates = previousCertificates
+
+  const totalActiveUsers = aggregate.active_users
+  aggregate.engagement_rate =
+    totalActiveUsers > 0
+      ? Math.round((activeLearnersSet.size / totalActiveUsers) * 100)
+      : 0
+  aggregate.recent_active_learners = recentActiveLearnersSet.size
+  aggregate.previous_active_learners = previousActiveLearnersSet.size
 
   return aggregate
 }
@@ -342,9 +488,10 @@ export async function GET(
     }
 
     const supabase = await createClient()
-    const aggregate =
-      (await loadDashboardAggregateFromRpc(supabase, auth.organizationId)) ||
-      (await loadDashboardAggregateFallback(supabase, auth.organizationId))
+    const aggregate = await loadDashboardAggregateComprehensive(
+      supabase,
+      auth.organizationId,
+    )
 
     return NextResponse.json(
       {

@@ -64,22 +64,6 @@ export function extractJsonObject(value: string): string {
   return trimmed
 }
 
-export async function withReportsAnalyticsAiTimeout<T>(
-  promise: Promise<T>,
-  timeoutMs: number,
-): Promise<T> {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined
-
-  try {
-    return await Promise.race([
-      promise,
-      new Promise<T>((_, reject) => {
-        timeoutId = setTimeout(() => {
-          reject(new Error(`Reports analytics Gemini request exceeded ${String(timeoutMs)}ms`))
-        }, timeoutMs)
-      }),
-    ])
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId)
-  }
-}
+// El helper `withReportsAnalyticsAiTimeout` se eliminó al migrar estas llamadas
+// al gateway de IA: el timeout ahora lo aplica el circuit breaker (`timeoutMs`),
+// que además cuenta el fallo y abre el circuito si el proveedor se degrada.

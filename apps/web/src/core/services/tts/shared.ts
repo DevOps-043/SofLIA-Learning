@@ -7,6 +7,9 @@ export const TTS_API_PATH = '/api/tts';
 // cambia, y el audio ya pregenerado sigue siendo válido.
 export const DEFAULT_ELEVENLABS_VOICE_ID = 'imFXYz8XIletRKLZZQaA';
 export const DEFAULT_ELEVENLABS_MODEL_ID = 'eleven_turbo_v2_5';
+// El chat prioriza tiempo-a-primer-audio. Las lecturas conservan Turbo para no
+// alterar sus activos cacheados ni su identidad sonora de larga duración.
+export const DEFAULT_ELEVENLABS_REALTIME_MODEL_ID = 'eleven_flash_v2_5';
 
 export const DEFAULT_TTS_OUTPUT_FORMAT = 'mp3_22050_32';
 export const DEFAULT_TTS_VOLUME = 0.8;

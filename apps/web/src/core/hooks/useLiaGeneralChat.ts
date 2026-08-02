@@ -2,11 +2,17 @@
 
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import type { SofLIAMessage } from '../types/lia.types';
 import { useLanguage } from '../providers/I18nProvider';
 import { useOrganizationStore } from '../stores/organizationStore';
-import { consumeLiaChatStreamBuffer } from '../services/lia-chat-stream.service';
+import {
+  consumeLiaChatStreamBuffer,
+  isSafeLiaDownloadRequest,
+  isSafeLiaNavigationTarget,
+  type LiaDownloadRequest,
+} from '../services/lia-chat-stream.service';
 import { extractVisibleScreenContent } from '../components/LiaSidePanel/services/visible-screen-content.service';
 
 
@@ -45,11 +51,33 @@ function getClientNowMs(): number {
   return globalThis.performance?.now() ?? Date.now();
 }
 
+async function executeLiaDownload(request: LiaDownloadRequest): Promise<void> {
+  const response = await fetch(request.url, {
+    method: request.method,
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(request.body),
+  });
+  if (!response.ok) throw new Error(`La descarga de SofLIA falló (${response.status})`);
+
+  const blobUrl = window.URL.createObjectURL(await response.blob());
+  const disposition = response.headers.get('content-disposition') || '';
+  const filename = disposition.match(/filename="?([^";]+)"?/i)?.[1] || 'soflia-reporte.pdf';
+  const anchor = document.createElement('a');
+  anchor.href = blobUrl;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(blobUrl);
+}
+
 export function useLiaGeneralChat(
   initialMessage?: string | null
 ): UseLiaGeneralChatReturn {
   const { user } = useAuth();
   const { language } = useLanguage();
+  const router = useRouter();
   const currentOrganization = useOrganizationStore(
     (state) => state.currentOrganization
   );
@@ -131,6 +159,7 @@ export function useLiaGeneralChat(
                 legacyUser?.job_title ||
                 legacyUser?.platform_role ||
                 legacyUser?.type_rol,
+              ...(pageContext || {}),
               userId: user?.id,
               organizationId: currentOrganization?.id,
               currentPage:
@@ -141,7 +170,6 @@ export function useLiaGeneralChat(
               pageHeadings: visibleScreen.headings.length > 0 ? visibleScreen.headings : undefined,
               pageVisibleText: visibleScreen.text || undefined,
               pageContentSource: visibleScreen.source,
-              ...(pageContext || {}),
             },
             stream: true,
           }),
@@ -179,6 +207,8 @@ export function useLiaGeneralChat(
 
         if (reader) {
           let streamBuffer = '';
+          let navigationPath: string | undefined;
+          const downloadRequests = new Map<string, LiaDownloadRequest>();
           // Lectura del stream SSE: el corte real es `done` desde `reader.read()`.
           // eslint-disable-next-line no-constant-condition
           while (true) {
@@ -193,6 +223,14 @@ export function useLiaGeneralChat(
               if (data.content) {
                 appendAssistantContent(data.content);
               }
+              if (isSafeLiaNavigationTarget(data.navigateTo)) {
+                navigationPath = data.navigateTo;
+              }
+              data.downloads?.forEach((download) => {
+                if (isSafeLiaDownloadRequest(download)) {
+                  downloadRequests.set(`${download.method}:${download.url}:${JSON.stringify(download.body)}`, download);
+                }
+              });
             }
           }
 
@@ -202,6 +240,27 @@ export function useLiaGeneralChat(
             if (data.content) {
               appendAssistantContent(data.content);
             }
+            if (isSafeLiaNavigationTarget(data.navigateTo)) {
+              navigationPath = data.navigateTo;
+            }
+            data.downloads?.forEach((download) => {
+              if (isSafeLiaDownloadRequest(download)) {
+                downloadRequests.set(`${download.method}:${download.url}:${JSON.stringify(download.body)}`, download);
+              }
+            });
+          }
+
+          if (downloadRequests.size > 0) {
+            const results = await Promise.allSettled(
+              [...downloadRequests.values()].map(executeLiaDownload),
+            );
+            if (results.some((result) => result.status === 'rejected')) {
+              techDebtLogger.error('[SofLIA Actions] No se pudo completar una descarga autorizada');
+            }
+          }
+
+          if (navigationPath) {
+            router.push(navigationPath);
           }
         }
       } catch (err) {
@@ -222,7 +281,7 @@ export function useLiaGeneralChat(
         setIsLoading(false);
       }
     },
-    [currentOrganization?.id, isLoading, legacyUser, messages, user, language]
+    [currentOrganization?.id, isLoading, legacyUser, messages, user, language, router]
   );
 
   const loadConversation = useCallback(async (conversationId: string) => {

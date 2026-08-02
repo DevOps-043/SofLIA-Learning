@@ -6,8 +6,6 @@ import { CourseService } from '@/features/courses/services/course.service'
 
 import { SessionService } from '@/features/auth/services/session.service'
 
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
 /**
  * GET /api/courses/[slug]/lessons/[lessonId]/notes
  * Obtiene todas las notas de un usuario para una lección específica

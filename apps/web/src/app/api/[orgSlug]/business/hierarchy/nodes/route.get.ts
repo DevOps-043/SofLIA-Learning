@@ -31,6 +31,13 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const auth = await requireBusiness({ organizationSlug: orgSlug });
     if (auth instanceof NextResponse) return auth;
 
+    if (!auth.organizationId) {
+      return NextResponse.json(
+        { success: false, error: 'No tienes una organización asignada' },
+        { status: 403 },
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const structureId = searchParams.get('structureId');
 
@@ -46,7 +53,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         *,
         manager:manager_id (
           id, first_name, last_name, email, profile_picture_url
-        )
+        ),
+        member_counts:organization_node_users(count)
       `)
       .eq('organization_id', auth.organizationId)
       .eq('structure_id', structureId)
@@ -58,7 +66,12 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, nodes });
+    const nodesWithMemberCounts = (nodes || []).map(({ member_counts: counts, ...node }) => ({
+      ...node,
+      members_count: counts?.[0]?.count || 0,
+    }));
+
+    return NextResponse.json({ success: true, nodes: nodesWithMemberCounts });
   } catch (error) {
     logger.error('Error en GET /api/[orgSlug]/business/hierarchy/nodes:', error);
     return NextResponse.json(

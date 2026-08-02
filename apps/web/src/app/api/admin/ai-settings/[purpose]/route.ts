@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server'
 
 import {
+  getAiModelSettings,
   resetAiModelSettings,
   upsertAiModelSettings,
 } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import { isAiModelPurposeId } from '@/lib/ai/model-settings/purposes'
 import {
+  UnresolvableAiProviderError,
   UnsupportedAiCapabilityError,
   aiModelSettingsUpdateSchema,
+  assertProviderIsResolvable,
   assertUpdateMatchesCapabilities,
 } from '@/lib/ai/model-settings/validation'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
@@ -67,6 +70,17 @@ export async function PUT(request: Request, { params }: RouteContext) {
 
     assertUpdateMatchesCapabilities(purpose, parsed.data)
 
+    // El proveedor se valida contra la configuración vigente porque el panel
+    // puede enviar solo el modelo o solo el proveedor: lo que debe ser
+    // ejecutable es la combinación resultante, no el campo aislado.
+    const current = await getAiModelSettings(purpose)
+    const resolvedProvider = assertProviderIsResolvable({
+      currentModel: current.model,
+      currentProviderSelection: current.providerSelection,
+      purposeId: purpose,
+      update: parsed.data,
+    })
+
     const settings = await upsertAiModelSettings({
       actorId: auth.userId,
       purposeId: purpose,
@@ -75,12 +89,17 @@ export async function PUT(request: Request, { params }: RouteContext) {
 
     logger.info('Configuración de modelo de IA actualizada', {
       actorId: auth.userId,
+      model: settings.model,
+      provider: resolvedProvider,
       purpose,
     })
 
     return NextResponse.json({ settings, success: true })
   } catch (error) {
-    if (error instanceof UnsupportedAiCapabilityError) {
+    if (
+      error instanceof UnsupportedAiCapabilityError ||
+      error instanceof UnresolvableAiProviderError
+    ) {
       return NextResponse.json(
         { error: error.message, success: false },
         { status: 400 },

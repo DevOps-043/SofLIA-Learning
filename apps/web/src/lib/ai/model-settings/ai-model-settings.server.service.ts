@@ -4,7 +4,14 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 
 import {
+  isAiProviderSelection,
+  resolveAiProvider,
+  type AiProviderSelection,
+} from '../providers/provider-registry'
+
+import {
   AI_MODEL_PURPOSES,
+  PLATFORM_DEFAULT_AI_PROVIDER,
   getAiModelPurpose,
   type AiModelPurpose,
   type AiModelPurposeId,
@@ -43,6 +50,8 @@ const CACHE_TTL_MS = 60_000
 interface AiModelSettingsRow {
   max_output_tokens: number | null
   model: string
+  /** `null` = deducir el proveedor del nombre del modelo. */
+  provider: string | null
   purpose: string
   temperature: number | null
   thinking_level: string
@@ -61,7 +70,9 @@ async function fetchOverridesFromDatabase(): Promise<Map<string, AiModelSettings
   const supabase = createAdminClient()
   const { data, error } = await supabase
     .from('ai_model_settings')
-    .select('purpose, model, max_output_tokens, temperature, thinking_level, updated_at')
+    .select(
+      'purpose, model, provider, max_output_tokens, temperature, thinking_level, updated_at',
+    )
 
   if (error) {
     throw new Error(error.message)
@@ -152,6 +163,18 @@ function resolveSettings(
       ? 'environment'
       : 'default'
 
+  // `auto` es el valor por defecto y significa "deducir del nombre del modelo".
+  // Un valor inesperado en la columna (escritura manual por SQL) degrada a `auto`
+  // en lugar de romper: la deducción sigue dando un proveedor válido.
+  const providerSelection: AiProviderSelection = isAiProviderSelection(override?.provider)
+    ? override.provider
+    : 'auto'
+  const provider = resolveAiProvider({
+    fallback: PLATFORM_DEFAULT_AI_PROVIDER,
+    model,
+    selection: providerSelection,
+  })
+
   const maxOutputTokens =
     override?.max_output_tokens ??
     readPositiveIntFromEnv(legacyMaxOutputTokensEnvVar) ??
@@ -167,6 +190,8 @@ function resolveSettings(
     maxOutputTokens,
     model,
     modelSource,
+    provider,
+    providerSelection,
     purpose: purpose.id,
     temperature,
     thinkingLevel:
@@ -239,6 +264,12 @@ export async function upsertAiModelSettings(params: {
     ? update.thinkingLevel ?? current.thinkingLevel
     : 'default'
 
+  // `auto` se persiste como NULL para que la columna signifique una sola cosa:
+  // "hay un proveedor fijado a mano". Guardar la cadena 'auto' obligaría a
+  // interpretarla en cada lectura y en cualquier consulta SQL externa.
+  const nextProviderSelection = update.provider ?? current.providerSelection
+  const nextProvider = nextProviderSelection === 'auto' ? null : nextProviderSelection
+
   const supabase = createAdminClient()
   const { error } = await supabase
     .from('ai_model_settings')
@@ -246,6 +277,7 @@ export async function upsertAiModelSettings(params: {
       {
         max_output_tokens: nextMaxOutputTokens,
         model: nextModel,
+        provider: nextProvider,
         purpose: params.purposeId,
         temperature: nextTemperature,
         thinking_level: nextThinkingLevel,

@@ -16,7 +16,7 @@ export interface ParseReportsAnalyticsBlueprintContext {
   locale: ReportsAnalyticsLocale
   model: string
   format: ReportsAnalyticsExportFormat
-  source?: 'gemini' | 'fallback'
+  source?: 'gemini' | 'openai' | 'fallback'
 }
 
 export interface NormalizeReportsAnalyticsBlueprintContext {

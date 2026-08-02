@@ -1,9 +1,11 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
 
 export function useBusinessUsersFilters() {
+  const searchParams = useSearchParams()
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards')
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('search') || '')
   const [filterRole, setFilterRole] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterRegion, setFilterRegion] = useState('all')

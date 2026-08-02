@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Loader2, Mic, Send } from 'lucide-react';
+import { AudioLines, Loader2, Mic, Send } from 'lucide-react';
 import { buildVoiceInputColors } from '../../theme/voice-input-colors';
 import { LiaThemeColors } from './types';
 import styles from './LiaSidePanel.module.css';
@@ -62,13 +62,13 @@ interface InputAreaProps {
   isDictating: boolean;
   isDictationEnabled: boolean;
   isVoiceEnabled: boolean;
-  isLiveVoiceActive: boolean;
   isLiveVoiceConnecting: boolean;
   isProcessingDictation: boolean;
   interimTranscript: string;
   finalTranscript: string;
   stopDictation: () => void;
   toggleDictation: () => void;
+  toggleLiveVoice: () => void;
   handleSendMessage: () => void;
   /** SofLIA está generando o aún escribiendo en pantalla: bloquea la entrada. */
   isResponding: boolean;
@@ -84,13 +84,13 @@ export function InputArea({
   isDictating,
   isDictationEnabled,
   isVoiceEnabled,
-  isLiveVoiceActive,
   isLiveVoiceConnecting,
   isProcessingDictation,
   interimTranscript,
   finalTranscript,
   stopDictation,
   toggleDictation,
+  toggleLiveVoice,
   handleSendMessage,
   isResponding,
 }: InputAreaProps) {
@@ -105,9 +105,9 @@ export function InputArea({
 
   const hasText = Boolean(inputValue.trim());
   const canSendMessage = hasText && !isResponding;
-  const isVoiceInputActive = isDictating || isLiveVoiceActive;
-  const isVoiceInputProcessing = isProcessingDictation || isLiveVoiceConnecting;
-  const shouldShowMicButton = isVoiceEnabled || isDictationEnabled;
+  const isVoiceInputActive = isDictating;
+  const isVoiceInputProcessing = isProcessingDictation;
+  const shouldShowMicButton = isDictationEnabled;
   const isInputBlocked = isResponding && !isDictating;
 
   const buttonMode: 'processing' | 'stop' | 'send' | 'mic' = isVoiceInputProcessing
@@ -171,13 +171,9 @@ export function InputArea({
 
   const buttonTitle =
     buttonMode === 'stop'
-      ? isVoiceEnabled
-        ? 'Detener voz en vivo'
-        : 'Detener dictado'
+      ? 'Detener dictado'
       : buttonMode === 'send'
       ? t('lia.chat.send')
-      : isVoiceEnabled
-      ? 'Iniciar voz en vivo'
       : 'Iniciar dictado';
 
   const shouldScrollTextarea =
@@ -270,6 +266,29 @@ export function InputArea({
             <Mic size={15} aria-hidden="true" />
           )}
         </button>
+
+        {isVoiceEnabled && (
+          <button
+            type="button"
+            onClick={toggleLiveVoice}
+            disabled={isResponding || isLiveVoiceConnecting}
+            title="Iniciar conversación por voz"
+            aria-label="Iniciar conversación por voz"
+            className={styles.submitButton}
+            style={{
+              backgroundColor: voiceColors.background,
+              border: `1px solid ${voiceColors.border}`,
+              color: voiceColors.icon,
+              opacity: isResponding || isLiveVoiceConnecting ? 0.55 : 1,
+            }}
+          >
+            {isLiveVoiceConnecting ? (
+              <Loader2 size={14} className="animate-spin" aria-hidden="true" />
+            ) : (
+              <AudioLines size={15} aria-hidden="true" />
+            )}
+          </button>
+        )}
       </div>
     </div>
   );

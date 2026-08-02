@@ -95,6 +95,12 @@ async function handlePost(_request: NextRequest, body: ProcessVideoBody) {
       )
     }
 
+    // EXCEPCIÓN DELIBERADA AL GATEWAY DE IA: esta ruta usa la File API de Gemini
+    // (`fileData` + `fileUri`), un flujo de subida y espera de procesamiento que
+    // no tiene equivalente en el contrato neutral ni en OpenAI. Por eso el
+    // propósito `video_processing` declara `supportedProviders: ['google']` y el
+    // panel impide seleccionar otro proveedor: la restricción de la
+    // configuración y la de este código dicen lo mismo.
     const videoSettings = await getAiModelSettings('video_processing')
     const genAI = new GoogleGenerativeAI(googleApiKey)
     const model = genAI.getGenerativeModel({

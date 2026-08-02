@@ -77,7 +77,7 @@ export function chunkSpeechText(text: string, options: ChunkSpeechOptions = {}):
  * El PRIMER fragmento arranca con una cláusula corta para minimizar el desfase
  * inicial texto↔voz; el resto se corta por oración completa para sonar natural.
  */
-const STREAM_FIRST_BOUNDARY = { minChars: 12, softCap: 56 };
+const STREAM_FIRST_BOUNDARY = { minChars: 8, softCap: 40 };
 const STREAM_REST_BOUNDARY = { minChars: 80, softCap: 220 };
 
 /**

@@ -28,6 +28,7 @@ export function createOrganizationAiContextRepository(
           .eq('user_id', userId)
           .eq('organization_id', organizationId)
           .eq('status', 'active')
+          .eq('organizations.is_active', true)
           .limit(1)
           .maybeSingle(),
       )
@@ -40,6 +41,7 @@ export function createOrganizationAiContextRepository(
           .eq('user_id', userId)
           .eq('status', 'active')
           .eq('organizations.slug', organizationSlug)
+          .eq('organizations.is_active', true)
           .limit(1)
           .maybeSingle(),
       )
@@ -51,6 +53,7 @@ export function createOrganizationAiContextRepository(
           .select(ORGANIZATION_CONTEXT_SELECT)
           .eq('user_id', userId)
           .eq('status', 'active')
+          .eq('organizations.is_active', true)
           .order('joined_at', { ascending: false })
           .limit(1)
           .maybeSingle(),
