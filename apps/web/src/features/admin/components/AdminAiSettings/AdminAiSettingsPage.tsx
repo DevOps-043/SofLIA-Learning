@@ -38,11 +38,16 @@ export function AdminAiSettingsPage() {
       buildUpdatePayload(form, purpose.capabilities),
     )
 
+    if (!result.ok) {
+      logic.showToast(result.errorMessage || t('aiSettings.feedback.saveError'), 'error')
+      return
+    }
+
+    // Guardado sin poder confirmar el modelo: se avisa como información, no como
+    // éxito a secas, para que nadie lea "guardado" como "verificado".
     logic.showToast(
-      result.ok
-        ? t('aiSettings.feedback.saved')
-        : result.errorMessage || t('aiSettings.feedback.saveError'),
-      result.ok ? 'success' : 'error',
+      result.warning ?? t('aiSettings.feedback.saved'),
+      result.warning ? 'info' : 'success',
     )
   }
 

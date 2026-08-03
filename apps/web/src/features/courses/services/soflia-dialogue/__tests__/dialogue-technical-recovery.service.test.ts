@@ -44,6 +44,20 @@ describe('buildDialogueTechnicalRecovery (escalada anti-ciclo)', () => {
     const m3 = buildDialogueTechnicalRecovery({ config, attempt: 3 })
     expect(new Set([m1, m2, m3]).size).toBe(3)
   })
+
+  /**
+   * Invariante de producto: el fallo es del evaluador, no del alumno. Atribuirlo
+   * a su respuesta es lo que hizo que una respuesta correcta pareciera mal
+   * calificada durante toda una sesión.
+   */
+  it('ningun nivel de la escalada culpa al estudiante de la averia', () => {
+    for (const attempt of [1, 2, 3]) {
+      const message = buildDialogueTechnicalRecovery({ config, attempt }).toLowerCase()
+
+      expect(message).toMatch(/tecnic|no pude/)
+      expect(message).not.toContain('necesito un poco mas de evidencia')
+    }
+  })
 })
 
 // Turno mínimo: el contador solo mira role y metadata.technicalRecovery.

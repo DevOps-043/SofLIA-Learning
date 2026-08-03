@@ -25,12 +25,22 @@ import {
   computeForensicFlags,
 } from './user-forensics.aggregates'
 import {
+  buildForensicContentIndex,
+  collectContentIds,
+  emptyContentIds,
+  resolveContentContext,
+  type ForensicContentIndex,
+} from './user-forensics.content-index'
+import { computeAttemptLocks } from './user-forensics.locks'
+import { fetchAttemptLockSourceRows } from './user-forensics.queries.locks'
+import {
   countForensicEventTypes,
   deriveFirstActivityAtUtc,
   deriveLastActivityAtUtc,
   sortForensicEventsDesc,
 } from './user-forensics.timeline'
 import type {
+  ForensicAttemptLock,
   ForensicEvent,
   ForensicIdentity,
   UserForensicSummary,
@@ -107,69 +117,51 @@ async function fetchIdentity(
   }
 }
 
+function refsOf(event: ForensicEvent) {
+  return {
+    courseId: event.refIds?.courseId ?? null,
+    lessonId: event.refIds?.lessonId ?? null,
+    activityId: event.refIds?.activityId ?? null,
+    learningPathId: event.refIds?.learningPathId ?? null,
+  }
+}
+
 /**
- * Enriquece los títulos de eventos con los nombres de curso/lección/ruta, en una sola
- * pasada (sin N+1): junta los ids referenciados, trae los mapas y anexa el nombre.
+ * Índice de contenido para TODO lo que se muestra en el panel (eventos + bloqueos):
+ * una sola resolución jerárquica (actividad → lección → módulo → curso), sin N+1.
  */
-async function enrichTitles(
+async function buildContentIndexFor(
   supabase: AdminSupabaseClient,
   events: ForensicEvent[],
-): Promise<void> {
-  const courseIds = new Set<string>()
-  const lessonIds = new Set<string>()
-  const pathIds = new Set<string>()
+  locks: ForensicAttemptLock[],
+): Promise<ForensicContentIndex> {
+  const ids = collectContentIds(events.map(refsOf), emptyContentIds())
+  collectContentIds(
+    locks.map((lock) => ({
+      lessonId: lock.target.lessonId,
+      activityId: lock.target.activityId,
+    })),
+    ids,
+  )
+  return buildForensicContentIndex(supabase, ids)
+}
 
+/**
+ * Anexa a cada evento su ubicación en el contenido (curso · módulo · lección ·
+ * actividad). Se guarda en `context` —estructurado— en lugar de concatenarlo al
+ * detalle: así la UI puede renderizar una miga de pan y el CSV columnas propias.
+ */
+function attachEventContext(index: ForensicContentIndex, events: ForensicEvent[]): void {
   for (const event of events) {
-    const courseId = event.refIds?.courseId
-    const lessonId = event.refIds?.lessonId
-    const pathId = event.refIds?.learningPathId
-    if (courseId) courseIds.add(courseId)
-    if (lessonId) lessonIds.add(lessonId)
-    if (pathId) pathIds.add(pathId)
-  }
-
-  const [courses, lessons, paths] = await Promise.all([
-    courseIds.size
-      ? fromLoose<{ id: string; title: string | null }>(supabase, 'courses')
-          .select('id, title')
-          .in('id', [...courseIds])
-      : Promise.resolve({ data: [] as Array<{ id: string; title: string | null }> }),
-    lessonIds.size
-      ? fromLoose<{ lesson_id: string; lesson_title: string | null }>(supabase, 'course_lessons')
-          .select('lesson_id, lesson_title')
-          .in('lesson_id', [...lessonIds])
-      : Promise.resolve({ data: [] as Array<{ lesson_id: string; lesson_title: string | null }> }),
-    pathIds.size
-      ? fromLoose<{ id: string; title: string | null }>(supabase, 'learning_paths')
-          .select('id, title')
-          .in('id', [...pathIds])
-      : Promise.resolve({ data: [] as Array<{ id: string; title: string | null }> }),
-  ])
-
-  const courseTitles = new Map((courses.data ?? []).map((row) => [row.id, row.title]))
-  const lessonTitles = new Map((lessons.data ?? []).map((row) => [row.lesson_id, row.lesson_title]))
-  const pathTitles = new Map((paths.data ?? []).map((row) => [row.id, row.title]))
-
-  for (const event of events) {
-    const parts: string[] = []
-    const courseTitle = event.refIds?.courseId ? courseTitles.get(event.refIds.courseId) : null
-    const lessonTitle = event.refIds?.lessonId ? lessonTitles.get(event.refIds.lessonId) : null
-    const pathTitle = event.refIds?.learningPathId
-      ? pathTitles.get(event.refIds.learningPathId)
-      : null
-    if (lessonTitle) parts.push(lessonTitle)
-    if (courseTitle) parts.push(courseTitle)
-    if (pathTitle) parts.push(pathTitle)
-    if (parts.length > 0) {
-      event.detail = event.detail ? `${parts.join(' · ')} — ${event.detail}` : parts.join(' · ')
-    }
+    event.context = resolveContentContext(index, refsOf(event))
   }
 }
 
 /**
  * Reconstrucción forense completa de la actividad de un usuario. Corre todas las
  * sub-consultas en paralelo, mezcla la línea de tiempo, deriva la última actividad
- * REAL (MAX de eventos) y enriquece títulos. Solo lectura, service-role.
+ * REAL (MAX de eventos), detecta los topes de intentos alcanzados y sitúa cada hecho
+ * en su curso · módulo · lección. Solo lectura, service-role.
  */
 export async function getUserForensicSummary(
   userId: string,
@@ -194,6 +186,7 @@ export async function getUserForensicSummary(
     lia,
     accessIps,
     dialoguesAvailable,
+    lockSources,
   ] = await Promise.all([
     fetchLoginSessions(supabase, userId),
     fetchEnrollmentEvents(supabase, userId),
@@ -208,6 +201,7 @@ export async function getUserForensicSummary(
     fetchLiaConversationEvents(supabase, userId),
     fetchAccessIps(supabase, userId),
     fetchAvailableDialogueCount(supabase, userId),
+    fetchAttemptLockSourceRows(supabase, userId),
   ])
 
   const domainResults: DomainResult[] = [
@@ -228,7 +222,16 @@ export async function getUserForensicSummary(
     ...lia.events,
   ]
 
-  await enrichTitles(supabase, allEvents)
+  const locks = computeAttemptLocks(lockSources, userId)
+
+  const contentIndex = await buildContentIndexFor(supabase, allEvents, locks)
+  attachEventContext(contentIndex, allEvents)
+  for (const lock of locks) {
+    lock.context = resolveContentContext(contentIndex, {
+      lessonId: lock.target.lessonId,
+      activityId: lock.target.activityId,
+    })
+  }
 
   const timeline = sortForensicEventsDesc(allEvents)
 
@@ -249,7 +252,8 @@ export async function getUserForensicSummary(
     derivedLastActivityAtUtc: deriveLastActivityAtUtc(allEvents),
     firstActivityAtUtc: deriveFirstActivityAtUtc(allEvents),
     aggregates,
-    flags: computeForensicFlags(aggregates),
+    flags: computeForensicFlags(aggregates, locks),
+    locks,
     notes: notesResult.notes,
     timeline,
     eventTypeCounts: countForensicEventTypes(allEvents),

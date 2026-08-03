@@ -2,7 +2,13 @@ import type { NextRequest } from 'next/server'
 import type { SessionUserRecord } from '@/features/auth/services/session.types'
 import type { PromptRiskAction } from '@/lib/security/prompt-injection-detector.types'
 import { buildAdminUserLookupPromptSection } from '../admin-user-lookup'
-import { isPlatformAdminRole } from './authorization'
+import { buildAdminOrganizationLookupPromptSection } from '../admin-organization-lookup'
+import { buildAdminContentLookupPromptSection } from '../admin-content-lookup'
+import {
+  isOrganizationAdminActionGrant,
+  isPlatformAdminRole,
+  type OrganizationAdminActionGrant,
+} from './authorization'
 import {
   authorizeAdminActions,
   authorizeOrganizationActions,
@@ -136,9 +142,15 @@ export async function resolveSuperadminTurn(
 }
 
 /**
- * Secciones del system prompt exclusivas del superadmin: consulta global de
- * usuarios (con dossier si procede) + catálogo de acciones ejecutables.
+ * Secciones del system prompt de un turno administrativo: consulta de usuarios
+ * y de organizaciones (con dossier si procede) + catálogo de acciones.
  * Devuelve '' si el turno no tiene capacidades elevadas.
+ *
+ * El ALCANCE de las consultas lo fija el grant del turno, no esta función:
+ *  - alcance de plataforma (superadmin en /admin) → cualquier usuario y
+ *    cualquier organización, más el índice comparativo de empresas;
+ *  - alcance de organización (owner/admin en su business-panel, o superadmin
+ *    trabajando dentro de un tenant) → su plantilla y su propia empresa.
  */
 export async function buildSuperadminPromptSections(params: {
   turn: SuperadminTurn
@@ -152,14 +164,23 @@ export async function buildSuperadminPromptSections(params: {
     return ''
   }
 
-  const lookupSection = params.turn.actionContext?.actorScope === 'platform'
-    ? await buildAdminUserLookupPromptSection({
-        sessionUser: params.sessionUser,
-        currentPage: params.currentPage,
-        promptRiskAction: params.promptRiskAction,
-        recentUserMessages: params.recentUserMessages,
-      })
-    : ''
+  const grant = params.turn.actionContext?.grant
+  const organizationGrant: OrganizationAdminActionGrant | null =
+    grant && isOrganizationAdminActionGrant(grant) ? grant : null
+
+  const lookupParams = {
+    sessionUser: params.sessionUser,
+    currentPage: params.currentPage,
+    promptRiskAction: params.promptRiskAction,
+    recentUserMessages: params.recentUserMessages,
+    organizationGrant,
+  }
+
+  const [lookupSection, organizationSection, contentSection] = await Promise.all([
+    buildAdminUserLookupPromptSection(lookupParams),
+    buildAdminOrganizationLookupPromptSection(lookupParams),
+    buildAdminContentLookupPromptSection(lookupParams),
+  ])
 
   const voiceSection = params.isVoiceInteraction
     ? '\n\n### INTERACCIÓN ADMINISTRATIVA POR VOZ\n' +
@@ -170,7 +191,13 @@ export async function buildSuperadminPromptSections(params: {
       'un dato obligatorio o hay más de una entidad posible. Responde de forma breve y natural para locución.\n'
     : ''
 
-  return lookupSection + buildAdminActionsPromptSection(params.turn.actionContext ?? undefined) + voiceSection
+  return (
+    lookupSection +
+    organizationSection +
+    contentSection +
+    buildAdminActionsPromptSection(params.turn.actionContext ?? undefined) +
+    voiceSection
+  )
 }
 
 /**

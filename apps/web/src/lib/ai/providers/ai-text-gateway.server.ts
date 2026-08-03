@@ -26,6 +26,7 @@ import {
 } from './openai-client.server'
 import { generateOpenAiText, streamOpenAiText } from './openai.adapter.server'
 import { inferAiProvider, type AiProvider } from './provider-registry'
+import { applyReasoningHeadroom } from './reasoning-budget'
 import {
   UnsupportedAiRequestError,
   type AiContentPart,
@@ -204,7 +205,7 @@ async function buildRequest(params: GenerateAiTextParams): Promise<AiGenerationR
     settings?.provider ??
     PLATFORM_DEFAULT_AI_PROVIDER
 
-  const managed = resolveManagedParameters(params, settings)
+  const managed = resolveManagedParameters(params, settings, { model, provider })
 
   // El perfil se construye una sola vez con el proveedor, el modelo y el nivel
   // de razonamiento YA resueltos: es la única forma de que el punto de llamada
@@ -308,17 +309,31 @@ export async function streamAiText(params: GenerateAiTextParams): Promise<AiText
  * ese propósito significan "no lo gestiona el panel" y debe prevalecer el
  * comportamiento del proveedor. Un `undefined` en `params` significa lo mismo,
  * de ahí la comprobación explícita en lugar de `??`.
+ *
+ * PRESUPUESTO DE SALIDA: el valor configurado se interpreta como tokens de
+ * respuesta VISIBLE y se le suma el margen de razonamiento que necesite el
+ * modelo destino (ver `reasoning-budget.ts`). Sin ese ajuste, un presupuesto
+ * calibrado con un modelo que no razona deja sin espacio de escritura a uno que
+ * sí lo hace, y la respuesta llega VACÍA en lugar de llegar peor.
  */
 function resolveManagedParameters(
   params: GenerateAiTextParams,
   settings: { maxOutputTokens: number | null; temperature: number | null; thinkingLevel: AiThinkingLevel } | null,
+  target: { model: string; provider: AiProvider },
 ): Pick<AiGenerationRequest, 'maxOutputTokens' | 'temperature' | 'thinkingLevel'> {
-  const maxOutputTokens = params.maxOutputTokens ?? settings?.maxOutputTokens ?? null
+  const visibleMaxOutputTokens = params.maxOutputTokens ?? settings?.maxOutputTokens ?? null
   const temperature = params.temperature ?? settings?.temperature ?? null
   const thinkingLevel = params.thinkingLevel ?? settings?.thinkingLevel
 
+  const maxOutputTokens = applyReasoningHeadroom({
+    maxOutputTokens: visibleMaxOutputTokens ?? undefined,
+    model: target.model,
+    provider: target.provider,
+    thinkingLevel,
+  })
+
   return {
-    ...(maxOutputTokens !== null ? { maxOutputTokens } : {}),
+    ...(maxOutputTokens !== undefined ? { maxOutputTokens } : {}),
     ...(temperature !== null ? { temperature } : {}),
     ...(thinkingLevel && thinkingLevel !== 'default' ? { thinkingLevel } : {}),
   }

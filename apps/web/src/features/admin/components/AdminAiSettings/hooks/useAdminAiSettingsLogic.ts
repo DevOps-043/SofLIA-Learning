@@ -21,6 +21,8 @@ async function fetchAiSettings(url: string): Promise<AdminAiSettingsResponse> {
 export interface SavePurposeResult {
   errorMessage?: string
   ok: boolean
+  /** Se guardó, pero el modelo no pudo verificarse contra el proveedor. */
+  warning?: string
 }
 
 /**
@@ -52,10 +54,19 @@ export function useAdminAiSettingsLogic() {
     setToast((prev) => ({ ...prev, isOpen: false }))
   }, [])
 
+  /**
+   * Cuando la API rechaza un modelo inexistente devuelve además los nombres
+   * parecidos del catálogo del proveedor. Adjuntarlos al mensaje convierte
+   * "ese modelo no existe" en algo accionable sin salir del panel.
+   */
   const readErrorMessage = useCallback(async (response: Response): Promise<string | undefined> => {
     try {
-      const body = (await response.json()) as { error?: string }
-      return body.error
+      const body = (await response.json()) as { error?: string; suggestions?: string[] }
+      if (!body.error) return undefined
+
+      return body.suggestions?.length
+        ? `${body.error} ¿Quisiste decir: ${body.suggestions.join(', ')}?`
+        : body.error
     } catch {
       return undefined
     }
@@ -78,8 +89,13 @@ export function useAdminAiSettingsLogic() {
           return { errorMessage: await readErrorMessage(response), ok: false }
         }
 
+        // El guardado se acepta aunque no se haya podido verificar el modelo,
+        // pero el administrador debe saberlo: dar por confirmado lo que nadie
+        // comprobó es como no tener validación.
+        const body = (await response.json().catch(() => ({}))) as { warning?: string }
+
         await mutate()
-        return { ok: true }
+        return { ok: true, ...(body.warning ? { warning: body.warning } : {}) }
       } catch {
         return { ok: false }
       } finally {

@@ -1,14 +1,27 @@
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import { logger } from '@/lib/utils/logger'
 
+import {
+  attemptsInWindow,
+  attemptWindowStart,
+  decideWindowedAttempt,
+  retryAvailableAt,
+} from '../attempt-cooldown'
+import { ATTEMPT_COOLDOWN_HOURS, MAX_QUIZ_ATTEMPTS } from '../attempt-limits'
+import { fetchLatestAttemptUnlockAt } from '../attempt-unlocks/attempt-unlock.server.service'
+
 /**
  * Límite de intentos de quiz con ventana de enfriamiento (cooldown).
  *
  * SEGURIDAD/PRODUCTO: un alumno puede intentar aprobar un quiz como máximo
- * `MAX_QUIZ_ATTEMPTS` veces dentro de una ventana de `QUIZ_ATTEMPT_COOLDOWN_HOURS`.
+ * `MAX_QUIZ_ATTEMPTS` veces dentro de una ventana de `ATTEMPT_COOLDOWN_HOURS`.
  * Al agotarse, se bloquea el envío hasta que el intento más antiguo de la ventana
  * expira, momento en el que se recuperan intentos. Si el alumno ya aprobó, no se
  * consume ni limita nada.
+ *
+ * Un super-admin puede desbloquear al alumno desde el panel forense: la concesión
+ * (`user_attempt_unlocks`) mueve el inicio de la ventana de conteo sin borrar los
+ * intentos, de modo que la auditoría conserva la historia completa.
  *
  * El conteo se basa en la tabla append-only `user_quiz_attempts` (una fila por
  * envío). El límite es por-quiz: se filtra por `material_id`/`activity_id` según
@@ -19,8 +32,7 @@ import { logger } from '@/lib/utils/logger'
  * `resolveActivityCompletionAttempt` (app/api/lia/complete-activity).
  */
 
-export const MAX_QUIZ_ATTEMPTS = 3
-export const QUIZ_ATTEMPT_COOLDOWN_HOURS = 24
+export { ATTEMPT_COOLDOWN_HOURS, MAX_QUIZ_ATTEMPTS }
 
 export type QuizAttemptDecision =
   | { kind: 'already_passed' }
@@ -58,9 +70,17 @@ export async function resolveQuizAttempt(
     return { kind: 'already_passed' }
   }
 
-  const windowStart = new Date(
-    now.getTime() - QUIZ_ATTEMPT_COOLDOWN_HOURS * 60 * 60 * 1000,
-  ).toISOString()
+  // Un desbloqueo administrativo posterior al inicio de la ventana la acorta: los
+  // intentos previos siguen en la tabla (auditoría) pero ya no consumen cupo.
+  const unlockedFrom = await fetchLatestAttemptUnlockAt(supabase, {
+    userId: input.userId,
+    scope: 'quiz',
+    lessonId: input.lessonId,
+    materialId: input.materialId,
+    activityId: input.activityId,
+    enrollmentId: input.enrollmentId,
+  })
+  const windowStart = attemptWindowStart(now, unlockedFrom)
 
   let query = fromLoose<QuizAttemptWindowRow>(supabase, 'user_quiz_attempts')
     .select('created_at')
@@ -89,20 +109,25 @@ export async function resolveQuizAttempt(
     return { kind: 'can_attempt', attemptNumber: 1, attemptsRemaining: MAX_QUIZ_ATTEMPTS }
   }
 
-  const attemptsInWindow = data?.length ?? 0
+  // La consulta ya filtra por ventana, pero se vuelve a acotar y ordenar aquí para
+  // compartir exactamente la misma aritmética que el diálogo y las actividades.
+  const windowed = attemptsInWindow(
+    (data ?? []).map((row) => row.created_at),
+    windowStart,
+  )
+  const decision = decideWindowedAttempt(windowed, MAX_QUIZ_ATTEMPTS)
 
-  if (attemptsInWindow >= MAX_QUIZ_ATTEMPTS) {
-    const oldest = data?.[0]?.created_at ?? now.toISOString()
-    const retryAfter = new Date(
-      new Date(oldest).getTime() + QUIZ_ATTEMPT_COOLDOWN_HOURS * 60 * 60 * 1000,
-    ).toISOString()
-
-    return { kind: 'limit_reached', retryAfter, attemptsInWindow }
+  if (decision.isLimitReached) {
+    return {
+      kind: 'limit_reached',
+      retryAfter: decision.retryAfterUtc ?? retryAvailableAt(now.toISOString()),
+      attemptsInWindow: decision.attemptsInWindow,
+    }
   }
 
   return {
     kind: 'can_attempt',
-    attemptNumber: attemptsInWindow + 1,
-    attemptsRemaining: MAX_QUIZ_ATTEMPTS - attemptsInWindow,
+    attemptNumber: decision.attemptNumber,
+    attemptsRemaining: decision.attemptsRemaining,
   }
 }

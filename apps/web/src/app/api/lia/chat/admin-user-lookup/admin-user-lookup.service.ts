@@ -1,8 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import {
-  assertPlatformSuperadminGrant,
-  type PlatformSuperadminGrant,
+  resolveUserLookupScope,
+  type AdminReadGrant,
+  type AdminReadScope,
 } from '../superadmin/authorization'
 import { stripLikeWildcards } from './identifier-extraction'
 import {
@@ -20,13 +21,18 @@ import type {
 
 /**
  * Búsqueda de usuarios y construcción del dossier completo para el contexto
- * de SofLIA en modo superadmin.
+ * de SofLIA en modo administrativo.
  *
  * SEGURIDAD: este servicio usa el cliente service-role. Toda función pública
- * exige un `PlatformSuperadminGrant` de capacidad `user-lookup` emitido por
- * `authorizePlatformSuperadmin` (candados de rol + panel + riesgo + rate limit +
- * re-verificación en BD) y lo valida en runtime con
- * `assertPlatformSuperadminGrant`. Sin grant válido, lanza y no consulta nada.
+ * exige un grant y deriva de él su alcance con `resolveUserLookupScope`:
+ *
+ *  - grant de superadmin de plataforma (capacidad `user-lookup`) → cualquier
+ *    usuario, con todas sus organizaciones y todo su historial;
+ *  - grant de owner/admin de organización → SOLO miembros de ese tenant, y el
+ *    dossier se recorta a la actividad ocurrida dentro de él (no revela que la
+ *    persona pertenece a otras empresas ni su progreso en ellas).
+ *
+ * Sin grant válido se lanza y no se consulta nada (fail-closed).
  */
 
 const USER_PROFILE_COLUMNS =
@@ -273,15 +279,49 @@ async function fetchOrganizationNamesByUser(
 }
 
 /**
+ * Deja solo a los usuarios que pertenecen al tenant indicado.
+ *
+ * Se aceptan todos los estados de membresía (activo, invitado, suspendido,
+ * retirado) porque el administrador de la organización gestiona a todos ellos;
+ * lo que se descarta es a quien nunca ha pertenecido a su empresa.
+ */
+async function filterToOrganizationMembers(
+  supabase: AdminSupabaseClient,
+  userIds: string[],
+  organizationId: string,
+): Promise<Set<string>> {
+  if (userIds.length === 0) return new Set()
+
+  const { data, error } = await supabase
+    .from('organization_users')
+    .select('user_id')
+    .eq('organization_id', organizationId)
+    .in('user_id', userIds)
+
+  if (error) {
+    // Fail-closed: si no se puede comprobar la pertenencia, no se devuelve a nadie.
+    logger.warn('Admin user lookup: fallo al verificar pertenencia a la organización', {
+      error: error.message,
+    })
+    return new Set()
+  }
+
+  return new Set((data ?? []).map((row) => row.user_id))
+}
+
+/**
  * Busca usuarios por los identificadores extraídos del mensaje del admin.
  * Prioridad: id exacto > email > nombre. Devuelve candidatos deduplicados junto
  * con el criterio que los encontró (para decidir si hay que desambiguar).
+ *
+ * En alcance de organización, los candidatos que no son miembros del tenant se
+ * descartan: para ese administrador, esas personas no existen.
  */
 export async function searchUsersByIdentifiers(
-  grant: PlatformSuperadminGrant,
+  grant: AdminReadGrant,
   identifiers: AdminLookupIdentifiers,
 ): Promise<AdminUserSearchResult> {
-  assertPlatformSuperadminGrant(grant, 'user-lookup')
+  const scope = resolveUserLookupScope(grant)
   const supabase = createAdminClient()
 
   const byId = await searchByUserIds(supabase, identifiers.userIds)
@@ -303,7 +343,17 @@ export async function searchUsersByIdentifiers(
     if (!merged.has(row.id)) merged.set(row.id, row)
   }
 
-  const rows = Array.from(merged.values())
+  let rows = Array.from(merged.values())
+
+  if (scope.organizationId) {
+    const memberIds = await filterToOrganizationMembers(
+      supabase,
+      rows.map((row) => row.id),
+      scope.organizationId,
+    )
+    rows = rows.filter((row) => memberIds.has(row.id))
+  }
+
   const profiles = rows.map(mapProfileRow)
 
   // La organización solo se necesita para desambiguar homónimos; se consulta
@@ -377,14 +427,60 @@ function buildEnrollments(
 /**
  * Construye el dossier completo de un usuario. Cada consulta degrada de forma
  * independiente (un fallo parcial no invalida el resto del dossier).
+ *
+ * En alcance organizacional, cada consulta se filtra además por
+ * `organization_id`: sin ese recorte, el dossier de un empleado mostraría a su
+ * administrador el progreso que esa persona tiene en OTRAS empresas.
  */
 export async function buildAdminUserDossier(
-  grant: PlatformSuperadminGrant,
+  grant: AdminReadGrant,
   profile: AdminUserProfile,
 ): Promise<AdminUserDossier> {
-  assertPlatformSuperadminGrant(grant, 'user-lookup')
+  const scope: AdminReadScope = resolveUserLookupScope(grant)
   const supabase = createAdminClient()
   const userId = profile.id
+  const tenantId = scope.organizationId
+
+  const membershipsQuery = supabase
+    .from('organization_users')
+    .select('role, status, job_title, joined_at, organizations(name, slug)')
+    .eq('user_id', userId)
+
+  const enrollmentsQuery = supabase
+    .from('user_course_enrollments')
+    .select(
+      'course_id, enrollment_status, overall_progress_percentage, enrolled_at, started_at, completed_at, last_accessed_at, courses(title)',
+    )
+    .eq('user_id', userId)
+
+  const lessonsQuery = supabase
+    .from('user_lesson_progress')
+    .select(
+      'lesson_status, is_completed, completed_at, time_spent_minutes, quiz_passed, course_lessons(lesson_title)',
+    )
+    .eq('user_id', userId)
+
+  const learningPathsQuery = supabase
+    .from('user_learning_path_progress')
+    .select(
+      'status, progress_percentage, completed_items_count, total_items_count, learning_paths(title)',
+    )
+    .eq('user_id', userId)
+
+  const certificatesQuery = supabase
+    .from('user_course_certificates')
+    .select('course_id, issued_at')
+    .eq('user_id', userId)
+
+  const conversationCountQuery = supabase
+    .from('lia_conversations')
+    .select('conversation_id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+
+  const lastConversationQuery = supabase
+    .from('lia_conversations')
+    .select('started_at')
+    .eq('user_id', userId)
 
   const [
     membershipsRes,
@@ -395,43 +491,28 @@ export async function buildAdminUserDossier(
     conversationCountRes,
     lastConversationRes,
   ] = await Promise.all([
-    supabase
-      .from('organization_users')
-      .select('role, status, job_title, joined_at, organizations(name, slug)')
-      .eq('user_id', userId),
-    supabase
-      .from('user_course_enrollments')
-      .select(
-        'course_id, enrollment_status, overall_progress_percentage, enrolled_at, started_at, completed_at, last_accessed_at, courses(title)',
-      )
-      .eq('user_id', userId)
+    tenantId
+      ? membershipsQuery.eq('organization_id', tenantId)
+      : membershipsQuery,
+    (tenantId ? enrollmentsQuery.eq('organization_id', tenantId) : enrollmentsQuery)
       .order('enrolled_at', { ascending: false })
       .limit(MAX_ENROLLMENTS),
-    supabase
-      .from('user_lesson_progress')
-      .select(
-        'lesson_status, is_completed, completed_at, time_spent_minutes, quiz_passed, course_lessons(lesson_title)',
-      )
-      .eq('user_id', userId)
-      .limit(MAX_LESSON_ROWS),
-    supabase
-      .from('user_learning_path_progress')
-      .select(
-        'status, progress_percentage, completed_items_count, total_items_count, learning_paths(title)',
-      )
-      .eq('user_id', userId),
-    supabase
-      .from('user_course_certificates')
-      .select('course_id, issued_at')
-      .eq('user_id', userId),
-    supabase
-      .from('lia_conversations')
-      .select('conversation_id', { count: 'exact', head: true })
-      .eq('user_id', userId),
-    supabase
-      .from('lia_conversations')
-      .select('started_at')
-      .eq('user_id', userId)
+    (tenantId ? lessonsQuery.eq('organization_id', tenantId) : lessonsQuery).limit(
+      MAX_LESSON_ROWS,
+    ),
+    tenantId
+      ? learningPathsQuery.eq('organization_id', tenantId)
+      : learningPathsQuery,
+    tenantId
+      ? certificatesQuery.eq('organization_id', tenantId)
+      : certificatesQuery,
+    tenantId
+      ? conversationCountQuery.eq('organization_id', tenantId)
+      : conversationCountQuery,
+    (tenantId
+      ? lastConversationQuery.eq('organization_id', tenantId)
+      : lastConversationQuery
+    )
       .order('started_at', { ascending: false })
       .limit(1),
   ])

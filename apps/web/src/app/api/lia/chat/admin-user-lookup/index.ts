@@ -4,7 +4,8 @@ import type { PromptRiskAction } from '@/lib/security/prompt-injection-detector.
 import type { SessionUserRecord } from '@/features/auth/services/session.types'
 import {
   authorizePlatformSuperadmin,
-  type PlatformSuperadminGrant,
+  type AdminReadGrant,
+  type OrganizationAdminActionGrant,
 } from '../superadmin/authorization'
 import {
   extractLookupIdentifiers,
@@ -39,7 +40,7 @@ import { MAX_AMBIGUOUS_CANDIDATES, MAX_DOSSIERS_PER_TURN } from './types'
  *                             cada una, hasta el máximo por turno.
  */
 async function resolveLookupResult(
-  grant: PlatformSuperadminGrant,
+  grant: AdminReadGrant,
   recentUserMessages: string[],
 ): Promise<AdminUserLookupResult | null> {
   const identifiers = extractLookupIdentifiers(recentUserMessages)
@@ -83,11 +84,17 @@ export interface AdminUserLookupPromptParams {
   promptRiskAction: PromptRiskAction
   /** Mensajes del rol "user" en orden cronológico. */
   recentUserMessages: string[]
+  /**
+   * Grant organizacional ya emitido para este turno (owner/admin de la empresa,
+   * o superadmin dentro del panel de un tenant). Si viene, la consulta se limita
+   * a los miembros de esa organización.
+   */
+  organizationGrant?: OrganizationAdminActionGrant | null
 }
 
 /**
- * Construye la sección del system prompt con la capacidad de consulta global y,
- * si el mensaje contiene identificadores de usuario, el dossier consultado.
+ * Construye la sección del system prompt con la capacidad de consulta de
+ * usuarios y, si el mensaje contiene identificadores, el dossier consultado.
  *
  * Fail-closed y sin excepciones: si la autorización no pasa devuelve '' (no se
  * inyecta NADA); ante un fallo interno devuelve solo las instrucciones de
@@ -96,17 +103,23 @@ export interface AdminUserLookupPromptParams {
 export async function buildAdminUserLookupPromptSection(
   params: AdminUserLookupPromptParams,
 ): Promise<string> {
-  const grant = await authorizePlatformSuperadmin({
-    capability: 'user-lookup',
-    sessionUserId: params.sessionUser.id,
-    sessionUserRole: params.sessionUser.platform_role,
-    currentPage: params.currentPage,
-    promptRiskAction: params.promptRiskAction,
-  })
+  const grant =
+    params.organizationGrant ??
+    (await authorizePlatformSuperadmin({
+      capability: 'user-lookup',
+      sessionUserId: params.sessionUser.id,
+      sessionUserRole: params.sessionUser.platform_role,
+      currentPage: params.currentPage,
+      promptRiskAction: params.promptRiskAction,
+    }))
 
   if (!grant) {
     return ''
   }
+
+  const scope: 'platform' | 'organization' = params.organizationGrant
+    ? 'organization'
+    : 'platform'
 
   try {
     const result = await resolveLookupResult(grant, params.recentUserMessages)
@@ -115,18 +128,20 @@ export async function buildAdminUserLookupPromptSection(
       // Auditoría: acceso administrativo a datos completos de usuarios vía SofLIA.
       recordSecurityEvent('admin-operation', {
         actorId: grant.adminUserId,
-        actorRole: 'administrador',
+        actorRole:
+          scope === 'platform' ? 'administrador' : 'administrador-organizacion',
         resourceType: 'user-dossier',
         metadata: {
           operation: 'lia-admin-user-lookup',
+          scope,
           targetUserIds: result.dossiers.map((dossier) => dossier.profile.id),
         },
       })
     }
 
-    return buildAdminLookupPromptSection(result)
+    return buildAdminLookupPromptSection(result, scope)
   } catch (error) {
     logger.error('Admin user lookup: fallo al construir contexto', error)
-    return buildAdminLookupPromptSection(null)
+    return buildAdminLookupPromptSection(null, scope)
   }
 }

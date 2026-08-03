@@ -49,11 +49,24 @@ export function isDialogueStuckOnTechnicalFailures(turns: DialogueTurnRow[]): bo
   )
 }
 
-/** Mensaje base del primer fallo técnico (reintento de envío). */
+/**
+ * Mensaje base del primer fallo técnico (reintento de envío).
+ *
+ * REGLA: nunca atribuir al estudiante un fallo del sistema.
+ *
+ * Antes este mensaje decía "necesito un poco mas de evidencia", que es el texto
+ * de una respuesta floja. Se eligió a propósito para que sonara pedagógico, pero
+ * al leerse tras una respuesta CORRECTA convertía una avería en una acusación:
+ * el alumno reescribía una y otra vez una respuesta que ya valía, y el docente
+ * concluía que SofLIA calificaba mal. La calificación nunca llegó a ocurrir.
+ *
+ * El mensaje ahora dice la verdad —no pude procesar la respuesta— sin alarmar y
+ * sin desperdiciar el turno: se sigue ofreciendo trabajo útil.
+ */
 export function buildDialogueEvaluationRecoveryMessage() {
   return [
-    'Recibi tu respuesta. Para poder ayudarte a avanzar, necesito un poco mas de evidencia.',
-    'Continua con una version breve que incluya tu decision, la razon principal y un ejemplo aplicado al caso.',
+    'No pude terminar de procesar tu respuesta por un problema tecnico de mi lado, no por lo que escribiste.',
+    'Vuelve a enviarla y seguimos: si quieres, aprovecha para añadir el ejemplo concreto con el que la aplicarias.',
   ].join(' ')
 }
 
@@ -86,7 +99,8 @@ export function buildDialogueTechnicalRecovery(input: {
 
   if (attempt >= 3) {
     const rescue = config.rescueContent?.trim()
-    const intro = 'Veo que nos estamos trabando, asi que te dejo una guia para destrabarte.'
+    const intro =
+      'Sigo sin poder registrar tu respuesta por el fallo tecnico, asi que no te dejo esperando: aqui tienes la referencia de la actividad.'
     const model = rescue ? ` Modelo de referencia: ${ensureSentence(rescue)}` : ''
     return `${intro}${model} ${RETURN_TO_VIDEO_CTA}`.trim()
   }
@@ -98,10 +112,10 @@ export function buildDialogueTechnicalRecovery(input: {
       .find(Boolean)
 
     if (firstHint) {
-      return `Te doy una pista para avanzar: ${ensureSentence(firstHint)} ${RETURN_TO_VIDEO_CTA}`
+      return `El fallo tecnico persiste y todavia no puedo calificar tu respuesta. Mientras lo resuelvo, avanza con esta pista: ${ensureSentence(firstHint)} ${RETURN_TO_VIDEO_CTA}`
     }
 
-    return `Aun necesito un poco mas de evidencia. Responde breve con tu decision, su razon principal y un ejemplo concreto del escenario. ${RETURN_TO_VIDEO_CTA}`
+    return `El fallo tecnico persiste y todavia no puedo calificar tu respuesta. Mientras tanto, tenla lista con tu decision, su razon principal y un ejemplo concreto del escenario. ${RETURN_TO_VIDEO_CTA}`
   }
 
   return buildDialogueEvaluationRecoveryMessage()

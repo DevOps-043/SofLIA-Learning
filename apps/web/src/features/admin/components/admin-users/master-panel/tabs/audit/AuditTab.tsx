@@ -15,6 +15,7 @@ import { AuditSummaryCards } from './AuditSummaryCards'
 import { AuditSessionsTable } from './AuditSessionsTable'
 import { AuditTimeline } from './AuditTimeline'
 import { AuditFlags } from './AuditFlags'
+import { AuditLocks } from './AuditLocks'
 import { AuditAggregates } from './AuditAggregates'
 import { AuditNotes } from './AuditNotes'
 import { AuditSofliaDialogues } from './AuditSofliaDialogues'
@@ -126,6 +127,21 @@ export function AuditTab({ user, active }: AuditTabProps) {
       <AuditFlags flags={summary.flags} />
 
       <AuditSummaryCards summary={summary} zone={zone} />
+
+      <AuditSection
+        title={t('users.masterPanel.audit.locks.title')}
+        count={summary.locks.length}
+        defaultOpen={summary.locks.some(
+          (lock) => lock.status === 'locked' || lock.status === 'cooldown',
+        )}
+      >
+        <AuditLocks
+          userId={user.id}
+          locks={summary.locks}
+          zone={zone}
+          onUnlocked={reload}
+        />
+      </AuditSection>
 
       <AuditSection title={t('users.masterPanel.audit.agg.title')} defaultOpen>
         <AuditAggregates aggregates={summary.aggregates} />

@@ -325,7 +325,35 @@
           "dialoguesAbandoned": "{{count}} diálogo(s) con SofLIA abandonados sin completar",
           "dialoguesSkipped": "Completó cursos pero solo hizo {{done}} de {{available}} diálogos SofLIA disponibles (posible salto de actividades)",
           "concurrentSessions": "{{count}} acceso(s) concurrente(s) desde IPs distintas casi al mismo tiempo (posible cuenta compartida)",
-          "liaAbandoned": "{{count}} conversación(es) con LIA abandonadas"
+          "liaAbandoned": "{{count}} conversación(es) con LIA abandonadas",
+          "attemptsBlocked": "{{count}} actividad(es) sin intentos y sin recuperación automática (requiere acción del administrador)",
+          "attemptsCooldown": "{{count}} evaluación(es) en espera: el alumno agotó sus intentos y los recupera al expirar la ventana"
+        },
+        "locks": {
+          "title": "Bloqueos por intentos",
+          "empty": "El alumno no tiene ningún tope de intentos alcanzado.",
+          "unlock": "Devolver intentos",
+          "confirmUnlock": "Confirmar desbloqueo",
+          "cancel": "Cancelar",
+          "reasonLabel": "Motivo del desbloqueo",
+          "reasonPlaceholder": "Ej.: fallo técnico durante el intento",
+          "auditNote": "No se borra ningún intento: queda registrado quién concedió el desbloqueo, cuándo y por qué.",
+          "attempts": "{{used}} de {{max}} intentos",
+          "lastAttempt": "Último intento: {{date}}",
+          "retryAt": "Recupera intentos: {{date}}",
+          "grantedBy": "Desbloqueado por {{email}} el {{date}}",
+          "status": {
+            "locked": "Bloqueado",
+            "cooldown": "En espera",
+            "at_risk": "Último intento",
+            "cleared": "Desbloqueado"
+          },
+          "scope": {
+            "quiz": "Quiz de la lección",
+            "dialogue": "Actividad con SofLIA",
+            "lia_activity": "Actividad guiada con LIA"
+          },
+          "attemptsSinceUnlock": "{{count}} intento(s) acumulados en total"
         },
         "agg": {
           "title": "Resumen por sección",

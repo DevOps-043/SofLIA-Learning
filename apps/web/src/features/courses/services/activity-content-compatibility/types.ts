@@ -1,6 +1,8 @@
 import type { ActivityConfig } from '../../types/activity-config'
 
 export interface ResolveActivityConfigInput {
+  activityTitle?: unknown
+  activityDescription?: unknown
   activityType?: string | null
   activityContent?: unknown
   rawActivityConfig?: unknown
@@ -10,6 +12,8 @@ export interface ResolveActivityConfigInput {
 }
 
 export interface ActivityConfigSourceRecord {
+  activity_title?: unknown
+  activity_description?: unknown
   activity_type?: string | null
   activity_content?: unknown
   activity_config?: unknown

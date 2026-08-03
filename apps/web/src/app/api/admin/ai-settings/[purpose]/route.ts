@@ -13,6 +13,7 @@ import {
   assertProviderIsResolvable,
   assertUpdateMatchesCapabilities,
 } from '@/lib/ai/model-settings/validation'
+import { checkAiModelExists } from '@/lib/ai/providers/model-catalog.server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/utils/logger'
 
@@ -81,6 +82,26 @@ export async function PUT(request: Request, { params }: RouteContext) {
       update: parsed.data,
     })
 
+    // Cuarto nivel de validación: que el modelo EXISTA en el proveedor. Los tres
+    // anteriores aceptan por igual `gpt-5.6-terra` y `gpt-5.6-terrra`; sin esta
+    // comprobación la errata se guarda, el panel muestra "Configurado" y el 404
+    // del proveedor aparece días después, en mitad de la actividad de un usuario.
+    const modelCheck = await checkAiModelExists({
+      model: parsed.data.model ?? current.model,
+      provider: resolvedProvider,
+    })
+
+    if (modelCheck.status === 'missing') {
+      return NextResponse.json(
+        {
+          error: `El modelo "${parsed.data.model ?? current.model}" no existe en ${resolvedProvider}. Revisa el identificador.`,
+          success: false,
+          suggestions: modelCheck.suggestions,
+        },
+        { status: 400 },
+      )
+    }
+
     const settings = await upsertAiModelSettings({
       actorId: auth.userId,
       purposeId: purpose,
@@ -90,11 +111,21 @@ export async function PUT(request: Request, { params }: RouteContext) {
     logger.info('Configuración de modelo de IA actualizada', {
       actorId: auth.userId,
       model: settings.model,
+      modelVerification: modelCheck.status,
       provider: resolvedProvider,
       purpose,
     })
 
-    return NextResponse.json({ settings, success: true })
+    return NextResponse.json({
+      settings,
+      success: true,
+      // `unverified` se guarda igualmente (ver política en `model-catalog.server`),
+      // pero el panel debe poder decir que la comprobación no llegó a hacerse en
+      // lugar de dar por bueno un modelo que nadie confirmó.
+      ...(modelCheck.status === 'unverified'
+        ? { warning: 'No se pudo verificar el modelo con el proveedor; se guardó sin comprobar.' }
+        : {}),
+    })
   } catch (error) {
     if (
       error instanceof UnsupportedAiCapabilityError ||

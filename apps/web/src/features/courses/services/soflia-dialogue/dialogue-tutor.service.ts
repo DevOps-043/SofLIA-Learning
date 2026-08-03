@@ -8,6 +8,9 @@ import {
   generateAiText,
   isAiPurposeAvailable,
 } from '@/lib/ai/providers/ai-text-gateway.server'
+import type { AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
+import type { AiProvider } from '@/lib/ai/providers/provider-registry'
+import { scaleTimeoutForReasoning } from '@/lib/ai/providers/reasoning-budget'
 
 import type {
   DialogueActivityConfig,
@@ -287,9 +290,37 @@ export function normalizeTutorMessageForDisplay(
     : normalized
 }
 
-function resolveDialogueTutorTimeoutMs() {
+/**
+ * Techo absoluto de espera del tutor. Es el mensaje que el estudiante ve en
+ * pantalla tras enviar su respuesta, así que el límite lo marca su paciencia,
+ * no el proveedor.
+ */
+const MAX_TUTOR_TIMEOUT_MS = 30000
+
+/**
+ * Los 8 segundos base se calibraron con un modelo que empieza a escribir de
+ * inmediato. Un modelo de razonamiento con esfuerzo alto los agota PENSANDO, y
+ * el fallo es invisible: `generateDialogueTutorMessage` captura el error y
+ * devuelve la plantilla fija, así que la actividad parece funcionar mientras
+ * responde siempre lo mismo. Es la otra mitad del síntoma "SofLIA no sale del
+ * mensaje genérico".
+ */
+function resolveDialogueTutorTimeoutMs(settings: {
+  model: string
+  provider: AiProvider
+  thinkingLevel: AiThinkingLevel
+}) {
   const rawTimeout = Number(process.env.SOFLIA_DIALOGUE_TUTOR_TIMEOUT_MS)
-  return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 8000
+  const baseTimeoutMs =
+    Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 8000
+
+  return scaleTimeoutForReasoning({
+    baseTimeoutMs,
+    maxTimeoutMs: MAX_TUTOR_TIMEOUT_MS,
+    model: settings.model,
+    provider: settings.provider,
+    thinkingLevel: settings.thinkingLevel,
+  })
 }
 
 /**
@@ -364,7 +395,7 @@ export async function generateDialogueTutorMessage(input: {
       purpose: 'soflia_dialogue_tutor',
       systemInstruction:
         'Eres SofLIA. Genera solo el mensaje visible para el estudiante, sin JSON ni instrucciones internas.',
-      timeoutMs: resolveDialogueTutorTimeoutMs(),
+      timeoutMs: resolveDialogueTutorTimeoutMs(settings),
     })
 
     const normalized = normalizeTutorMessageForDisplay(

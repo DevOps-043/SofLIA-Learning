@@ -7,7 +7,6 @@ import styles from '../../ActivitiesExperience.module.css';
 
 interface ActivityCardHeaderProps {
   activity: LearnActivity;
-  aiActivityCompleted: boolean;
   isCollapsed: boolean;
   isQuiz: boolean;
   isSofliaActivity: boolean;
@@ -18,7 +17,6 @@ interface ActivityCardHeaderProps {
 
 export function ActivityCardHeader({
   activity,
-  aiActivityCompleted,
   isCollapsed,
   isQuiz,
   isSofliaActivity,
@@ -43,10 +41,7 @@ export function ActivityCardHeader({
           {activity.is_required && <RequiredBadge label={t('activities.required')} />}
           <ActivityTypeBadge activity={activity} isSofliaActivity={isSofliaActivity} t={t} />
           <QuizStatusBadges activity={activity} quizInfo={quizInfo} t={t} />
-          <CompletionBadge
-            t={t}
-            activity={aiActivityCompleted ? { ...activity, is_completed: true } : activity}
-          />
+          <CompletionBadge t={t} activity={activity} />
         </div>
       </div>
       <ChevronDown className={`${styles.chevron} ${!isCollapsed ? styles.chevronOpen : ''}`} />

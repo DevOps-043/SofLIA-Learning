@@ -1,4 +1,5 @@
 export * from './dialogue-runtime/dialogue-activity-config.schema'
+export * from './dialogue-runtime/legacy-dialogue-config'
 export * from './dialogue-runtime/dialogue-evaluation.schema'
 export * from './dialogue-runtime/dialogue-message.schema'
 export * from './dialogue-runtime/dialogue-policy.schema'

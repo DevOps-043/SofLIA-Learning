@@ -6,25 +6,19 @@ import styles from '../../ActivitiesExperience.module.css';
 
 interface ActivityCardBodyProps {
   activity: LearnActivity;
-  aiActivityCompleted: boolean;
-  aiCompletionError: string | null;
-  aiCompletionSaving: boolean;
   canZoomIn: boolean;
   canZoomOut: boolean;
   contentZoom: number;
   hasActivityContent: boolean;
-  isAiChat: boolean;
   isInteractive: boolean;
   isQuiz: boolean;
   isSofliaDialogue: boolean;
   lessonId: string;
-  markAiChatActivityCompleted: (conversationId?: string | null) => void | Promise<void>;
   onQuizSubmitted: () => void | Promise<void>;
   onRequestQuizFeedback: (
     prompt: string,
     source?: { activityId?: string | null; materialId?: string | null },
   ) => void | Promise<void>;
-  onStartAiChat: (activity: LearnActivity, callback: (conversationId?: string | null) => void | Promise<void>) => void;
   onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
   quizInfo?: LessonQuizStatusItem;
   shouldShowActivityCard: boolean;

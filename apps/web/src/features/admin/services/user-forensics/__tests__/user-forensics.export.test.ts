@@ -32,6 +32,7 @@ function summary(): UserForensicSummary {
       lia: { conversations: 0, abandonedConversations: 0, totalMessages: 0 },
     },
     flags: [],
+    locks: [],
     notes: [],
     timeline: [
       {
@@ -40,6 +41,13 @@ function summary(): UserForensicSummary {
         atUtc: '2026-07-18T15:10:00.000Z',
         title: 'Intento de quiz #1',
         detail: 'Lección "A, B", 40%',
+        context: {
+          courseTitle: 'IA Aplicada',
+          moduleTitle: '2. Sesgos',
+          lessonTitle: '1. Sesgos en la toma de decisiones',
+          activityTitle: null,
+          learningPathTitle: null,
+        },
         score: 40,
         refIds: { lessonId: 'l1' },
       },
@@ -54,11 +62,19 @@ describe('buildForensicTimelineCsv', () => {
   it('emits a header row and escapes fields containing commas/quotes', () => {
     const csv = buildForensicTimelineCsv(summary())
     const lines = csv.replace(new RegExp(`^${String.fromCharCode(0xfeff)}`), '').split('\r\n')
-    expect(lines[0]).toBe('timestamp_utc,tipo,titulo,detalle,score,refs')
+    expect(lines[0]).toBe(
+      'timestamp_utc,tipo,titulo,curso,modulo,leccion,actividad,detalle,score,refs',
+    )
     // El detalle tiene comas y comillas → debe ir entrecomillado y con "" escapadas.
     expect(lines[1]).toContain('"Lección ""A, B"", 40%"')
     expect(lines[1]).toContain('2026-07-18T15:10:00.000Z')
     expect(lines[1]).toContain('lessonId=l1')
+  })
+
+  it('exports course and module as their own columns', () => {
+    const csv = buildForensicTimelineCsv(summary())
+    const dataLine = csv.split('\r\n')[1]
+    expect(dataLine).toContain('IA Aplicada,2. Sesgos,1. Sesgos en la toma de decisiones')
   })
 
   it('prepends a UTF-8 BOM for Excel', () => {

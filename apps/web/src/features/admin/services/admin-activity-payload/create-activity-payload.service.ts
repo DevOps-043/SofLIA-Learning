@@ -1,4 +1,5 @@
 import type { CreateActivityData } from '../adminActivities.service'
+import { buildLegacyDialogueActivityConfig } from '@/features/courses/types/dialogue-runtime'
 import { normalizeActivityConfigValue } from './activity-config-normalizer.service'
 import { createActivityPayloadSchema } from './activity-payload.schemas'
 import {
@@ -19,10 +20,20 @@ function resolveCreateSchemaVersion(
 
 export function validateCreateActivityPayload(payload: unknown): CreateActivityData {
   const parsed = createActivityPayloadSchema.parse(payload)
-  const activityConfig = normalizeActivityConfigValue(
+  const normalizedActivityConfig = normalizeActivityConfigValue(
     parsed.activity_type,
     parsed.activity_config,
   )
+  const activityConfig =
+    normalizedActivityConfig ??
+    (parsed.activity_type === 'ai_chat'
+      ? buildLegacyDialogueActivityConfig({
+          activityContent: parsed.activity_content,
+          activityDescription: parsed.activity_description,
+          activityTitle: parsed.activity_title,
+          aiPrompts: parsed.ai_prompts,
+        })
+      : null)
 
   return {
     activity_title: parsed.activity_title.trim(),

@@ -8,20 +8,21 @@ import {
   generateAiText,
   isAiPurposeAvailable,
 } from '@/lib/ai/providers/ai-text-gateway.server'
+import { scaleTimeoutForReasoning } from '@/lib/ai/providers/reasoning-budget'
+import type { AiProvider } from '@/lib/ai/providers/provider-registry'
+import type { AiThinkingLevel } from '@/lib/ai/model-settings/thinking'
+import { logger } from '@/lib/utils/logger'
 
 import {
   dialogueEvaluationResultSchema,
   type DialogueActivityConfig,
   type DialogueEvaluationResult,
 } from '../../types/dialogue-runtime'
+import { normalizeDialogueEvaluationPayload } from './dialogue-evaluation.normalizer'
 import { buildEvaluatorPromptForGoogle } from './dialogue-evaluator.google.prompt'
 import { buildEvaluatorPromptForOpenAi } from './dialogue-evaluator.openai.prompt'
 import { DialogueRuntimeError } from './dialogue-runtime.errors'
 import type { DialogueEvaluationRow, DialogueTurnRow } from './dialogue-tables'
-
-function stringify(value: unknown) {
-  return JSON.stringify(value ?? {}, null, 2)
-}
 
 function stripJsonFence(value: string) {
   return value.trim().replace(/^```json\s*|\s*```$/g, '')
@@ -116,19 +117,52 @@ function resolveDialogueEvaluatorModelOverride(
   return config.evaluator.model || null
 }
 
-function resolveDialogueEvaluationTimeoutMs() {
+/**
+ * Techo absoluto de espera del evaluador. Por encima, la petición choca contra
+ * el límite de ejecución de la función que aloja la ruta antes que contra este
+ * valor, y el estudiante recibe un error de red en vez de una calificación.
+ */
+const MAX_EVALUATOR_TIMEOUT_MS = 60000
+
+function resolveDialogueEvaluationTimeoutMs(settings: {
+  model: string
+  provider: AiProvider
+  thinkingLevel: AiThinkingLevel
+}) {
   const rawTimeout = Number(process.env.SOFLIA_DIALOGUE_EVALUATOR_TIMEOUT_MS)
-  return Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 25000
+  const baseTimeoutMs =
+    Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 25000
+
+  // Con esfuerzo de razonamiento alto, el modelo puede pasar decenas de segundos
+  // pensando antes del primer token: el tiempo base aborta la llamada a mitad de
+  // razonamiento y el turno acaba en recuperación técnica.
+  return scaleTimeoutForReasoning({
+    baseTimeoutMs,
+    maxTimeoutMs: MAX_EVALUATOR_TIMEOUT_MS,
+    model: settings.model,
+    provider: settings.provider,
+    thinkingLevel: settings.thinkingLevel,
+  })
 }
 
 /**
- * Presupuesto de salida del evaluador. Los modelos con razonamiento interno (familia
- * gemini-3.x) descuentan sus "thinking tokens" de maxOutputTokens: con un presupuesto
- * corto el JSON llega truncado o vacío y CADA turno falla con DIALOGUE_EVALUATION_FAILED
- * (el origen del bucle de recuperación técnica). 4096 deja margen para razonamiento +
- * el JSON completo de la rúbrica.
+ * Presupuesto de salida VISIBLE del evaluador: lo que ocupa el JSON de la
+ * rúbrica ya escrito.
+ *
+ * El margen de razonamiento NO se suma aquí. Lo añade el gateway según el modelo
+ * que resuelva el propósito (ver `lib/ai/providers/reasoning-budget.ts`), que es
+ * la única capa que conoce el proveedor final. Sumarlo también en este punto lo
+ * contaría dos veces y volvería a atar el número a un proveedor concreto, que es
+ * exactamente el acoplamiento que rompió la evaluación al pasar a OpenAI.
  */
 const DEFAULT_EVALUATOR_MAX_OUTPUT_TOKENS = 4096
+
+/**
+ * Reintento de emergencia cuando la respuesta llega vacía o truncada pese al
+ * margen. Duplicar el presupuesto es lo único que puede salvar ese turno: repetir
+ * la llamada con el mismo número fallaría igual, de forma determinista.
+ */
+const TRUNCATION_RETRY_MULTIPLIER = 2
 
 function resolveDialogueEvaluationMaxOutputTokens(
   managedMaxOutputTokens?: number | null,
@@ -143,6 +177,24 @@ function resolveDialogueEvaluationMaxOutputTokens(
   // Se acota siempre: un presupuesto por debajo de 1024 trunca el JSON de la
   // rúbrica y hace fallar CADA turno con DIALOGUE_EVALUATION_FAILED.
   return Math.max(1024, Math.min(Math.trunc(rawValue), 8192))
+}
+
+/**
+ * Error de presupuesto agotado, distinguible de un JSON inválido.
+ *
+ * Importa para el diagnóstico: ambos llegaban al mismo `catch` y se reportaban
+ * con el mismo mensaje genérico, así que desde fuera "el modelo no cabe en su
+ * presupuesto" y "el modelo escribió mal el JSON" eran indistinguibles pese a
+ * necesitar arreglos opuestos.
+ */
+class DialogueEvaluationBudgetError extends Error {
+  constructor(readonly maxOutputTokens: number, readonly modelName: string) {
+    super(
+      `El evaluador agoto su presupuesto de salida sin emitir texto (modelo ${modelName}, maxOutputTokens visible ${maxOutputTokens}). ` +
+        'Sube el presupuesto del proposito soflia_dialogue_evaluator o baja su nivel de razonamiento.',
+    )
+    this.name = 'DialogueEvaluationBudgetError'
+  }
 }
 
 export async function evaluateDialogueTurn(input: {
@@ -172,12 +224,14 @@ export async function evaluateDialogueTurn(input: {
     )
   }
 
-  try {
+  const visibleMaxOutputTokens = resolveDialogueEvaluationMaxOutputTokens(
+    evaluatorSettings.maxOutputTokens,
+  )
+
+  async function requestEvaluation(maxOutputTokens: number) {
     const response = await generateAiText({
       circuitBreakerName: 'gemini-dialogue-evaluator',
-      maxOutputTokens: resolveDialogueEvaluationMaxOutputTokens(
-        evaluatorSettings.maxOutputTokens,
-      ),
+      maxOutputTokens,
       ...(modelOverride ? { model: modelOverride } : {}),
       prompt: (profile: PromptModelProfile) =>
         selectPromptVariant(
@@ -193,31 +247,64 @@ export async function evaluateDialogueTurn(input: {
       responseAsJson: true,
       systemInstruction:
         'Eres un evaluador justo de comprension conceptual: calificas ideas y razonamiento, nunca la coincidencia literal de palabras. Responde exclusivamente JSON valido.',
-      timeoutMs: resolveDialogueEvaluationTimeoutMs(),
+      timeoutMs: resolveDialogueEvaluationTimeoutMs({
+        model: modelName,
+        provider: evaluatorSettings.provider,
+        thinkingLevel: evaluatorSettings.thinkingLevel,
+      }),
     })
 
-    if (!response.text) {
-      // No degradar a '{}': una respuesta vacía casi siempre significa presupuesto de
-      // salida agotado (thinking tokens) y debe diagnosticarse como tal, no como JSON invalido.
-      throw new Error(
-        `El evaluador devolvio una respuesta vacia (modelo ${modelName}); posible maxOutputTokens insuficiente`,
-      )
+    // Vacío o truncado son el mismo fallo: el modelo se quedó sin presupuesto
+    // (habitualmente razonando) antes de cerrar el JSON. Se distingue del JSON
+    // inválido porque el arreglo es el contrario: más presupuesto, no mejor prompt.
+    if (!response.text || response.truncated) {
+      throw new DialogueEvaluationBudgetError(maxOutputTokens, modelName)
     }
+
+    return response
+  }
+
+  try {
+    const response = await requestEvaluation(visibleMaxOutputTokens).catch((error) => {
+      if (!(error instanceof DialogueEvaluationBudgetError)) throw error
+
+      logger.warn('SofLIA dialogue evaluator ran out of output budget; retrying larger', {
+        maxOutputTokens: visibleMaxOutputTokens,
+        model: modelName,
+      })
+
+      return requestEvaluation(visibleMaxOutputTokens * TRUNCATION_RETRY_MULTIPLIER)
+    })
 
     const parsed = JSON.parse(extractJsonObject(response.text))
 
     return {
-      evaluation: dialogueEvaluationResultSchema.parse(parsed),
+      // Se repara la FORMA antes de validar: el esquema es `.strict()` y una
+      // clave de más o una cita demasiado larga tiraban una evaluación por lo
+      // demás correcta, dejando sin acreditar respuestas válidas.
+      evaluation: dialogueEvaluationResultSchema.parse(
+        normalizeDialogueEvaluationPayload(parsed, input.config),
+      ),
       modelName,
     }
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+
+    // El detalle real solo existía dentro de este `catch`: fuera, todo fallo del
+    // evaluador era "no fue posible evaluar" y el operador no podía distinguir
+    // presupuesto agotado de credencial ausente ni de JSON inválido.
+    logger.error('SofLIA dialogue evaluation failed', error, {
+      isBudgetExhaustion: error instanceof DialogueEvaluationBudgetError,
+      maxOutputTokens: visibleMaxOutputTokens,
+      model: modelName,
+      provider: evaluatorSettings.provider,
+    })
+
     throw new DialogueRuntimeError(
       'DIALOGUE_EVALUATION_FAILED',
       502,
       'No fue posible evaluar la respuesta con SofLIA',
-      {
-        message: error instanceof Error ? error.message : String(error),
-      },
+      { message },
     )
   }
 }

@@ -5,7 +5,17 @@ import { withZodBody } from '@/lib/api/with-validation';
 import type { Json } from '@/lib/supabase/types';
 import { createAdminClient } from '../../../../lib/supabase/admin';
 import { SessionService } from '../../../../features/auth/services/session.service';
-import { resolveActivityCompletionAttempt } from './activity-completion-attempts.service';
+import {
+  attemptsInWindow,
+  attemptWindowStart,
+  buildAttemptLimitMessage,
+  retryAvailableAt,
+} from '@/features/courses/services/attempt-cooldown';
+import { fetchLatestAttemptUnlockAt } from '@/features/courses/services/attempt-unlocks/attempt-unlock.server.service';
+import {
+  MAX_ACTIVITY_COMPLETION_ATTEMPTS,
+  resolveActivityCompletionAttempt,
+} from './activity-completion-attempts.service';
 import {
   completeActivitySchema,
   type CompleteActivityBody,
@@ -59,6 +69,28 @@ function toNullableJson(value: unknown): Json | null {
   }
 
   return value as Json;
+}
+
+/**
+ * Respuesta unica de "sin intentos por ahora": 429 con `Retry-After` en segundos y la
+ * marca exacta en `details`, igual que el quiz. El bloqueo es temporal, asi que el
+ * alumno debe saber cuando vuelve a tener cupo.
+ */
+function activityAttemptLimitResponse(retryAfterUtc: string) {
+  const retryAfterSeconds = Math.max(
+    0,
+    Math.ceil((Date.parse(retryAfterUtc) - Date.now()) / 1000)
+  );
+
+  return apiError(
+    'ACTIVITY_ATTEMPT_LIMIT_REACHED',
+    buildAttemptLimitMessage(MAX_ACTIVITY_COMPLETION_ATTEMPTS, retryAfterUtc),
+    429,
+    {
+      details: { retryAfter: retryAfterUtc },
+      headers: { 'Retry-After': String(retryAfterSeconds) },
+    }
+  );
 }
 
 async function hasUserMessageInConversation(input: {
@@ -370,8 +402,25 @@ async function handlePost(
       );
     }
 
-    const completionRows = (existingCompletions || []) as ActivityCompletionRecord[];
-    const attemptDecision = resolveActivityCompletionAttempt(completionRows);
+    // Solo consumen cupo los intentos hechos dentro de la ventana de enfriamiento y
+    // posteriores al ultimo desbloqueo administrativo. Las filas anteriores siguen en
+    // la tabla (auditoria), simplemente ya no cuentan.
+    const unlockedFrom = await fetchLatestAttemptUnlockAt(supabase, {
+      userId: user.id,
+      scope: 'lia_activity',
+      activityId: activityType,
+    });
+    const windowStart = attemptWindowStart(new Date(), unlockedFrom);
+    const windowStartMs = Date.parse(windowStart);
+
+    const allCompletions = (existingCompletions || []) as ActivityCompletionRecord[];
+    const attemptDecision = resolveActivityCompletionAttempt({
+      allAttempts: allCompletions,
+      attemptsInWindow: allCompletions.filter((completion) => {
+        const startedMs = completion.started_at ? Date.parse(completion.started_at) : NaN;
+        return !Number.isNaN(startedMs) && startedMs >= windowStartMs;
+      }),
+    });
 
     if (attemptDecision.kind === 'already_completed') {
       return NextResponse.json({
@@ -382,11 +431,7 @@ async function handlePost(
     }
 
     if (attemptDecision.kind === 'limit_reached') {
-      return apiError(
-        'ACTIVITY_ATTEMPT_LIMIT_REACHED',
-        'Se alcanzo el limite de 3 intentos para esta actividad',
-        409,
-      );
+      return activityAttemptLimitResponse(attemptDecision.retryAfter);
     }
 
     const insertData: ActivityCompletionInsert = {
@@ -415,12 +460,12 @@ async function handlePost(
     if (error) {
       techDebtLogger.error('Error creating completed activity:', error);
 
-      if (error.message?.includes('limite de 3 intentos')) {
-        return apiError(
-          'ACTIVITY_ATTEMPT_LIMIT_REACHED',
-          'Se alcanzo el limite de 3 intentos para esta actividad',
-          409,
-        );
+      // El trigger de BD incluye el número en el mensaje; se reconoce por la parte
+      // estable para que cambiar el tope no degrade un 429 de límite a un 500. Este
+      // camino solo se alcanza en carrera, cuando dos peticiones simultáneas pasan la
+      // pre-validación: se anuncia el peor caso, una ventana completa desde ahora.
+      if (error.message?.includes('intentos para esta actividad')) {
+        return activityAttemptLimitResponse(retryAvailableAt(new Date().toISOString()));
       }
 
       return apiError(

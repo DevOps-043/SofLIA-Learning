@@ -123,6 +123,78 @@ describe('activity-content-compatibility.service', () => {
     expect(config?.interactionType).toBe('soflia_dialogue')
   })
 
+  it('promotes legacy scene scripts to the central SofLIA dialogue runtime', () => {
+    const config = resolveActivityConfigFromRecord({
+      activity_title:
+        "Desmitificando el 'Oráculo' de la IA: Predicción vs. Conocimiento",
+      activity_type: 'ai_chat',
+      activity_content: JSON.stringify({
+        introduction:
+          'Comprende por qué un LLM predice patrones en vez de conocer hechos.',
+        scenes: [
+          {
+            character: 'Lia',
+            message:
+              'La IA puede sonar como un oráculo. ¿Crees que esa expectativa es realista?',
+          },
+          {
+            character: 'Usuario',
+            message: 'Prompt: Explica por qué un LLM no conoce la realidad.',
+          },
+          {
+            character: 'Lia',
+            message:
+              'Un LLM predice la siguiente palabra a partir de patrones. ¿Qué verificarías antes de tomar una decisión?',
+          },
+        ],
+        conclusion:
+          'Los LLM generan respuestas probables y sus afirmaciones importantes deben verificarse.',
+      }),
+    })
+
+    expect(config?.interactionType).toBe('soflia_dialogue')
+    if (!config || config.interactionType !== 'soflia_dialogue') {
+      throw new Error('Expected SofLIA dialogue config')
+    }
+
+    expect(config.schemaVersion).toBe('legacy-scenes-1.0.0')
+    expect(config.openingMessage).toContain('¿Crees que esa expectativa')
+    expect(config.challengePrompts).toEqual([
+      '¿Qué verificarías antes de tomar una decisión?',
+    ])
+    expect(config.successCriteria[0]?.id).toBe('legacy_learning_goal')
+  })
+
+  it('keeps config-less dialogue introductions in the central runtime', () => {
+    const config = resolveActivityConfigFromRecord({
+      activity_title: 'Estrategias para Persuadir al CFO',
+      activity_type: 'ai_chat',
+      activity_content: {
+        introduction:
+          'Transforma beneficios técnicos en métricas de ROI y mitigación de riesgos.',
+      },
+    })
+
+    expect(config?.interactionType).toBe('soflia_dialogue')
+    if (!config || config.interactionType !== 'soflia_dialogue') {
+      throw new Error('Expected SofLIA dialogue config')
+    }
+
+    expect(config.openingMessage).toContain('¿Cómo aplicarías este aprendizaje')
+  })
+
+  it('routes new plain-content ai_chat records to the central runtime', () => {
+    const config = resolveActivityConfigFromRecord({
+      activity_title: 'Conversación aplicada',
+      activity_description: 'Practica una decisión laboral.',
+      activity_type: 'ai_chat',
+      activity_content: 'Explica la decisión, su razón principal y el impacto esperado.',
+      ai_prompts: '¿Qué riesgo validarías primero?',
+    })
+
+    expect(config?.interactionType).toBe('soflia_dialogue')
+  })
+
   it('promotes SofLIA dialogue config from activity_content for generated ai_chat records', () => {
     const config = resolveActivityConfig({
       activityType: 'ai_chat',

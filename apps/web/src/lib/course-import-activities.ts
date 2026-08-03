@@ -6,6 +6,7 @@ import {
   normalizeActivityConfig,
   type ActivityConfig,
 } from '@/features/courses/types/activity-config'
+import { buildLegacyDialogueActivityConfig } from '@/features/courses/types/dialogue-runtime'
 
 export interface CourseEngineActivityInput {
   activity_config?: unknown
@@ -54,7 +55,10 @@ function resolveDialogueConfig(activity: CourseEngineActivityInput) {
     }
   }
 
-  return null
+  return buildLegacyDialogueActivityConfig({
+    activityContent: deepParseJsonValue(activity.data),
+    activityTitle: activity.title,
+  })
 }
 
 function resolveImportedActivityType(

@@ -34,13 +34,17 @@ describe('course import activities', () => {
     expect(row.requires_soflia_validation).toBe(false)
   })
 
-  it('keeps legacy lia_script activities on the legacy ai_chat flow when no dialogue config exists', () => {
+  it('promotes legacy lia_script activities to the central dialogue runtime', () => {
     const row = buildImportedActivityRow({
       activity: {
         title: 'Guion legacy',
         type: 'lia_script',
         data: {
-          scenes: [{ character: 'SofLIA', message: 'Hola' }],
+          introduction: 'Reflexiona sobre el caso.',
+          scenes: [
+            { character: 'SofLIA', message: 'Hola. ¿Qué harías en este caso?' },
+          ],
+          conclusion: 'Una buena respuesta explica la decisión y su impacto.',
         },
       },
       index: 1,
@@ -48,7 +52,7 @@ describe('course import activities', () => {
     })
 
     expect(row.activity_type).toBe('ai_chat')
-    expect(row.activity_schema_version).toBe(1)
-    expect(row.activity_config).toBeNull()
+    expect(row.activity_schema_version).toBe(2)
+    expect(row.activity_config?.interactionType).toBe('soflia_dialogue')
   })
 })

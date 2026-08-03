@@ -37,7 +37,11 @@ export const SUPERADMIN_PANEL_PATH_PREFIX = '/admin'
  * Capacidades privilegiadas del copiloto. Cada una tiene su propio cubo de
  * rate limit para que el uso de una no agote a la otra.
  */
-export type SuperadminCapability = 'user-lookup' | 'admin-actions'
+export type SuperadminCapability =
+  | 'user-lookup'
+  | 'organization-lookup'
+  | 'content-lookup'
+  | 'admin-actions'
 
 class SuperadminGrant {
   readonly adminUserId: string
@@ -110,6 +114,84 @@ export function isOrganizationAdminActionGrant(
   grant: AdminActionGrant,
 ): grant is OrganizationAdminActionGrant {
   return grant instanceof OrganizationAdminGrant
+}
+
+/**
+ * Alcance de datos de una capacidad de LECTURA administrativa (dossiers).
+ *
+ * `organizationId: null` significa PLATAFORMA COMPLETA y solo puede provenir de
+ * un `PlatformSuperadminGrant`. Un `organizationId` concreto ata la consulta a
+ * ese tenant: es lo que impide que un owner/admin de organización lea datos de
+ * otra empresa aunque el modelo lo proponga.
+ *
+ * El alcance NUNCA se construye a mano: se deriva de un grant emitido por este
+ * módulo (ver `resolveUserLookupScope`, `resolveOrganizationLookupScope` y
+ * `resolveContentLookupScope`).
+ */
+export interface AdminReadScope {
+  adminUserId: string
+  organizationId: string | null
+  organizationSlug: string | null
+}
+
+/** Grants que habilitan lectura administrativa de dossiers. */
+export type AdminReadGrant = PlatformSuperadminGrant | OrganizationAdminActionGrant
+
+function resolveAdminReadScope(
+  grant: unknown,
+  platformCapability: Extract<
+    SuperadminCapability,
+    'user-lookup' | 'organization-lookup' | 'content-lookup'
+  >,
+): AdminReadScope {
+  if (grant instanceof OrganizationAdminGrant) {
+    return {
+      adminUserId: grant.adminUserId,
+      organizationId: grant.organizationId,
+      organizationSlug: grant.organizationSlug,
+    }
+  }
+
+  if (grant instanceof SuperadminGrant && grant.capability === platformCapability) {
+    return {
+      adminUserId: grant.adminUserId,
+      organizationId: null,
+      organizationSlug: null,
+    }
+  }
+
+  recordSecurityEvent('access-denied', {
+    resourceType: 'admin-copilot',
+    reasons: [`soflia-admin:invalid-read-grant:${platformCapability}`],
+  })
+  throw new Error(
+    `SofLIA: lectura administrativa "${platformCapability}" sin grant de autorización válido`,
+  )
+}
+
+/**
+ * Alcance para la consulta de usuarios. Un grant organizacional lo restringe a
+ * los miembros de ese tenant; solo el superadmin de plataforma obtiene alcance
+ * global.
+ */
+export function resolveUserLookupScope(grant: unknown): AdminReadScope {
+  return resolveAdminReadScope(grant, 'user-lookup')
+}
+
+/**
+ * Alcance para la consulta de contenido. Un grant organizacional lo restringe a
+ * los cursos y rutas de su empresa, y a las cifras de su empresa.
+ */
+export function resolveContentLookupScope(grant: unknown): AdminReadScope {
+  return resolveAdminReadScope(grant, 'content-lookup')
+}
+
+/**
+ * Alcance para la consulta de organizaciones. Un grant organizacional lo fija a
+ * su propia empresa (no puede pedir el dossier de otra).
+ */
+export function resolveOrganizationLookupScope(grant: unknown): AdminReadScope {
+  return resolveAdminReadScope(grant, 'organization-lookup')
 }
 
 /** Guard común para el motor de acciones (superadmin u org admin). */

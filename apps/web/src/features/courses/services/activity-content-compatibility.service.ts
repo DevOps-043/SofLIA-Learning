@@ -3,6 +3,7 @@ import {
   normalizeContentForRenderer,
 } from '@/lib/course-content'
 import { normalizeActivityConfig } from '../types/activity-config'
+import { buildLegacyDialogueActivityConfig } from '../types/dialogue-runtime'
 import { detectExternalToolKey } from './activity-content-compatibility/external-tool-detection'
 import { buildFallbackActivityConfig } from './activity-content-compatibility/fallback-activity-config'
 import { mergeToolTask, mergeValidationState } from './activity-content-compatibility/merge-activity-config'
@@ -22,6 +23,8 @@ export function isInteractiveLessonActivity(activityType?: string | null) {
 }
 
 export function resolveActivityConfig({
+  activityTitle,
+  activityDescription,
   activityType,
   activityContent,
   rawActivityConfig,
@@ -35,12 +38,20 @@ export function resolveActivityConfig({
     return parsedConfig
   }
 
-  const configFromContent = normalizeActivityConfig(
-    deepParseJsonValue(activityContent),
-  )
+  const parsedActivityContent = deepParseJsonValue(activityContent)
+  const configFromContent = normalizeActivityConfig(parsedActivityContent)
 
   if (configFromContent?.interactionType === 'soflia_dialogue') {
     return configFromContent
+  }
+
+  if (activityType === 'ai_chat') {
+    return buildLegacyDialogueActivityConfig({
+      activityContent: parsedActivityContent,
+      activityDescription,
+      activityTitle,
+      aiPrompts,
+    })
   }
 
   if (!isInteractiveLessonActivity(activityType)) {
@@ -67,6 +78,8 @@ export function resolveActivityConfigFromRecord(
   record: ActivityConfigSourceRecord,
 ) {
   return resolveActivityConfig({
+    activityTitle: record.activity_title,
+    activityDescription: record.activity_description,
     activityType: record.activity_type,
     activityContent: record.activity_content,
     rawActivityConfig: record.activity_config,

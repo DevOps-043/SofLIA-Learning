@@ -9,10 +9,6 @@ export type ActivityCardProps = {
     prompt: string,
     source?: { activityId?: string | null; materialId?: string | null },
   ) => void | Promise<void>;
-  onStartAiChat: (
-    activity: LearnActivity,
-    onUserMessageCompleted: (conversationId?: string | null) => void | Promise<void>
-  ) => void;
   onToggle: (activityId: string) => void;
   onTriggerLiaFeedback: (prompt: string) => void | Promise<void>;
   quizStatus: LessonQuizStatus | null;

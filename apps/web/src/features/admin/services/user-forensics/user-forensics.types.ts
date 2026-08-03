@@ -104,6 +104,26 @@ export interface ForensicAggregates {
   }
 }
 
+/** Ids de contenido de los que se deduce dónde ocurrió un evento o un bloqueo. */
+export interface ForensicContentRefs {
+  courseId?: string | null
+  lessonId?: string | null
+  activityId?: string | null
+  learningPathId?: string | null
+}
+
+/**
+ * Ubicación legible del evento dentro del contenido: sin curso y módulo, una lección
+ * suelta no le dice nada al auditor. Se resuelve en el servidor (una pasada, sin N+1).
+ */
+export interface ForensicContentContext {
+  courseTitle: string | null
+  moduleTitle: string | null
+  lessonTitle: string | null
+  activityTitle: string | null
+  learningPathTitle: string | null
+}
+
 export interface ForensicEvent {
   /** Id estable para React keys y drill-down (no necesariamente el PK de la fila). */
   id: string
@@ -112,14 +132,71 @@ export interface ForensicEvent {
   atUtc: string
   /** Título corto legible (ya resuelto, sin traducción). */
   title: string
-  /** Detalle secundario opcional (curso/lección/score, etc.). */
+  /** Detalle secundario opcional (score, estado, duración…). */
   detail?: string | null
+  /** Curso · módulo · lección · actividad donde ocurrió (resuelto en el servidor). */
+  context?: ForensicContentContext | null
   /** Puntaje 0-100 cuando aplica (quiz/diálogo). */
   score?: number | null
   /** Referencias para drill-down (sessionId de diálogo, lessonId, etc.). */
   refIds?: Record<string, string | null | undefined>
   /** Metadatos crudos adicionales (no PII sensible) para inspección. */
   meta?: Record<string, unknown>
+}
+
+/** Motor de intentos que puede dejar a un alumno fuera de una actividad. */
+export type ForensicLockScope = 'quiz' | 'dialogue' | 'lia_activity'
+
+/**
+ * Estado de un tope de intentos:
+ *  - `cooldown` — sin intentos ahora, se recuperan solos al expirar la ventana;
+ *  - `locked`   — sin intentos y sin instante de recuperación calculable (intentos sin
+ *                 marca de tiempo); es el caso degradado, no la norma;
+ *  - `at_risk`  — le queda un único intento (aviso temprano para el auditor);
+ *  - `cleared`  — hubo un bloqueo pero un desbloqueo administrativo lo levantó.
+ */
+export type ForensicLockStatus = 'locked' | 'cooldown' | 'at_risk' | 'cleared'
+
+/** Desbloqueo administrativo aplicado a un tope de intentos. */
+export interface ForensicUnlockGrant {
+  unlockId: string
+  effectiveFromUtc: string
+  grantedByEmail: string | null
+  reason: string | null
+}
+
+/**
+ * Tope de intentos alcanzado (o a punto de alcanzarse) por el alumno en un punto
+ * concreto del contenido. Es la respuesta a "¿por qué este usuario no avanza?".
+ */
+export interface ForensicAttemptLock {
+  /** Id estable derivado del ámbito (scope + referencias), no un PK. */
+  id: string
+  scope: ForensicLockScope
+  status: ForensicLockStatus
+  /** Intentos que consumen cupo AHORA (dentro de la ventana de enfriamiento). */
+  attemptsUsed: number
+  /**
+   * Intentos acumulados desde el último desbloqueo, hayan salido o no de la ventana.
+   * Sin este dato un bloqueo de ayer sería invisible para quien audita hoy.
+   */
+  attemptsSinceUnlock: number
+  maxAttempts: number
+  /** El alumno ya superó la evaluación: el tope dejó de importar. */
+  passed: boolean
+  lastAttemptAtUtc: string | null
+  /** Instante en que la ventana de enfriamiento devuelve intentos. */
+  retryAvailableAtUtc: string | null
+  context: ForensicContentContext
+  /** Referencias necesarias para conceder el desbloqueo desde el panel. */
+  target: {
+    lessonId: string | null
+    materialId: string | null
+    activityId: string | null
+    enrollmentId: string | null
+  }
+  /** Último desbloqueo administrativo aplicado a este ámbito. */
+  unlock: ForensicUnlockGrant | null
 }
 
 export interface ForensicSession {
@@ -172,6 +249,11 @@ export interface UserForensicSummary {
   aggregates: ForensicAggregates
   /** Señales de alerta detectadas (posible trampa / anomalías). */
   flags: ForensicFlag[]
+  /**
+   * Topes de intentos alcanzados: dónde quedó bloqueado el alumno dentro del curso y
+   * si un super-admin ya le devolvió intentos.
+   */
+  locks: ForensicAttemptLock[]
   /** Notas del usuario (título + contenido) para la sección de notas. */
   notes: ForensicNote[]
   timeline: ForensicEvent[]

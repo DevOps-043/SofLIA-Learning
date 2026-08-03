@@ -41,8 +41,34 @@ function fullName(profile: AdminUserProfile): string {
  * Instrucciones de capacidad: se inyectan en TODOS los turnos de un admin,
  * haya o no una consulta activa, para que SofLIA sepa que puede responder
  * preguntas sobre cualquier usuario y cómo pedir el identificador.
+ *
+ * El texto cambia con el alcance: el administrador de una organización solo
+ * puede consultar a SU plantilla, y el prompt debe decírselo al modelo para que
+ * no ofrezca datos que el servidor jamás le entregará.
  */
-export function buildAdminLookupCapabilitySection(): string {
+export function buildAdminLookupCapabilitySection(
+  scope: 'platform' | 'organization' = 'platform',
+): string {
+  if (scope === 'organization') {
+    return (
+      '\n\n### CAPACIDAD DE ADMINISTRADOR DE ORGANIZACIÓN: CONSULTA DE SU PLANTILLA\n' +
+      'El usuario actual es OWNER o ADMIN de la organización activa, verificado por el servidor.\n' +
+      '- PUEDES compartir con él información completa y verificada de CUALQUIER persona de SU ' +
+      'organización: perfil, cargo, cursos y progreso, lecciones completadas, rutas de aprendizaje, ' +
+      'certificados, última conexión y última actividad, y uso de SofLIA dentro de la empresa.\n' +
+      '- El NOMBRE basta para consultar: NO le pidas el correo ni el ID si ya te dio un nombre. La ' +
+      'búsqueda ignora acentos y mayúsculas. Si solo hay una coincidencia, abajo tendrás su dossier; ' +
+      'si hay varias, abajo tendrás la lista para que él elija.\n' +
+      '- Si te pregunta por alguien y NO aparece abajo ninguna sección de dossier, de lista de ' +
+      'coincidencias ni de "SIN RESULTADOS", es que no captaste el nombre: pídele que te lo escriba.\n' +
+      '- Responde con los datos del dossier tal cual; no inventes datos que no estén en él. Si un dato ' +
+      'aparece como "sin dato", dilo explícitamente.\n' +
+      '- LÍMITE INFRANQUEABLE: solo personas de su organización, y solo su actividad DENTRO de ella. ' +
+      'Si te pregunta por alguien que no aparece, es que no pertenece a su empresa: no busques fuera ni ' +
+      'especules sobre otras organizaciones.\n'
+    )
+  }
+
   return (
     '\n\n### CAPACIDAD EXCLUSIVA DE SUPERADMIN: CONSULTA GLOBAL DE USUARIOS\n' +
     'El usuario actual es un ADMINISTRADOR DE PLATAFORMA verificado por el servidor (superadmin de SofLIA).\n' +
@@ -157,8 +183,9 @@ function formatAmbiguousCandidates(candidates: AdminUserCandidate[]): string {
  */
 export function buildAdminLookupPromptSection(
   result: AdminUserLookupResult | null,
+  scope: 'platform' | 'organization' = 'platform',
 ): string {
-  let section = buildAdminLookupCapabilitySection()
+  let section = buildAdminLookupCapabilitySection(scope)
 
   if (!result) {
     return section
@@ -177,9 +204,14 @@ export function buildAdminLookupPromptSection(
 
   if (result.searchedWithoutMatches) {
     section +=
-      '\n#### CONSULTA DE USUARIO: SIN RESULTADOS\n' +
-      'Se buscó al usuario mencionado en el mensaje y NO existe ninguna coincidencia en la plataforma. ' +
-      'Dile al administrador que no encontraste al usuario y pídele el correo electrónico exacto o el ID.\n'
+      scope === 'organization'
+        ? '\n#### CONSULTA DE USUARIO: SIN RESULTADOS\n' +
+          'Se buscó a la persona mencionada en el mensaje y NO hay ninguna coincidencia entre los ' +
+          'miembros de esta organización. Dile al administrador que no la encontraste en su empresa y ' +
+          'pídele el correo electrónico exacto.\n'
+        : '\n#### CONSULTA DE USUARIO: SIN RESULTADOS\n' +
+          'Se buscó al usuario mencionado en el mensaje y NO existe ninguna coincidencia en la plataforma. ' +
+          'Dile al administrador que no encontraste al usuario y pídele el correo electrónico exacto o el ID.\n'
   }
 
   return section

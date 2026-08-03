@@ -1,6 +1,7 @@
 import type { VideoTrackingStat } from './user-forensics.queries.content'
 import type {
   ForensicAggregates,
+  ForensicAttemptLock,
   ForensicEvent,
   ForensicFlag,
   ForensicNote,
@@ -207,9 +208,34 @@ export function computeForensicAggregates(input: AggregatesInput): ForensicAggre
 /**
  * Señales de alerta forenses derivadas de los agregados: posibles indicios de trampa o
  * anomalías (video acelerado, video casi sin ver, muchos intentos de quiz, varias IPs).
+ *
+ * Los bloqueos por tope de intentos entran aquí como señal de PRIMER nivel: un alumno
+ * detenido no es sospechoso, es alguien que necesita acción del administrador, y debe
+ * verse antes que cualquier otra alerta.
  */
-export function computeForensicFlags(aggregates: ForensicAggregates): ForensicFlag[] {
+export function computeForensicFlags(
+  aggregates: ForensicAggregates,
+  locks: ForensicAttemptLock[] = [],
+): ForensicFlag[] {
   const flags: ForensicFlag[] = []
+
+  const blockedLocks = locks.filter((lock) => lock.status === 'locked')
+  const cooldownLocks = locks.filter((lock) => lock.status === 'cooldown')
+
+  if (blockedLocks.length > 0) {
+    flags.push({
+      key: 'attemptsBlocked',
+      severity: 'danger',
+      params: { count: blockedLocks.length },
+    })
+  }
+  if (cooldownLocks.length > 0) {
+    flags.push({
+      key: 'attemptsCooldown',
+      severity: 'warning',
+      params: { count: cooldownLocks.length },
+    })
+  }
 
   if (aggregates.lessons.videosSpedUp > 0) {
     flags.push({

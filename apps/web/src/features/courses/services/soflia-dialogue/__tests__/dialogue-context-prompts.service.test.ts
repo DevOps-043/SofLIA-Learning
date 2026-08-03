@@ -190,12 +190,20 @@ describe('dialogue organization context prompts', () => {
     })
   })
 
-  it('keeps the recovery message pedagogical instead of technical', () => {
+  /**
+   * Este caso comprobaba lo contrario: que el mensaje sonara pedagógico y
+   * ocultara el fallo técnico. Esa decisión es la que produjo la incidencia
+   * real —el alumno leía "necesito mas evidencia" tras una respuesta correcta,
+   * la reescribía en bucle y el docente concluía que SofLIA calificaba mal—
+   * cuando en realidad la evaluación nunca llegó a ejecutarse.
+   */
+  it('never blames the student for a technical failure', () => {
     const message = buildDialogueEvaluationRecoveryMessage()
 
-    expect(message).toContain('necesito un poco mas de evidencia')
-    expect(message).not.toContain('fallo tecnico')
-    expect(message).not.toContain('evaluacion automatica')
+    expect(message.toLowerCase()).toContain('tecnico')
+    expect(message.toLowerCase()).toContain('no por lo que escribiste')
+    // Ninguna insinuación de que la respuesta del alumno fuera insuficiente.
+    expect(message.toLowerCase()).not.toContain('mas evidencia')
   })
 
   it('falls back when the tutor message looks truncated', () => {

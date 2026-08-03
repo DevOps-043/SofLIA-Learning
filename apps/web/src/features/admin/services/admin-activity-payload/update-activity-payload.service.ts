@@ -1,4 +1,5 @@
 import type { UpdateActivityData } from '../adminActivities.service'
+import { buildLegacyDialogueActivityConfig } from '@/features/courses/types/dialogue-runtime'
 import { normalizeActivityConfigValue } from './activity-config-normalizer.service'
 import { updateActivityPayloadSchema } from './activity-payload.schemas'
 import {
@@ -34,12 +35,25 @@ export function validateUpdateActivityPayload(payload: unknown): UpdateActivityD
     return normalized
   }
 
-  const activityConfig = normalizeActivityConfigValue(
+  const normalizedActivityConfig = normalizeActivityConfigValue(
     parsed.activity_type,
     parsed.activity_config,
   )
+  const activityConfig =
+    normalizedActivityConfig ??
+    (parsed.activity_type === 'ai_chat'
+      ? buildLegacyDialogueActivityConfig({
+          activityContent: parsed.activity_content,
+          activityDescription: parsed.activity_description,
+          activityTitle: parsed.activity_title,
+          aiPrompts: parsed.ai_prompts,
+        })
+      : null)
+  const shouldPersistActivityConfig =
+    parsed.activity_config !== undefined ||
+    (parsed.activity_type === 'ai_chat' && activityConfig !== null)
 
-  if (parsed.activity_config !== undefined) {
+  if (shouldPersistActivityConfig) {
     normalized.activity_config = activityConfig
     normalized.activity_schema_version = activityConfig
       ? activityConfig.interactionType === 'soflia_dialogue'
@@ -50,11 +64,11 @@ export function validateUpdateActivityPayload(payload: unknown): UpdateActivityD
     normalized.activity_schema_version = parsed.activity_schema_version
   }
 
-  if (parsed.external_tool_key !== undefined || parsed.activity_config !== undefined) {
+  if (parsed.external_tool_key !== undefined || shouldPersistActivityConfig) {
     normalized.external_tool_key = resolveToolKey(parsed.external_tool_key, activityConfig)
   }
 
-  if (parsed.requires_soflia_validation !== undefined || parsed.activity_config !== undefined) {
+  if (parsed.requires_soflia_validation !== undefined || shouldPersistActivityConfig) {
     normalized.requires_soflia_validation = resolveRequiresSofliaValidation(
       activityConfig,
       parsed.requires_soflia_validation,

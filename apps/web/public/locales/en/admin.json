@@ -325,7 +325,35 @@
           "dialoguesAbandoned": "{{count}} SofLIA dialogue(s) abandoned without completing",
           "dialoguesSkipped": "Completed courses but only did {{done}} of {{available}} available SofLIA dialogues (possible skipping)",
           "concurrentSessions": "{{count}} concurrent access(es) from different IPs at nearly the same time (possible shared account)",
-          "liaAbandoned": "{{count}} LIA conversation(s) abandoned"
+          "liaAbandoned": "{{count}} LIA conversation(s) abandoned",
+          "attemptsBlocked": "{{count}} activity(ies) with no attempts left and no automatic recovery (needs admin action)",
+          "attemptsCooldown": "{{count}} assessment(s) cooling down: the student used up their attempts and gets them back when the window expires"
+        },
+        "locks": {
+          "title": "Attempt lockouts",
+          "empty": "This user has not hit any attempt limit.",
+          "unlock": "Restore attempts",
+          "confirmUnlock": "Confirm unlock",
+          "cancel": "Cancel",
+          "reasonLabel": "Reason for the unlock",
+          "reasonPlaceholder": "E.g.: technical failure during the attempt",
+          "auditNote": "No attempt is deleted: who granted the unlock, when and why stays on record.",
+          "attempts": "{{used}} of {{max}} attempts",
+          "lastAttempt": "Last attempt: {{date}}",
+          "retryAt": "Attempts return: {{date}}",
+          "grantedBy": "Unlocked by {{email}} on {{date}}",
+          "status": {
+            "locked": "Locked out",
+            "cooldown": "Cooling down",
+            "at_risk": "Last attempt left",
+            "cleared": "Unlocked"
+          },
+          "scope": {
+            "quiz": "Lesson quiz",
+            "dialogue": "SofLIA activity",
+            "lia_activity": "LIA guided activity"
+          },
+          "attemptsSinceUnlock": "{{count}} attempt(s) accumulated in total"
         },
         "agg": {
           "title": "Summary by section",

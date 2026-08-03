@@ -3,9 +3,11 @@ import {
   type DialogueActivityConfig,
 } from '../../../types/dialogue-runtime'
 import type { CourseActivityContext } from '../../activity-submission.server.service'
+import { attemptWindowStart, buildAttemptLimitMessage } from '../../attempt-cooldown'
+import { fetchLatestAttemptUnlockAt } from '../../attempt-unlocks/attempt-unlock.server.service'
 import { DialogueRuntimeError } from '../dialogue-runtime.errors'
 import { dialogueSessionsTable } from '../dialogue-tables'
-import { resolveDialogueAttempt } from './attempts'
+import { MAX_DIALOGUE_ACTIVITY_ATTEMPTS, resolveDialogueAttempt } from './attempts'
 import { getDialogueSessionById } from './session-by-id'
 import {
   getActiveDialogueSession,
@@ -34,15 +36,29 @@ export async function createDialogueSession(input: {
   config: DialogueActivityConfig
   context: CourseActivityContext
 }) {
+  // Un desbloqueo administrativo reinicia el conteo: las sesiones anteriores al punto
+  // de corte siguen registradas (auditoría) pero ya no consumen intento.
+  const unlockedFrom = await fetchLatestAttemptUnlockAt(input.client, {
+    userId: input.context.userId,
+    scope: 'dialogue',
+    lessonId: input.context.lessonId,
+    activityId: input.context.activity.activity_id,
+    enrollmentId: input.context.enrollmentId,
+  })
+
+  const windowStart = attemptWindowStart(new Date(), unlockedFrom)
+
   // Solo las sesiones que llegaron a un estado terminal consumen intento. Las sesiones
   // abandonadas o bloqueadas por fallos técnicos del evaluador no son intentos reales
   // del estudiante y no deben dejarlo fuera de la actividad.
-  const { count, error: countError } = await dialogueSessionsTable(input.client)
-    .select('session_id', { count: 'exact', head: true })
+  const { data: terminalSessions, error: countError } = await dialogueSessionsTable(input.client)
+    .select('started_at')
     .eq('user_id', input.context.userId)
     .eq('activity_id', input.context.activity.activity_id)
     .eq('enrollment_id', input.context.enrollmentId)
     .in('state', terminalDialogueStates)
+    .gte('started_at', windowStart)
+    .order('started_at', { ascending: true })
 
   if (countError) {
     throw new DialogueRuntimeError(
@@ -53,13 +69,17 @@ export async function createDialogueSession(input: {
     )
   }
 
-  const attemptDecision = resolveDialogueAttempt(count || 0)
+  const attemptDecision = resolveDialogueAttempt(
+    (terminalSessions ?? []).map((session) => session.started_at),
+    windowStart,
+  )
 
   if (attemptDecision.kind === 'limit_reached') {
     throw new DialogueRuntimeError(
       'DIALOGUE_ATTEMPT_LIMIT_REACHED',
-      409,
-      'Se alcanzo el limite de 3 intentos para esta actividad',
+      429,
+      buildAttemptLimitMessage(MAX_DIALOGUE_ACTIVITY_ATTEMPTS, attemptDecision.retryAfter),
+      { retryAfter: attemptDecision.retryAfter },
     )
   }
 

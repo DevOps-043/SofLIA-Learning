@@ -93,6 +93,43 @@ describe('adminActivityPayload.service', () => {
     expect(payload.requires_soflia_validation).toBe(false)
   })
 
+  it('creates a central dialogue config for new ai_chat activities without one', () => {
+    const payload = validateCreateActivityPayload({
+      activity_title: 'Conversación aplicada con SofLIA',
+      activity_description: 'Practica una decisión del entorno laboral.',
+      activity_type: 'ai_chat',
+      activity_content: 'Explica tu decisión, la razón principal y su impacto.',
+      activity_config: null,
+      ai_prompts: JSON.stringify([
+        '¿Qué información verificarías antes de decidir?',
+      ]),
+    })
+
+    expect(payload.activity_schema_version).toBe(2)
+    expect(payload.activity_config?.interactionType).toBe('soflia_dialogue')
+    if (payload.activity_config?.interactionType !== 'soflia_dialogue') {
+      throw new Error('Expected central SofLIA dialogue config')
+    }
+    expect(payload.activity_config.openingMessage).toContain(
+      'Practica una decisión del entorno laboral.',
+    )
+    expect(payload.activity_config.challengePrompts).toEqual([
+      '¿Qué información verificarías antes de decidir?',
+    ])
+  })
+
+  it('keeps ai_chat activities on the central runtime when they are edited', () => {
+    const payload = validateUpdateActivityPayload({
+      activity_title: 'Conversación editada',
+      activity_type: 'ai_chat',
+      activity_content: 'Analiza el caso y explica qué decisión tomarías.',
+      ai_prompts: '¿Qué riesgo considerarías primero?',
+    })
+
+    expect(payload.activity_schema_version).toBe(2)
+    expect(payload.activity_config?.interactionType).toBe('soflia_dialogue')
+  })
+
   it('rejects mismatched external tool keys', () => {
     expect(() =>
       validateUpdateActivityPayload({

@@ -12,6 +12,7 @@ import type {
   ForensicEventType,
   ForensicEventTypeCount,
 } from '@/features/admin/services/user-forensics/user-forensics.types'
+import { ContentBreadcrumb } from './ContentBreadcrumb'
 import {
   FORENSIC_EVENT_TYPE_META,
   forensicEventTypeLabelKey,
@@ -98,6 +99,7 @@ export function AuditTimeline({ userId, events, eventTypeCounts, zone }: AuditTi
                         {formatForensicTimestamp(event.atUtc, zone)}
                       </span>
                     </div>
+                    <ContentBreadcrumb context={event.context} />
                     {event.detail ? (
                       <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{event.detail}</p>
                     ) : null}

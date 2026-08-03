@@ -12,12 +12,8 @@ import { LessonFeedbackAndNavigation } from "./activities-content/LessonFeedback
 import { MaterialListSection } from "./activities-content/MaterialListSection";
 import { useFocusedLessonContent } from "./activities-content/useFocusedLessonContent";
 import { useActivitiesData } from "./activities/useActivitiesData";
-import { extractPromptList } from "./activities/utils";
 import { QuizFeedbackInline, useQuizFeedback } from "./quiz-feedback";
-import type {
-  ActivitiesContentProps,
-  LearnActivity,
-} from "./activities-content/types";
+import type { ActivitiesContentProps } from "./activities-content/types";
 
 export function ActivitiesContent(props: ActivitiesContentProps) {
   const lia = useLiaCourse();
@@ -80,19 +76,6 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
     });
   }, [activePrompt, lia.courseContext, requestFeedback]);
 
-  const handleStartAiChat = useCallback((activity: LearnActivity, onDone: (id?: string | null) => void | Promise<void>) => {
-    lia.setActivity({
-      id: activity.activity_id,
-      title: activity.activity_title,
-      type: activity.activity_type,
-      description: activity.activity_description || "",
-      prompts: extractPromptList(activity.ai_prompts),
-      onUserMessageCompleted: onDone,
-      timestamp: Date.now(),
-    });
-    lia.openLia();
-  }, [lia]);
-
   const handleQuizSubmitted = useCallback(async () => {
     await data.refreshLessonContent();
     await props.onQuizSubmitted?.();
@@ -111,7 +94,7 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
 
   return (
     <ActivitiesContentShell isRefreshing={data.isRefreshing} lessonTitle={props.lesson.lesson_title}>
-      <ActivityListSection data={data} lessonId={props.lesson.lesson_id} onQuizSubmitted={handleQuizSubmitted} onRequestQuizFeedback={requestQuizFeedback} onStartAiChat={handleStartAiChat} onTriggerLiaFeedback={requestQuizFeedback} slug={props.slug} />
+      <ActivityListSection data={data} lessonId={props.lesson.lesson_id} onQuizSubmitted={handleQuizSubmitted} onRequestQuizFeedback={requestQuizFeedback} onTriggerLiaFeedback={requestQuizFeedback} slug={props.slug} />
       <MaterialListSection data={data} lessonId={props.lesson.lesson_id} onQuizSubmitted={handleQuizSubmitted} onRequestQuizFeedback={requestQuizFeedback} slug={props.slug} />
       <QuizFeedbackInline
         content={quizFeedbackContent}
