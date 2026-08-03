@@ -1,10 +1,8 @@
 import { useCallback } from "react";
-import { buildCompletionDetailsText } from "./details-text";
 import { isAbortError, isNetworkError, warnInDevelopment } from "./error-utils";
-import { rollbackLessonCompletion, setLessonCompletionState } from "./lesson-state";
+import { setLessonCompletionState } from "./lesson-state";
 import { getUnknownErrorMessage, parseLessonProgressApiResponse } from "./parsers";
 import { handleProgressFailure } from "./progress-failure";
-import { checkLessonQuizStatus } from "./quiz-status";
 import { saveLessonProgress } from "./save-progress";
 import type { LearnTranslate, LessonProgressApiResponse, UseLessonCompletionParams, ValidationModalState } from "./types";
 
@@ -23,28 +21,18 @@ export function useLessonCompletionWorkflow(params: UseLessonCompletionWorkflowP
     setLessonCompletionState({ ...params, lessonId }, true);
 
     try {
-      const [quizStatus, saveResponse] = await Promise.all([
-        checkLessonQuizStatus({ slug, lessonId, organizationId, signal, t }),
-        saveLessonProgress({ slug, lessonId, organizationId, signal }),
-      ]);
+      // El POST es la unica fuente autoritativa: valida quizzes y actividades con
+      // las mismas filas que usa para completar la leccion. Antes se lanzaba en
+      // paralelo un GET de estado y, si ese GET veia un snapshot anterior, la UI
+      // mostraba 0/1 aunque este POST ya hubiera completado correctamente la leccion.
+      const saveResponse = await saveLessonProgress({
+        slug,
+        lessonId,
+        organizationId,
+        signal,
+      });
 
       if (signal?.aborted) return true;
-
-      if (!quizStatus.canComplete) {
-        rollbackLessonCompletion({ ...params, lessonId });
-        openValidationModal({
-          title: t("modals.activityRequired.title"),
-          message:
-            quizStatus.details?.message ||
-            quizStatus.error ||
-            t("modals.activityRequired.messageFallback"),
-          details: buildCompletionDetailsText(quizStatus.details, t),
-          type: "activity",
-          lessonId,
-          redirectTab: "activities",
-        });
-        return false;
-      }
 
       let responseData: LessonProgressApiResponse = {};
       try {

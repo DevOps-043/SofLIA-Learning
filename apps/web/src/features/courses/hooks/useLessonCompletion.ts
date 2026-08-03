@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
-import { checkLessonQuizStatus } from "./useLessonCompletion/quiz-status";
 import type {
   UseLessonCompletionParams,
   ValidationModalState,
@@ -34,18 +33,6 @@ export function useLessonCompletion(params: UseLessonCompletionParams) {
     []
   );
 
-  const checkQuizStatus = useCallback(
-    (lessonId: string, signal?: AbortSignal) =>
-      checkLessonQuizStatus({
-        slug: params.slug,
-        lessonId,
-        organizationId,
-        signal,
-        t,
-      }),
-    [organizationId, params.slug, t]
-  );
-
   const markLessonAsCompleted = useLessonCompletionWorkflow({
     ...params,
     organizationId,
@@ -54,7 +41,6 @@ export function useLessonCompletion(params: UseLessonCompletionParams) {
   });
 
   return {
-    checkQuizStatus,
     markLessonAsCompleted,
     openValidationModal,
     validationModal,

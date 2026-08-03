@@ -1,7 +1,6 @@
 import type {
   LessonCompletionDetails,
   LessonProgressApiResponse,
-  QuizStatusApiResponse,
 } from "./types";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -18,23 +17,6 @@ export function getUnknownErrorMessage(error: unknown): string | undefined {
   return isRecord(error) && typeof error.message === "string"
     ? error.message
     : undefined;
-}
-
-export function parseQuizStatusApiResponse(value: unknown): QuizStatusApiResponse {
-  if (!isRecord(value)) {
-    return {};
-  }
-
-  return {
-    hasRequiredQuizzes:
-      typeof value.hasRequiredQuizzes === "boolean" ? value.hasRequiredQuizzes : undefined,
-    allQuizzesPassed:
-      typeof value.allQuizzesPassed === "boolean" ? value.allQuizzesPassed : undefined,
-    totalRequiredQuizzes:
-      typeof value.totalRequiredQuizzes === "number" ? value.totalRequiredQuizzes : undefined,
-    passedQuizzes:
-      typeof value.passedQuizzes === "number" ? value.passedQuizzes : undefined,
-  };
 }
 
 export function parseLessonCompletionDetails(

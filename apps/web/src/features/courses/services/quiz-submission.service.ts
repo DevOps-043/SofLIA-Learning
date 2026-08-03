@@ -4,6 +4,7 @@ export type QuizSubmissionAnswers = Record<string, QuizSubmissionAnswerValue>;
 
 export interface QuizSubmissionSnapshot {
   completedAt: string | null;
+  pointsEarned?: number;
   score: number;
   submissionId: string;
   userAnswers: QuizSubmissionAnswers;
@@ -11,6 +12,7 @@ export interface QuizSubmissionSnapshot {
 
 interface BuildQuizSubmissionSnapshotInput {
   completedAt?: string | null;
+  pointsEarned?: number | null;
   score?: number | null;
   submissionId?: string | null;
   userAnswers?: unknown;
@@ -44,6 +46,7 @@ export function parseQuizSubmissionAnswers(
 
 export function buildQuizSubmissionSnapshot({
   completedAt,
+  pointsEarned,
   score,
   submissionId,
   userAnswers,
@@ -54,6 +57,7 @@ export function buildQuizSubmissionSnapshot({
 
   return {
     completedAt: typeof completedAt === "string" ? completedAt : null,
+    ...(typeof pointsEarned === "number" ? { pointsEarned } : {}),
     score: typeof score === "number" ? score : 0,
     submissionId,
     userAnswers: parseQuizSubmissionAnswers(userAnswers),

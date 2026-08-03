@@ -28,7 +28,7 @@ export function buildHydratedQuizState(
 
   return {
     hydratedSubmissionKey: getLatestSubmissionKey(quizStatusItem),
-    pointsEarned: results.pointsEarned,
+    pointsEarned: latestSubmission.pointsEarned ?? results.pointsEarned,
     score: latestSubmission.score,
     selectedAnswers,
     showResults: true,

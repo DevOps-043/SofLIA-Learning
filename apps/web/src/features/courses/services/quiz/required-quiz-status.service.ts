@@ -2,6 +2,8 @@ import type { createAdminClient } from '@/lib/supabase/admin'
 import type { createClient } from '@/lib/supabase/server'
 
 import { buildQuizSubmissionSnapshot } from '../quiz-submission.service'
+import { parseQuizSubmissionAnswers } from '../quiz-submission.service'
+import { gradeQuiz, resolveGradableQuizQuestions } from './grade-quiz.service'
 
 type SupabaseServerClient =
   | Awaited<ReturnType<typeof createClient>>
@@ -11,6 +13,7 @@ export type RequiredQuizType = 'material' | 'activity'
 
 export interface RequiredQuizResource {
   id: string
+  rawContent?: unknown
   title: string | null
   type: RequiredQuizType
   isRequired?: boolean | null
@@ -49,11 +52,13 @@ export interface RequiredQuizStatus {
 }
 
 export interface RequiredQuizMaterialRow {
+  content_data?: unknown
   material_id: string
   material_title: string | null
 }
 
 export interface RequiredQuizActivityRow {
+  activity_content?: unknown
   activity_id: string
   activity_title: string | null
   is_required?: boolean | null
@@ -75,11 +80,13 @@ export function toRequiredQuizResources(input: {
   return [
     ...input.materialQuizzes.map((quiz) => ({
       id: quiz.material_id,
+      rawContent: quiz.content_data,
       title: quiz.material_title,
       type: 'material' as const,
     })),
     ...input.activityQuizzes.map((quiz) => ({
       id: quiz.activity_id,
+      rawContent: quiz.activity_content,
       title: quiz.activity_title,
       type: 'activity' as const,
       isRequired: quiz.is_required,
@@ -96,6 +103,21 @@ function findSubmissionForQuiz(
       ? submission.material_id === quiz.id
       : submission.activity_id === quiz.id,
   )
+}
+
+function resolvePersistedPointsEarned(
+  quiz: RequiredQuizResource,
+  submission: RequiredQuizSubmission | undefined,
+) {
+  if (!submission || quiz.rawContent === undefined) return undefined
+
+  const questions = resolveGradableQuizQuestions(quiz.rawContent)
+  if (questions.length === 0) return undefined
+
+  return gradeQuiz(
+    questions,
+    parseQuizSubmissionAnswers(submission.user_answers),
+  ).pointsEarned
 }
 
 export function buildRequiredQuizStatus(input: {
@@ -119,6 +141,7 @@ export function buildRequiredQuizStatus(input: {
       isPassed: submission?.is_passed || false,
       latestSubmission: buildQuizSubmissionSnapshot({
         completedAt: submission?.completed_at,
+        pointsEarned: resolvePersistedPointsEarned(quiz, submission),
         score: submission?.score,
         submissionId: submission?.submission_id,
         userAnswers: submission?.user_answers,
@@ -152,13 +175,13 @@ export async function fetchRequiredLessonQuizStatus(
   const [materialQuizzesResult, activityQuizzesResult] = await Promise.all([
     supabase
       .from('lesson_materials')
-      .select('material_id, material_title')
+      .select('material_id, material_title, content_data')
       .eq('lesson_id', input.lessonId)
       .eq('material_type', 'quiz')
       .returns<RequiredQuizMaterialRow[]>(),
     supabase
       .from('lesson_activities')
-      .select('activity_id, activity_title, is_required')
+      .select('activity_id, activity_title, is_required, activity_content')
       .eq('lesson_id', input.lessonId)
       .eq('activity_type', 'quiz')
       .eq('is_required', true)

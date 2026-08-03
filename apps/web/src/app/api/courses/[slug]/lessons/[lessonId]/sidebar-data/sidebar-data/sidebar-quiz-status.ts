@@ -44,10 +44,12 @@ export async function buildQuizStatus(
     quizzes: toRequiredQuizResources({
       activityQuizzes: data.activityQuizzes.map((quiz) => ({
         activity_id: quiz.activity_id,
+        activity_content: quiz.activity_content,
         activity_title: quiz.activity_title,
         is_required: quiz.is_required,
       })),
       materialQuizzes: data.materialQuizzes.map((quiz) => ({
+        content_data: quiz.content_data,
         material_id: quiz.material_id,
         material_title: quiz.material_title,
       })),

@@ -127,4 +127,50 @@ describe('buildRequiredQuizStatus', () => {
       percentage: 70,
     })
   })
+
+  it('rehydrates earned points on the server without exposing the answer key', () => {
+    const status = buildRequiredQuizStatus({
+      quizzes: [
+        {
+          id: 'weighted-quiz',
+          title: 'Quiz ponderado',
+          type: 'material',
+          rawContent: {
+            questions: [
+              {
+                id: 'q1',
+                question: 'Primera',
+                options: ['A', 'B'],
+                correctAnswer: 'A',
+                points: 2,
+              },
+              {
+                id: 'q2',
+                question: 'Segunda',
+                options: ['A', 'B'],
+                correctAnswer: 'B',
+                points: 1,
+              },
+            ],
+          },
+        },
+      ],
+      submissions: [
+        {
+          completed_at: '2026-08-03T20:25:53.000Z',
+          is_passed: true,
+          material_id: 'weighted-quiz',
+          percentage_score: 100,
+          score: 2,
+          submission_id: 'submission-weighted',
+          user_answers: { q1: 'A', q2: 'B' },
+        },
+      ],
+    })
+
+    expect(status.quizzes[0]?.latestSubmission).toMatchObject({
+      pointsEarned: 3,
+      score: 2,
+    })
+  })
 })

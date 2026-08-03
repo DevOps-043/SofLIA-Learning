@@ -26,19 +26,6 @@ export interface LessonCompletionDetails {
   message: string;
 }
 
-export interface QuizStatusResult {
-  canComplete: boolean;
-  error?: string;
-  details?: LessonCompletionDetails;
-}
-
-export interface QuizStatusApiResponse {
-  hasRequiredQuizzes?: boolean;
-  allQuizzesPassed?: boolean;
-  totalRequiredQuizzes?: number;
-  passedQuizzes?: number;
-}
-
 export interface LessonProgressApiResponse {
   code?: string;
   error?: string;
