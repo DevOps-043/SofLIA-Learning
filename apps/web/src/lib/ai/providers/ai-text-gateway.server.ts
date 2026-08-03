@@ -20,7 +20,10 @@ import {
   getGeminiApiKey,
   streamGoogleText,
 } from './google.adapter.server'
-import { getOpenAiApiKey } from './openai-client.server'
+import {
+  getOpenAiApiKey,
+  getOpenAiCredentialIssue,
+} from './openai-client.server'
 import { generateOpenAiText, streamOpenAiText } from './openai.adapter.server'
 import { inferAiProvider, type AiProvider } from './provider-registry'
 import {
@@ -66,9 +69,21 @@ const CREDENTIAL_READERS: Record<AiProvider, () => string | null> = {
   openai: getOpenAiApiKey,
 }
 
+/**
+ * Diagnostico seguro de credenciales: solo devuelve nombres/codigos, nunca el
+ * valor del secreto. Detecta tambien el typo `OPENAI_APY_KEY` observado en
+ * configuraciones reales; no se acepta como alias para evitar perpetuarlo.
+ */
+export function describeAiProviderCredentialIssue(provider: AiProvider): string | null {
+  if (provider === 'openai') return getOpenAiCredentialIssue()
+  if (CREDENTIAL_READERS[provider]()) return null
+
+  return `AI_API_KEY_MISSING:${provider}`
+}
+
 /** `true` cuando el proveedor tiene credenciales configuradas en el entorno. */
 export function hasAiProviderCredentials(provider: AiProvider): boolean {
-  return Boolean(CREDENTIAL_READERS[provider]())
+  return describeAiProviderCredentialIssue(provider) === null
 }
 
 /**

@@ -471,7 +471,7 @@ async function handlePost(
       return apiError(
         'AI_PROVIDER_KEY_MISSING',
         'El proveedor de IA configurado no tiene credenciales',
-        500,
+        503,
       );
     }
 

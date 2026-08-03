@@ -25,6 +25,8 @@ export interface AiProviderMetadata {
   tokensUsed?: number
 }
 
+export const AI_PROVIDER_KEY_MISSING_ERROR = 'AI_PROVIDER_KEY_MISSING'
+
 export async function callGemini(
   message: string,
   systemPrompt: string,
@@ -36,7 +38,7 @@ export async function callGemini(
   // la de Gemini: si un administrador cambia SofLIA a un modelo de OpenAI, la
   // clave que debe existir es la de OpenAI.
   if (!(await isAiPurposeAvailable('lia_general'))) {
-    throw new Error('AI provider API key not configured')
+    throw new Error(AI_PROVIDER_KEY_MISSING_ERROR)
   }
 
   const history: AiTurn[] = conversationHistory

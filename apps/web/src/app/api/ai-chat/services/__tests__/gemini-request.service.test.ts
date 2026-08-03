@@ -1,30 +1,24 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { generateAiChatResponse, shouldUseGeminiForContext } from '../gemini-request.service'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { generateAiChatResponse } from '../gemini-request.service'
 import {
+  AI_PROVIDER_KEY_MISSING_ERROR,
   callGemini,
   generateAIResponse,
 } from '../../ai-provider.service'
 
 vi.mock('../../ai-provider.service', () => ({
+  AI_PROVIDER_KEY_MISSING_ERROR: 'AI_PROVIDER_KEY_MISSING',
   callGemini: vi.fn(),
   generateAIResponse: vi.fn(),
 }))
 
 describe('gemini-request.service', () => {
-  const originalEnv = { ...process.env }
-
   beforeEach(() => {
     vi.clearAllMocks()
-    process.env = { ...originalEnv }
   })
 
-  afterEach(() => {
-    process.env = { ...originalEnv }
-  })
-
-  it('uses Gemini for any chat context when Gemini is configured', async () => {
-    process.env.GOOGLE_API_KEY = 'google-key'
-    vi.mocked(callGemini).mockResolvedValue({ response: 'respuesta gemini' })
+  it('uses the configured AI provider without depending on a Google key', async () => {
+    vi.mocked(callGemini).mockResolvedValue({ response: 'respuesta del proveedor' })
 
     const result = await generateAiChatResponse({
       message: 'hola',
@@ -38,31 +32,10 @@ describe('gemini-request.service', () => {
     })
 
     expect(callGemini).toHaveBeenCalledOnce()
-    expect(result.response).toBe('respuesta gemini')
-  })
-
-  it('falls back when Gemini is not configured', async () => {
-    delete process.env.GOOGLE_API_KEY
-    delete process.env.GEMINI_API_KEY
-    vi.mocked(generateAIResponse).mockReturnValue('respuesta fallback')
-
-    const result = await generateAiChatResponse({
-      message: 'hola',
-      context: 'general',
-      language: 'es',
-      contextPrompt: 'prompt',
-      conversationHistory: [],
-      userId: null,
-      isSystemMessage: false,
-      hasCourseContext: false,
-    })
-
-    expect(generateAIResponse).toHaveBeenCalledOnce()
-    expect(result.response).toBe('respuesta fallback')
+    expect(result.response).toBe('respuesta del proveedor')
   })
 
   it('uses fallback when provider request throws', async () => {
-    process.env.GOOGLE_API_KEY = 'google-key'
     vi.mocked(callGemini).mockRejectedValue(new Error('provider error'))
     vi.mocked(generateAIResponse).mockReturnValue('respuesta fallback')
 
@@ -82,10 +55,20 @@ describe('gemini-request.service', () => {
     expect(result.response).toBe('respuesta fallback')
   })
 
-  it('uses Gemini for every context when an API key exists', () => {
-    expect(shouldUseGeminiForContext('course_lesson', 'google-key')).toBe(true)
-    expect(shouldUseGeminiForContext('onboarding', 'google-key')).toBe(true)
-    expect(shouldUseGeminiForContext('general', 'google-key')).toBe(true)
-    expect(shouldUseGeminiForContext('course_lesson', '')).toBe(false)
+  it('does not disguise a missing provider credential as a model response', async () => {
+    vi.mocked(callGemini).mockRejectedValue(new Error(AI_PROVIDER_KEY_MISSING_ERROR))
+
+    await expect(generateAiChatResponse({
+      message: 'hola',
+      context: 'general',
+      language: 'es',
+      contextPrompt: 'prompt',
+      conversationHistory: [],
+      userId: null,
+      isSystemMessage: false,
+      hasCourseContext: false,
+    })).rejects.toThrow(AI_PROVIDER_KEY_MISSING_ERROR)
+
+    expect(generateAIResponse).not.toHaveBeenCalled()
   })
 })

@@ -4,8 +4,8 @@ import { ServiceStatus, StatusErrorClassification } from '@aprende-y-aplica/shar
 
 import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import {
+  describeAiProviderCredentialIssue,
   generateAiText,
-  hasAiProviderCredentials,
 } from '@/lib/ai/providers/ai-text-gateway.server'
 import type { AiProvider } from '@/lib/ai/providers/provider-registry'
 import {
@@ -29,6 +29,10 @@ import { extractErrorMessage, type StatusCheckResult } from './types'
 const STATUS_CHECK_CIRCUIT_BREAKER_NAME = 'ai-status-check'
 const AI_CHECK_TIMEOUT_MS = 8_000
 const AI_DEGRADED_LATENCY_MS = 5_000
+// OpenAI Responses rechaza presupuestos inferiores a 16 tokens. Usar el mismo
+// minimo para ambos adaptadores mantiene barata la sonda sin convertir una
+// credencial valida en un falso DOWN por una peticion invalida.
+export const AI_STATUS_CHECK_MAX_OUTPUT_TOKENS = 16
 
 /**
  * Prefijos de los breakers de producción por proveedor. Se comprueban para
@@ -60,12 +64,13 @@ export async function checkGeminiStatus(): Promise<StatusCheckResult> {
   // Nunca lanza: degrada a entorno/defaults si la base falla.
   const settings = await getAiModelSettings('lia_general')
 
-  if (!hasAiProviderCredentials(settings.provider)) {
+  const credentialIssue = describeAiProviderCredentialIssue(settings.provider)
+  if (credentialIssue) {
     return {
       status: ServiceStatus.DOWN,
       latencyMs: 0,
-      errorClassification: StatusErrorClassification.GENERIC_OUTAGE,
-      errorDetail: `AI_API_KEY_MISSING:${settings.provider}`,
+      errorClassification: StatusErrorClassification.AUTH_FAILURE,
+      errorDetail: credentialIssue,
     }
   }
 
@@ -82,7 +87,7 @@ export async function checkGeminiStatus(): Promise<StatusCheckResult> {
   try {
     await generateAiText({
       circuitBreakerName: STATUS_CHECK_CIRCUIT_BREAKER_NAME,
-      maxOutputTokens: 1,
+      maxOutputTokens: AI_STATUS_CHECK_MAX_OUTPUT_TOKENS,
       model: settings.model,
       prompt: 'ping',
       provider: settings.provider,

@@ -23,6 +23,7 @@ import { buildAiChatContext } from './services/chat-context-builder.service'
 import { persistAiChatHistory } from './services/chat-history.service'
 import { resolveChatUserContext } from './services/chat-user-context.service'
 import { generateAiChatResponse } from './services/gemini-request.service'
+import { AI_PROVIDER_KEY_MISSING_ERROR } from './ai-provider.service'
 import { normalizeAiChatRequest, resolveRequestLanguage, type AiChatRequestBody } from './services/request-normalization.service'
 import { aiChatRequestSchema } from './services/request-normalization.schema'
 
@@ -212,6 +213,17 @@ async function handlePost(
     })
   } catch (error) {
     logger.error('Error en API de chat:', error)
+    if (
+      error instanceof Error &&
+      error.message === AI_PROVIDER_KEY_MISSING_ERROR
+    ) {
+      return apiError(
+        'AI_PROVIDER_KEY_MISSING',
+        'El proveedor de IA configurado no tiene credenciales',
+        503,
+      )
+    }
+
     return apiError('AI_CHAT_INTERNAL_ERROR', 'Error interno del servidor', 500)
   }
 }

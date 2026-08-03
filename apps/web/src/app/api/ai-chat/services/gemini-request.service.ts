@@ -1,4 +1,5 @@
 import {
+  AI_PROVIDER_KEY_MISSING_ERROR,
   callGemini,
   generateAIResponse,
 } from '../ai-provider.service'
@@ -40,13 +41,6 @@ function resolveAssistantLanguage(
   return language
 }
 
-export function shouldUseGeminiForContext(
-  _context: string,
-  googleApiKey?: string,
-) {
-  return Boolean(googleApiKey)
-}
-
 export async function generateAiChatResponse({
   message,
   context,
@@ -56,24 +50,7 @@ export async function generateAiChatResponse({
   userId,
   isSystemMessage,
 }: GenerateAiChatResponseParams): Promise<GenerateAiChatResponseResult> {
-  const googleApiKey = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY
   const assistantLanguage = resolveAssistantLanguage(context, language)
-
-  if (!shouldUseGeminiForContext(context, googleApiKey)) {
-    logger.warn('No hay GEMINI_API_KEY configurada, usando fallback')
-
-    return {
-      response: sanitizeAssistantResponse(
-        generateAIResponse(
-          message,
-          context,
-          conversationHistory,
-          contextPrompt,
-          assistantLanguage,
-        ),
-      ),
-    }
-  }
 
   try {
     const startedAt = Date.now()
@@ -97,6 +74,16 @@ export async function generateAiChatResponse({
           },
     }
   } catch (error) {
+    // Una credencial ausente no es una degradacion del proveedor. Devolver aqui
+    // la respuesta local haria creer al usuario que el modelo configurado
+    // respondio, justo cuando nunca se realizo ninguna llamada externa.
+    if (
+      error instanceof Error
+      && error.message === AI_PROVIDER_KEY_MISSING_ERROR
+    ) {
+      throw error
+    }
+
     logger.error('Error con proveedor de IA, usando fallback:', error)
 
     return {

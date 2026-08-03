@@ -419,6 +419,7 @@ GEMINI_API_KEY=
 OPENAI_API_KEY=          # Proveedor OpenAI (nunca NEXT_PUBLIC_*)
 OPENAI_ORGANIZATION=     # Opcional: imputa el consumo a una organizacion
 OPENAI_PROJECT=          # Opcional: imputa el consumo a un proyecto
+OPENAI_ALLOW_NETLIFY_AI_GATEWAY=false # Opt-in; por defecto se exige una clave propia de OpenAI
 USER_JWT_SECRET=
 ```
 

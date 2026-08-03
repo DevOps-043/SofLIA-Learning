@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
@@ -9,7 +9,11 @@ import {
   ExternalHttpError,
   OperationTimeoutError,
 } from '@/lib/resilience/circuit-breaker'
-import { classifyGeminiError } from '../gemini.checker'
+import {
+  AI_STATUS_CHECK_MAX_OUTPUT_TOKENS,
+  classifyGeminiError,
+} from '../gemini.checker'
+import { describeAiProviderCredentialIssue } from '@/lib/ai/providers/ai-text-gateway.server'
 
 // Shape thrown by @google/generative-ai (GoogleGenerativeAIFetchError): carries a
 // numeric `status` field and embeds the code + API reason in the message.
@@ -20,6 +24,65 @@ function sdkFetchError(status: number, message: string): Error {
 }
 
 describe('classifyGeminiError', () => {
+  const originalOpenAiApiKey = process.env.OPENAI_API_KEY
+  const originalMisspelledOpenAiApiKey = process.env.OPENAI_APY_KEY
+  const originalOpenAiBaseUrl = process.env.OPENAI_BASE_URL
+  const originalNetlifyGatewayBaseUrl = process.env.NETLIFY_AI_GATEWAY_BASE_URL
+  const originalAllowNetlifyGateway = process.env.OPENAI_ALLOW_NETLIFY_AI_GATEWAY
+
+  afterEach(() => {
+    if (originalOpenAiApiKey === undefined) delete process.env.OPENAI_API_KEY
+    else process.env.OPENAI_API_KEY = originalOpenAiApiKey
+
+    if (originalMisspelledOpenAiApiKey === undefined) delete process.env.OPENAI_APY_KEY
+    else process.env.OPENAI_APY_KEY = originalMisspelledOpenAiApiKey
+
+    if (originalOpenAiBaseUrl === undefined) delete process.env.OPENAI_BASE_URL
+    else process.env.OPENAI_BASE_URL = originalOpenAiBaseUrl
+
+    if (originalNetlifyGatewayBaseUrl === undefined) delete process.env.NETLIFY_AI_GATEWAY_BASE_URL
+    else process.env.NETLIFY_AI_GATEWAY_BASE_URL = originalNetlifyGatewayBaseUrl
+
+    if (originalAllowNetlifyGateway === undefined) delete process.env.OPENAI_ALLOW_NETLIFY_AI_GATEWAY
+    else process.env.OPENAI_ALLOW_NETLIFY_AI_GATEWAY = originalAllowNetlifyGateway
+  })
+
+  it('uses a probe budget accepted by OpenAI Responses', () => {
+    expect(AI_STATUS_CHECK_MAX_OUTPUT_TOKENS).toBeGreaterThanOrEqual(16)
+  })
+
+  it('reports the OPENAI_APY_KEY typo without accepting it as a credential', () => {
+    delete process.env.OPENAI_API_KEY
+    delete process.env.OPENAI_BASE_URL
+    delete process.env.NETLIFY_AI_GATEWAY_BASE_URL
+    process.env.OPENAI_APY_KEY = 'configured-but-misnamed'
+
+    expect(describeAiProviderCredentialIssue('openai')).toBe(
+      'AI_API_KEY_MISNAMED:OPENAI_APY_KEY->OPENAI_API_KEY',
+    )
+  })
+
+  it('rejects the automatically injected Netlify AI Gateway credential by default', () => {
+    process.env.OPENAI_API_KEY = 'netlify-generated-key'
+    process.env.OPENAI_BASE_URL = 'https://ai-gateway.netlify.example/openai'
+    process.env.NETLIFY_AI_GATEWAY_BASE_URL = 'https://ai-gateway.netlify.example'
+    delete process.env.OPENAI_APY_KEY
+    delete process.env.OPENAI_ALLOW_NETLIFY_AI_GATEWAY
+
+    expect(describeAiProviderCredentialIssue('openai')).toBe(
+      'AI_CREDENTIAL_SOURCE_BLOCKED:NETLIFY_AI_GATEWAY',
+    )
+  })
+
+  it('allows Netlify AI Gateway only with an explicit opt-in', () => {
+    process.env.OPENAI_API_KEY = 'netlify-generated-key'
+    process.env.OPENAI_BASE_URL = 'https://ai-gateway.netlify.example/openai'
+    process.env.NETLIFY_AI_GATEWAY_BASE_URL = 'https://ai-gateway.netlify.example'
+    process.env.OPENAI_ALLOW_NETLIFY_AI_GATEWAY = 'true'
+
+    expect(describeAiProviderCredentialIssue('openai')).toBeNull()
+  })
+
   it('classifies 429 RESOURCE_EXHAUSTED (quota/billing exhausted) as BILLING_QUOTA + DOWN', () => {
     const error = sdkFetchError(
       429,

@@ -18,8 +18,49 @@ import OpenAI from 'openai'
 let client: OpenAI | null = null
 let clientApiKey: string | null = null
 
+function isEnabled(value: string | undefined): boolean {
+  return value?.trim().toLowerCase() === 'true'
+}
+
+/**
+ * Netlify AI Gateway inyecta silenciosamente `OPENAI_API_KEY` y
+ * `OPENAI_BASE_URL` en Functions de planes basados en creditos. Detectarlo evita
+ * confundir esa credencial de Netlify con una clave propia de OpenAI.
+ */
+export function isNetlifyAiGatewayActiveForOpenAi(): boolean {
+  const openAiBaseUrl = process.env.OPENAI_BASE_URL?.trim()
+  const netlifyGatewayBaseUrl = process.env.NETLIFY_AI_GATEWAY_BASE_URL?.trim()
+  if (!openAiBaseUrl) return false
+
+  return Boolean(
+    (netlifyGatewayBaseUrl && openAiBaseUrl.startsWith(netlifyGatewayBaseUrl))
+    || /netlify/i.test(openAiBaseUrl),
+  )
+}
+
+export function getOpenAiCredentialIssue(): string | null {
+  const hasApiKey = Boolean(process.env.OPENAI_API_KEY?.trim())
+  const gatewayActive = hasApiKey && isNetlifyAiGatewayActiveForOpenAi()
+
+  if (gatewayActive && !isEnabled(process.env.OPENAI_ALLOW_NETLIFY_AI_GATEWAY)) {
+    return process.env.OPENAI_APY_KEY?.trim()
+      ? 'AI_CREDENTIAL_SOURCE_BLOCKED:NETLIFY_AI_GATEWAY;AI_API_KEY_MISNAMED:OPENAI_APY_KEY->OPENAI_API_KEY'
+      : 'AI_CREDENTIAL_SOURCE_BLOCKED:NETLIFY_AI_GATEWAY'
+  }
+
+  if (hasApiKey) return null
+
+  if (process.env.OPENAI_APY_KEY?.trim()) {
+    return 'AI_API_KEY_MISNAMED:OPENAI_APY_KEY->OPENAI_API_KEY'
+  }
+
+  return 'AI_API_KEY_MISSING:openai'
+}
+
 export function getOpenAiApiKey(): string | null {
-  return process.env.OPENAI_API_KEY?.trim() || null
+  return getOpenAiCredentialIssue() === null
+    ? process.env.OPENAI_API_KEY?.trim() || null
+    : null
 }
 
 /**
@@ -30,7 +71,7 @@ export function getOpenAiApiKey(): string | null {
 export function getOpenAiClient(): OpenAI {
   const apiKey = getOpenAiApiKey()
   if (!apiKey) {
-    throw new Error('OPENAI_API_KEY no esta configurada')
+    throw new Error(getOpenAiCredentialIssue() ?? 'OPENAI_API_KEY no esta configurada')
   }
 
   // Si la clave cambia en caliente (rotación en el entorno) se reconstruye el
