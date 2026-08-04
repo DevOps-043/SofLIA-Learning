@@ -8,6 +8,8 @@ import {
   synthesizeSpeech,
   TTS_PROVIDER_NAME,
 } from '../server.service';
+import { DEFAULT_TTS_LANGUAGE } from '../shared';
+import { normalizeTextForSpeech } from '../tts-text-normalization';
 import { buildTTSCacheKey, getCachedAudio, putCachedAudio } from './tts-cache.service';
 
 export type TTSCacheStatus = 'hit' | 'miss' | 'bypass';
@@ -73,8 +75,20 @@ export async function resolveTTSAudio(
     };
   }
 
-  const cacheKey = isCacheableContext(payload.context)
-    ? buildTTSCacheKey(resolveTTSCacheDescriptor(payload), payload.text)
+  // Punto ÚNICO de normalización de pronunciación: aquí pasan todas las
+  // superficies que locutan (chat en streaming, onboarding y lecturas), así que
+  // ningún cliente puede saltársela ni divergir. La pregeneración de lecturas ya
+  // normaliza antes para derivar su clave de almacenamiento; volver a aplicarla
+  // es un no-op porque `normalizeTextForSpeech` es idempotente.
+  const spokenPayload: TextToSpeechRequestPayload = {
+    ...payload,
+    text: normalizeTextForSpeech(payload.text, payload.language ?? DEFAULT_TTS_LANGUAGE),
+  };
+
+  // La clave se deriva del texto YA normalizado: si no, dos textos que se
+  // locutan igual ocuparían dos entradas de caché distintas.
+  const cacheKey = isCacheableContext(spokenPayload.context)
+    ? buildTTSCacheKey(resolveTTSCacheDescriptor(spokenPayload), spokenPayload.text)
     : null;
 
   if (cacheKey) {
@@ -92,7 +106,7 @@ export async function resolveTTSAudio(
   let providerResponse: Response;
 
   try {
-    providerResponse = await synthesizeSpeech(payload);
+    providerResponse = await synthesizeSpeech(spokenPayload);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown provider error';
     logger.warn('TTS synthesis request failed', {

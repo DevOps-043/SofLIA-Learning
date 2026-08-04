@@ -11,6 +11,7 @@ import {
   nextStreamingChunkLength,
 } from '../../../services/tts/client/speech-chunker';
 import { LiaVoiceMetricsTracker } from '../../../services/lia-voice-metrics.client';
+import type { TTSLanguage } from '../../../services/tts/shared';
 import { cleanTextForLiaTTS } from '../services/lia-side-panel-voice.service';
 
 interface UseLiaSidePanelVoiceOptions {
@@ -18,7 +19,8 @@ interface UseLiaSidePanelVoiceOptions {
   isLoading: boolean;
   isOpen: boolean;
   isVoiceEnabled: boolean;
-  language: string;
+  /** Idioma de la respuesta; se declara al proveedor de voz como `language_code`. */
+  language: TTSLanguage;
   settings: SofLIAPersonalizationSettings | null | undefined;
 }
 
@@ -50,7 +52,7 @@ export function useLiaSidePanelVoice({
   isLoading,
   isOpen,
   isVoiceEnabled,
-  language: _language,
+  language,
   settings: _settings,
 }: UseLiaSidePanelVoiceOptions) {
   const [isSpeaking, setIsSpeaking] = useState(false);
@@ -189,6 +191,7 @@ export function useLiaSidePanelVoice({
         metricsTrackerRef.current.startTurn(lastMessage.clientTurnStartedAtMs);
         playerRef.current = new StreamingSpeechPlayer({
           onPlayingChange: handlePlayingChange,
+          language,
         });
         streamRef.current = {
           messageId: lastMessage.id,
@@ -250,7 +253,7 @@ export function useLiaSidePanelVoice({
       streamRef.current = { messageId: null, consumed: 0, queuedChunks: 0, startedChunks: 0 };
     }
     // Si no la presenciamos (saludo/historial/ya cerrada) → no se locuta/revela.
-  }, [messages, isLoading, isVoiceEnabled, enqueueWithReveal, handlePlayingChange]);
+  }, [messages, isLoading, isVoiceEnabled, enqueueWithReveal, handlePlayingChange, language]);
 
   // Activa los listeners de gesto que desbloquean el audio en iOS/WebKit ANTES de
   // que el usuario envíe su primer mensaje (ver `ios-audio-unlock`). Idempotente.

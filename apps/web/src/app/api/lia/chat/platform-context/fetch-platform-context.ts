@@ -3,13 +3,17 @@ import { createClient } from '@/lib/supabase/server'
 import type { ResolvedOrganizationContext } from '../organization-context.service'
 import { applyAssignedCoursesContext } from './assigned-courses'
 import type { PlatformContext } from './context.types'
-import {
-  applyResolvedOrganizationContext,
-  loadLatestUserOrganizationContext,
-} from './organization-context'
+import { applyResolvedOrganizationContext } from './organization-context'
 import { applyPlatformCounts } from './platform-counts'
 import { applyUserLearningContext } from './user-learning-context'
 
+/**
+ * El tenant lo resuelve SIEMPRE quien llama (`resolveActiveOrganizationContext`),
+ * que es el único punto con la información necesaria: la ruta activa, la
+ * organización pedida y el rol de plataforma. Aquí no se adivina ninguna
+ * organización de respaldo: un `organizationContext` nulo significa "sin
+ * empresa", no "usa cualquiera de las suyas".
+ */
 export async function fetchPlatformContext(params: {
   userId?: string
   organizationContext?: ResolvedOrganizationContext | null
@@ -19,11 +23,9 @@ export async function fetchPlatformContext(params: {
 
   try {
     const supabase = await createClient()
-    const effectiveOrganizationContext =
-      organizationContext || (userId ? await loadLatestUserOrganizationContext(userId) : null)
-    const organizationId = effectiveOrganizationContext?.organizationId ?? null
+    const organizationId = organizationContext?.organizationId ?? null
 
-    applyResolvedOrganizationContext(context, effectiveOrganizationContext)
+    applyResolvedOrganizationContext(context, organizationContext)
     await applyPlatformCounts(supabase, context)
 
     if (userId) {

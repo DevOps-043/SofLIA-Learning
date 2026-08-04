@@ -1,4 +1,3 @@
-export { getElevenLabsVoiceSettings } from './tts-voice-settings/elevenlabs'
 export { getWebSpeechVoiceSettings } from './tts-voice-settings/web-speech'
 export type {
   ElevenLabsVoiceSettings,

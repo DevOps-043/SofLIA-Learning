@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSofLIAPersonalization } from './useSofLIAPersonalization';
+import { useLanguage } from '../providers/I18nProvider';
 import { cleanTextForSpeech } from '../services/tts/client/clean-text';
 import { StreamingSpeechPlayer } from '../services/tts/client/streaming-speech-player';
 import { registerAudioUnlock } from '../services/tts/client/ios-audio-unlock';
@@ -50,6 +51,9 @@ export function useStreamingChatVoice({
 }: UseStreamingChatVoiceParams): UseStreamingChatVoiceReturn {
   const { settings } = useSofLIAPersonalization();
   const isVoiceEnabled = settings?.voice_enabled ?? true;
+  // El idioma de la interfaz es el de la respuesta: se declara al proveedor para
+  // que no lo autodetecte fragmento a fragmento.
+  const { language } = useLanguage();
 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceReveal, setVoiceReveal] =
@@ -230,6 +234,7 @@ export function useStreamingChatVoice({
       playerRef.current?.stop();
       playerRef.current = new StreamingSpeechPlayer({
         onPlayingChange: handlePlayingChange,
+        language,
       });
       stateRef.current = {
         messageId: lastMessage.id,
@@ -284,7 +289,7 @@ export function useStreamingChatVoice({
       metricsTrackerRef.current.flush('completed');
     }
     armedRef.current = false;
-  }, [messages, isLoading, isVoiceEnabled, enqueueWithReveal, handlePlayingChange]);
+  }, [messages, isLoading, isVoiceEnabled, enqueueWithReveal, handlePlayingChange, language]);
 
   return { armForNextResponse, stop, isSpeaking, voiceReveal };
 }

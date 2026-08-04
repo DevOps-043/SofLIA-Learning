@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { requireUser } from '@/lib/auth/requireUser';
 import { addRateLimitHeaders, checkRateLimit } from '../../../core/lib/rate-limit';
-import { MAX_TTS_TEXT_LENGTH } from '../../../core/services/tts/shared';
+import {
+  MAX_TTS_SPEED,
+  MAX_TTS_TEXT_LENGTH,
+  MIN_TTS_SPEED,
+  TTS_LANGUAGES,
+} from '../../../core/services/tts/shared';
 import { resolveTTSAudio } from '../../../core/services/tts/server/tts-synthesis.service';
 
 // La voz, el modelo y el formato de salida los decide el SERVIDOR: no son parte
@@ -14,11 +19,17 @@ const textToSpeechSchema = z.object({
   voiceSettings: z.object({
     stability: z.number().min(0).max(1),
     similarity_boost: z.number().min(0).max(1),
-    style: z.number().min(0).max(1),
-    use_speaker_boost: z.boolean(),
+    // Opcionales: los modelos en uso los ignoran (ver `ElevenLabsVoiceSettings`).
+    style: z.number().min(0).max(1).optional(),
+    use_speaker_boost: z.boolean().optional(),
   }).optional(),
-  speed: z.number().min(0.5).max(2).optional(),
+  // Rango impuesto por ElevenLabs: fuera de 0.7–1.2 el proveedor responde 400.
+  speed: z.number().min(MIN_TTS_SPEED).max(MAX_TTS_SPEED).optional(),
   context: z.enum(['chat', 'chat_continuation', 'reading', 'reading_continuation']).optional(),
+  language: z.enum(TTS_LANGUAGES).optional(),
+  // Solo contexto de prosodia: no se sintetiza, así que basta con acotarlo para
+  // que no infle el cuerpo de la petición.
+  previousText: z.string().trim().max(MAX_TTS_TEXT_LENGTH).optional(),
 });
 
 // Reading uses small chunks: una reflexión larga puede producir 20+ chunks en

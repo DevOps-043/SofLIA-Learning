@@ -5,6 +5,7 @@ import type {
   SofLIAPersonalizationSettings,
   SofLIAPersonalizationSettingsInput,
 } from '@/core/types/soflia-personalization.types';
+import type { SupportedLanguage } from '@/core/i18n/i18n';
 import { useLiaSidePanelDictation } from '../useLiaSidePanelDictation';
 import { useLiaSidePanelVoice } from '../useLiaSidePanelVoice';
 import { useLiaTurnVoice } from '../useLiaTurnVoice';
@@ -13,7 +14,11 @@ interface UseLiaSidePanelSpeechParams {
   messages: SofLIAMessage[];
   isLoading: boolean;
   isOpen: boolean;
-  language: string;
+  /**
+   * Idioma activo de la interfaz. Se tipa estrecho (no `string`) porque viaja
+   * hasta `language_code` del proveedor de voz, que solo admite este conjunto.
+   */
+  language: SupportedLanguage;
   pageContext: Record<string, unknown> | null;
   settings: SofLIAPersonalizationSettings | null | undefined;
   updateSettings: (input: SofLIAPersonalizationSettingsInput) => Promise<void>;

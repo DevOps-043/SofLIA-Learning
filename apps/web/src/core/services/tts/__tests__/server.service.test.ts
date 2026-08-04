@@ -61,8 +61,6 @@ describe('tts server service', () => {
         voiceSettings: {
           stability: 0.4,
           similarity_boost: 0.65,
-          style: 0.3,
-          use_speaker_boost: false,
         },
       })
 
@@ -104,6 +102,61 @@ describe('tts server service', () => {
       const calls = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls
       expect(JSON.parse((calls[0][1] as RequestInit).body as string).model_id).toBe('eleven_flash_v2_5')
       expect(JSON.parse((calls[1][1] as RequestInit).body as string).model_id).toBe(DEFAULT_ELEVENLABS_MODEL_ID)
+    })
+  })
+
+  describe('parametros de pronunciacion', () => {
+    async function captureBody(payload: Parameters<typeof synthesizeSpeech>[0]) {
+      process.env.ELEVENLABS_API_KEY = 'server-key'
+      global.fetch = vi.fn().mockResolvedValue(new Response()) as typeof fetch
+      await synthesizeSpeech(payload)
+      const [, init] = (global.fetch as unknown as ReturnType<typeof vi.fn>).mock.calls[0]
+      return JSON.parse((init as RequestInit).body as string)
+    }
+
+    /**
+     * Sin `language_code` los modelos v2.5 autodetectan el idioma en cada
+     * peticion; con los fragmentos de 8-40 caracteres del chat esa deteccion
+     * falla y la frase se locuta con fonetica de otro idioma.
+     */
+    it('declara siempre el idioma, con espanol por defecto', async () => {
+      expect((await captureBody({ text: 'Hola' })).language_code).toBe('es')
+      expect((await captureBody({ text: 'Hello', language: 'en' })).language_code).toBe('en')
+    })
+
+    it('activa la normalizacion de cifras, fechas y monedas', async () => {
+      expect((await captureBody({ text: 'Vas al 3,03 por ciento' })).apply_text_normalization).toBe('on')
+    })
+
+    /**
+     * En la raiz del cuerpo ElevenLabs acepta `speed` con 200 y lo ignora en
+     * silencio: solo surte efecto dentro de `voice_settings`.
+     */
+    it('envia speed dentro de voice_settings, nunca en la raiz', async () => {
+      const body = await captureBody({ text: 'Hola', speed: 1.1 })
+
+      expect(body.voice_settings.speed).toBe(1.1)
+      expect(body.speed).toBeUndefined()
+    })
+
+    /**
+     * Antes el chat no enviaba `voice_settings`, asi que la voz quedaba a merced
+     * de los ajustes guardados en el dashboard: configuracion fuera del repo que
+     * nadie versiona.
+     */
+    it('aplica ajustes de voz del servidor cuando el cliente no manda ninguno', async () => {
+      const body = await captureBody({ text: 'Hola', context: 'chat' })
+
+      expect(body.voice_settings.stability).toBe(0.5)
+      expect(body.voice_settings.similarity_boost).toBe(0.75)
+    })
+
+    it('adjunta el fragmento previo solo cuando existe', async () => {
+      const withPrevious = await captureBody({ text: 'Sigue asi.', previousText: 'Hola.' })
+      const withoutPrevious = await captureBody({ text: 'Hola.' })
+
+      expect(withPrevious.previous_text).toBe('Hola.')
+      expect('previous_text' in withoutPrevious).toBe(false)
     })
   })
 })

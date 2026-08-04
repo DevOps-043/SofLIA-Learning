@@ -30,21 +30,6 @@ export interface LessonProgressRow {
   } | null
 }
 
-export interface UserOrganizationRow {
-  job_title: string | null
-  job_description: string | null
-  organizations: {
-    id: string
-    name: string
-    slug: string
-    industry: string | null
-    company_size: string | null
-    company_type: string | null
-    company_mission: string | null
-    company_country: string | null
-  } | null
-}
-
 export interface UserProfileNameRow {
   first_name: string | null
   last_name: string | null

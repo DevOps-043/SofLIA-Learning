@@ -27,10 +27,7 @@ import {
   type ChatRequest,
   type PlatformContext,
 } from './platform-context.service';
-import {
-  resolveActiveOrganizationContext,
-  resolvePlatformAdminOrganizationContext,
-} from './organization-context.service';
+import { resolveChatOrganizationContext } from './organization-context.service';
 import { getLIASystemPrompt } from './system-prompt.service';
 import {
   buildFullContext,
@@ -75,10 +72,6 @@ import {
 } from './superadmin/actions';
 import { liaChatSchema, type LiaChatBody } from '../_schemas';
 import { SessionService } from '@/features/auth/services/session.service';
-import {
-  isOrganizationAdminPanelPage,
-  isPlatformAdminRole,
-} from './superadmin/authorization';
 
 type SecurityAssessment = ReturnType<typeof evaluatePromptInjectionRisk>;
 
@@ -523,26 +516,15 @@ async function handlePost(
     }
 
     // Build enriched context
-    let activeOrganizationContext = await resolveActiveOrganizationContext({
+    const activeOrganizationContext = await resolveChatOrganizationContext({
       userId: sanitizedRequestContext?.userId,
       requestedOrganizationId:
         typeof sanitizedRequestContext?.organizationId === 'string'
           ? sanitizedRequestContext.organizationId
           : undefined,
       currentPage: sanitizedRequestContext?.currentPage,
+      platformRole: sessionUser?.platform_role,
     });
-    if (
-      isPlatformAdminRole(sessionUser?.platform_role) &&
-      (!activeOrganizationContext ||
-        !isOrganizationAdminPanelPage(
-          sanitizedRequestContext?.currentPage,
-          activeOrganizationContext.organizationSlug,
-        ))
-    ) {
-      activeOrganizationContext = await resolvePlatformAdminOrganizationContext(
-        sanitizedRequestContext?.currentPage,
-      );
-    }
     if (sanitizedRequestContext && activeOrganizationContext) {
       // El tenant resuelto por el servidor prevalece sobre organizationId/slug
       // enviados por el cliente. Todo el turno (prompt, historial y acciones)

@@ -29,6 +29,7 @@ vi.mock('@/lib/supabase/admin', () => ({
 import {
   extractOrganizationSlugFromPage,
   resolveActiveOrganizationContext,
+  resolveChatOrganizationContext,
   resolvePlatformAdminOrganizationContext,
   type OrganizationContextRepository,
   type ResolvedOrganizationContext,
@@ -94,6 +95,27 @@ describe('organization-context.service', () => {
       'board-ready',
     )
     expect(repository.findMembershipByOrganizationId).not.toHaveBeenCalled()
+  })
+
+  it('no degrada a otra organización cuando la ruta fija un tenant sin membresía', async () => {
+    // Regresión: con este respaldo SofLIA afirmaba que el usuario pertenecía a
+    // otra de sus empresas mientras navegaba el panel de una distinta.
+    const repository = createRepositoryStub({
+      latest: {
+        organizationId: 'talen4all-id',
+        organizationName: 'Talen4All',
+        organizationSlug: 'talen4all',
+      },
+    })
+
+    const organizationContext = await resolveActiveOrganizationContext({
+      userId: 'user-1',
+      currentPage: '/board-ready/business-user/dashboard',
+      repository,
+    })
+
+    expect(organizationContext).toBeNull()
+    expect(repository.findLatestMembership).not.toHaveBeenCalled()
   })
 
   it('falls back to the explicitly requested organization id on non-org routes', async () => {
@@ -175,5 +197,76 @@ describe('organization-context.service', () => {
     expect(await resolvePlatformAdminOrganizationContext(
       '/acme/business-panel/hierarchy',
     )).toBeNull()
+  })
+})
+
+describe('resolveChatOrganizationContext', () => {
+  const sofliaMembership: ResolvedOrganizationContext = {
+    organizationId: 'soflia-id',
+    organizationName: 'SofLIA',
+    organizationSlug: 'soflia',
+    userJobTitle: 'Marketing',
+  }
+
+  it('conserva la membresía del superadmin fuera del business-panel', async () => {
+    // Regresión del fallo reportado: la lectura privilegiada solo cubre
+    // `/[slug]/business-panel`, y su null borraba la membresía correcta. El
+    // contexto caía entonces en otra empresa del propio superadmin.
+    const repository = createRepositoryStub({
+      bySlug: sofliaMembership,
+      latest: {
+        organizationId: 'talen4all-id',
+        organizationName: 'Talen4All',
+        organizationSlug: 'talen4all',
+      },
+    })
+
+    const organizationContext = await resolveChatOrganizationContext({
+      userId: 'user-1',
+      currentPage: '/soflia/business-user/dashboard',
+      platformRole: 'Administrador',
+      repository,
+    })
+
+    expect(organizationContext).toMatchObject({
+      organizationId: 'soflia-id',
+      organizationName: 'SofLIA',
+    })
+  })
+
+  it('usa la lectura privilegiada en el business-panel de una organización ajena', async () => {
+    const repository = createRepositoryStub()
+
+    const organizationContext = await resolveChatOrganizationContext({
+      userId: 'user-1',
+      currentPage: '/acme/business-panel/users',
+      platformRole: 'Administrador',
+      repository,
+    })
+
+    expect(organizationContext).toMatchObject({
+      organizationId: 'acme-id',
+      organizationSlug: 'acme',
+    })
+  })
+
+  it('no concede la lectura privilegiada a quien no es superadmin', async () => {
+    const repository = createRepositoryStub({
+      latest: {
+        organizationId: 'talen4all-id',
+        organizationName: 'Talen4All',
+        organizationSlug: 'talen4all',
+      },
+    })
+
+    const organizationContext = await resolveChatOrganizationContext({
+      userId: 'user-1',
+      currentPage: '/acme/business-panel/users',
+      platformRole: 'Usuario',
+      repository,
+    })
+
+    expect(organizationContext).toBeNull()
+    expect(repository.findLatestMembership).not.toHaveBeenCalled()
   })
 })

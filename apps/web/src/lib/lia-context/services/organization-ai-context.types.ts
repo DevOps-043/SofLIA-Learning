@@ -60,7 +60,7 @@ export interface OrganizationMembershipQueryBuilder
   ) => OrganizationMembershipQueryBuilder
   order: (
     column: string,
-    options: { ascending: boolean },
+    options: { ascending: boolean; nullsFirst?: boolean },
   ) => OrganizationMembershipQueryBuilder
   limit: (value: number) => OrganizationMembershipQueryBuilder
   maybeSingle: () => OrganizationMembershipResponse

@@ -9,7 +9,13 @@ import {
   canPregenerateReadingContent,
   segmentReadingContent,
 } from '@/lib/reading/reading-segmentation';
-import { getTTSSynthesisTimeoutMs, TTS_PROMPT_VERSION } from '../shared';
+import {
+  DEFAULT_TTS_LANGUAGE,
+  getTTSSynthesisTimeoutMs,
+  TTS_LANGUAGES,
+  TTS_PROMPT_VERSION,
+  type TTSLanguage,
+} from '../shared';
 import { resolveTTSCacheDescriptor } from '../server.service';
 import { normalizeTextForSpeech } from '../tts-text-normalization';
 import {
@@ -559,20 +565,33 @@ function getReadingVoiceSettings() {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
   };
+  // `style` y `use_speaker_boost` NO se envían: `eleven_turbo_v2_5` declara
+  // `can_use_style: false` y `can_use_speaker_boost: false`, así que solo
+  // aparentaban configurar la locución.
   return {
     stability: num(process.env.ELEVENLABS_READING_STABILITY, 0.55),
     similarity_boost: num(process.env.ELEVENLABS_READING_SIMILARITY, 0.75),
-    style: num(process.env.ELEVENLABS_READING_STYLE, 0.1),
-    use_speaker_boost: true,
   };
+}
+
+/**
+ * `tts_reading_audio_jobs.language` es texto libre en la base. Se acota al
+ * conjunto que la voz soporta para que un valor inesperado no acabe aplicando
+ * las reglas de pronunciación de un idioma a un texto de otro.
+ */
+function toTTSLanguage(language: string | null | undefined): TTSLanguage {
+  return TTS_LANGUAGES.includes(language as TTSLanguage)
+    ? (language as TTSLanguage)
+    : DEFAULT_TTS_LANGUAGE;
 }
 
 /** Synthesizes a single chunk, retrying with backoff on transient rate-limit (429) errors. */
 async function synthesizeChunkWithRetry(
   text: string,
+  language: TTSLanguage,
 ): Promise<Awaited<ReturnType<typeof resolveTTSAudio>>> {
   const voiceSettings = getReadingVoiceSettings();
-  let lastResult = await resolveTTSAudio({ text, context: 'reading', voiceSettings });
+  let lastResult = await resolveTTSAudio({ text, context: 'reading', voiceSettings, language });
 
   for (let attempt = 0; attempt < CHUNK_RETRY_BACKOFFS_MS.length; attempt += 1) {
     if (lastResult.kind === 'audio') return lastResult;
@@ -585,18 +604,21 @@ async function synthesizeChunkWithRetry(
       waitMs,
     });
     await sleep(waitMs);
-    lastResult = await resolveTTSAudio({ text, context: 'reading', voiceSettings });
+    lastResult = await resolveTTSAudio({ text, context: 'reading', voiceSettings, language });
   }
 
   return lastResult;
 }
 
-async function synthesizeReadingAudio(fullText: string): Promise<ChunkedSynthesisResult> {
+async function synthesizeReadingAudio(
+  fullText: string,
+  language: TTSLanguage,
+): Promise<ChunkedSynthesisResult> {
   // Los proveedores activos (ElevenLabs, Google Cloud) sintetizan la lectura
   // completa en una sola petición y devuelven MP3. El chunking por PCM que había
   // aquí era un workaround para la latencia de Gemini TTS en texto largo, retirado
   // junto con el proveedor Gemini.
-  const single = await synthesizeChunkWithRetry(fullText);
+  const single = await synthesizeChunkWithRetry(fullText, language);
   if (single.kind === 'error') {
     return { kind: 'error', status: single.status, detail: JSON.stringify(single.body).slice(0, 300) };
   }
@@ -621,13 +643,14 @@ async function processClaimedJob(
       return 'skipped';
     }
     // Expand acronyms (IA, RRHH, …) to spoken form so the TTS pronounces them naturally.
-    const fullText = normalizeTextForSpeech(rawText, job.language);
+    const language = toTTSLanguage(job.language);
+    const fullText = normalizeTextForSpeech(rawText, language);
 
     const lessonId = await resolveLessonIdForJob(supabase, job);
 
     assertTimeRemaining(options.deadlineMs, getMinimumTimeRemainingMs());
 
-    const result = await synthesizeReadingAudio(fullText);
+    const result = await synthesizeReadingAudio(fullText, language);
     if (result.kind === 'error') {
       // 429 = provider rate/quota limit. Not a job failure: defer and retry later
       // without consuming the retry budget (see catch block).

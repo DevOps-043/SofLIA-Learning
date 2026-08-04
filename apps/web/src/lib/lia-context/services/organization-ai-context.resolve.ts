@@ -35,12 +35,11 @@ export async function resolveActiveOrganizationAiContext(params: {
   const organizationSlug = extractOrganizationSlugFromPage(currentPage)
 
   if (organizationSlug) {
-    const context = await repository.findMembershipByOrganizationSlug(
-      userId,
-      organizationSlug,
-    )
-
-    if (context) return context
+    // La URL fija el tenant: la respuesta debe hablar de ESA organización o de
+    // ninguna. Degradar aquí a otra membresía hacía que SofLIA afirmara un
+    // empleador falso e inyectara cargo, sector y misión de otra empresa en el
+    // prompt, así que la ausencia de membresía se propaga tal cual.
+    return repository.findMembershipByOrganizationSlug(userId, organizationSlug)
   }
 
   if (requestedOrganizationId) {

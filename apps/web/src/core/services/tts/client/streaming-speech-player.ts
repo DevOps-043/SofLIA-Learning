@@ -3,6 +3,7 @@
 import { isTTSAbortError, isTTSQuotaExceededError } from './tts-error.utils';
 import { playAudioBlob } from './audio-blob-player.service';
 import { requestTTSAudio } from './tts-api.service';
+import type { TTSLanguage } from '../shared';
 import type { AudioRef } from './tts-client.types';
 
 /**
@@ -18,6 +19,12 @@ export interface StreamingSpeechPlayerOptions {
    * `false` cuando termina. La espera de síntesis no cuenta como "hablando".
    */
   onPlayingChange?: (playing: boolean) => void;
+  /**
+   * Idioma de la respuesta. Se declara al proveedor para desactivar su
+   * autodetección, que con fragmentos cortos elige mal y locuta con fonética
+   * equivocada.
+   */
+  language?: TTSLanguage;
 }
 
 export interface StreamingSpeechChunkStartEvent {
@@ -53,9 +60,18 @@ export class StreamingSpeechPlayer {
   private activeSynthesisCount = 0;
   private readonly synthesisWaiters: Array<() => void> = [];
   private readonly onPlayingChange?: (playing: boolean) => void;
+  private readonly language?: TTSLanguage;
+  /**
+   * Último fragmento encolado de este turno. Viaja como `previous_text` del
+   * siguiente para que ElevenLabs mantenga la línea de entonación: sin él cada
+   * trozo se sintetiza aislado y la prosodia se reinicia en cada corte, que es
+   * lo que se percibe como "habla entrecortado".
+   */
+  private previousChunkText: string | null = null;
 
   constructor(options: StreamingSpeechPlayerOptions = {}) {
     this.onPlayingChange = options.onPlayingChange;
+    this.language = options.language;
   }
 
   private createChunkSignal(): {
@@ -173,7 +189,12 @@ export class StreamingSpeechPlayer {
     };
 
     this.queuedChunkCount += 1;
-    const synthesis = this.synthesizeWithBackpressure({ text: clean, context }, chunkSignal.signal)
+    const previousText = this.previousChunkText ?? undefined;
+    this.previousChunkText = clean;
+    const synthesis = this.synthesizeWithBackpressure(
+      { text: clean, context, language: this.language, previousText },
+      chunkSignal.signal,
+    )
       .then((blob) => {
         reportSynthesis({
           audioAvailable: Boolean(blob),

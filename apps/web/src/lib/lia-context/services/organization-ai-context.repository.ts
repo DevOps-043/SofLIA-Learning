@@ -54,7 +54,13 @@ export function createOrganizationAiContextRepository(
           .eq('user_id', userId)
           .eq('status', 'active')
           .eq('organizations.is_active', true)
-          .order('joined_at', { ascending: false })
+          // `ORDER BY ... DESC` en Postgres coloca los NULL primero, así que una
+          // membresía sin `joined_at` se hacía pasar por la más reciente y ganaba
+          // sobre ingresos reales y posteriores. `created_at` desempata cuando
+          // varias filas comparten fecha de ingreso, para que el resultado no
+          // dependa del orden físico de las filas.
+          .order('joined_at', { ascending: false, nullsFirst: false })
+          .order('created_at', { ascending: false, nullsFirst: false })
           .limit(1)
           .maybeSingle(),
       )
