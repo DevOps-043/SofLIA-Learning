@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useMemo, useRef, type ReactNode } from "react";
 
 import { normalizeContentForRenderer } from "@/lib/course-content";
 import {
@@ -12,6 +12,16 @@ import {
   buildTimedSegments,
   getActiveSegmentIndex,
 } from "@/features/courses/components/learn/reading-voice/reading-highlight";
+import { useReadAlongHighlight } from "@/features/courses/components/learn/reading-voice/useReadAlongHighlight";
+
+import styles from "../ActivitiesExperience.module.css";
+
+/** Reloj del reproductor de voz, compartido por ambas variantes del lector. */
+interface ReadAlongClock {
+  currentTime: number;
+  duration: number;
+  isAudioActive: boolean;
+}
 
 type FormattedItem = ReturnType<typeof buildFormattedContent>[number];
 
@@ -37,15 +47,35 @@ function StaticChecklistItem({ checked, content }: { checked: boolean; content: 
   );
 }
 
+/**
+ * Lector de contenido HTML enriquecido.
+ *
+ * El subrayado de seguimiento se aplica sobre el DOM inyectado (ver
+ * `useReadAlongHighlight`): este contenido no pasa por el árbol de React, así
+ * que no hay JSX donde condicionar una clase. Antes esta rama ignoraba por
+ * completo el reloj del audio y la lectura sonaba sin ninguna marca visual.
+ */
 function HtmlContentRenderer({
+  clock,
   html,
   presentation,
 }: {
+  clock: ReadAlongClock;
   html: string;
   presentation: "card" | "editorial";
 }) {
-  const sanitized = sanitizeRichHtml(html);
+  const articleRef = useRef<HTMLElement>(null);
+  const sanitized = useMemo(() => sanitizeRichHtml(html), [html]);
   const isEditorial = presentation === "editorial";
+
+  useReadAlongHighlight({
+    containerRef: articleRef,
+    contentKey: sanitized,
+    currentTime: clock.currentTime,
+    duration: clock.duration,
+    highlightClassName: styles.readAlongBlock,
+    isActive: clock.isAudioActive,
+  });
 
   return (
     <div
@@ -57,6 +87,7 @@ function HtmlContentRenderer({
       style={isEditorial ? undefined : { background: 'var(--learn-card-bg)', borderColor: 'var(--learn-card-border)' }}
     >
       <article
+        ref={articleRef}
         className={[
           "prose prose-slate max-w-none overflow-x-auto text-primary",
           "dark:prose-invert dark:text-white",
@@ -184,7 +215,13 @@ export function FormattedContentRenderer({
   if (!readingContent.trim()) return null;
 
   if (isHtmlReadingContent(readingContent)) {
-    return <HtmlContentRenderer html={readingContent} presentation={presentation} />;
+    return (
+      <HtmlContentRenderer
+        clock={{ currentTime, duration, isAudioActive }}
+        html={readingContent}
+        presentation={presentation}
+      />
+    );
   }
 
   const formattedContent = buildFormattedContent(readingContent);

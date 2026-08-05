@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { normalizeContentForRenderer } from "@/lib/course-content";
 import { sanitizeRichHtml } from "@/lib/security/sanitize-html";
+import { READ_ALONG_BLOCK_ATTRIBUTE } from "../reading-voice/read-along-blocks";
+import { useReadAlongHighlight } from "../reading-voice/useReadAlongHighlight";
 import styles from "../ActivitiesExperience.module.css";
+
+/** Marca los bloques compuestos con `div` para que el subrayado los reconozca. */
+const READ_ALONG_BLOCK_PROPS = { [READ_ALONG_BLOCK_ATTRIBUTE]: "" } as const;
 
 const READING_FONT_SIZES = [
   {
@@ -25,11 +30,36 @@ const READING_FONT_SIZES = [
   },
 ] as const;
 
-export function ReadingContentRenderer({ content }: { content: unknown }) {
+interface ReadingContentRendererProps {
+  content: unknown;
+  /** Reloj del reproductor de voz; sin él no hay subrayado de seguimiento. */
+  currentTime?: number;
+  duration?: number;
+  isAudioActive?: boolean;
+}
+
+export function ReadingContentRenderer({
+  content,
+  currentTime = 0,
+  duration = 0,
+  isAudioActive = false,
+}: ReadingContentRendererProps) {
   const { t } = useTranslation("learn");
   const [fontSizeIndex, setFontSizeIndex] = useState(1);
+  const articleRef = useRef<HTMLElement>(null);
   const readingContent = normalizeContentForRenderer(content);
   const fontSize = READING_FONT_SIZES[fontSizeIndex];
+
+  // El contenido puede cambiar de forma (HTML o texto): el `contentKey` fuerza a
+  // releer los bloques del DOM en cuanto cambia cualquiera de las dos ramas.
+  useReadAlongHighlight({
+    containerRef: articleRef,
+    contentKey: readingContent,
+    currentTime,
+    duration,
+    highlightClassName: styles.readAlongBlock,
+    isActive: isAudioActive,
+  });
 
   if (!readingContent.trim()) {
     return null;
@@ -77,6 +107,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       <div className={styles.readingSurface}>
         {fontSizeControls}
         <article
+          ref={articleRef}
           className={`prose prose-slate ${fontSize.proseClassName} dark:prose-invert max-w-none text-gray-900 dark:text-white leading-relaxed overflow-x-auto [&_table]:w-full [&_table]:border-collapse [&_table]:my-6 [&_table]:text-sm [&_th]:border [&_th]:border-gray-300 dark:[&_th]:border-white/20 [&_th]:bg-gray-100 dark:[&_th]:bg-white/10 [&_th]:p-3 [&_th]:font-semibold [&_th]:text-left [&_td]:border [&_td]:border-gray-200 dark:[&_td]:border-white/10 [&_td]:p-3`}
           style={{ fontFamily: "var(--font-system-ui)", fontWeight: 400 }}
           dangerouslySetInnerHTML={{ __html: sanitizedReadingContent }}
@@ -118,7 +149,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       if (mainSectionMatch) {
         flushParagraph();
         elements.push(
-          <div key={`main-${index}`} className="mt-8 mb-4 first:mt-0">
+          <div key={`main-${index}`} className="mt-8 mb-4 first:mt-0" {...READ_ALONG_BLOCK_PROPS}>
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
               {mainSectionMatch[1]}
             </h2>
@@ -137,7 +168,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       if (stepMatch) {
         flushParagraph();
         elements.push(
-          <div key={`step-${index}`} className="mt-6 mb-3 flex items-start gap-3">
+          <div key={`step-${index}`} className="mt-6 mb-3 flex items-start gap-3" {...READ_ALONG_BLOCK_PROPS}>
             <span className="px-2 py-0.5 bg-gray-100 dark:bg-white/10 rounded text-[10px] font-medium text-gray-600 dark:text-white/60 uppercase tracking-wider flex-shrink-0">
               {stepMatch[1]}
             </span>
@@ -155,7 +186,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       if (numberedMatch && trimmedLine.length < 120) {
         flushParagraph();
         elements.push(
-          <div key={`numbered-${index}`} className="mt-5 mb-3 flex items-baseline gap-3">
+          <div key={`numbered-${index}`} className="mt-5 mb-3 flex items-baseline gap-3" {...READ_ALONG_BLOCK_PROPS}>
             <span className="text-gray-500 dark:text-white/40 text-xs font-medium">
               {numberedMatch[1]}.
             </span>
@@ -171,7 +202,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       if (refMatch) {
         flushParagraph();
         elements.push(
-          <div key={`ref-${index}`} className="mt-2 mb-3 pl-3 border-l-2 border-gray-200 dark:border-white/10">
+          <div key={`ref-${index}`} className="mt-2 mb-3 pl-3 border-l-2 border-gray-200 dark:border-white/10" {...READ_ALONG_BLOCK_PROPS}>
             <p className="text-gray-600 dark:text-white/50 text-xs italic">
               {trimmedLine}
             </p>
@@ -197,7 +228,7 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
       if (listMatch) {
         flushParagraph();
         elements.push(
-          <div key={`list-${index}`} className="flex items-start gap-2 mb-2 pl-2">
+          <div key={`list-${index}`} className="flex items-start gap-2 mb-2 pl-2" {...READ_ALONG_BLOCK_PROPS}>
             <span className="text-gray-500 dark:text-white/40 mt-1.5">•</span>
             <span className={`text-gray-800 dark:text-white/70 ${fontSize.className} leading-relaxed`}>
               {listMatch[1]}
@@ -217,7 +248,9 @@ export function ReadingContentRenderer({ content }: { content: unknown }) {
   return (
     <div className={styles.readingSurface}>
       {fontSizeControls}
-      <article className="max-w-none">{renderContent()}</article>
+      <article ref={articleRef} className="max-w-none">
+        {renderContent()}
+      </article>
     </div>
   );
 }

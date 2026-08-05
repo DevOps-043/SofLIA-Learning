@@ -41,7 +41,14 @@ export function useDownloadsPageData() {
     setError(null)
 
     try {
-      const response = await fetch(RELEASES_API, { signal })
+      // El CDN ya acota las llamadas a GitHub; la caché del navegador solo
+      // añadiría una ventana más de retraso sobre la que no tenemos control. La
+      // respuesta llega al cliente como `Cache-Control: public` sin `max-age`
+      // (el CDN se queda las directivas de caché compartida), es decir, sin
+      // tiempo de frescura explícito: sin `no-store`, el navegador —o cualquier
+      // proxy intermedio— decide por heurística cuánto reutilizar la versión
+      // antigua, y una release recién publicada puede no aparecer nunca.
+      const response = await fetch(RELEASES_API, { cache: 'no-store', signal })
 
       if (!response.ok) {
         if (response.status === 403) {

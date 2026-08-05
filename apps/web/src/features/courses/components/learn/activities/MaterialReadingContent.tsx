@@ -40,6 +40,9 @@ export function MaterialReadingContent({
       </div>
       <ReadingContentRenderer
         content={material.content_data || material.material_description}
+        currentTime={player.currentTime}
+        duration={player.duration}
+        isAudioActive={player.status === "playing" || player.status === "paused"}
       />
     </div>
   );

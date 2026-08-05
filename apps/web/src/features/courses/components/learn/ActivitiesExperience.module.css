@@ -391,6 +391,38 @@
   background: color-mix(in srgb, var(--learn-card-border) 80%, transparent);
 }
 
+/*
+ * Bloque que se está locutando. La clase la aplica `useReadAlongHighlight`
+ * mutando `classList` sobre el HTML ya renderizado, por eso vive aquí y no
+ * como utilidades de Tailwind en el JSX.
+ *
+ * El subrayado combina fondo tenue + barra lateral en el color de la
+ * organización: el fondo solo no se distingue sobre superficies claras y el
+ * usuario pierde la referencia de por dónde va la voz.
+ */
+.readAlongBlock {
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, var(--learn-accent) 14%, transparent);
+  /*
+   * El margen visual se hace con `box-shadow`, NO con padding/margin: el bloque
+   * activo cambia ~4 veces por segundo y cualquier cambio de caja reflowearía el
+   * texto bajo el cursor de lectura. `box-shadow` no ocupa espacio.
+   *   - spread exterior: aire alrededor del texto resaltado.
+   *   - inset izquierdo: barra que marca por dónde va la voz.
+   */
+  box-shadow:
+    0 0 0 0.35rem color-mix(in srgb, var(--learn-accent) 14%, transparent),
+    inset 0.18rem 0 0 0 var(--learn-accent);
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* `zoom` en el contenedor y transiciones largas marean si se pidió menos movimiento. */
+:global([data-reduce-motion='true']) .readAlongBlock {
+  transition: none;
+}
+
 .zoomButton {
   display: inline-flex;
   min-width: 2rem;
