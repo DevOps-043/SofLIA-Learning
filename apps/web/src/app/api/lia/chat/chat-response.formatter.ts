@@ -15,6 +15,7 @@ import {
   type BugReportDraftTokenPayload,
   type LiaChatProcessingBody,
 } from './lia-report-workflow.service';
+import { markPendingBugReportDetails } from './lia-report-workflow/token-markers';
 import {
   isValidUUID,
   persistConversationTurn,
@@ -46,7 +47,8 @@ export async function processAIResponse(
   body: LiaChatProcessingBody,
   requestContext: ChatRequest['context'],
   _request: { headers: { get: (key: string) => string | null } },
-  previousDraft?: BugReportDraftTokenPayload | null
+  previousDraft?: BugReportDraftTokenPayload | null,
+  bugReportFlowActive = false
 ): Promise<ProcessedResponse> {
   const preparedDraftResponse = await prepareDraftResponseForPersistence({
     finalContent,
@@ -57,8 +59,15 @@ export async function processAIResponse(
 
   const clientContent =
     preparedDraftResponse?.clientContent ?? stripBugReportTokens(finalContent);
+  // El turno abrio el flujo de reporte pero el modelo aun no tiene datos para
+  // redactar el borrador: se deja la marca en el historial para que el turno
+  // siguiente (la descripcion del usuario) se siga tratando como reporte. Sin
+  // ella la intencion se pierde y el reporte nunca llega a `reportes_problemas`.
   const assistantContentToPersist =
-    preparedDraftResponse?.assistantContentToPersist ?? clientContent;
+    preparedDraftResponse?.assistantContentToPersist ??
+    (bugReportFlowActive
+      ? markPendingBugReportDetails(clientContent)
+      : clientContent);
 
   if (body.conversationId && !isValidUUID(body.conversationId)) {
     techDebtLogger.warn(

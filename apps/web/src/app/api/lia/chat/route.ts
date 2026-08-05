@@ -42,11 +42,14 @@ import { toInlineImagePart } from '@/core/reporting/report-problem.server';
 import { logger } from '@/lib/logger';
 import {
   BUG_REPORT_CONFIRMATION_REMINDER,
+  BUG_REPORT_MISSING_DRAFT_REPLY,
+  awaitsBugReportDetails,
   buildPendingBugReportPromptSection,
   containsBugReportToken,
   createBugReportTokenStreamMask,
   detectBugReportConfirmationIntent,
   extractBugReportDraftToken,
+  markPendingBugReportDetails,
   prepareDraftResponseForPersistence,
   requestsBugReportConfirmation,
   stripBugReportTokens,
@@ -566,6 +569,14 @@ async function handlePost(
     const activeBugReportDraft = latestAssistantContent
       ? extractBugReportDraftToken(latestAssistantContent)
       : null;
+    // SofLIA ya abrio el flujo y pidio el detalle del problema. Este turno es la
+    // respuesta a esa peticion, aunque el texto del usuario no vuelva a nombrar
+    // ningun sintoma reconocible por la heuristica de intencion.
+    const awaitingBugReportDetails = Boolean(
+      latestAssistantContent &&
+        !activeBugReportDraft &&
+        awaitsBugReportDetails(latestAssistantContent),
+    );
 
     // Capacidades exclusivas del superadmin de plataforma dentro de /admin:
     // consulta global de usuarios y ejecución de acciones administrativas.
@@ -645,11 +656,43 @@ async function handlePost(
       }
     }
 
+    // Confirmacion dentro del flujo de reporte pero SIN borrador que confirmar.
+    // Se resuelve sin pasar por el modelo: dejado a su criterio, responde que el
+    // reporte "quedo confirmado y el sistema continuara con el envio" y el
+    // usuario se va convencido de haber reportado algo que no existe. El guardia
+    // exige la marca de flujo abierto, de modo que un "confirmo" cualquiera de la
+    // conversacion normal sigue su curso.
+    if (!activeBugReportDraft && awaitingBugReportDetails) {
+      const confirmationIntent = detectBugReportConfirmationIntent(
+        lastMessage.content,
+      );
+
+      if (confirmationIntent === 'confirm') {
+        await persistConversationTurn({
+          conversationId: body.conversationId,
+          userId: sanitizedRequestContext?.userId,
+          requestContext: sanitizedRequestContext,
+          userMessage: lastMessage,
+          // La marca viaja de vuelta al historial: el flujo sigue abierto y la
+          // descripcion que el usuario escriba a continuacion debe seguir
+          // tratandose como reporte.
+          assistantContent: markPendingBugReportDetails(
+            BUG_REPORT_MISSING_DRAFT_REPLY,
+          ),
+        });
+
+        return buildAssistantResponse(
+          BUG_REPORT_MISSING_DRAFT_REPLY,
+          shouldStream,
+        );
+      }
+    }
+
     const bugReportIntent = detectTechnicalBugReportIntent({
       message: lastMessage.content,
       isBugReportFlag: body.isBugReport || false,
       requestContext: sanitizedRequestContext,
-      hasPendingDraft: Boolean(activeBugReportDraft),
+      hasPendingDraft: Boolean(activeBugReportDraft) || awaitingBugReportDetails,
     });
 
     const bugReportContextSection = await buildBugReportContextSection(
@@ -776,7 +819,8 @@ async function handlePost(
       body,
       sanitizedRequestContext,
       request,
-      activeBugReportDraft
+      activeBugReportDraft,
+      bugReportIntent.isBugReport
     );
     const securedClientContent = enforceSecurityResponsePolicy({
       content: clientContent,

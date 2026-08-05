@@ -95,4 +95,49 @@ describe('processAIResponse', () => {
     expect(result.clientContent).toBe('Te faltan dos lecciones del módulo 3.');
     expect(result.clientContent).not.toContain('Confirmas');
   });
+
+  /**
+   * Regresión: SofLIA abría el flujo ("cuéntame qué ocurrió") y ese turno se
+   * persistía sin ninguna marca. En el turno siguiente la heurística de
+   * intención volvía a evaluar SOLO la descripción del usuario, no la
+   * reconocía, y el flujo moría sin que se generara reporte alguno.
+   */
+  it('marks the turn as an open report flow when no draft could be built yet', async () => {
+    const body = buildBody('Quiero reportar un problema');
+
+    const result = await processAIResponse(
+      'Describe qué ocurrió, en qué sección y qué esperabas que pasara.',
+      body,
+      requestContext,
+      request,
+      null,
+      true,
+    );
+
+    const persistedContent = persistConversationTurn.mock.calls[0]?.[0]
+      ?.assistantContent as string;
+
+    expect(persistedContent).toContain('BUG_REPORT_PENDING');
+    // La marca es interna: nunca puede llegar a la pantalla del usuario.
+    expect(result.clientContent).not.toContain('BUG_REPORT_PENDING');
+  });
+
+  it('does not mark the flow when the turn already carries a draft', async () => {
+    const body = buildBody('El reading de la lección 3 no suena');
+
+    await processAIResponse(
+      `Preparé este borrador técnico.\n\n${DRAFT_TOKEN}`,
+      body,
+      requestContext,
+      request,
+      null,
+      true,
+    );
+
+    const persistedContent = persistConversationTurn.mock.calls[0]?.[0]
+      ?.assistantContent as string;
+
+    expect(persistedContent).toContain('BUG_REPORT_DRAFT');
+    expect(persistedContent).not.toContain('BUG_REPORT_PENDING');
+  });
 });

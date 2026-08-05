@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  awaitsBugReportDetails,
   buildPendingBugReportPromptSection,
   detectBugReportConfirmationIntent,
   extractBugReportDraftToken,
+  markPendingBugReportDetails,
   stripBugReportTokens,
 } from '../lia-report-workflow.service';
 
@@ -54,5 +56,32 @@ describe('lia-report-workflow.service', () => {
     expect(section).toContain('borrador de reporte pendiente');
     expect(section).toContain('BUG_REPORT_DRAFT');
     expect(section).toContain('NO uses [[BUG_REPORT:{...}]]');
+  });
+
+  /**
+   * La marca de flujo abierto es la memoria del reporte entre turnos. Debe
+   * detectarse en el historial y desaparecer del texto que ve el usuario.
+   */
+  it('remembers an open report flow without leaking the marker', () => {
+    const persisted = markPendingBugReportDetails(
+      'Describe que ocurrio y en que seccion paso.'
+    );
+
+    expect(awaitsBugReportDetails(persisted)).toBe(true);
+    expect(stripBugReportTokens(persisted)).toBe(
+      'Describe que ocurrio y en que seccion paso.'
+    );
+  });
+
+  it('does not mistake an ordinary answer for an open report flow', () => {
+    expect(awaitsBugReportDetails('Te faltan dos lecciones del modulo 3.')).toBe(
+      false
+    );
+  });
+
+  it('never duplicates the marker on repeated turns', () => {
+    const once = markPendingBugReportDetails('Cuentame que ocurrio.');
+
+    expect(markPendingBugReportDetails(once)).toBe(once);
   });
 });

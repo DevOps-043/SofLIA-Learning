@@ -10,7 +10,10 @@ export { prepareDraftResponseForPersistence } from './lia-report-workflow/draft-
 export { submitConfirmedBugReport } from './lia-report-workflow/submit-bug-report'
 export {
   BUG_REPORT_CONFIRMATION_REMINDER,
+  BUG_REPORT_MISSING_DRAFT_REPLY,
+  awaitsBugReportDetails,
   containsBugReportToken,
+  markPendingBugReportDetails,
   requestsBugReportConfirmation,
 } from './lia-report-workflow/token-markers'
 export {
