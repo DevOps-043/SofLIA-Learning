@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { handleGoogleCallback } from '@/features/auth/actions/oauth';
+import { buildDesktopHandoffResponse } from '@/lib/auth/desktop-sso-handoff';
 
 function getRedirectDigest(error: unknown): string | null {
   if (!error || typeof error !== 'object' || !('digest' in error)) {
@@ -34,10 +35,15 @@ export async function GET(request: NextRequest) {
     });
 
     // Si hay error, redirigir a login con mensaje de error
-    if (result && 'error' in result) {
+    if (result && 'error' in result && result.error) {
       return NextResponse.redirect(
         new URL(`/auth?error=${encodeURIComponent(result.error)}`, request.url)
       );
+    }
+
+    // El flujo venia de Pulse Hub: se devuelve el resultado al escritorio.
+    if (result && 'desktopHandoffUrl' in result && result.desktopHandoffUrl) {
+      return buildDesktopHandoffResponse(result.desktopHandoffUrl);
     }
 
     // El éxito se maneja con redirect en handleGoogleCallback que ya redirige según platform_role

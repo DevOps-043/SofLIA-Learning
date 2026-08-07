@@ -69,4 +69,6 @@ export interface ProcessOAuthCallbackResult {
   error?: string;
   isNewUser?: boolean;
   session?: ServerAuthSession;
+  /** Identidad resuelta; la usa el puente con el escritorio para emitir su ticket. */
+  userId?: string;
 }

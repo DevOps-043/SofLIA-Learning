@@ -191,6 +191,7 @@ export async function processOAuthCallback<TProviderTokens>({
       destination: await resolveOAuthDashboardDestination(supabase, userId),
       isNewUser,
       session,
+      userId,
     };
   } catch (error) {
     logger.error(`Error en callback ${provider.providerLabel} OAuth`, error);

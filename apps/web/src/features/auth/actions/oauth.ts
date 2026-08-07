@@ -7,9 +7,14 @@ import { getGoogleAuthUrl } from '../../../lib/oauth/google';
 import { getMicrosoftAuthUrl } from '../../../lib/oauth/microsoft';
 import { createAdminClient } from '../../../lib/supabase/admin';
 import {
+  DESKTOP_SSO_COOKIE_NAME,
+  parseDesktopSsoRequest,
+} from '../../../lib/auth/desktop-sso';
+import {
   getRequestMetadata,
   writeServerAuthSessionCookies,
 } from '../services/auth-session.service';
+import { buildDesktopHandoffUrl } from '../services/desktop-sso.service';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { MicrosoftOAuthService } from '../services/microsoft-oauth.service';
 import {
@@ -97,15 +102,20 @@ async function handleOAuthProviderCallback<TProviderTokens>(
     const cookieStore = await cookies();
     const storedState = cookieStore.get(OAUTH_STATE_COOKIE_NAME)?.value;
     const orgContextCookie = cookieStore.get(OAUTH_ORG_CONTEXT_COOKIE_NAME)?.value;
+    const desktopRequest = parseDesktopSsoRequest(
+      cookieStore.get(DESKTOP_SSO_COOKIE_NAME)?.value
+    );
 
     cookieStore.delete(OAUTH_STATE_COOKIE_NAME);
     cookieStore.delete(OAUTH_ORG_CONTEXT_COOKIE_NAME);
+    cookieStore.delete(DESKTOP_SSO_COOKIE_NAME);
 
+    const requestMetadata = getRequestMetadata(await headers());
     const result = await processOAuthCallback({
       orgContextCookie,
       params,
       provider,
-      requestMetadata: getRequestMetadata(await headers()),
+      requestMetadata,
       storedState,
     });
 
@@ -118,6 +128,22 @@ async function handleOAuthProviderCallback<TProviderTokens>(
     }
 
     writeServerAuthSessionCookies(cookieStore, result.session);
+
+    // El flujo venia de Pulse Hub: en vez de ir al panel web, se devuelve el
+    // resultado al escritorio. La sesion web queda igualmente abierta, que es
+    // lo que el usuario espera si vuelve al navegador.
+    if (desktopRequest && result.userId) {
+      return {
+        desktopHandoffUrl: await buildDesktopHandoffUrl({
+          codeChallenge: desktopRequest.codeChallenge,
+          ipAddress: requestMetadata.ip,
+          state: desktopRequest.state,
+          userAgent: requestMetadata.userAgent,
+          userId: result.userId,
+        }),
+      };
+    }
+
     redirect(result.destination);
   } catch (error) {
     if (error && typeof error === 'object' && 'digest' in error) {
