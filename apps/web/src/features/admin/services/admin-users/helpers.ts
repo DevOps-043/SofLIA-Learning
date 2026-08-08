@@ -37,10 +37,22 @@ export const ADMIN_USER_SELECT_FIELDS = `
 
 export const ADMIN_USER_LIST_SELECT_FIELDS = ADMIN_USER_SELECT_FIELDS
 
+/** Tamano de pagina por defecto del directorio de usuarios. */
+export const ADMIN_USERS_DEFAULT_PAGE_SIZE = 50
+
+/**
+ * Tope duro de filas por peticion. El cliente debe usar esta constante para
+ * pedir como maximo lo que el servidor puede devolver: pedir mas se truncaba
+ * en silencio y la UI creia tener el conjunto completo.
+ */
+export const ADMIN_USERS_MAX_PAGE_SIZE = 100
+
 export function normalizeUsersPagination(options: GetUsersOptions = {}) {
   const page = options.page && options.page > 0 ? options.page : 1
   const limit =
-    options.limit && options.limit > 0 ? Math.min(options.limit, 100) : 50
+    options.limit && options.limit > 0
+      ? Math.min(options.limit, ADMIN_USERS_MAX_PAGE_SIZE)
+      : ADMIN_USERS_DEFAULT_PAGE_SIZE
   const from = (page - 1) * limit
   const to = from + limit - 1
 
@@ -51,6 +63,24 @@ export function normalizeUsersPagination(options: GetUsersOptions = {}) {
     to,
     search: options.search?.trim() || undefined,
   }
+}
+
+/**
+ * Convierte un termino libre en un patron `ilike` seguro para el parser de
+ * filtros de PostgREST.
+ *
+ * En `or=(col.op.valor,col.op.valor)` la coma separa condiciones y el parentesis
+ * cierra el grupo, asi que un termino con esos caracteres alteraria la consulta
+ * (buscar `a,platform_role.eq.Administrador` anadiria una condicion OR ajena).
+ * Se entrecomilla el valor y se escapan `\` y `"`, que son los unicos caracteres
+ * con significado dentro de las comillas.
+ *
+ * Nota: `%` y `_` siguen actuando como comodines de LIKE. Es intencional —
+ * amplia la coincidencia, nunca la falsea, y `ilike` no expone clausula ESCAPE.
+ */
+export function buildPostgrestIlikePattern(search: string): string {
+  const escaped = search.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  return `"%${escaped}%"`
 }
 
 export function buildAdminUserUpdatePayload(userData: Partial<AdminUser>) {

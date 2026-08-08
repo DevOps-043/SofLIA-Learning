@@ -1,6 +1,7 @@
 import { createAdminClient } from './client'
 import {
   ADMIN_USER_LIST_SELECT_FIELDS,
+  buildPostgrestIlikePattern,
   mapAdminUserWithAge,
   normalizeUsersPagination,
 } from './helpers'
@@ -32,9 +33,14 @@ export async function getAdminUsers(
     query = query.in('id', filteredUserIds)
   }
 
+  if (options.platformRole) {
+    query = query.eq('platform_role', options.platformRole)
+  }
+
   if (search) {
+    const pattern = buildPostgrestIlikePattern(search)
     query = query.or(
-      `email.ilike.%${search}%,first_name.ilike.%${search}%,last_name.ilike.%${search}%,username.ilike.%${search}%`,
+      `email.ilike.${pattern},first_name.ilike.${pattern},last_name.ilike.${pattern},username.ilike.${pattern}`,
     )
   }
 

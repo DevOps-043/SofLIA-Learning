@@ -2,10 +2,13 @@ import type { TFunction } from 'i18next'
 import type { LucideIcon } from 'lucide-react'
 import type { AdminUser } from '../../services/adminUsers.service'
 import type { AdminPanelThemeTokens } from '../../hooks/useAdminPanelTheme'
+import { ADMIN_USER_PLATFORM_ROLES } from '../../services/admin-users/types'
 
 export type AdminUsersViewMode = 'cards' | 'list'
 
-export const ADMIN_ROLE_FILTERS = ['all', 'Usuario', 'Instructor', 'Administrador', 'Business'] as const
+// El filtro de la UI es la lista de roles del servidor mas la opcion "todos":
+// asi un rol nuevo aparece en el selector sin tocar dos sitios.
+export const ADMIN_ROLE_FILTERS = ['all', ...ADMIN_USER_PLATFORM_ROLES] as const
 
 export type AdminRoleFilter = (typeof ADMIN_ROLE_FILTERS)[number]
 

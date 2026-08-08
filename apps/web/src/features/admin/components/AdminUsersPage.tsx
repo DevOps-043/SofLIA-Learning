@@ -9,12 +9,15 @@ import { useAdminUsers } from '../hooks/useAdminUsers'
 import { useAdminUserStatsFilters } from '../hooks/useAdminUserStatsFilters'
 import type { AdminUser } from '../services/adminUsers.service'
 import type { NewAdminUserData } from './AddUserModal'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { ADMIN_USERS_DEFAULT_PAGE_SIZE } from '../services/admin-users/helpers'
 import {
   AdminUsersErrorState,
   AdminUsersFilterBar,
   AdminUsersHero,
   AdminUsersLoadingState,
   AdminUsersModals,
+  AdminUsersPagination,
   AdminUsersResults,
   AdminUsersStatsGrid,
   useAdminUsersPageState,
@@ -48,15 +51,36 @@ export function AdminUsersPage() {
   const [organizationFilter, setOrganizationFilter] = useState('')
   const [courseFilter, setCourseFilter] = useState('')
   const [learningPathFilter, setLearningPathFilter] = useState('')
+  const [page, setPage] = useState(1)
   const hasDirectoryFilters = Boolean(organizationFilter || courseFilter || learningPathFilter)
 
-  const { users, stats, isLoading, error, refetch } = useAdminUsers({
-    organizationId: organizationFilter || undefined,
-    courseId: courseFilter || undefined,
-    learningPathId: learningPathFilter || undefined,
-  })
+  const state = useAdminUsersPageState()
+  // La busqueda va al servidor, no al array en memoria: sin debounce cada tecla
+  // dispararia una peticion.
+  const debouncedSearch = useDebouncedValue(state.searchTerm.trim(), 300)
+
+  const { users, stats, total, totalPages, isLoading, isValidating, error, refetch } =
+    useAdminUsers({
+      page,
+      search: debouncedSearch || undefined,
+      role: state.roleFilter === 'all' ? undefined : state.roleFilter,
+      organizationId: organizationFilter || undefined,
+      courseId: courseFilter || undefined,
+      learningPathId: learningPathFilter || undefined,
+    })
   const { companies, courses, learningPaths } = useAdminUserStatsFilters()
-  const state = useAdminUsersPageState(users)
+
+  // Cualquier cambio de filtro invalida la pagina actual: la nº 4 de un
+  // resultado de 3 paginas devolveria una lista vacia.
+  useEffect(() => {
+    setPage(1)
+  }, [
+    debouncedSearch,
+    state.roleFilter,
+    organizationFilter,
+    courseFilter,
+    learningPathFilter,
+  ])
 
   const companyLabel =
     companies.find((option) => option.value === organizationFilter)?.label ?? null
@@ -151,7 +175,7 @@ export function AdminUsersPage() {
   return (
     <div>
       <div className="mx-auto max-w-7xl space-y-6">
-        <AdminUsersHero filteredCount={state.filteredUsers.length} isRefreshing={state.isRefreshing} onAddClick={() => state.setIsAddModalOpen(true)} onRefresh={handleRefresh} t={t} />
+        <AdminUsersHero filteredCount={total} isRefreshing={state.isRefreshing} onAddClick={() => state.setIsAddModalOpen(true)} onRefresh={handleRefresh} t={t} />
         <AdminUsersStatsGrid stats={stats} t={t} />
         <AdminUsersFilterBar
           searchTerm={state.searchTerm}
@@ -171,7 +195,8 @@ export function AdminUsersPage() {
           onLearningPathFilterChange={setLearningPathFilter}
           t={t}
         />
-        <AdminUsersResults users={state.filteredUsers} hasFilters={state.hasFilters || hasDirectoryFilters} viewMode={state.viewMode} locale={language} onAddClick={() => state.setIsAddModalOpen(true)} onClearFilters={clearAllFilters} onEditUser={(user) => openMasterPanel(user, 'profile')} onDeleteUser={handleDeleteUser} onViewStats={(user) => openMasterPanel(user, 'stats')} onUserHover={(user) => prefetchMasterPanelData(user.id)} t={t} tc={tc} />
+        <AdminUsersResults users={users} hasFilters={state.hasFilters || hasDirectoryFilters} viewMode={state.viewMode} locale={language} onAddClick={() => state.setIsAddModalOpen(true)} onClearFilters={clearAllFilters} onEditUser={(user) => openMasterPanel(user, 'profile')} onDeleteUser={handleDeleteUser} onViewStats={(user) => openMasterPanel(user, 'stats')} onUserHover={(user) => prefetchMasterPanelData(user.id)} t={t} tc={tc} />
+        <AdminUsersPagination page={page} totalPages={totalPages} total={total} pageSize={ADMIN_USERS_DEFAULT_PAGE_SIZE} isBusy={isValidating} onPageChange={setPage} t={t} />
       </div>
       <AdminUsersModals deletingUser={state.deletingUser} isDeleteModalOpen={state.isDeleteModalOpen} isAddModalOpen={state.isAddModalOpen} onCloseDelete={() => { state.setIsDeleteModalOpen(false); state.setDeletingUser(null) }} onCloseAdd={() => state.setIsAddModalOpen(false)} onConfirmDelete={handleConfirmDelete} onSaveNewUser={handleSaveNewUser} />
       {state.panelUser ? (

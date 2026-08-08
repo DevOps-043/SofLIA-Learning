@@ -1,12 +1,18 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
-import { getAdminUserDisplayConfig } from './service'
+import { useCallback, useState } from 'react'
 import type { AdminUser } from '../../services/adminUsers.service'
 import type { MasterPanelTab } from './master-panel/types'
 import type { AdminRoleFilter, AdminUsersViewMode } from './types'
 
-export function useAdminUsersPageState(users: AdminUser[]) {
+/**
+ * Estado de UI del directorio de usuarios.
+ *
+ * Busqueda y rol NO se filtran aqui: viajan al servidor como parametros de
+ * consulta. Filtrarlos en memoria solo veia la pagina actual, asi que cualquier
+ * usuario fuera del primer lote resultaba invisible e imposible de buscar.
+ */
+export function useAdminUsersPageState() {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<AdminRoleFilter>('all')
   const [viewMode, setViewMode] = useState<AdminUsersViewMode>('cards')
@@ -26,22 +32,7 @@ export function useAdminUsersPageState(users: AdminUser[]) {
 
   const closePanel = useCallback(() => setPanelUser(null), [])
 
-  const filteredUsers = useMemo(() => {
-    const searchQuery = searchTerm.trim().toLowerCase()
-    return users.filter((user) => {
-      const { displayName, email, role } = getAdminUserDisplayConfig(user)
-      const matchesSearch =
-        !searchQuery ||
-        displayName.toLowerCase().includes(searchQuery) ||
-        email.toLowerCase().includes(searchQuery) ||
-        user.username.toLowerCase().includes(searchQuery)
-      const matchesRole = roleFilter === 'all' || role === roleFilter
-      return matchesSearch && matchesRole
-    })
-  }, [roleFilter, searchTerm, users])
-
   return {
-    filteredUsers,
     hasFilters: searchTerm.trim().length > 0 || roleFilter !== 'all',
     searchTerm,
     roleFilter,

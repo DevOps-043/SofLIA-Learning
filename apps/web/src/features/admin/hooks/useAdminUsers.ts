@@ -2,11 +2,19 @@
 
 import useSWR from 'swr'
 import { AdminUser, UserStats } from '../services/adminUsers.service'
+// Import directo a los modulos puros: el barrel `admin-users` reexporta
+// `createAdminClient`, marcado con `server-only`, y romperia el bundle cliente.
+import {
+  ADMIN_USERS_DEFAULT_PAGE_SIZE,
+  ADMIN_USERS_MAX_PAGE_SIZE,
+} from '../services/admin-users/helpers'
+import type { AdminUserPlatformRole } from '../services/admin-users/types'
 
 interface UseAdminUsersOptions {
   page?: number
   limit?: number
   search?: string
+  role?: AdminUserPlatformRole
   organizationId?: string
   courseId?: string
   learningPathId?: string
@@ -19,6 +27,8 @@ interface UseAdminUsersReturn {
   page: number
   totalPages: number
   isLoading: boolean
+  /** Hay una recarga en vuelo mostrando aun los datos previos (cambio de página/filtro). */
+  isValidating: boolean
   error: string | null
   refetch: () => Promise<void>
 }
@@ -43,24 +53,26 @@ const fetcher = async (url: string): Promise<AdminUsersResponse> => {
 }
 
 export function useAdminUsers(options: UseAdminUsersOptions = {}): UseAdminUsersReturn {
-  const { page = 1, search, organizationId, courseId, learningPathId } = options
-  const hasDirectoryFilters = Boolean(organizationId || courseId || learningPathId)
-  // Con filtros server-side se amplía el límite para no truncar coincidencias
-  // (la página carga una sola página; ver nota de paginación en el plan).
-  const limit = options.limit ?? (hasDirectoryFilters ? 200 : 50)
+  const { page = 1, search, role, organizationId, courseId, learningPathId } = options
+  // El servidor topa el tamaño de página; pedir más se truncaba en silencio.
+  const limit = Math.min(
+    options.limit ?? ADMIN_USERS_DEFAULT_PAGE_SIZE,
+    ADMIN_USERS_MAX_PAGE_SIZE,
+  )
 
   // Construir URL con parámetros de query
   const params = new URLSearchParams()
   if (page) params.set('page', page.toString())
   if (limit) params.set('limit', limit.toString())
   if (search) params.set('search', search)
+  if (role) params.set('role', role)
   if (organizationId) params.set('organizationId', organizationId)
   if (courseId) params.set('courseId', courseId)
   if (learningPathId) params.set('learningPathId', learningPathId)
 
   const url = `/api/admin/users?${params.toString()}`
 
-  const { data, error, isLoading, mutate } = useSWR<AdminUsersResponse>(
+  const { data, error, isLoading, isValidating, mutate } = useSWR<AdminUsersResponse>(
     url,
     fetcher,
     {
@@ -82,6 +94,7 @@ export function useAdminUsers(options: UseAdminUsersOptions = {}): UseAdminUsers
     page: data?.page ?? 1,
     totalPages: data?.totalPages ?? 1,
     isLoading,
+    isValidating,
     error: error ? (error instanceof Error ? error.message : 'Error desconocido') : null,
     refetch: async () => { await mutate() }
   }

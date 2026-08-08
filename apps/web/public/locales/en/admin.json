@@ -243,6 +243,13 @@
         "pending": "Pending"
       },
       "lastAccessNever": "Never",
+      "pagination": {
+        "label": "User directory pagination",
+        "summary": "Showing {{from}}-{{to}} of {{total}}",
+        "position": "Page {{page}} of {{totalPages}}",
+        "previous": "Previous",
+        "next": "Next"
+      },
       "loading": "Loading users...",
       "errorLoading": "Error loading users",
       "retry": "Retry",

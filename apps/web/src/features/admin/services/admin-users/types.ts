@@ -34,10 +34,33 @@ export interface UserStats {
   administrators: number
 }
 
+/**
+ * Roles de plataforma sobre los que se puede filtrar el directorio.
+ * Fuente de verdad unica: la UI construye su selector a partir de esta lista.
+ */
+export const ADMIN_USER_PLATFORM_ROLES = [
+  'Usuario',
+  'Instructor',
+  'Administrador',
+  'Business',
+] as const
+
+export type AdminUserPlatformRole = (typeof ADMIN_USER_PLATFORM_ROLES)[number]
+
+export function isAdminUserPlatformRole(
+  value: unknown,
+): value is AdminUserPlatformRole {
+  return (
+    typeof value === 'string' &&
+    (ADMIN_USER_PLATFORM_ROLES as readonly string[]).includes(value)
+  )
+}
+
 export interface GetUsersOptions {
   page?: number
   limit?: number
   search?: string
+  platformRole?: AdminUserPlatformRole
   organizationId?: string
   courseId?: string
   learningPathId?: string

@@ -243,6 +243,13 @@
         "pending": "Pendente"
       },
       "lastAccessNever": "Nunca",
+      "pagination": {
+        "label": "Paginação do diretório de usuários",
+        "summary": "Exibindo {{from}}-{{to}} de {{total}}",
+        "position": "Página {{page}} de {{totalPages}}",
+        "previous": "Anterior",
+        "next": "Próxima"
+      },
       "loading": "Carregando usuários...",
       "errorLoading": "Erro ao carregar usuários",
       "retry": "Repetir",
