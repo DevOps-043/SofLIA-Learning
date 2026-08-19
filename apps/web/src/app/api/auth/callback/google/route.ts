@@ -34,6 +34,14 @@ export async function GET(request: NextRequest) {
       error_description: errorDescription || undefined,
     });
 
+    // Project Hub vuelve por un callback HTTPS validado previamente.
+    if (result && 'webHandoffUrl' in result && result.webHandoffUrl) {
+      const response = NextResponse.redirect(result.webHandoffUrl);
+      response.headers.set('Cache-Control', 'no-store');
+      response.headers.set('Referrer-Policy', 'no-referrer');
+      return response;
+    }
+
     // Si hay error, redirigir a login con mensaje de error
     if (result && 'error' in result && result.error) {
       return NextResponse.redirect(

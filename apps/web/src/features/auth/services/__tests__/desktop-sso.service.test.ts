@@ -17,6 +17,7 @@ vi.mock('@/lib/supabase/admin', () => ({
 import { deriveCodeChallenge } from '@/lib/auth/desktop-sso'
 import {
   buildDesktopHandoffUrl,
+  buildWebHandoffUrl,
   consumeDesktopSsoTicket,
   generateDesktopAccessProof,
   hasActiveMembership,
@@ -26,6 +27,7 @@ import {
 const VERIFIER = 'v'.repeat(43)
 const STATE = 's'.repeat(22)
 const TICKET = 'a'.repeat(64)
+const WEB_CALLBACK = 'https://projects.soflia.test/api/auth/callback/learning'
 
 interface SupabaseMockOptions {
   consumeRows?: Array<{ code_challenge: string; user_id: string }>
@@ -199,5 +201,34 @@ describe('desktop-sso.service', () => {
     })
 
     expect(url).toMatch(/^soflia:\/\/auth\/callback\?ticket=[a-f0-9]{64}&state=/)
+  })
+
+  it('construye el retorno HTTPS de Project Hub con el mismo ticket', async () => {
+    createAdminClientMock.mockReturnValue(createSupabaseMock({ membershipId: 'membresia-1' }))
+
+    const url = await buildWebHandoffUrl({
+      codeChallenge: deriveCodeChallenge(VERIFIER),
+      redirectUri: WEB_CALLBACK,
+      state: STATE,
+      userId: 'uuid-1',
+    })
+
+    expect(url).toMatch(
+      /^https:\/\/projects\.soflia\.test\/api\/auth\/callback\/learning\?state=s{22}&ticket=[a-f0-9]{64}$/
+    )
+  })
+
+  it('deniega Project Hub sin emitir ticket si la membresia no esta activa', async () => {
+    createAdminClientMock.mockReturnValue(createSupabaseMock({ membershipId: null }))
+
+    const url = await buildWebHandoffUrl({
+      codeChallenge: deriveCodeChallenge(VERIFIER),
+      redirectUri: WEB_CALLBACK,
+      state: STATE,
+      userId: 'uuid-1',
+    })
+
+    expect(url).toBe(`${WEB_CALLBACK}?state=${STATE}&error=access_denied`)
+    expect(insertedRows).toHaveLength(0)
   })
 })

@@ -7,14 +7,23 @@ import { getGoogleAuthUrl } from '../../../lib/oauth/google';
 import { getMicrosoftAuthUrl } from '../../../lib/oauth/microsoft';
 import { createAdminClient } from '../../../lib/supabase/admin';
 import {
+  buildDesktopErrorUrl,
   DESKTOP_SSO_COOKIE_NAME,
   parseDesktopSsoRequest,
 } from '../../../lib/auth/desktop-sso';
 import {
+  buildWebSsoErrorUrl,
+  parseWebSsoRequest,
+  WEB_SSO_COOKIE_NAME,
+} from '../../../lib/auth/web-sso';
+import {
   getRequestMetadata,
   writeServerAuthSessionCookies,
 } from '../services/auth-session.service';
-import { buildDesktopHandoffUrl } from '../services/desktop-sso.service';
+import {
+  buildDesktopHandoffUrl,
+  buildWebHandoffUrl,
+} from '../services/desktop-sso.service';
 import { GoogleOAuthService } from '../services/google-oauth.service';
 import { MicrosoftOAuthService } from '../services/microsoft-oauth.service';
 import {
@@ -105,10 +114,14 @@ async function handleOAuthProviderCallback<TProviderTokens>(
     const desktopRequest = parseDesktopSsoRequest(
       cookieStore.get(DESKTOP_SSO_COOKIE_NAME)?.value
     );
+    const webRequest = parseWebSsoRequest(
+      cookieStore.get(WEB_SSO_COOKIE_NAME)?.value
+    );
 
     cookieStore.delete(OAUTH_STATE_COOKIE_NAME);
     cookieStore.delete(OAUTH_ORG_CONTEXT_COOKIE_NAME);
     cookieStore.delete(DESKTOP_SSO_COOKIE_NAME);
+    cookieStore.delete(WEB_SSO_COOKIE_NAME);
 
     const requestMetadata = getRequestMetadata(await headers());
     const result = await processOAuthCallback({
@@ -120,6 +133,29 @@ async function handleOAuthProviderCallback<TProviderTokens>(
     });
 
     if (result.error || !result.session || !result.destination) {
+      const handoffError = params.error
+        ? 'access_denied'
+        : 'exchange_unavailable';
+
+      if (webRequest) {
+        return {
+          webHandoffUrl: buildWebSsoErrorUrl(
+            webRequest.redirectUri,
+            webRequest.state,
+            handoffError
+          ),
+        };
+      }
+
+      if (desktopRequest) {
+        return {
+          desktopHandoffUrl: buildDesktopErrorUrl(
+            desktopRequest.state,
+            handoffError
+          ),
+        };
+      }
+
       return {
         error:
           result.error ||
@@ -128,6 +164,19 @@ async function handleOAuthProviderCallback<TProviderTokens>(
     }
 
     writeServerAuthSessionCookies(cookieStore, result.session);
+
+    if (webRequest && result.userId) {
+      return {
+        webHandoffUrl: await buildWebHandoffUrl({
+          codeChallenge: webRequest.codeChallenge,
+          ipAddress: requestMetadata.ip,
+          redirectUri: webRequest.redirectUri,
+          state: webRequest.state,
+          userAgent: requestMetadata.userAgent,
+          userId: result.userId,
+        }),
+      };
+    }
 
     // El flujo venia de Pulse Hub: en vez de ir al panel web, se devuelve el
     // resultado al escritorio. La sesion web queda igualmente abierta, que es

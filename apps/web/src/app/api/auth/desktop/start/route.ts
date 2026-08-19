@@ -13,6 +13,7 @@ import {
   serializeDesktopSsoRequest,
 } from '@/lib/auth/desktop-sso';
 import { buildDesktopHandoffResponse } from '@/lib/auth/desktop-sso-handoff';
+import { WEB_SSO_COOKIE_NAME } from '@/lib/auth/web-sso';
 import {
   hasActiveMembership,
   issueDesktopSsoTicket,
@@ -52,6 +53,7 @@ export async function GET(request: NextRequest) {
 
     if (!user) {
       const cookieStore = await cookies();
+      cookieStore.delete(WEB_SSO_COOKIE_NAME);
       cookieStore.set(
         DESKTOP_SSO_COOKIE_NAME,
         serializeDesktopSsoRequest({ codeChallenge, state }),

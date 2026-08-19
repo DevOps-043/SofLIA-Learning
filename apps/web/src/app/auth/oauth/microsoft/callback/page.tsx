@@ -18,6 +18,10 @@ export default function MicrosoftCallbackPage() {
           error: params.get('error') || '',
           error_description: params.get('error_description') || '',
         });
+        if (result && 'webHandoffUrl' in result && result.webHandoffUrl) {
+          window.location.replace(result.webHandoffUrl as string);
+          return;
+        }
         if (result && 'error' in result && result.error) {
           // Redirigir al login general (/auth) para evitar interpretar "login" como slug de organización
           router.replace(`/auth?error=${encodeURIComponent(result.error as string)}`);
@@ -38,5 +42,4 @@ export default function MicrosoftCallbackPage() {
 
   return null;
 }
-
 

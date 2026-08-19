@@ -243,6 +243,8 @@ GOOGLE_OAUTH_CLIENT_ID=
 GOOGLE_OAUTH_CLIENT_SECRET=
 MICROSOFT_CLIENT_ID=
 MICROSOFT_CLIENT_SECRET=
+# Callbacks HTTPS exactos de Project Hub, separados por coma (obligatorio en producción)
+PROJECT_HUB_SSO_REDIRECT_URIS=https://project-hub.example.com/api/auth/callback/learning
 
 # Notificaciones externas / WhatsApp
 SOFLIA_HUB_NOTIFICATIONS_URL=

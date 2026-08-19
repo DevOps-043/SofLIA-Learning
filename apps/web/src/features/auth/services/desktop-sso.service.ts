@@ -10,6 +10,10 @@ import {
   hashDesktopSsoTicket,
   matchesCodeChallenge,
 } from '@/lib/auth/desktop-sso';
+import {
+  buildWebSsoCallbackUrl,
+  buildWebSsoErrorUrl,
+} from '@/lib/auth/web-sso';
 
 /**
  * Emision y consumo de los tickets que ligan el SSO web con el escritorio.
@@ -175,6 +179,43 @@ export async function buildDesktopHandoffUrl({
     logger.error('SSO escritorio: no se pudo preparar el retorno', error, { userId });
 
     return buildDesktopErrorUrl(state, 'exchange_unavailable');
+  }
+}
+
+export interface WebHandoffInput extends DesktopHandoffInput {
+  redirectUri: string;
+}
+
+/**
+ * Resuelve el retorno HTTPS a Project Hub usando el mismo ticket y las mismas
+ * comprobaciones del cliente de escritorio. `redirectUri` ya fue validada al
+ * entrar y vuelve a validarse al leer la cookie antes de llegar aqui.
+ */
+export async function buildWebHandoffUrl({
+  codeChallenge,
+  ipAddress,
+  redirectUri,
+  state,
+  userAgent,
+  userId,
+}: WebHandoffInput): Promise<string> {
+  try {
+    if (!(await hasActiveMembership(userId))) {
+      return buildWebSsoErrorUrl(redirectUri, state, 'access_denied');
+    }
+
+    const ticket = await issueDesktopSsoTicket({
+      codeChallenge,
+      ipAddress,
+      userAgent,
+      userId,
+    });
+
+    return buildWebSsoCallbackUrl(redirectUri, ticket, state);
+  } catch (error) {
+    logger.error('SSO web: no se pudo preparar el retorno', error, { userId });
+
+    return buildWebSsoErrorUrl(redirectUri, state, 'exchange_unavailable');
   }
 }
 
