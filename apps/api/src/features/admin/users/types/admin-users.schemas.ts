@@ -28,11 +28,6 @@ const optionalNullableUrlSchema = z.preprocess(
   z.string().trim().url().nullable().optional(),
 )
 
-const optionalEmailSchema = z.preprocess(
-  emptyStringToUndefined,
-  z.string().trim().max(255).email().optional(),
-)
-
 export const adminUserStatusSchema = z.enum(['active', 'inactive', 'banned'])
 
 export const adminUserIdParamsSchema = z.object({
@@ -50,11 +45,9 @@ export const adminUserListQuerySchema = z.object({
 export const adminUserUpdateBodySchema = z
   .object({
     username: z.string().trim().min(1).max(80).optional(),
-    email: optionalEmailSchema,
     first_name: optionalNullableStringSchema(120),
     last_name: optionalNullableStringSchema(120),
     display_name: optionalNullableStringSchema(160),
-    email_verified: z.boolean().optional(),
     phone: optionalNullableStringSchema(40),
     bio: optionalNullableStringSchema(1000),
     location: optionalNullableStringSchema(160),

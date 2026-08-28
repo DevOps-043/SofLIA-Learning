@@ -113,6 +113,21 @@ describe('provisionAuthAccount', () => {
     expect(upsertPayloads[0]).not.toHaveProperty('password_hash')
   })
 
+  it('defaults email verification to false when the trusted caller omits it', async () => {
+    const { provisionAuthAccount } = await import('../auth-account-provisioning.service')
+    const input = { ...createProvisioningInput(), emailVerified: undefined }
+
+    await provisionAuthAccount(input)
+
+    expect(createAuthUserMock).toHaveBeenCalledWith(
+      expect.objectContaining({ email_verified: false }),
+    )
+    expect(upsertPayloads[0]).toMatchObject({
+      email_verified: false,
+      email_verified_at: null,
+    })
+  })
+
   it('fails before Auth creation when email already exists in public.users', async () => {
     createAdminClientMock.mockReturnValue(
       createSupabaseMock({

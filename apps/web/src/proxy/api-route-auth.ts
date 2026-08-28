@@ -5,6 +5,7 @@ import { normalizeRole } from '../core/middleware/auth.roles'
 import type { ValidRole } from '../core/middleware/auth.types'
 import { createProxySupabaseClient } from './supabase'
 import type { ProxyLogger } from './logger'
+import { createAdminClient } from '../lib/supabase/admin'
 
 const ALL_AUTHENTICATED_ROLES: readonly ValidRole[] = [
   'Usuario',
@@ -39,15 +40,24 @@ const PUBLIC_EXACT_PATHS = new Set([
   '/api/security/automation-signal',
   '/api/security/csp-report',
   '/api/security/verify-human',
-  '/api/youtube/video-info',
+  '/api/status',
 ])
 
 const PUBLIC_PREFIXES = [
-  '/api/auth/',
   '/api/certificates/verify/',
   '/api/invite/',
-  '/api/test-translation/',
 ]
+
+const PUBLIC_AUTH_EXACT_PATHS = new Set([
+  '/api/auth/callback/google',
+  '/api/auth/desktop/exchange',
+  '/api/auth/desktop/start',
+  '/api/auth/logout',
+  '/api/auth/mfa/verify',
+  '/api/auth/refresh',
+  '/api/auth/web/exchange',
+  '/api/auth/web/start',
+])
 
 const AUTHENTICATED_PREFIXES = [
   '/api/account-settings',
@@ -75,26 +85,13 @@ const AUTHENTICATED_EXACT_PATHS = new Set([
   '/api/organizations/join-request',
   '/api/organizations/my-status',
   '/api/performance/metrics',
-  '/api/test-lia-db',
   '/api/tts',
-])
-
-const ROLE_PROTECTED_EXACT_PATHS = new Map<string, {
-  description: string
-  roles: readonly ValidRole[]
-}>([
-  [
-    '/api/test-admin',
-    {
-      description: 'admin diagnostic API',
-      roles: ADMIN_ROLES,
-    },
-  ],
 ])
 
 const PUBLIC_GET_PATTERNS = [
   /^\/api\/courses(?:\/[^/]+)?$/,
   /^\/api\/courses\/[^/]+\/(?:full|intro-videos|modules|skills|learn-data|check-purchase)$/,
+  /^\/api\/organizations\/[^/]+(?:\/styles)?$/,
   /^\/api\/skills$/,
   /^\/api\/workshops\/[^/]+\/metadata$/,
 ]
@@ -163,15 +160,6 @@ export function getApiRouteAuthRequirement(
     return { kind: 'public', reason: 'documented public API' }
   }
 
-  const exactRoleRequirement = ROLE_PROTECTED_EXACT_PATHS.get(normalizedPath)
-  if (exactRoleRequirement) {
-    return {
-      kind: 'authenticated',
-      description: exactRoleRequirement.description,
-      roles: exactRoleRequirement.roles,
-    }
-  }
-
   if (matchesSegment(normalizedPath, '/api/admin')) {
     return {
       kind: 'authenticated',
@@ -226,7 +214,11 @@ export function getApiRouteAuthRequirement(
     }
   }
 
-  return { kind: 'public', reason: 'public read/API route' }
+  return {
+    kind: 'authenticated',
+    description: 'default-deny authenticated API',
+    roles: ALL_AUTHENTICATED_ROLES,
+  }
 }
 
 export async function validateApiRouteAccess(
@@ -269,7 +261,8 @@ export async function validateApiRouteAccess(
     return createApiAuthFailureResponse(401, 'UNAUTHENTICATED', request)
   }
 
-  const { data: userData, error: userError } = await supabase
+  const securityClient = createAdminClient()
+  const { data: userData, error: userError } = await securityClient
     .from('users')
     .select('id, platform_role, email')
     .eq('id', resolvedUser.userId)
@@ -300,7 +293,7 @@ export async function validateApiRouteAccess(
       organizationMode: requirement.organizationMode,
       organizationSlug: requirement.organizationSlug,
       role,
-      supabase,
+      supabase: securityClient,
       userId: resolvedUser.userId,
     })
 
@@ -334,6 +327,7 @@ function normalizePathname(pathname: string) {
 
 function isPublicApiRoute(pathname: string, method: string) {
   if (PUBLIC_EXACT_PATHS.has(pathname)) return true
+  if (PUBLIC_AUTH_EXACT_PATHS.has(pathname)) return true
   if (PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return true
 
   return method === 'GET' && PUBLIC_GET_PATTERNS.some((pattern) => pattern.test(pathname))
@@ -379,7 +373,7 @@ async function hasOrganizationAccess(params: {
   organizationMode?: 'business-admin' | 'business-user'
   organizationSlug: string
   role: ValidRole
-  supabase: ReturnType<typeof createProxySupabaseClient>
+  supabase: ReturnType<typeof createAdminClient>
   userId: string
 }) {
   if (params.role === 'Administrador') return true

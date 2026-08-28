@@ -15,7 +15,7 @@ export async function createProvisionedAuthUser(
     platform_role: input.cargoRol,
     display_name: input.displayName ?? buildDisplayName(input),
     email: normalizedEmail,
-    email_verified: input.emailVerified ?? true,
+    email_verified: input.emailVerified === true,
     first_name: input.firstName ?? null,
     last_name: input.lastName ?? null,
     password: input.password,

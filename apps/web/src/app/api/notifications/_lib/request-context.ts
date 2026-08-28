@@ -40,3 +40,4 @@ export async function resolveNotificationRequestContext(): Promise<NotificationR
     userId: sessionUser.id,
   }
 }
+import 'server-only'

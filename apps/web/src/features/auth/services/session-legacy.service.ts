@@ -1,6 +1,7 @@
 import { cacheGet, cacheSet } from '../../../lib/cache/ttlCache';
 import { logger } from '../../../lib/logger';
-import { createClient } from '../../../lib/supabase/server';
+import 'server-only';
+import { createAdminClient } from '../../../lib/supabase/admin';
 import type {
   LegacySessionLookupRow,
   LegacySessionRecord,
@@ -62,7 +63,7 @@ export function cacheLegacySessionUser(
 export async function findActiveLegacySession(
   sessionToken: string
 ): Promise<LegacySessionLookupRow | null> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   logger.debug('Buscando sesión legacy en DB con jwt_id', {
     tokenPrefix: `${sessionToken.substring(0, 8)}...`,
@@ -96,7 +97,7 @@ export async function findActiveLegacySession(
 export async function findActiveLegacySessionUser(
   sessionToken: string
 ): Promise<SessionUserRecord | null> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from('user_session')
@@ -141,7 +142,7 @@ export async function findActiveLegacySessionUser(
 export async function revokeLegacySession(
   sessionToken: string
 ): Promise<string | null> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
 
   const { data: session } = await supabase
     .from('user_session')

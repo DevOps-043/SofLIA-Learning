@@ -1,4 +1,5 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { fileTypeFromBuffer } from 'file-type';
 import type { AiInlineDataPart } from '../../lib/ai/providers';
 import type { Json } from '../../lib/supabase/types';
 import { REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES } from './report-problem.contract';
@@ -19,7 +20,6 @@ const REPORT_PROBLEM_ALLOWED_IMAGE_MIME_TYPES = new Set([
   'image/jpeg',
   'image/jpg',
   'image/png',
-  'image/gif',
   'image/webp',
 ]);
 
@@ -86,13 +86,14 @@ function sanitizeFileSegment(value: string): string {
 function buildStorageFileName(
   userId: string,
   attachment: LiaImageAttachment,
-  index: number
+  index: number,
+  detectedExtension?: string,
 ): string {
   const timestamp = Date.now();
   const randomId = Math.random().toString(36).slice(2, 8);
   const safeUserId = sanitizeFileSegment(userId) || 'user';
   const safeName = sanitizeFileSegment(attachment.fileName) || `attachment-${index + 1}`;
-  const extension = getAttachmentFileExtension(attachment.mimeType);
+  const extension = detectedExtension || getAttachmentFileExtension(attachment.mimeType);
 
   return `report-${safeUserId}-${timestamp}-${index + 1}-${safeName}-${randomId}.${extension}`;
 }
@@ -205,13 +206,27 @@ export async function uploadReportImageAttachments(
     }
 
     try {
-      const buffer = Buffer.from(parsedData.base64Data, 'base64');
-      const fileName = buildStorageFileName(userId, attachment, index);
+      const sourceBuffer = Buffer.from(parsedData.base64Data, 'base64');
+      if (sourceBuffer.byteLength > REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES) {
+        warnings.push(`La imagen "${attachment.fileName}" excede el tamaño permitido`);
+        continue;
+      }
+      const prepared = await validateAndReencodeReportImage(sourceBuffer);
+      if (!prepared || prepared.body.byteLength > REPORT_PROBLEM_MAX_IMAGE_SIZE_BYTES) {
+        warnings.push(`No se pudo verificar la imagen "${attachment.fileName}"`);
+        continue;
+      }
+      const fileName = buildStorageFileName(
+        userId,
+        attachment,
+        index,
+        prepared.extension,
+      );
 
       const { data, error } = await supabaseAdmin.storage
         .from(REPORT_PROBLEM_STORAGE_BUCKET)
-        .upload(fileName, buffer, {
-          contentType: parsedData.mimeType,
+        .upload(fileName, prepared.body, {
+          contentType: prepared.mimeType,
           cacheControl: '3600',
           upsert: false,
         });
@@ -223,25 +238,21 @@ export async function uploadReportImageAttachments(
         continue;
       }
 
-      const { data: publicUrlData } = supabaseAdmin.storage
-        .from(REPORT_PROBLEM_STORAGE_BUCKET)
-        .getPublicUrl(data.path);
-
       assets.push({
         kind: 'image',
         fileName: attachment.fileName,
-        mimeType: attachment.mimeType,
-        size: attachment.size,
+        mimeType: prepared.mimeType,
+        size: prepared.body.byteLength,
         width: attachment.width ?? null,
         height: attachment.height ?? null,
-        publicUrl: publicUrlData.publicUrl,
+        // The bucket is private. A short-lived URL is created only after an
+        // authorized report read; never persist a bearer URL in the database.
+        publicUrl: null,
         storagePath: data.path,
       });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Error desconocido al subir imagen';
+    } catch {
       warnings.push(
-        `Falló la subida de "${attachment.fileName}": ${errorMessage}`
+        `Falló la subida de "${attachment.fileName}"`
       );
     }
   }
@@ -249,8 +260,33 @@ export async function uploadReportImageAttachments(
   return {
     assets,
     warnings,
-    primaryScreenshotUrl: assets[0]?.publicUrl ?? null,
+    primaryScreenshotUrl: assets[0]?.storagePath ?? null,
   };
+}
+
+async function validateAndReencodeReportImage(source: Buffer): Promise<{
+  body: Buffer;
+  extension: 'jpg' | 'png' | 'webp';
+  mimeType: 'image/jpeg' | 'image/png' | 'image/webp';
+} | null> {
+  const detected = await fileTypeFromBuffer(source.subarray(0, 8192));
+  if (!detected || !['image/jpeg', 'image/png', 'image/webp'].includes(detected.mime)) {
+    return null;
+  }
+
+  const { default: sharp } = await import('sharp');
+  const image = sharp(source, {
+    failOn: 'warning',
+    limitInputPixels: 40_000_000,
+  }).rotate();
+
+  if (detected.mime === 'image/png') {
+    return { body: await image.png().toBuffer(), extension: 'png', mimeType: 'image/png' };
+  }
+  if (detected.mime === 'image/webp') {
+    return { body: await image.webp().toBuffer(), extension: 'webp', mimeType: 'image/webp' };
+  }
+  return { body: await image.jpeg({ mozjpeg: true }).toBuffer(), extension: 'jpg', mimeType: 'image/jpeg' };
 }
 
 export function buildReportProblemMetadata({

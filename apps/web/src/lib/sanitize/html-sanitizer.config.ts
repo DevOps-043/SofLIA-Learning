@@ -23,7 +23,7 @@ export const BASIC_CONFIG: SanitizerConfig = {
 
 export const RICH_TEXT_CONFIG: SanitizerConfig = {
   ALLOWED_TAGS: [...TEXT_TAGS, ...FORMAT_TAGS, ...STRUCTURE_TAGS, ...CODE_TAGS],
-  ALLOWED_ATTR: ['href', 'title', 'class', 'target', 'rel', 'style'],
+  ALLOWED_ATTR: ['href', 'title', 'class', 'target', 'rel'],
   ALLOWED_URI_REGEXP: URI_REGEXP,
   KEEP_CONTENT: true,
   RETURN_DOM: false,

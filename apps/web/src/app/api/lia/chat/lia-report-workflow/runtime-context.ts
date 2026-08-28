@@ -55,7 +55,7 @@ function mergeUploadedAttachments(
   ;[...existingAttachments, ...newAttachments].forEach(attachment => {
     const key =
       attachment.storagePath ||
-      `${attachment.fileName}-${attachment.size}-${attachment.publicUrl}`
+      `${attachment.fileName}-${attachment.size}`
     deduplicated.set(key, attachment)
   })
 

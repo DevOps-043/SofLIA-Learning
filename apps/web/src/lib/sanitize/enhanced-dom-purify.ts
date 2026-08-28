@@ -1,4 +1,5 @@
 import type { Config as DOMPurifyConfig } from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 
 import { hardenAnchorTags } from './dom-purify.attribute-utils';
 import { SECURE_RICH_TEXT_CONFIG } from './dom-purify.config';
@@ -18,24 +19,13 @@ export function enhancedSanitizeHTML(
 ): string {
   if (!dirty) return '';
 
-  const domPurify = getDOMPurify();
-  if (!domPurify) {
-    return hardenAnchorTags(
-      dirty
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-        .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
-        .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-        .replace(/javascript:/gi, ''),
-    );
-  }
-
-  setupDOMPurifyHooks();
-  const sanitized = domPurify.sanitize(dirty, {
+  if (typeof window !== 'undefined') setupDOMPurifyHooks();
+  const sanitized = DOMPurify.sanitize(dirty, {
     ...SECURE_RICH_TEXT_CONFIG,
     ...config,
   });
 
-  return toSanitizedString(sanitized);
+  return hardenAnchorTags(toSanitizedString(sanitized));
 }
 
 export function sanitizePlainText(dirty: string | null | undefined): string {

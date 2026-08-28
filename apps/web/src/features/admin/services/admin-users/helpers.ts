@@ -89,15 +89,10 @@ export function buildAdminUserUpdatePayload(userData: Partial<AdminUser>) {
 
   return {
     username: userData.username,
-    email: userData.email,
     first_name: emptyToNull(userData.first_name),
     last_name: emptyToNull(userData.last_name),
     display_name: emptyToNull(userData.display_name),
     platform_role: userData.platform_role,
-    email_verified: userData.email_verified,
-    email_verified_at: userData.email_verified
-      ? new Date().toISOString()
-      : userData.email_verified_at,
     phone: emptyToNull(userData.phone),
     bio: emptyToNull(userData.bio),
     location: emptyToNull(userData.location),

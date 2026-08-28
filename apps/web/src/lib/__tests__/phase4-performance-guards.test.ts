@@ -12,6 +12,7 @@ import {
 import {
   isBodySizeGuardedPath,
   parseContentLength,
+  resolveRequestBodyLimitBytes,
 } from '../api/request-size'
 import {
   measureResponseSizeBytes,
@@ -115,10 +116,14 @@ describe('pagination helpers', () => {
 })
 
 describe('request body size guard', () => {
-  it('guards standard API routes and exempts upload/import routes', () => {
+  it('guards every API route, including upload and import routes', () => {
     expect(isBodySizeGuardedPath('/api/lia/chat')).toBe(true)
-    expect(isBodySizeGuardedPath('/api/admin/upload/course-videos')).toBe(false)
-    expect(isBodySizeGuardedPath('/api/business/users/import')).toBe(false)
+    expect(isBodySizeGuardedPath('/api/admin/upload/course-videos')).toBe(true)
+    expect(isBodySizeGuardedPath('/api/business/users/import')).toBe(true)
+    expect(isBodySizeGuardedPath('/dashboard')).toBe(false)
+    expect(resolveRequestBodyLimitBytes('/api/lia/chat')).toBe(1_048_576)
+    expect(resolveRequestBodyLimitBytes('/api/upload')).toBe(13 * 1024 * 1024)
+    expect(resolveRequestBodyLimitBytes('/api/admin/upload/course-videos/transcode')).toBe(1_048_576)
   })
 
   it('parses valid content-length values defensively', () => {

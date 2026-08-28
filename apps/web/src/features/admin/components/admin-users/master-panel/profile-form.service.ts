@@ -9,7 +9,6 @@ import type { MasterPanelAccountFormData, MasterPanelProfileFormData } from './t
 export function createProfileFormData(user?: AdminUser | null): MasterPanelProfileFormData {
   return {
     username: user?.username || '',
-    email: user?.email || '',
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
     display_name: user?.display_name || '',
@@ -26,7 +25,6 @@ export function createProfileFormData(user?: AdminUser | null): MasterPanelProfi
 export function createAccountFormData(user?: AdminUser | null): MasterPanelAccountFormData {
   return {
     platform_role: user?.platform_role || 'Usuario',
-    email_verified: user?.email_verified || false,
   }
 }
 

@@ -8,6 +8,11 @@ import { withZodBody } from '@/lib/api/with-validation'
 
 import { logger } from '@/lib/utils/logger'
 import {
+  removeInvalidIntroVideo,
+  resolveOwnedIntroVideoReference,
+  validateOwnedIntroVideoUpload,
+} from '@/lib/media/server/intro-video-upload-validation.server'
+import {
   introVideoUrlSchema,
   type IntroVideoUrlBody,
 } from '../../../_schemas'
@@ -34,6 +39,21 @@ async function handlePut(
     if (auth instanceof NextResponse) return auth
     if (!auth.organizationId) {
       return apiError('NO_ORGANIZATION', 'Organizacion no encontrada', 403)
+    }
+
+    const reference = resolveOwnedIntroVideoReference({
+      folder: 'lp',
+      organizationSlug: orgSlug,
+      publicUrl: body.videoUrl,
+    })
+    const validatedUpload = await validateOwnedIntroVideoUpload({
+      folder: 'lp',
+      organizationSlug: orgSlug,
+      publicUrl: body.videoUrl,
+    }).catch(() => null)
+    if (!validatedUpload) {
+      await removeInvalidIntroVideo(reference?.storagePath ?? null)
+      return apiError('INVALID_INTRO_VIDEO', 'El video subido no es valido', 400)
     }
 
     const supabase = getServiceClient()

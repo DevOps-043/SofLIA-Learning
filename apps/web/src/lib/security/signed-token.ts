@@ -1,18 +1,32 @@
 import { createHmac, timingSafeEqual } from 'node:crypto'
 
 const DEFAULT_SIGNING_SECRET = 'soflia-dev-security-key-change-me'
+const MINIMUM_SIGNING_SECRET_LENGTH = 32
 
 interface SignedTokenPayload {
   exp?: number
 }
 
 function getSigningSecret() {
-  return (
+  const configuredSecret = (
     process.env.SOFLIA_SECURITY_SIGNING_KEY ||
     process.env.NEXTAUTH_SECRET ||
-    process.env.SUPABASE_JWT_SECRET ||
-    DEFAULT_SIGNING_SECRET
+    process.env.SUPABASE_JWT_SECRET
   )
+
+  if (configuredSecret) {
+    if (configuredSecret.length < MINIMUM_SIGNING_SECRET_LENGTH) {
+      throw new Error('Security signing secret must contain at least 32 characters')
+    }
+
+    return configuredSecret
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('SOFLIA_SECURITY_SIGNING_KEY is required in production')
+  }
+
+  return DEFAULT_SIGNING_SECRET
 }
 
 function createSignature(serializedPayload: string) {

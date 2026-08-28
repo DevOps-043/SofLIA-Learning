@@ -9,7 +9,7 @@ import {
 } from '@aprende-y-aplica/shared'
 
 import { withApiObservability } from '@/lib/observability/api'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export const dynamic = 'force-dynamic'
 
@@ -45,7 +45,7 @@ type StatusRpcClient = {
 // Public, sanitized status endpoint. Reads exclusively through the
 // SECURITY DEFINER functions — error detail and latency never reach this route.
 async function getPublicStatus() {
-  const supabase = (await createClient()) as unknown as StatusRpcClient
+  const supabase = createAdminClient() as unknown as StatusRpcClient
 
   const [currentResult, historyResult] = await Promise.all([
     supabase.rpc('get_public_system_status_current'),

@@ -23,6 +23,7 @@ export interface AuthLoggerLike {
 export interface ResolveAuthenticatedUserIdDependencies {
   cookieStore: CookieStoreLike
   supabase: SupabaseClient
+  securitySupabase?: SupabaseClient
   logger: AuthLoggerLike
   logPrefix: string
   messages: SessionMessages
@@ -41,6 +42,7 @@ export async function resolveAuthenticatedUserId(
   const {
     cookieStore,
     supabase,
+    securitySupabase = supabase,
     logger,
     logPrefix,
     messages,
@@ -66,7 +68,7 @@ export async function resolveAuthenticatedUserId(
     logger.debug(`${logPrefix}: Usando sistema de refresh tokens`)
 
     const tokenHash = await hashToken(refreshToken)
-    const { data: token, error: tokenError } = await supabase
+    const { data: token, error: tokenError } = await securitySupabase
       .from('refresh_tokens')
       .select('id, user_id, expires_at')
       .eq('token_hash', tokenHash)
@@ -89,7 +91,7 @@ export async function resolveAuthenticatedUserId(
     return authFailure(401, messages.missingSession)
   }
 
-  const { data: session, error: sessionError } = await supabase
+  const { data: session, error: sessionError } = await securitySupabase
     .from('user_session')
     .select('user_id, expires_at, revoked')
     .eq('jwt_id', sessionCookie.value)

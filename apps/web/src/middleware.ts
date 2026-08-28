@@ -1,17 +1,17 @@
 import { type NextFetchEvent, type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from './src/lib/supabase/middleware'
-import { RefreshTokenService } from './src/lib/auth/refreshToken.service'
+import { updateSession } from './lib/supabase/middleware'
+import { RefreshTokenService } from './lib/auth/refreshToken.service'
 import {
   ACTIVITY_SYNC_COOKIE_NAME,
   buildActivitySyncCookieOptions,
   touchUserLastActivity,
-} from './src/lib/auth/user-activity.service'
+} from './lib/auth/user-activity.service'
 import {
   assessAgentTraffic,
   shouldRequireAutomationChallenge,
   shouldBlockAutomatedSensitiveAccess,
-} from './src/lib/security/agent-traffic-policy'
-import { recordSecurityEvent } from './src/lib/security/security-events'
+} from './lib/security/agent-traffic-policy'
+import { recordSecurityEvent } from './lib/security/security-events'
 import {
   createVerificationChallenge,
   getVerificationChallengeCookieOptions,
@@ -19,28 +19,51 @@ import {
   readSecurityStateFromRequest,
   serializeVerificationChallenge,
   VERIFICATION_CHALLENGE_COOKIE_NAME,
-} from './src/lib/security/security-state'
+} from './lib/security/security-state'
 import {
   validateTrustedAgentCookie,
   validateTrustedAgentHeaders,
-} from './src/lib/security/trusted-agent-auth'
+} from './lib/security/trusted-agent-auth'
 import {
   validateAdminAccess,
   validateInstructorAccess,
   validateUserAccess,
   validateBusinessAccess,
   ROLE_ROUTES
-} from './src/core/middleware/auth.middleware'
-import { applyRateLimit, RATE_LIMITS, addRateLimitHeaders, checkRateLimit } from './src/core/lib/rate-limit'
-import { rejectOversizedRequest } from './src/lib/api/request-size'
-import { applyCorsHeaders, enforceCors } from './src/lib/security/cors'
+} from './core/middleware/auth.middleware'
+import { rejectOversizedRequest } from './lib/api/request-size'
+import {
+  applyCorsHeaders,
+  enforceCors,
+  enforceCsrfOrigin,
+} from './lib/security/cors'
 import {
   getOrCreateCorrelationId,
   setCorrelationId,
-} from './src/lib/observability/correlation'
+} from './lib/observability/correlation'
+import { validateApiRouteAccess } from './proxy/api-route-auth'
+import { proxyLogger } from './proxy/logger'
+import {
+  addProxyRateLimitHeaders,
+  applyProxyRateLimits,
+} from './proxy/rate-limits'
+import { createAdminClient } from './lib/supabase/admin'
+import {
+  buildEnforcedContentSecurityPolicy,
+  createContentSecurityPolicyNonce,
+} from './lib/security/content-security-policy'
 
-function withCorrelationHeader<T extends NextResponse>(response: T, correlationId: string) {
+function finalizeMiddlewareResponse<T extends NextResponse>(
+  response: T,
+  correlationId: string,
+  contentSecurityPolicy: string,
+) {
   setCorrelationId(response.headers, correlationId)
+  response.headers.set('Content-Security-Policy', contentSecurityPolicy)
+  if (response.status >= 400) {
+    response.headers.set('Cache-Control', 'private, no-store, max-age=0')
+    response.headers.set('Pragma', 'no-cache')
+  }
   return response
 }
 
@@ -55,16 +78,28 @@ function hasSupabaseAuthTokenCookie(request: NextRequest) {
 export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl;
   const correlationId = getOrCreateCorrelationId(request.headers)
-  setCorrelationId(request.headers, correlationId)
+  const nonce = createContentSecurityPolicyNonce()
+  const contentSecurityPolicy = buildEnforcedContentSecurityPolicy(nonce)
+  const forwardedRequestHeaders = new Headers(request.headers)
+  setCorrelationId(forwardedRequestHeaders, correlationId)
+  forwardedRequestHeaders.set('x-nonce', nonce)
+  forwardedRequestHeaders.set('content-security-policy', contentSecurityPolicy)
+  const complete = <T extends NextResponse>(response: T) =>
+    finalizeMiddlewareResponse(response, correlationId, contentSecurityPolicy)
 
   const corsResponse = enforceCors(request)
   if (corsResponse) {
-    return withCorrelationHeader(corsResponse, correlationId)
+    return complete(corsResponse)
+  }
+
+  const csrfResponse = enforceCsrfOrigin(request)
+  if (csrfResponse) {
+    return complete(csrfResponse)
   }
 
   const oversizedRequestResponse = rejectOversizedRequest(request)
   if (oversizedRequestResponse) {
-    return withCorrelationHeader(oversizedRequestResponse, correlationId)
+    return complete(oversizedRequestResponse)
   }
 
   const trafficAssessment = assessAgentTraffic(request)
@@ -109,55 +144,9 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     })
   }
   
-  // ✅ RATE LIMITING (Issue #20)
-  // Aplicar rate limiting antes de cualquier procesamiento
-  
-  // 1. Rate limiting estricto para auth endpoints
-  if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/register')) {
-    const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.strict, 'auth');
-    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
-  }
-  
-  // 2. Rate limiting estricto para password reset
-  if (pathname.startsWith('/api/auth/reset-password') || pathname.startsWith('/api/auth/forgot-password')) {
-    const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.strict, 'password');
-    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
-  }
-  
-  // 3. Rate limiting para operaciones de creación
-  if (request.method === 'POST' && (
-    pathname.includes('/create') || 
-    pathname.startsWith('/api/admin/communities') ||
-    pathname.startsWith('/api/courses') && pathname.includes('create')
-  )) {
-    const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.create, 'create');
-    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
-  }
-  
-  // 4. Rate limiting para uploads
-  if (pathname.startsWith('/api/upload') || pathname.includes('/upload')) {
-    const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.upload, 'upload');
-    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
-  }
-  
-  // 5. Rate limiting para admin endpoints
-  if (pathname.startsWith('/api/admin')) {
-    const rateLimitResponse = await applyRateLimit(request, RATE_LIMITS.admin, 'admin');
-    if (rateLimitResponse) return withCorrelationHeader(rateLimitResponse, correlationId);
-  }
-  
-  // 6. Rate limiting general para todos los API endpoints
-  if (pathname.startsWith('/api/')) {
-    const rateLimitResult = checkRateLimit(request, RATE_LIMITS.api, 'api');
-    if (!rateLimitResult.success && rateLimitResult.response) {
-      return withCorrelationHeader(rateLimitResult.response, correlationId);
-    }
-    // Guardar info de rate limit para agregar headers después
-    request.headers.set('X-Rate-Limit-Info', JSON.stringify({
-      limit: rateLimitResult.limit,
-      remaining: rateLimitResult.remaining,
-      reset: rateLimitResult.reset.toISOString()
-    }));
+  const rateLimitResponse = await applyProxyRateLimits(request)
+  if (rateLimitResponse) {
+    return complete(rateLimitResponse)
   }
   
   // console.log('🚀 Middleware ejecutándose para:', pathname);
@@ -166,9 +155,19 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   // (refresca cookies) y nos devuelve el usuario nativo: lo reutilizamos abajo en
   // la validación de rol y el chequeo de suspensión en lugar de re-validar el JWT
   // contra el Auth server en cada paso (antes: 3 round trips; ahora: 1).
-  const { response: sessionResponse, user: nativeSessionUser } = await updateSession(request);
+  const { response: sessionResponse, user: nativeSessionUser } = await updateSession(
+    request,
+    forwardedRequestHeaders,
+  );
   let response = sessionResponse;
   const preResolvedUserId = nativeSessionUser?.id ?? null;
+
+  const apiRouteAuthResponse = await validateApiRouteAccess(request, proxyLogger)
+  if (apiRouteAuthResponse) {
+    return complete(
+      applyCorsHeaders(apiRouteAuthResponse, request),
+    )
+  }
 
   // SECURITY: Descomponer el path para detectar rutas con orgSlug dinámico.
   // Las rutas /{orgSlug}/business-panel/* y /{orgSlug}/business-user/* NO empiezan
@@ -221,13 +220,13 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
       reasons: trafficAssessment.reasons,
     })
 
-    return withCorrelationHeader(new NextResponse('Forbidden', {
+    return complete(new NextResponse('Forbidden', {
       status: 403,
       headers: {
         'Cache-Control': 'private, no-store, max-age=0',
         'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet, noimageindex',
       },
-    }), correlationId)
+    }))
   }
 
   if (
@@ -267,7 +266,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
       getVerificationChallengeCookieOptions(),
     )
 
-    return withCorrelationHeader(challengeResponse, correlationId)
+    return complete(challengeResponse)
   }
   
   // Para debugging: mostrar cookies
@@ -282,9 +281,8 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     // Si no hay ningún tipo de sesión, redirigir a login
     if (!hasSession && !hasRefreshToken) {
       // console.log('� Redirigiendo a /auth - no hay sesión para ruta protegida');
-      return withCorrelationHeader(
+      return complete(
         NextResponse.redirect(new URL('/auth?error=session_required', request.url)),
-        correlationId,
       );
     }
     
@@ -314,7 +312,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
         redirectResponse.cookies.delete('refresh_token');
         redirectResponse.cookies.delete('aprende-y-aplica-session');
         
-        return withCorrelationHeader(redirectResponse, correlationId);
+        return complete(redirectResponse);
       }
     }
     
@@ -341,7 +339,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     // Si la validación de rol devuelve una respuesta, significa que el acceso fue denegado
     if (roleValidationResponse) {
       // console.log('❌ Acceso denegado por validación de rol');
-      return withCorrelationHeader(roleValidationResponse, correlationId);
+      return complete(roleValidationResponse);
     }
 
     // SECURITY: Verificar suspensión del usuario en rutas org-scoped.
@@ -349,17 +347,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     // Esto cubre /{orgSlug}/business-panel/* y /{orgSlug}/business-user/*
     if ((isOrgScopedBizPanel || isOrgScopedBizUser) && !pathname.includes('/suspended')) {
       try {
-        const { createServerClient } = await import('@supabase/ssr');
-        const supabaseForSuspension = createServerClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-          {
-            cookies: {
-              getAll() { return request.cookies.getAll(); },
-              setAll() {},
-            },
-          }
-        );
+        const supabaseForSuspension = createAdminClient();
 
         const orgSlug = pathParts[0];
         // Reutilizamos el usuario nativo ya validado por `updateSession`; solo si
@@ -390,9 +378,8 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
             .single();
 
           if (membership?.status === 'suspended') {
-            return withCorrelationHeader(
+            return complete(
               NextResponse.redirect(new URL(`/${orgSlug}/suspended`, request.url)),
-              correlationId,
             );
           }
         }
@@ -410,24 +397,15 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const isSelectOrgRoute = pathname.startsWith('/auth/select-organization');
   if (isAuthRoute && !isSelectOrgRoute && hasSession) {
     // console.log('✅ Redirigiendo a /dashboard - usuario autenticado en ruta auth');
-    return withCorrelationHeader(
+    return complete(
       NextResponse.redirect(new URL('/dashboard', request.url)),
-      correlationId,
     );
   }
   
   // console.log('➡️ Continuando sin redirección');
   
   // Agregar headers de rate limit a la respuesta si están disponibles
-  const rateLimitInfo = request.headers.get('X-Rate-Limit-Info');
-  if (rateLimitInfo) {
-    try {
-      const { limit, remaining, reset } = JSON.parse(rateLimitInfo);
-      response = addRateLimitHeaders(response, limit, remaining, new Date(reset));
-    } catch (error) {
-      // console.warn('Error agregando headers de rate limit:', error);
-    }
-  }
+  response = addProxyRateLimitHeaders(request, response, proxyLogger)
 
   response = applyCorsHeaders(response, request);
 
@@ -445,7 +423,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
     );
   }
 
-  return withCorrelationHeader(response, correlationId);
+  return complete(response);
 }
 
 export const config = {

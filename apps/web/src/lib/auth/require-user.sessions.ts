@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 type CookieStore = Awaited<ReturnType<typeof cookies>>
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
@@ -29,7 +30,7 @@ async function resolveLegacySessionUserId(
     return null
   }
 
-  const { data: session } = await supabase
+  const { data: session } = await createAdminClient()
     .from('user_session')
     .select('user_id, expires_at, revoked')
     .eq('jwt_id', sessionCookie.value)
@@ -52,7 +53,7 @@ async function resolveRefreshTokenUserId(
   }
 
   const tokenHash = crypto.createHash('sha256').update(refreshTokenCookie.value).digest('hex')
-  const { data: tokenData } = await supabase
+  const { data: tokenData } = await createAdminClient()
     .from('refresh_tokens')
     .select('user_id')
     .eq('token_hash', tokenHash)

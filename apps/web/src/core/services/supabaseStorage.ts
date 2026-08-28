@@ -233,38 +233,6 @@ class SupabaseStorageService {
     return match ? match[1] : null;
   }
 
-  /**
-   * Obtiene información de un video de YouTube
-   */
-  async getYouTubeVideoInfo(videoId: string): Promise<{
-    title: string;
-    thumbnail: string;
-  }> {
-    try {
-      // Usar nuestra ruta API del servidor para obtener información del video
-      // Esto protege la API key y evita problemas de CSP
-      const response = await fetch(
-        `/api/youtube/video-info?videoId=${encodeURIComponent(videoId)}`
-      );
-      
-      if (!response.ok) {
-        throw new Error('Error al obtener información del video');
-      }
-
-      const data = await response.json();
-      
-      return {
-        title: data.title || 'Video de YouTube',
-        thumbnail: data.thumbnail || `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-      };
-    } catch (error) {
-      // En caso de error, devolver información básica usando el videoId
-      return {
-        title: 'Video de YouTube',
-        thumbnail: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
-      };
-    }
-  }
 }
 
 export const supabaseStorageService = new SupabaseStorageService();

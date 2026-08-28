@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
-import { createClient } from '../../../lib/supabase/server';
+import { createAdminClient } from '../../../lib/supabase/admin';
 import type { Database } from '../../../lib/supabase/types';
 import {
   buildLegacyScreenshotAttachment,
@@ -12,6 +12,7 @@ import {
   uploadReportImageAttachments,
 } from '@/core/reporting/report-problem.server';
 import { reportPayloadSchema, type ReportPayloadBody } from './schema';
+import { createSignedReportEvidenceUrl } from '@/core/reporting/report-evidence.server';
 
 type ReportProblemInsert =
   Database['public']['Tables']['reportes_problemas']['Insert'];
@@ -37,7 +38,7 @@ async function handlePost(
       return apiError('UNAUTHENTICATED', 'No autenticado', 401);
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const attachments = [...payload.attachments];
     if (attachments.length === 0 && payload.screenshot_data) {
@@ -175,7 +176,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { searchParams } = new URL(request.url);
     const estado = searchParams.get('estado');
@@ -207,13 +208,20 @@ export async function GET(request: NextRequest) {
 
     if (queryError) {
       return NextResponse.json(
-        { error: 'Error al obtener reportes', details: queryError.message },
+        { error: 'Error al obtener reportes' },
         { status: 500 }
       );
     }
 
+    const authorizedReportes = await Promise.all(
+      (reportes ?? []).map(async (reporte) => ({
+        ...reporte,
+        screenshot_url: await createSignedReportEvidenceUrl(reporte.screenshot_url),
+      })),
+    );
+
     return NextResponse.json({
-      reportes,
+      reportes: authorizedReportes,
       total: count,
       limit,
       offset,

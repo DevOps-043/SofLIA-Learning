@@ -9,7 +9,6 @@ export async function resolveFullCourseRequest(
   params: Promise<{ slug: string }>,
 ): Promise<FullCourseRequest> {
   const { slug } = await params
-  const userId = request.nextUrl.searchParams.get('userId')
   const language = (request.nextUrl.searchParams.get('lang') || 'es') as SupportedLanguage
   const supabase = await createClient()
   const currentUser = await SessionService.getCurrentUser()
@@ -19,6 +18,6 @@ export async function resolveFullCourseRequest(
     supabase,
     slug,
     language,
-    effectiveUserId: userId || currentUser?.id || undefined,
+    effectiveUserId: currentUser?.id,
   }
 }

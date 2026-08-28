@@ -1,5 +1,5 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 
 export async function createAdminReportesClient() {
-  return createClient()
+  return createAdminClient()
 }

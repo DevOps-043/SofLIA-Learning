@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { fileTypeFromBuffer } from 'file-type'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import {
   COURSE_VIDEO_MAX_SIZE_BYTES,
@@ -13,15 +14,19 @@ export const maxDuration = 300
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAdmin()
+    if (auth instanceof NextResponse) return auth
+
     const contentLength = request.headers.get('content-length')
-    if (contentLength) {
-      const sizeBytes = parseInt(contentLength, 10)
-      if (sizeBytes > COURSE_VIDEO_MAX_SIZE_BYTES) {
-        return NextResponse.json(
-          { error: 'El archivo excede el tamaño máximo de 1GB', details: `Tamaño recibido: ${(sizeBytes / 1024 / 1024).toFixed(2)} MB` },
-          { status: 400 },
-        )
-      }
+    const sizeBytes = contentLength ? Number(contentLength) : Number.NaN
+    if (!Number.isFinite(sizeBytes) || sizeBytes <= 0) {
+      return NextResponse.json({ error: 'Content-Length requerido' }, { status: 411 })
+    }
+    if (sizeBytes > COURSE_VIDEO_MAX_SIZE_BYTES + 1024 * 1024) {
+      return NextResponse.json(
+        { error: 'El archivo excede el tamaño máximo de 1GB' },
+        { status: 413 },
+      )
     }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -32,9 +37,6 @@ export async function POST(request: NextRequest) {
         { status: 500 },
       )
     }
-
-    const auth = await requireAdmin()
-    if (auth instanceof NextResponse) return auth
 
     let formData: FormData
     try {
@@ -57,6 +59,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Tipo de video no permitido. Solo se permiten MP4 o WebM', receivedType: file.type }, { status: 400 })
     }
 
+    const signatureBytes = Buffer.from(await file.slice(0, 8192).arrayBuffer())
+    const detectedType = await fileTypeFromBuffer(signatureBytes)
+    if (!detectedType || !isStreamableVideoMimeType(detectedType.mime)) {
+      return NextResponse.json(
+        { error: 'La firma real del archivo no corresponde a MP4 o WebM' },
+        { status: 400 },
+      )
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets()
@@ -67,13 +78,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'El bucket course-videos no existe. Créalo en Supabase.' }, { status: 500 })
     }
 
-    const fileExt = file.name.split('.').pop()?.toLowerCase() ?? 'mp4'
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+    const fileName = `${crypto.randomUUID()}.${detectedType.ext}`
     const filePath = `videos/${fileName}`
 
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('course-videos')
-      .upload(filePath, file, { cacheControl: VIDEO_ASSET_CACHE_CONTROL, upsert: false, contentType: file.type })
+      .upload(filePath, file, { cacheControl: VIDEO_ASSET_CACHE_CONTROL, upsert: false, contentType: detectedType.mime })
 
     if (uploadError || !uploadData) {
       return NextResponse.json({ error: 'Error al subir el video', details: uploadError?.message }, { status: 500 })
@@ -90,7 +100,7 @@ export async function POST(request: NextRequest) {
       sourcePath: filePath,
       sourceUrl: urlData.publicUrl,
       bucket: 'course-videos',
-      contentType: file.type,
+      contentType: detectedType.mime,
       sizeBytes: file.size,
     })
 
@@ -104,7 +114,7 @@ export async function POST(request: NextRequest) {
       jobId: transcoding.jobId ?? null,
       name: file.name,
       size: file.size,
-      type: file.type,
+      type: detectedType.mime,
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Error desconocido'

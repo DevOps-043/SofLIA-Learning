@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -163,6 +164,12 @@ export async function POST(request: Request) {
     if (auth instanceof NextResponse) return auth
 
     const options = await resolvePostOptions(request)
+    if (!options) {
+      return NextResponse.json(
+        { error: 'Opciones de reprocesamiento invalidas', success: false },
+        { status: 422 },
+      )
+    }
     const supabase = createAdminClient()
 
     // Filtro base: lecciones pendientes de segmentos. Con `lessonTitleContains` se
@@ -236,31 +243,15 @@ interface PostOptions {
   lessonTitleContains?: string
 }
 
-async function resolvePostOptions(request: Request): Promise<PostOptions> {
-  try {
-    const body = (await request.json()) as {
-      batchSize?: unknown
-      lessonId?: unknown
-      lessonTitleContains?: unknown
-    }
+const postOptionsSchema = z.object({
+  batchSize: z.coerce.number().int().min(1).max(MAX_BATCH_SIZE).default(DEFAULT_BATCH_SIZE),
+  lessonId: z.string().uuid().optional(),
+  lessonTitleContains: z.string().trim().min(1).max(200).optional(),
+}).strict()
 
-    const requested = Number(body?.batchSize)
-    const batchSize =
-      Number.isFinite(requested) && requested > 0
-        ? Math.min(Math.trunc(requested), MAX_BATCH_SIZE)
-        : DEFAULT_BATCH_SIZE
-
-    return {
-      batchSize,
-      lessonId: typeof body?.lessonId === 'string' ? body.lessonId : undefined,
-      lessonTitleContains:
-        typeof body?.lessonTitleContains === 'string' && body.lessonTitleContains.trim()
-          ? body.lessonTitleContains.trim()
-          : undefined,
-    }
-  } catch {
-    return { batchSize: DEFAULT_BATCH_SIZE }
-  }
+async function resolvePostOptions(request: Request): Promise<PostOptions | null> {
+  const parsed = postOptionsSchema.safeParse(await request.json().catch(() => ({})))
+  return parsed.success ? parsed.data : null
 }
 
 interface ReprocessResult {

@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { cookiesMock, createClientMock } = vi.hoisted(() => ({
+const { cookiesMock, createAdminClientMock } = vi.hoisted(() => ({
   cookiesMock: vi.fn(),
-  createClientMock: vi.fn(),
+  createAdminClientMock: vi.fn(),
 }));
 
 vi.mock('next/headers', () => ({
   cookies: cookiesMock,
 }));
 
-vi.mock('../../supabase/server', () => ({
-  createClient: createClientMock,
+vi.mock('../../supabase/admin', () => ({
+  createAdminClient: createAdminClientMock,
 }));
 
 import { RefreshTokenService } from '../refreshToken.service';
@@ -87,7 +87,7 @@ describe('RefreshTokenService', () => {
     });
 
     cookiesMock.mockResolvedValue(cookieStore);
-    createClientMock.mockResolvedValue(supabase);
+    createAdminClientMock.mockReturnValue(supabase);
 
     const session = await RefreshTokenService.createSession(
       'user-1',
@@ -127,7 +127,7 @@ describe('RefreshTokenService', () => {
     );
 
     cookiesMock.mockResolvedValue(cookieStore);
-    createClientMock.mockResolvedValue(supabase);
+    createAdminClientMock.mockReturnValue(supabase);
 
     const session = await RefreshTokenService.refreshSession();
     const expectedHash = await RefreshTokenService.hashTokenForLookup(
@@ -174,7 +174,7 @@ describe('RefreshTokenService', () => {
     });
 
     cookiesMock.mockResolvedValue(cookieStore);
-    createClientMock.mockResolvedValue(supabase);
+    createAdminClientMock.mockReturnValue(supabase);
 
     await expect(RefreshTokenService.refreshSession()).rejects.toMatchObject({
       code: 'INACTIVE_REFRESH_TOKEN',

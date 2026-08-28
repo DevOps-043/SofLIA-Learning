@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPublicAuthOrganizationBySlug } from '@/features/auth/services/organization.service';
-
-function getErrorMessage(error: unknown): string {
-  return error instanceof Error && error.message ? error.message : 'Error al obtener estilos'
-}
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/organizations/[slug]/styles
@@ -41,8 +38,9 @@ export async function GET(
       }
     });
   } catch (error: unknown) {
+    logger.error('Error en GET /api/organizations/[slug]/styles', error);
     return NextResponse.json(
-      { success: false, error: getErrorMessage(error) },
+      { success: false, error: 'Error al obtener estilos' },
       { status: 500 }
     );
   }

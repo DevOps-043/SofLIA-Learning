@@ -27,7 +27,6 @@ export function getInstructorInfo(instructor: InstructorQueryRow | null | undefi
   if (!instructor) {
     return {
       name: 'Instructor',
-      email: 'instructor@example.com',
     }
   }
 
@@ -36,7 +35,6 @@ export function getInstructorInfo(instructor: InstructorQueryRow | null | undefi
       `${instructor.first_name || ''} ${instructor.last_name || ''}`.trim() ||
       instructor.username ||
       'Instructor',
-    email: instructor.email || 'instructor@example.com',
   }
 }
 
@@ -73,7 +71,6 @@ export function mapCourseRowToCourse(
     price: formatCoursePrice(course.price),
     isFavorite: options?.isFavorite || false,
     instructor_name: instructorInfo.name,
-    instructor_email: instructorInfo.email,
     student_count: course.student_count || 0,
     review_count: course.review_count || 0,
     learning_objectives: learningObjectives,

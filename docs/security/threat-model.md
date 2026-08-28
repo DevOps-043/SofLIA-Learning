@@ -1,6 +1,6 @@
 # Threat model STRIDE - SofLIA Learning
 
-Ultima revision: 2026-05-18
+Ultima revision tecnica: 2026-08-27
 
 Alcance: flujos criticos de Auth, file uploads, LIA chat, multi-tenant data access, OAuth Google/Microsoft y pagos/subscripciones.
 
@@ -21,7 +21,7 @@ Estado de revision: pendiente de firma por Security Owner y Platform Owner. Este
 - El service role solo debe ejecutarse en contexto server-side confiable.
 - No se usan webhooks propios para integraciones internas; el proyecto opera con REST.
 - Los logs no deben persistir passwords, tokens, prompts completos con PII, ni payloads de usuarios.
-- Cualquier CSP nueva debe pasar por report-only antes de enforcement.
+- Cambios de CSP deben conservar tests de nonce y pasar validacion en staging antes de produccion.
 
 ## Activos criticos
 
@@ -29,6 +29,7 @@ Estado de revision: pendiente de firma por Security Owner y Platform Owner. Este
 |---|---|---|
 | Cuentas Admin/Business | Escalacion de privilegios | MFA, lockout, sesiones revocables, auditoria |
 | Datos multi-tenant | Acceso cruzado entre organizaciones | `requireOrgAccess`, RLS, tests de aislamiento |
+| Evidencia de reportes | URL bearer publica o lectura de objetos ajenos | Bucket privado, ownership/admin y URL firmada corta |
 | Prompts y respuestas LIA | Exposicion de PII e inyeccion de prompt | Sanitizacion, minimizacion, guardrails |
 | Archivos subidos | Malware, XSS, contenido activo | MIME/magic bytes, limites, antimalware |
 | Tokens OAuth/sesiones | Secuestro de cuenta | state/PKCE, cookies seguras, rotacion |
@@ -40,20 +41,22 @@ Estado de revision: pendiente de firma por Security Owner y Platform Owner. Este
 |---|---|---|---|---|---|---|
 | Auth login/register/reset | Spoofing | Fuerza bruta o credential stuffing contra login | Alta | Alto | Lockout 5 fallos / 15 min Redis-ready, rate limits, mensajes genericos | Security |
 | Auth login/register/reset | Information disclosure | Email enumeration por login/reset | Media | Medio | Login devuelve mensaje generico; reset mantiene respuesta uniforme | Security |
+| Auth register | Spoofing | Alta directa mediante Supabase Auth o metadata que simula email verificado | Confirmada | Alto | Signup directo deshabilitado, marcador server-only, confirmacion canonica y cuarentena | Security |
 | Auth login/register/reset | Tampering | Password debil o filtrado aceptado | Media | Alto | Minimo 12 chars, complejidad, HIBP k-anonymity | Security |
-| Auth login/register/reset | Repudiation | No hay rastro de revocacion o incidentes | Media | Alto | Endpoint admin de revocacion; pendiente `security_audit_log` | Platform |
+| Auth login/register/reset | Repudiation | Falta de rastro de revocacion o incidentes | Media | Alto | `security_audit_log` append-only, correlacion y alertas programadas | Platform |
 | OAuth Google/Microsoft | Spoofing | Callback sin state/CSRF correcto | Media | Alto | Verificar state en callback y documentar en auth policy | Security |
 | OAuth Google/Microsoft | Information disclosure | Tokens OAuth en logs o errores | Baja | Alto | Logger sanitizado; no registrar query/cookies completas | Platform |
-| File uploads | Tampering | Extension/MIME falsificados | Alta | Alto | Pendiente magic bytes y antimalware en 5.11 | Platform |
+| File uploads | Tampering | Extension/MIME falsificados | Alta | Alto | Magic bytes, re-encoding de imagenes y antimalware fail-closed en buckets documentales | Platform |
 | File uploads | Denial of service | Archivos grandes o muchos uploads | Media | Alto | Rate limit upload, limites de payload, bucket policies | Platform |
-| File uploads | Elevation of privilege | Path traversal o overwrite de archivos ajenos | Media | Alto | Sanitizacion de paths y storage por bucket; revisar ownership | Platform |
+| File uploads | Elevation of privilege | Path traversal o overwrite de archivos ajenos | Media | Alto | Matriz bucket/rol, nombres opacos y paths obligatoriamente prefijados por usuario | Platform |
 | LIA chat | Information disclosure | PII en prompt enviada a modelos externos | Media | Alto | Sanitizacion de contexto, minimizacion y redaccion de logs | AI Platform |
 | LIA chat | Tampering | Prompt injection que induce acciones mutativas | Alta | Alto | Guardrails, confirmacion para acciones mutativas, tests existentes | AI Platform |
 | LIA chat | Denial of service | Abuso de costo por chats IA | Media | Medio | Rate limit AI chat y circuit breakers | Platform |
-| Multi-tenant access | Elevation of privilege | Usuario accede datos de otra organizacion | Alta | Critico | RLS, helpers auth, pendiente `requireOrgAccess` masivo | Platform |
-| Multi-tenant access | Information disclosure | Query sin filtro `org_id` o `select('*')` | Media | Alto | Auditoria select-star, RLS matrix, tests tenant pendientes | Platform |
+| Multi-tenant access | Elevation of privilege | Usuario accede datos de otra organizacion | Alta | Critico | Guard central por slug/membresia, `requireOrgAccess`, RLS forzado y tests de aislamiento | Platform |
+| Multi-tenant access | Information disclosure | Query sin filtro `org_id` o `select('*')` | Media | Alto | Grants minimos, politicas owner/org y tablas sensibles exclusivas de `service_role` | Platform |
+| Supabase Data API | Information disclosure | Uso de la clave publica `anon` contra grants, vistas o RLS permisivos | Confirmada | Critico | RLS forzado, grants deny-by-default, cierre de vistas/RPC/Storage y pruebas negativas | Security |
 | Pagos/subscripciones | Tampering | Cambio de plan no autorizado | Media | Alto | Auth por rol Business/Admin, validacion server-side | Payments |
-| Pagos/subscripciones | Repudiation | Cambios sin audit trail | Media | Alto | Pendiente `security_audit_log` y eventos de negocio firmables | Payments |
+| Pagos/subscripciones | Repudiation | Cambios sin audit trail | Media | Alto | Audit log append-only y contexto de actor/organizacion | Payments |
 | Pagos/subscripciones | Denial of service | Reintentos duplican cambios/cargos | Baja | Alto | Requiere idempotency keys donde haya proveedor de pagos | Payments |
 
 ## Secure design review checklist
@@ -63,7 +66,7 @@ Estado de revision: pendiente de firma por Security Owner y Platform Owner. Este
 - Inputs mutativos usan Zod o validadores equivalentes.
 - Respuestas de auth no revelan existencia de cuentas.
 - Logs usan `logger` sanitizado y no incluyen payloads sensibles.
-- CSP esta en report-only antes de enforcement.
+- CSP enforced usa nonce por request y no permite `unsafe-inline`/`unsafe-eval` en scripts.
 - Migraciones destructivas incluyen rollback documentado.
 - Dependencias nuevas pasan por audit/licencias.
 
@@ -71,11 +74,12 @@ Estado de revision: pendiente de firma por Security Owner y Platform Owner. Este
 
 | Riesgo | Estado | Siguiente tarea |
 |---|---|---|
-| `requireOrgAccess` no aplicado al 100% | Abierto | 5.1 |
-| `security_audit_log` aun no creado | Abierto | 5.9 |
-| Upload hardening incompleto | Abierto | 5.11 |
-| CSP enforcement requiere periodo report-only | En progreso | 5.5 seguimiento |
-| MFA Admin/Business requiere habilitacion Supabase/UX | En progreso | 5.7 seguimiento |
+| Migracion de contencion aun no aplicada en produccion | Operativo critico | Seguir `remediation-2026-08-27.md` dentro de ventana con backup |
+| Alcance forense del incidente aun no determinado | Operativo critico | Analizar logs de Data API/Auth/Storage y evaluar notificacion legal sin copiar PII |
+| Credenciales potencialmente expuestas aun no rotadas | Operativo critico | Revocar sesiones/tokens y rotar secretos durante el despliegue |
+| Restore drill real requiere ejecucion periodica | Operativo | Ejecutar y firmar `backup-restore-drill.md` |
+| MFA obligatorio por rol | Decision de rollout | Activar por fases despues de verificar enrolamiento y recuperacion |
+| Video grande por upload directo requiere scanner de storage/media | Operativo | Mantener el flujo dedicado y exigir scanner del proveedor antes de declarar antimalware estricto para video |
 
 ## Revision y firmas
 

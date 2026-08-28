@@ -24,7 +24,7 @@ describe('enhancedSanitizeHTML', () => {
     expect(clean).not.toContain('javascript:')
   })
 
-  it('marks external links and strips target blank when it cannot be preserved safely', () => {
+  it('marks external links and removes an untrusted target blank', () => {
     const dirty = '<a href="https://example.com" target="_blank">Link</a>'
     const clean = enhancedSanitizeHTML(dirty)
 

@@ -14,13 +14,8 @@ export async function GET(request: NextRequest) {
     )
   } catch (error) {
     logError('GET /api/categories', error)
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
     return NextResponse.json(
-      {
-        error: 'Error al obtener categorías',
-        message: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
-      },
+      { error: 'Error al obtener categorías' },
       { status: 500 }
     )
   }

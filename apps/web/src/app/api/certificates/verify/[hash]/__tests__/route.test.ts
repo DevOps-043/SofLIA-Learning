@@ -138,6 +138,7 @@ describe('/api/certificates/verify/[hash]', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(500)
-    expect(payload.details).toBe('DB connection failed')
+    expect(payload).toEqual({ error: 'Error interno del servidor' })
+    expect(JSON.stringify(payload)).not.toContain('DB connection failed')
   })
 })

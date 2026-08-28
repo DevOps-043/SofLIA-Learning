@@ -2,6 +2,7 @@ import { createHash } from 'crypto'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
+import { z } from 'zod'
 
 import { SessionService } from '@/features/auth/services/session.service'
 import { resolveCourseEnrollment } from '@/features/courses/services/course-enrollment.server.service'
@@ -10,19 +11,20 @@ import type { PromptModelProfile } from '@/lib/ai/prompts'
 import { generateAiText } from '@/lib/ai/providers/ai-text-gateway.server'
 import { buildQuizFeedbackSystemInstruction } from '../feedback-prompt'
 import { createClient } from '@/lib/supabase/server'
-import type { CourseLessonContext } from '@/core/types/lia.types'
 import type { Database, Json } from '@/lib/supabase/types'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-type QuizFeedbackRequestBody = {
-  activityId?: string | null
-  courseContext?: CourseLessonContext | null
-  materialId?: string | null
-  organizationId?: string | null
-  prompt?: string
-}
+const quizFeedbackRequestSchema = z.object({
+  activityId: z.string().uuid().nullish(),
+  courseContext: z.object({
+    transcriptContent: z.string().max(100_000).optional(),
+  }).passthrough().nullish(),
+  materialId: z.string().uuid().nullish(),
+  organizationId: z.string().uuid().nullish(),
+  prompt: z.string().trim().min(1).max(12_000),
+}).strict()
 
 function normalizeOptionalId(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null
@@ -52,7 +54,7 @@ const FEEDBACK_GENERATION_ATTEMPTS = 2
 
 async function generateFeedbackWithGemini(params: {
   prompt: string
-  courseContext?: CourseLessonContext | null
+  courseContext?: { transcriptContent?: string } | null
 }): Promise<{ content: string; model: string }> {
   const transcript = params.courseContext?.transcriptContent
   const transcriptExcerpt = transcript ? transcript.slice(0, 3000) : null
@@ -137,22 +139,17 @@ export async function POST(
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
     }
 
-    const body = (await request.json()) as QuizFeedbackRequestBody
-    const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : ''
-
-    if (!prompt) {
+    const parsedBody = quizFeedbackRequestSchema.safeParse(
+      await request.json().catch(() => null),
+    )
+    if (!parsedBody.success) {
       return NextResponse.json(
-        { error: 'Se requiere prompt para generar retroalimentacion.' },
-        { status: 400 },
+        { error: 'La solicitud de retroalimentacion no es valida.' },
+        { status: 422 },
       )
     }
-
-    if (prompt.length > 12000) {
-      return NextResponse.json(
-        { error: 'El prompt de retroalimentacion es demasiado largo.' },
-        { status: 413 },
-      )
-    }
+    const body = parsedBody.data
+    const prompt = body.prompt
 
     // Phase 1: course lookup + cache check in parallel
     const promptHash = buildPromptHash(prompt)

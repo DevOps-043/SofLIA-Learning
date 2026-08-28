@@ -69,12 +69,12 @@ export function resolveRouteRateLimitPolicy(request: NextRequest): RouteRateLimi
   const { pathname } = request.nextUrl
   const method = request.method.toUpperCase()
 
-  if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/register')) {
-    return { config: ROUTE_RATE_LIMITS.auth, prefix: 'auth' }
-  }
-
   if (pathname.startsWith('/api/auth/reset-password') || pathname.startsWith('/api/auth/forgot-password')) {
     return { config: ROUTE_RATE_LIMITS.auth, prefix: 'password' }
+  }
+
+  if (pathname.startsWith('/api/auth')) {
+    return { config: ROUTE_RATE_LIMITS.auth, prefix: 'auth' }
   }
 
   if (pathname.includes('/import')) {

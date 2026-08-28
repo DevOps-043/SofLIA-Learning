@@ -9,7 +9,7 @@ TECH_DEBT_REMEDIATION.md 5.3 - Sanitizacion y prevencion de inyeccion.
 | Superficie | Resultado | Accion |
 |---|---|---|
 | `dangerouslySetInnerHTML` | 6 ocurrencias en 3 archivos | Contenido dinamico sanitizado con DOMPurify; usos estaticos documentados. |
-| `.rpc(` | 34 ocurrencias | No se detecta SQL string construido en TypeScript; pendiente revisar SQL de funciones en Supabase. |
+| `.rpc(` | 34 ocurrencias en la auditoria base | No se detecta SQL construido en TypeScript; los RPC destructivos quedaron restringidos a wrappers autenticados de `service_role`. |
 | Markdown compartido | Links podian aceptar protocolos no seguros | Se bloqueo `javascript:` y protocolos no permitidos; el parser renderiza React nodes en lugar de HTML inyectado. |
 | Prompt injection LIA | Ya tenia detector; faltaba delimitador explicito del mensaje actual | Se agrego `buildCurrentTurnPrompt` con bloque no confiable. |
 | Prompt injection Study Planner | Faltaba guardrail equivalente | Se agrego evaluacion de riesgo y delimitador antes de Gemini. |
@@ -34,7 +34,8 @@ TECH_DEBT_REMEDIATION.md 5.3 - Sanitizacion y prevencion de inyeccion.
 - `apps/web/src/app/api/lia/chat/__tests__/prompt-instructions.service.test.ts` valida delimitadores de input no confiable.
 - `apps/web/src/app/api/study-planner/dashboard/chat/__tests__/security-guardrails.service.test.ts` valida bloqueo de prompt injection y wrapper para Gemini.
 
-## Pendientes
+## Cierre
 
-- Revisar el SQL de cada funcion invocada por `.rpc(` para confirmar que no arma SQL dinamico con input de usuario.
-- Completar 5.10 para URLs externas y SSRF.
+- La migracion de contencion revoca ejecucion publica/anonima de funciones `SECURITY DEFINER` y mueve las operaciones destructivas a `private`.
+- La auditoria SSRF esta cerrada en `docs/security/ssrf-audit.md`; los fetches con URL controlada por usuario usan `safeFetch`.
+- Nuevos cuerpos JSON sin `safeParse`/`withZodBody` hacen fallar `scripts/audit-route-validation.ts`.

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '../../../lib/supabase/server'
+import { createAdminClient } from '../../../lib/supabase/admin'
 import { z } from 'zod'
 
 const verifyEmailSchema = z.object({
@@ -33,15 +34,18 @@ export async function verifyEmailAction(formData: FormData | { token: string }) 
       return { error: 'Código de verificación inválido o expirado' }
     }
     
-    if (!data.user?.email) {
+    if (!data.user?.id || !data.user.email_confirmed_at) {
       return { error: 'No se pudo obtener información del usuario' }
     }
 
     // Actualizar email_verified en users
-    const { error: updateError } = await supabase
+    const { error: updateError } = await createAdminClient()
       .from('users')
-      .update({ email_verified: true })
-      .eq('email', data.user.email)
+      .update({
+        email_verified: true,
+        email_verified_at: data.user.email_confirmed_at,
+      })
+      .eq('id', data.user.id)
     
     if (updateError) {
       return { error: 'Error al actualizar verificación de email' }

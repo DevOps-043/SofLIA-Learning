@@ -45,6 +45,7 @@ export interface ResolveBusinessAccessDependencies {
   mode: BusinessAccessMode
   cookieStore: CookieStoreLike
   supabase: SupabaseClient
+  securitySupabase?: SupabaseClient
   logger: LoggerLike
   options?: OrganizationAccessOptions
 }
@@ -52,12 +53,20 @@ export interface ResolveBusinessAccessDependencies {
 export async function resolveBusinessAccess(
   dependencies: ResolveBusinessAccessDependencies,
 ): Promise<AuthResult<BusinessAuth>> {
-  const { mode, cookieStore, supabase, logger, options } = dependencies
+  const {
+    mode,
+    cookieStore,
+    supabase,
+    securitySupabase = supabase,
+    logger,
+    options,
+  } = dependencies
   const config = MODE_CONFIG[mode]
 
   const sessionResult = await resolveAuthenticatedUserId({
     cookieStore,
     supabase,
+    securitySupabase,
     logger,
     logPrefix: config.logPrefix,
     messages: SESSION_MESSAGES_BY_MODE[mode],
@@ -74,9 +83,9 @@ export async function resolveBusinessAccess(
   // `isPlatformAdmin` is the rare "not a member" fallback, handled below.
   const userId = sessionResult.value
   const [userResult, optimisticOrgResult] = await Promise.all([
-    loadAuthenticatedBusinessUser(supabase, userId, logger, mode),
+    loadAuthenticatedBusinessUser(securitySupabase, userId, logger, mode),
     resolveOrganizationAccess({
-      supabase,
+      supabase: securitySupabase,
       userId,
       isPlatformAdmin: false,
       options,
@@ -100,7 +109,7 @@ export async function resolveBusinessAccess(
     userResult.value.isPlatformAdmin
   ) {
     organizationResult = await resolveOrganizationAccess({
-      supabase,
+      supabase: securitySupabase,
       userId: userResult.value.id,
       isPlatformAdmin: true,
       options,

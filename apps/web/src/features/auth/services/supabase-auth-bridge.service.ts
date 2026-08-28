@@ -2,6 +2,7 @@ import 'server-only'
 
 import { logger } from '@/lib/logger'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getEmailAppUrl } from './email.utils'
 
 export interface LegacyUserForAuthBridge {
   platform_role?: string | null
@@ -174,6 +175,32 @@ export async function revokeSupabaseAuthSessions(userId: string) {
   return typeof data === 'number' ? data : 0
 }
 
+export async function sendSupabaseSignupConfirmation(emailAddress: string) {
+  const email = normalizeEmail(emailAddress)
+  if (!email) {
+    throw new SupabaseAuthBridgeError(
+      'MISSING_EMAIL',
+      'No hay email para enviar la confirmacion.',
+    )
+  }
+
+  const admin = createAdminClient()
+  const { error } = await admin.auth.resend({
+    type: 'signup',
+    email,
+    options: {
+      emailRedirectTo: `${getEmailAppUrl()}/auth?emailVerified=1`,
+    },
+  })
+
+  if (error) {
+    logger.warn('No se pudo enviar confirmacion de email', {
+      error: serializeSupabaseAuthError(error),
+    })
+    throw new Error('AUTH_CONFIRMATION_SEND_FAILED')
+  }
+}
+
 async function createAuthUserWithLegacyId(
   profile: LegacyUserForAuthBridge,
   options: CreateAuthUserOptions,
@@ -208,7 +235,7 @@ async function createAuthUser(
     ...overrides,
     email,
     ...(options.password ? { password: options.password } : {}),
-    email_confirm: true,
+    email_confirm: profile.email_verified === true,
     user_metadata: {
       display_name: profile.display_name,
       first_name: profile.first_name,

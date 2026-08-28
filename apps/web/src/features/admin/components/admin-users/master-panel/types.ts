@@ -55,7 +55,6 @@ export interface UserMasterPanelProps {
  * que el backend nunca aceptó y solo generaba una UI engañosa). */
 export interface MasterPanelProfileFormData {
   username: string
-  email: string
   first_name: string
   last_name: string
   display_name: string
@@ -70,7 +69,6 @@ export interface MasterPanelProfileFormData {
 
 export interface MasterPanelAccountFormData {
   platform_role: string
-  email_verified: boolean
 }
 
 /** Curso del catálogo de una organización (respuesta de /api/admin/companies/[id]/courses). */

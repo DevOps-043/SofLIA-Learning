@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 
-import { createClient } from '../supabase/server';
+import 'server-only';
+import { createAdminClient } from '../supabase/admin';
 import { RefreshTokenError } from './refresh-token.errors';
 import { touchUserLastActivity } from './user-activity.service';
 import {
@@ -76,7 +77,7 @@ export class RefreshTokenService {
   private static async findActiveRefreshToken(
     refreshToken: string
   ): Promise<RefreshToken> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from('refresh_tokens')
@@ -105,7 +106,7 @@ export class RefreshTokenService {
     rememberMe: boolean = false,
     request?: Request
   ): Promise<SessionInfo> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const accessToken = generateSecureToken();
     const refreshToken = generateSecureToken();
@@ -136,7 +137,7 @@ export class RefreshTokenService {
   }
 
   static async refreshSession(): Promise<RefreshSessionInfo> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const cookieStore = await cookies();
     const refreshToken = cookieStore.get('refresh_token')?.value;
 
@@ -192,7 +193,7 @@ export class RefreshTokenService {
     tokenId: string,
     reason: string = 'Manual revocation'
   ): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     await supabase
       .from('refresh_tokens')
@@ -208,7 +209,7 @@ export class RefreshTokenService {
     userId: string,
     reason: string = 'User logout'
   ): Promise<void> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     await supabase
       .from('refresh_tokens')
@@ -233,7 +234,7 @@ export class RefreshTokenService {
   }
 
   static async getUserActiveSessions(userId: string): Promise<RefreshToken[]> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from('refresh_tokens')
@@ -251,7 +252,7 @@ export class RefreshTokenService {
   }
 
   static async cleanExpiredTokens(): Promise<number> {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from('refresh_tokens')

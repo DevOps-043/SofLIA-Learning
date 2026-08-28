@@ -9,7 +9,16 @@ describe('getApiRouteAuthRequirement', () => {
     expect(getApiRouteAuthRequirement('/api/landing/contact', 'POST')).toMatchObject({
       kind: 'public',
     })
+    expect(getApiRouteAuthRequirement('/api/status')).toMatchObject({
+      kind: 'public',
+    })
     expect(getApiRouteAuthRequirement('/api/certificates/verify/hash')).toMatchObject({
+      kind: 'public',
+    })
+    expect(getApiRouteAuthRequirement('/api/organizations/acme')).toMatchObject({
+      kind: 'public',
+    })
+    expect(getApiRouteAuthRequirement('/api/organizations/acme/styles')).toMatchObject({
       kind: 'public',
     })
   })
@@ -30,13 +39,6 @@ describe('getApiRouteAuthRequirement', () => {
     )
 
     expect(requirement).toMatchObject({
-      kind: 'authenticated',
-      roles: ['Administrador'],
-    })
-  })
-
-  it('requires admin role for diagnostic admin APIs', () => {
-    expect(getApiRouteAuthRequirement('/api/test-admin')).toMatchObject({
       kind: 'authenticated',
       roles: ['Administrador'],
     })
@@ -99,6 +101,33 @@ describe('getApiRouteAuthRequirement', () => {
 
   it('protects org self-service APIs', () => {
     expect(getApiRouteAuthRequirement('/api/organizations/create', 'POST')).toMatchObject({
+      kind: 'authenticated',
+    })
+  })
+
+  it('fails closed for unknown APIs', () => {
+    expect(getApiRouteAuthRequirement('/api/future-unclassified-route')).toMatchObject({
+      kind: 'authenticated',
+    })
+  })
+
+  it('does not expose diagnostic translation routes', () => {
+    expect(getApiRouteAuthRequirement('/api/test-translation/lesson-es')).toMatchObject({
+      kind: 'authenticated',
+    })
+  })
+
+  it('only exposes explicitly enumerated auth endpoints', () => {
+    expect(getApiRouteAuthRequirement('/api/auth/callback/google')).toMatchObject({
+      kind: 'public',
+    })
+    expect(getApiRouteAuthRequirement('/api/auth/mfa/verify', 'POST')).toMatchObject({
+      kind: 'public',
+    })
+    expect(getApiRouteAuthRequirement('/api/auth/me')).toMatchObject({
+      kind: 'authenticated',
+    })
+    expect(getApiRouteAuthRequirement('/api/auth/sessions')).toMatchObject({
       kind: 'authenticated',
     })
   })

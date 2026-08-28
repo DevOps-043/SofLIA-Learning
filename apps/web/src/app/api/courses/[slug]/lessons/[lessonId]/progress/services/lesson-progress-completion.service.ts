@@ -57,15 +57,6 @@ type LessonProgressSideEffectHandler = (
   overallProgress: number,
 ) => Promise<{ lesson?: GenerationState; compendium?: GenerationState }>
 
-const importSideEffectsModule = new Function(
-  'modulePath',
-  'return import(modulePath)',
-) as (
-  modulePath: string,
-) => Promise<{
-  triggerLessonProgressSideEffects: LessonProgressSideEffectHandler
-}>
-
 async function runLessonProgressSideEffects(
   completionContext: {
     supabase: SupabaseServerClient
@@ -83,9 +74,11 @@ async function runLessonProgressSideEffects(
   overallProgress: number,
 ): Promise<{ lesson?: GenerationState; compendium?: GenerationState }> {
   try {
-    const { triggerLessonProgressSideEffects } = await importSideEffectsModule(
-      './lesson-progress-side-effects.service',
-    )
+    const { triggerLessonProgressSideEffects } = await import(
+      './lesson-progress-side-effects.service'
+    ) as {
+      triggerLessonProgressSideEffects: LessonProgressSideEffectHandler
+    }
     return await triggerLessonProgressSideEffects(
       completionContext,
       overallProgress,

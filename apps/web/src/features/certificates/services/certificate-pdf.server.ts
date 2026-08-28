@@ -1,5 +1,7 @@
 import { getFullUrl } from '@/lib/env'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createRequire } from 'node:module'
+import path from 'node:path'
 import {
   CERTIFICATE_RENDER_HEIGHT_PX,
   CERTIFICATE_RENDER_WIDTH_PX,
@@ -67,7 +69,7 @@ function getRuntimeRequire(): NodeJS.Require {
     return __non_webpack_require__
   }
 
-  return eval('require') as NodeJS.Require
+  return createRequire(path.join(process.cwd(), 'package.json'))
 }
 
 function isPlaywrightModule(value: unknown): value is PlaywrightModule {
@@ -115,10 +117,8 @@ export class CertificatePdfService {
     return `${userId}/${certificateId}.pdf`
   }
 
-  static async buildPublicUrl(filePath: string): Promise<string> {
-    const supabase = createAdminClient()
-    const { data } = supabase.storage.from('certificates').getPublicUrl(filePath)
-    return data.publicUrl
+  static buildAuthenticatedDownloadUrl(certificateId: string): string {
+    return `/api/certificates/${encodeURIComponent(certificateId)}/download`
   }
 
   static async renderPdfBuffer(params: {
@@ -191,7 +191,7 @@ export class CertificatePdfService {
     userId: string
     certificateId: string
     buffer: Buffer
-  }): Promise<string> {
+  }): Promise<void> {
     const supabase = createAdminClient()
     const filePath = this.buildStoragePath(params.userId, params.certificateId)
 
@@ -205,7 +205,6 @@ export class CertificatePdfService {
       throw error
     }
 
-    return this.buildPublicUrl(filePath)
   }
 
   static async downloadStoredPdf(params: {
@@ -231,7 +230,7 @@ export class CertificatePdfService {
     forceRegenerate?: boolean
   }): Promise<{
     buffer: Buffer
-    publicUrl: string
+    downloadUrl: string
   }> {
     const filePath = this.buildStoragePath(params.userId, params.certificateId)
 
@@ -244,7 +243,7 @@ export class CertificatePdfService {
       if (existingBuffer) {
         return {
           buffer: existingBuffer,
-          publicUrl: await this.buildPublicUrl(filePath),
+          downloadUrl: this.buildAuthenticatedDownloadUrl(params.certificateId),
         }
       }
     }
@@ -255,7 +254,7 @@ export class CertificatePdfService {
       cookieHeader: params.cookieHeader,
     })
 
-    const publicUrl = await this.uploadPdf({
+    await this.uploadPdf({
       userId: params.userId,
       certificateId: params.certificateId,
       buffer,
@@ -263,7 +262,7 @@ export class CertificatePdfService {
 
     return {
       buffer,
-      publicUrl,
+      downloadUrl: this.buildAuthenticatedDownloadUrl(params.certificateId),
     }
   }
 }

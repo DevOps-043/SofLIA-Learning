@@ -2,7 +2,10 @@
  * Servicio para obtener información de organizaciones por slug
  */
 
+import 'server-only';
+
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
 
 const PUBLIC_AUTH_ORGANIZATION_SELECT = [
@@ -76,7 +79,9 @@ export async function getOrganizationBySlug(slug: string): Promise<Organization 
 
 export async function getPublicAuthOrganizationBySlug(slug: string): Promise<Organization | null> {
   try {
-    const supabase = await createClient();
+    // `organizations` is not exposed to anon in the Data API. This server-only
+    // lookup returns a fixed public projection for the branded login page.
+    const supabase = createAdminClient();
 
     const { data, error } = await supabase
       .from('organizations')

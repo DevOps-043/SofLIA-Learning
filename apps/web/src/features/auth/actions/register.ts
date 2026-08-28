@@ -19,6 +19,7 @@ import {
 } from '../services/auth-account-provisioning.service'
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { validatePasswordIsNotBreached } from './password-breach-check.server'
+import { validatePublicRegistrationEmail } from './registration-email-policy.server'
 import {
   consumeInvitationAction,
   findInvitationByEmailAction,
@@ -27,6 +28,7 @@ import {
 import { createInvitationRepository } from './invitation/repository'
 import { finalizeBulkInviteRegistration } from './invitation/invitation-redemption.service'
 import { validateBulkInviteRegistration } from './invitation/invitation-validation.service'
+import { sendSupabaseSignupConfirmation } from '../services/supabase-auth-bridge.service'
 
 const registerSchema = z
   .object({
@@ -88,6 +90,8 @@ export async function registerAction(formData: FormData) {
     })
     const breachError = await validatePasswordIsNotBreached(parsed.password)
     if (breachError) return { error: breachError }
+    const emailPolicyError = validatePublicRegistrationEmail(parsed.email)
+    if (emailPolicyError) return { error: emailPolicyError }
 
     const supabase = await createClient()
     const invitationRepository = createInvitationRepository(supabase)
@@ -111,7 +115,7 @@ export async function registerAction(formData: FormData) {
       dateOfBirth: normalizeDateOfBirthForStorage(parsed.dateOfBirth),
       displayName,
       email: parsed.email,
-      emailVerified: true,
+      emailVerified: false,
       firstName: parsed.firstName,
       gender: normalizeGenderForStorage(parsed.gender),
       lastName: parsed.lastName,
@@ -123,6 +127,17 @@ export async function registerAction(formData: FormData) {
       return { error: mapProvisioningError(error) }
     })
     if ('error' in provisioned) return { error: provisioned.error }
+
+    try {
+      await sendSupabaseSignupConfirmation(parsed.email)
+    } catch (error) {
+      await rollbackProvisionedAuthAccount(provisioned.userId)
+      techDebtLogger.error('[registerAction] Error sending email confirmation:', error)
+      return {
+        error:
+          'No se pudo enviar el correo de verificacion. Intenta registrarte nuevamente mas tarde.',
+      }
+    }
 
     if (organizationContext) {
       const membershipResult = await createOrganizationMembership({
@@ -157,7 +172,8 @@ export async function registerAction(formData: FormData) {
     })
 
     return {
-      message: 'Cuenta creada exitosamente.',
+      message:
+        'Cuenta creada. Revisa tu correo y confirma la direccion antes de iniciar sesion.',
       success: true,
       userId: provisioned.userId,
     }
@@ -348,4 +364,3 @@ async function consumeRegistrationInvitation(input: {
     ? {}
     : { error: result.error || 'Error al consumir la invitacion' }
 }
-

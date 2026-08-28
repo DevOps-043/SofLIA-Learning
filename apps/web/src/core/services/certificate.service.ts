@@ -182,8 +182,8 @@ export class CertificateService {
         : { data: null }
 
       const issuedAt = new Date().toISOString()
-      const predictedStoragePath = CertificatePdfService.buildStoragePath(userId, certificateId)
-      const predictedCertificateUrl = await CertificatePdfService.buildPublicUrl(predictedStoragePath)
+      const predictedCertificateUrl =
+        CertificatePdfService.buildAuthenticatedDownloadUrl(certificateId)
 
       const snapshots = buildCertificateSnapshots({
         organizationId: resolvedOrganizationId,
@@ -284,10 +284,7 @@ export class CertificateService {
     }
 
     let certificateUrl =
-      resolvedCertificate.certificateUrl ||
-      (await CertificatePdfService.buildPublicUrl(
-        CertificatePdfService.buildStoragePath(userId, certificateId),
-      ))
+      CertificatePdfService.buildAuthenticatedDownloadUrl(certificateId)
 
     try {
       const ensuredPdf = await CertificatePdfService.ensureStoredPdf({
@@ -297,7 +294,7 @@ export class CertificateService {
         forceRegenerate: shouldRegeneratePdf,
       })
 
-      certificateUrl = ensuredPdf.publicUrl
+      certificateUrl = ensuredPdf.downloadUrl
     } catch (pdfError) {
       // El PDF server-side se renderiza con Playwright/Chromium headless, que NO
       // esta disponible en entornos serverless (p. ej. Netlify Functions). Hacerlo

@@ -158,7 +158,10 @@ export function mapNativeAuthFailure(reason: string): {
     }
   }
 
-  if (normalized.includes('email not confirmed')) {
+  if (
+    normalized.includes('email not confirmed') ||
+    normalized.includes('email_not_confirmed')
+  ) {
     return {
       debugCode: 'AUTH_EMAIL_NOT_CONFIRMED',
       error:

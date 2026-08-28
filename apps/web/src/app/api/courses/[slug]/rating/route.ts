@@ -1,6 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { SessionService } from '@/features/auth/services/session.service';
 import { withZodBody } from '@/lib/api/with-validation';
 import { apiError } from '@/lib/api/errors';
@@ -17,8 +17,6 @@ export async function GET(
 ) {
   try {
     const { slug } = await params;
-    const supabase = await createClient();
-
     // Obtener usuario actual
     const user = await SessionService.getCurrentUser();
     if (!user) {
@@ -27,6 +25,7 @@ export async function GET(
         { status: 401 }
       );
     }
+    const supabase = createAdminClient();
 
     // Obtener el curso por slug
     const { data: course, error: courseError } = await supabase
@@ -83,12 +82,11 @@ async function handleRatingUpsert(
 ) {
   try {
     const { slug } = await params;
-    const supabase = await createClient();
-
     const user = await SessionService.getCurrentUser();
     if (!user) {
       return apiError('UNAUTHENTICATED', 'No autorizado.', 401);
     }
+    const supabase = createAdminClient();
 
     const { rating, review_title, review_content } = body;
 
@@ -191,4 +189,3 @@ async function handleRatingUpsert(
 }
 
 export const POST = withZodBody(courseRatingSchema, handleRatingUpsert);
-

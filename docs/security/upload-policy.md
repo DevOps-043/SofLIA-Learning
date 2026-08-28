@@ -32,3 +32,9 @@ Applies to every endpoint that accepts multipart uploads or signed upload flows 
 ## Operational Notes
 
 Security-relevant rejections emit `file-upload-rejected` events into `security_audit_log`. Upload endpoints must return safe error messages and must not log original filenames when they may contain PII.
+
+The generic `/api/upload` endpoint is limited to 12 MB of file content, requires an
+authenticated role, enforces a bucket/role matrix, and prefixes every object path with
+`users/{userId}`. Large video buckets are rejected there and must use their dedicated
+flows. The production release gate must verify the external storage/media scanner for
+direct large-video uploads; this cannot be replaced by trusting browser MIME metadata.

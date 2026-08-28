@@ -15,6 +15,13 @@ interface RedisRestResponse<T> {
 const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_REST_URL
 const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.REDIS_REST_TOKEN
 const KEY_PREFIX = 'soflia:rate-limit:v1'
+const SECURITY_CRITICAL_PREFIXES = new Set([
+  'ai-chat',
+  'auth',
+  'bulk-import',
+  'password',
+  'upload',
+])
 
 export async function checkDistributedRateLimit(
   request: NextRequest,
@@ -22,13 +29,39 @@ export async function checkDistributedRateLimit(
   prefix = 'general',
 ): Promise<RateLimitResult> {
   if (!REDIS_URL || !REDIS_TOKEN) {
+    if (process.env.NODE_ENV === 'production' && SECURITY_CRITICAL_PREFIXES.has(prefix)) {
+      return createUnavailableRateLimitResult(config)
+    }
     return checkRateLimit(request, config, prefix)
   }
 
   try {
     return await checkRedisRateLimit(request, config, prefix)
   } catch {
+    if (process.env.NODE_ENV === 'production' && SECURITY_CRITICAL_PREFIXES.has(prefix)) {
+      return createUnavailableRateLimitResult(config)
+    }
     return checkRateLimit(request, config, prefix)
+  }
+}
+
+function createUnavailableRateLimitResult(config: RateLimitConfig): RateLimitResult {
+  const reset = new Date(Date.now() + Math.min(config.windowMs, 60_000))
+  return {
+    success: false,
+    limit: 0,
+    remaining: 0,
+    reset,
+    response: NextResponse.json(
+      { error: 'RATE_LIMIT_SERVICE_UNAVAILABLE' },
+      {
+        status: 503,
+        headers: {
+          'Cache-Control': 'no-store',
+          'Retry-After': '60',
+        },
+      },
+    ),
   }
 }
 

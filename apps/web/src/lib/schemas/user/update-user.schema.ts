@@ -5,14 +5,12 @@ import {
 } from '../user-demographics.schema'
 import {
   UserBioSchema,
-  UserEmailSchema,
   UserNameSchema,
   UserProfilePictureUrlSchema,
   UserRoleEnumSchema,
 } from './base-fields.schema'
 
 export const UpdateUserSchema = z.object({
-  email: UserEmailSchema.optional(),
   first_name: z.string().optional().nullable(),
   last_name: z.string().optional().nullable(),
   display_name: z.string().optional().nullable(),
@@ -23,7 +21,6 @@ export const UpdateUserSchema = z.object({
   country_code: z.string().optional().nullable(),
   date_of_birth: DateOfBirthSchema.optional(),
   gender: UserGenderSchema.optional(),
-  email_verified: z.boolean().optional(),
   bio: UserBioSchema,
   profile_picture_url: UserProfilePictureUrlSchema,
   is_active: z.boolean().optional(),

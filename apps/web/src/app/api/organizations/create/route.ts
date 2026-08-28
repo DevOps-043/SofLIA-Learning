@@ -4,7 +4,7 @@ import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireUser } from '@/lib/auth/requireUser'
 import { logger } from '@/lib/logger'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import {
   createOrganizationSchema,
@@ -27,7 +27,9 @@ async function handlePost(
   }
 
   try {
-    const supabase = await createClient()
+    // Authorization is resolved above; the Data API intentionally grants no
+    // direct INSERT/DELETE on organizations to browser roles.
+    const supabase = createAdminClient()
 
     const { data: existingOwnership } = await supabase
       .from('organization_users')

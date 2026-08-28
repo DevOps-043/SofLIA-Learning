@@ -1,6 +1,6 @@
 # SSRF Audit - Dynamic Fetches
 
-Date: 2026-05-18
+Last reviewed: 2026-08-27
 
 Scope: `apps/web/src`, `netlify/functions`, and shared packages were scanned with `rg "\bfetch\s*\(|fetchWithCircuitBreaker\(|safeFetch\("`.
 
@@ -16,6 +16,7 @@ Any server-side request to a user-supplied absolute URL must use `safeFetch`, wh
 ## Findings
 
 - `apps/web/src/app/api/admin/ai/process-video/route.ts` is the user-controlled external video URL path and uses `safeFetch`.
+- The background transcoder ignores caller-provided `sourceUrl`; it downloads only an object addressed by an allowed Supabase bucket and normalized `sourcePath`.
 - OAuth, calendar, OpenAI, Gemini, GitHub releases, Vimeo oEmbed, Nominatim, and GeoJSON requests use fixed provider hosts or host-pinned URLs.
 - Netlify scheduled functions call same-origin internal job endpoints derived from deploy environment variables, not request input.
 - APM export and ClamAV scanning endpoints are deploy-time environment configuration and are protected with circuit breakers.

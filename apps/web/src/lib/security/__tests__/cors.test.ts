@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   applyCorsHeaders,
   enforceCors,
+  enforceCsrfOrigin,
   getEffectiveAllowedOrigins,
   isOriginAllowed,
 } from '../cors';
@@ -144,6 +145,46 @@ describe('cors', () => {
       const response = NextResponse.json({ ok: true });
       const out = applyCorsHeaders(response, request);
       expect(out.headers.get('Access-Control-Allow-Origin')).toBeNull();
+    });
+  });
+
+  describe('enforceCsrfOrigin', () => {
+    it('rejects cookie-authenticated mutations without an Origin header', () => {
+      const request = buildRequest('https://app.soflia.com/api/profile', {
+        method: 'POST',
+        headers: {
+          cookie: 'aprende-y-aplica-session=session-token',
+          host: 'app.soflia.com',
+        },
+      });
+
+      expect(enforceCsrfOrigin(request)?.status).toBe(403);
+    });
+
+    it('allows cookie-authenticated same-origin mutations', () => {
+      const request = buildRequest('https://app.soflia.com/api/profile', {
+        method: 'POST',
+        headers: {
+          cookie: 'access_token=opaque-token',
+          host: 'app.soflia.com',
+          origin: 'https://app.soflia.com',
+          'sec-fetch-site': 'same-origin',
+        },
+      });
+
+      expect(enforceCsrfOrigin(request)).toBeNull();
+    });
+
+    it('does not require browser CSRF metadata for bearer/API-key requests', () => {
+      const request = buildRequest('https://app.soflia.com/api/internal/jobs/security-alerts', {
+        method: 'POST',
+        headers: {
+          authorization: 'Bearer internal-secret',
+          host: 'app.soflia.com',
+        },
+      });
+
+      expect(enforceCsrfOrigin(request)).toBeNull();
     });
   });
 });

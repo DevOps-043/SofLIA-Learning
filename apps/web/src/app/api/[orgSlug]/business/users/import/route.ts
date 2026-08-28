@@ -6,6 +6,7 @@ import {
 } from '@/app/api/business/users/import/import-queue'
 import { importBusinessUsersFromCsv } from '@/app/api/business/users/import/import.service'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { BUSINESS_USER_IMPORT_MAX_BYTES } from '@/lib/api/request-size'
 import type { QueueEnqueueResult } from '@/lib/queue'
 import { logger } from '@/lib/utils/logger'
 
@@ -29,6 +30,13 @@ export async function POST(
       return NextResponse.json(
         { success: false, error: 'Archivo CSV invalido' },
         { status: 400 },
+      )
+    }
+
+    if (file.size > BUSINESS_USER_IMPORT_MAX_BYTES) {
+      return NextResponse.json(
+        { success: false, error: 'El archivo CSV excede el limite de 10 MB' },
+        { status: 413 },
       )
     }
 

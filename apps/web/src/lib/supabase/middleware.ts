@@ -13,10 +13,11 @@ import type { Database } from './types'
  */
 export async function updateSession(
   request: NextRequest,
+  forwardedRequestHeaders: Headers = new Headers(request.headers),
 ): Promise<{ response: NextResponse; user: User | null }> {
   let response = NextResponse.next({
     request: {
-      headers: request.headers,
+      headers: forwardedRequestHeaders,
     },
   })
 
@@ -31,7 +32,9 @@ export async function updateSession(
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           response = NextResponse.next({
-            request,
+            request: {
+              headers: forwardedRequestHeaders,
+            },
           })
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)

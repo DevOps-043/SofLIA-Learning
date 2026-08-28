@@ -68,7 +68,7 @@ export interface UploadedReportAttachment {
   fileName: string;
   mimeType: string;
   size: number;
-  publicUrl: string;
+  publicUrl: string | null;
   storagePath: string;
   width?: number | null;
   height?: number | null;

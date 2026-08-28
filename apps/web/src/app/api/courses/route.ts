@@ -2,19 +2,20 @@ import { NextRequest, NextResponse } from 'next/server'
 import { CourseService } from '../../../features/courses/services/course.service'
 import { formatApiError, logError } from '@/core/utils/api-errors'
 import { cacheHeaders } from '../../../lib/utils/cache-headers'
+import { SessionService } from '@/features/auth/services/session.service'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const category = searchParams.get('category')
-    const userId = searchParams.get('userId')
+    const currentUser = await SessionService.getCurrentUser()
 
     let courses
 
     if (category && category !== 'all') {
       courses = await CourseService.getCoursesByCategory(category)
     } else {
-      courses = await CourseService.getActiveCourses(userId || undefined)
+      courses = await CourseService.getActiveCourses(currentUser?.id)
     }
 
     return NextResponse.json(courses, {
@@ -23,13 +24,8 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     logError('GET /api/courses', error)
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
     return NextResponse.json(
-      {
-        error: 'Error al obtener cursos',
-        message: errorMessage,
-        details: process.env.NODE_ENV === 'development' ? String(error) : undefined
-      },
+      { error: 'Error al obtener cursos' },
       { status: 500 }
     )
   }

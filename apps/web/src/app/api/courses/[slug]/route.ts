@@ -4,6 +4,7 @@ import { formatApiError, logError } from '@/core/utils/api-errors'
 import { ContentTranslationService } from '@/core/services/contentTranslation.service'
 import { SupportedLanguage } from '@/core/i18n/i18n'
 import { createClient } from '@/lib/supabase/server'
+import { SessionService } from '@/features/auth/services/session.service'
 
 export async function GET(
   request: NextRequest,
@@ -12,11 +13,11 @@ export async function GET(
   try {
     const { slug } = await params
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    const currentUser = await SessionService.getCurrentUser()
     // Obtener idioma del usuario desde query params o header
     const language = (searchParams.get('lang') || 'es') as SupportedLanguage
 
-    const course = await CourseService.getCourseBySlug(slug, userId || undefined)
+    const course = await CourseService.getCourseBySlug(slug, currentUser?.id)
 
     if (!course) {
       return NextResponse.json(

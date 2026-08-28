@@ -80,8 +80,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const payload = textToSpeechSchema.parse(await request.json());
-    const result = await resolveTTSAudio(payload);
+    const parsedPayload = textToSpeechSchema.safeParse(
+      await request.json().catch(() => null),
+    );
+    if (!parsedPayload.success) {
+      return withRateHeaders(
+        NextResponse.json(
+          { error: 'Invalid text-to-speech payload', issues: parsedPayload.error.issues },
+          { status: 400 }
+        )
+      );
+    }
+    const result = await resolveTTSAudio(parsedPayload.data);
 
     if (result.kind === 'error') {
       if (shouldUseBrowserFallback(result)) {
@@ -112,16 +122,7 @@ export async function POST(request: NextRequest) {
         },
       })
     );
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return withRateHeaders(
-        NextResponse.json(
-          { error: 'Invalid text-to-speech payload', issues: error.issues },
-          { status: 400 }
-        )
-      );
-    }
-
+  } catch {
     return withRateHeaders(
       NextResponse.json(
         { error: 'Unexpected TTS error', code: 'TTS_UNEXPECTED_ERROR' },

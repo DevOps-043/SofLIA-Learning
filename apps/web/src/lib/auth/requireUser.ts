@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 import { resolveAuthenticatedUserId } from './require-user.sessions'
 import {
@@ -27,7 +28,7 @@ export async function requireUser(
       return unauthenticatedResponse()
     }
 
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await createAdminClient()
       .from('users')
       .select('id, email, platform_role, is_banned')
       .eq('id', userId)

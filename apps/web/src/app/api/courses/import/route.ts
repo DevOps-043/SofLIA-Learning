@@ -12,21 +12,6 @@ import {
 } from './course-import/service-client'
 import { CourseImportPayloadSchema } from './course-import/schemas'
 
-export async function GET() {
-  return NextResponse.json(
-    {
-      config: {
-        auth_configured: !!process.env.COURSEFORGE_API_KEY,
-        db_configured: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-      },
-      service: 'soflia-learning-import-api',
-      status: 'active',
-      timestamp: new Date().toISOString(),
-    },
-    { status: 200 }
-  )
-}
-
 export async function POST(request: Request) {
   try {
     const authError = validateCourseImportApiKey(request)
@@ -41,7 +26,6 @@ export async function POST(request: Request) {
 
     if (bodyResult.body.type === 'ping') {
       return NextResponse.json({
-        environment: process.env.NODE_ENV,
         message: 'Pong: Connection Successful',
         timestamp: new Date().toISOString(),
       })
@@ -80,7 +64,6 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          details: insertError instanceof Error ? insertError.message : String(insertError),
           error: 'Partial processing failure. Rolled back.',
         },
         { status: 500 }
@@ -90,7 +73,6 @@ export async function POST(request: Request) {
     techDebtLogger.error('[IMPORT API] Unexpected error:', error)
     return NextResponse.json(
       {
-        details: error instanceof Error ? error.message : String(error),
         error: 'Internal Server Error',
       },
       { status: 500 }

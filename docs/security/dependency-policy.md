@@ -1,6 +1,6 @@
 # Dependency security policy
 
-Ultima revision: 2026-05-18
+Ultima revision: 2026-08-27
 
 ## Objetivo
 
@@ -37,10 +37,11 @@ Bloqueadas por defecto: GPL, AGPL. Cualquier excepcion requiere aprobacion legal
 | Moderate | 14 dias | Planificar update en sprint |
 | Low | 30 dias | Actualizar cuando no implique riesgo operativo |
 
-## Validacion local 2026-05-18
+## Validacion local 2026-08-27
 
-- `npm audit --audit-level=high --omit=dev`: exit 0, sin vulnerabilidades high/critical.
-- Vulnerabilidades moderadas pendientes de triage: `file-type` y `ws`.
+- `npm audit --audit-level=low`: exit 0, cero vulnerabilidades conocidas en el arbol completo.
+- `node-vibrant` se retiro al no tener consumidores y arrastrar dependencias vulnerables.
+- Los overrides de seguridad tienen version exacta y prueba de regresion mediante `npm audit`.
 - `license-checker --production --excludePrivatePackages --failOn "GPL;AGPL"`: exit 0.
 - Licencias no bloqueantes detectadas para revision legal/arquitectura: `Hippocratic-2.1` en `@react-leaflet/core` y `react-leaflet`.
 

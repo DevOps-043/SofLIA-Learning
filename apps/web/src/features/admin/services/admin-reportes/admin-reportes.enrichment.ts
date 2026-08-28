@@ -1,5 +1,6 @@
 import type { AdminReporte, AssignedAdminInfo, UserInfo } from './admin-reportes.types'
 import type { createAdminReportesClient } from './admin-reportes.client'
+import { createSignedReportEvidenceUrl } from '@/core/reporting/report-evidence.server'
 
 type ReportesClient = Awaited<ReturnType<typeof createAdminReportesClient>>
 
@@ -37,13 +38,15 @@ export async function enrichReporte(
   supabase: ReportesClient,
   reporte: AdminReporte,
 ): Promise<AdminReporte> {
-  const [usuario, adminAsignadoInfo] = await Promise.all([
+  const [usuario, adminAsignadoInfo, screenshotUrl] = await Promise.all([
     getUserInfo(supabase, reporte.user_id),
     getAdminInfo(supabase, reporte.admin_asignado),
+    createSignedReportEvidenceUrl(reporte.screenshot_url),
   ])
 
   return {
     ...reporte,
+    screenshot_url: screenshotUrl,
     usuario,
     admin_asignado_info: adminAsignadoInfo,
   }

@@ -6,6 +6,13 @@ const ALLOWED_HEADERS =
 const EXPOSED_HEADERS =
   'X-Correlation-Id, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After';
 const PREFLIGHT_MAX_AGE = '600';
+const STATE_CHANGING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+const SESSION_COOKIE_NAMES = [
+  'aprende-y-aplica-session=',
+  'access_token=',
+  'refresh_token=',
+  'sb-',
+];
 
 function parseAllowedOrigins(): string[] {
   const raw = process.env.WEB_ALLOWED_ORIGINS ?? process.env.ALLOWED_ORIGINS ?? '';
@@ -129,4 +136,30 @@ export function enforceCors(request: NextRequest): NextResponse | null {
   }
 
   return null;
+}
+
+export function enforceCsrfOrigin(request: NextRequest): NextResponse | null {
+  if (!isApiPath(request.nextUrl.pathname)) return null;
+  if (!STATE_CHANGING_METHODS.has(request.method.toUpperCase())) return null;
+
+  const cookieHeader = request.headers.get('cookie') ?? '';
+  const hasSessionCookie = SESSION_COOKIE_NAMES.some((name) => cookieHeader.includes(name));
+  if (!hasSessionCookie) return null;
+
+  const origin = request.headers.get('origin');
+  const host = request.headers.get('host');
+  const fetchSite = request.headers.get('sec-fetch-site');
+  const trustedOrigin = Boolean(origin) && (
+    isSameOriginRequest(origin, host) || isOriginAllowed(origin)
+  );
+
+  if (trustedOrigin && fetchSite !== 'cross-site') return null;
+
+  return NextResponse.json(
+    { error: 'CSRF_ORIGIN_VALIDATION_FAILED' },
+    {
+      status: 403,
+      headers: { 'Cache-Control': 'no-store' },
+    },
+  );
 }

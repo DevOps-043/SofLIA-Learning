@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import type { QueueEnqueueResult } from '@/lib/queue'
+import { BUSINESS_USER_IMPORT_MAX_BYTES } from '@/lib/api/request-size'
 import { logger } from '@/lib/utils/logger'
 import { importBusinessUsersFromCsv } from './import.service'
 import {
@@ -34,6 +35,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, error: 'El archivo debe ser un CSV (.csv)' },
         { status: 400 },
+      )
+    }
+
+    if (file.size > BUSINESS_USER_IMPORT_MAX_BYTES) {
+      return NextResponse.json(
+        { success: false, error: 'El archivo CSV excede el limite de 10 MB' },
+        { status: 413 },
       )
     }
 

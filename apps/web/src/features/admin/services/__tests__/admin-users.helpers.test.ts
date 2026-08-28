@@ -45,15 +45,15 @@ describe('admin-users.helpers', () => {
     expect(payload).not.toHaveProperty('password_hash')
   })
 
-  it('builds update payload and refreshes verification timestamp when needed', () => {
+  it('never lets the generic admin update payload alter email verification', () => {
     const payload = buildAdminUserUpdatePayload({
       username: 'ada',
-      email_verified: true,
     })
 
     expect(payload.username).toBe('ada')
-    expect(payload.email_verified).toBe(true)
-    expect(typeof payload.email_verified_at).toBe('string')
+    expect(payload).not.toHaveProperty('email_verified')
+    expect(payload).not.toHaveProperty('email_verified_at')
+    expect(payload).not.toHaveProperty('email')
     expect(typeof payload.updated_at).toBe('string')
   })
 

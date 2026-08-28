@@ -1,12 +1,21 @@
 # RLS Matrix
 
-Snapshot: 2026-05-18
+Snapshot: 2026-08-27
 
 Audit method:
 - Static scan of `supabase/migrations/**/*.sql`.
 - Runtime verification with `pg_tables`, `pg_class.relrowsecurity`, and `pg_policies` is still required against the target Supabase database before marking task 2.5 complete.
 
 Static result after remediation:
+- La migracion `20260827120000_emergency_data_api_lockdown.sql` habilita y fuerza RLS en todas las tablas de aplicacion del esquema `public`.
+- `anon` y `authenticated` pierden privilegios por defecto; solo se restituyen los contratos explicitos.
+- Todas las vistas y vistas materializadas revocan `PUBLIC`/`anon`/`authenticated`; las rutas server-side usan una proyeccion fija cuando existe un contrato publico.
+- Todas las funciones y procedimientos revocan el privilegio implicito de `PUBLIC`/`anon`; los RPC destructivos quedan exclusivos de `service_role`.
+- Tablas de sesiones, reset, OAuth, pagos e invitaciones quedan `service_role`-only.
+- `users` usa permisos por columna: `password_hash`, roles, baneo y verificacion no son seleccionables ni mutables desde el navegador.
+- Las politicas heredadas de usuarios, membresias, chats, inscripciones y certificados se eliminan y reconstruyen para impedir composicion permisiva.
+- Las politicas heredadas aplicables a `PUBLIC`/`anon` se eliminan antes de reconstruir el catalogo publicado, evitando que una politica permisiva antigua se componga con la nueva.
+- `reportes-screenshots` queda privado; las politicas mutativas de buckets privados se eliminan y las evidencias se sirven con URLs firmadas de corta duracion.
 - Tables created in migrations: 23
 - Tables with `ENABLE ROW LEVEL SECURITY` mentioned in migrations: 26
 - Created tables missing static RLS mention: 0
@@ -55,9 +64,9 @@ ORDER BY rls_enabled ASC, policies_count ASC;
 | `user_learning_path_progress` | Si | owner / org admin | owner | owner | service_role/admin | User LP progress |
 | `video_transcoding_jobs` | Si | Admin | Admin | Admin | Admin | Transcoding operations |
 
-## Required Before Closing 2.5
+## Required Before Production Closure
 
 1. Run the runtime verification query in Supabase after applying migrations.
 2. Export rows with `rls_enabled = false` or `policies_count = 0`.
-3. Add an E2E tenant-isolation test proving one user cannot read another organization's records.
+3. Ejecutar el smoke de aislamiento incluido en `remediation-2026-08-27.md` con dos usuarios de organizaciones distintas.
 4. Reconcile this static matrix with all pre-existing production tables generated before the current migration folder baseline.

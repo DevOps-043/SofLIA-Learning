@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import type { NextRequest } from 'next/server';
 import type { createClient } from '../../lib/supabase/server';
 import { logSecurityEvent } from './auth.logging';
+import { createAdminClient } from '../../lib/supabase/admin';
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 type SupabaseSessionClient = Pick<SupabaseServerClient, 'auth' | 'from'>;
@@ -45,7 +46,7 @@ async function resolveLegacySessionUserId(params: {
   const sessionCookie = params.request.cookies.get('aprende-y-aplica-session')?.value;
   if (!sessionCookie) return { userId: null };
 
-  const { data: sessionData } = await params.supabase
+  const { data: sessionData } = await createAdminClient()
     .from('user_session')
     .select('user_id, expires_at, revoked')
     .eq('jwt_id', sessionCookie)
@@ -85,7 +86,7 @@ async function resolveRefreshTokenUserId(
   if (!refreshToken || !accessToken) return null;
 
   const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
-  const { data: tokenData } = await supabase
+  const { data: tokenData } = await createAdminClient()
     .from('refresh_tokens')
     .select('user_id')
     .eq('token_hash', tokenHash)

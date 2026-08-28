@@ -11,7 +11,6 @@ export function buildAdminUserUpdatePayload(input: AdminUserUpdateInput): UserUp
   const payload: UserUpdatePayload = { updated_at: nowIso }
 
   if ('username' in input && input.username !== undefined) payload.username = input.username
-  if ('email' in input && input.email !== undefined) payload.email = input.email
   if ('first_name' in input) payload.first_name = input.first_name ?? null
   if ('last_name' in input) payload.last_name = input.last_name ?? null
   if ('display_name' in input) payload.display_name = input.display_name ?? null
@@ -21,11 +20,6 @@ export function buildAdminUserUpdatePayload(input: AdminUserUpdateInput): UserUp
   if ('profile_picture_url' in input) payload.profile_picture_url = input.profile_picture_url ?? null
   if ('country_code' in input) payload.country_code = input.country_code ?? null
   if ('type_rol' in input) payload.type_rol = input.type_rol ?? null
-
-  if ('email_verified' in input) {
-    payload.email_verified = input.email_verified
-    payload.email_verified_at = input.email_verified ? nowIso : null
-  }
 
   return payload
 }

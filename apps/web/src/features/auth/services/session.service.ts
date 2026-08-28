@@ -83,7 +83,7 @@ export class SessionService {
       Date.now() + (rememberMe ? 30 : 7) * 24 * 60 * 60 * 1000
     );
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const legacySession = buildLegacySessionRecord({
       userId,
       sessionToken,
@@ -137,7 +137,7 @@ export class SessionService {
             refreshToken
           );
 
-          const { data: token, error: tokenError } = await supabase
+          const { data: token, error: tokenError } = await createAdminClient()
             .from('refresh_tokens')
             .select('id, user_id, token_hash, expires_at')
             .eq('token_hash', tokenHash)
@@ -300,7 +300,7 @@ export class SessionService {
           const tokenHash = await RefreshTokenService.hashTokenForLookup(
             refreshToken
           );
-          const supabase = await createClient();
+          const supabase = createAdminClient();
 
           const { data: token } = await supabase
             .from('refresh_tokens')
@@ -364,7 +364,7 @@ export class SessionService {
 
   static async validateSession(sessionToken: string): Promise<boolean> {
     try {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
 
       const { data: session, error } = await supabase
         .from('user_session')

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import { headers } from 'next/headers'
 import type { ReactNode } from 'react'
 import './globals.css'
 import './styles/globals/index.css'
@@ -47,7 +48,14 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+// A request-scoped CSP nonce cannot be attached to statically generated HTML.
+// Reading request headers makes the shell dynamic so Next can propagate the
+// nonce supplied by middleware to its bootstrap and hydration scripts.
+export const dynamic = 'force-dynamic'
+
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  await headers()
+
   return (
     <html
       lang="es"

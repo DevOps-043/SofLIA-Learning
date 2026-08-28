@@ -282,7 +282,7 @@ export const introVideoUploadUrlSchema = z.object({
   fileName: requiredTextSchema(255),
   contentType: z.enum(STREAMABLE_VIDEO_MIME_TYPES),
   fileSize: z.number().int().positive().optional(),
-  folder: z.string().trim().max(120).optional(),
+  folder: z.enum(['lp', 'courses']).optional(),
 }).passthrough()
 
 export const introVideoUrlSchema = z.object({

@@ -28,7 +28,6 @@ describe('master-panel/profile-form.service', () => {
     } as never)
 
     expect(result.username).toBe('demo')
-    expect(result.email).toBe('demo@test.com')
     expect(result.display_name).toBe('')
     expect(result.phone).toBe('')
   })
@@ -36,16 +35,14 @@ describe('master-panel/profile-form.service', () => {
   it('normaliza el formulario de cuenta con defaults seguros', () => {
     expect(createAccountFormData(null)).toEqual({
       platform_role: 'Usuario',
-      email_verified: false,
     })
 
     expect(
       createAccountFormData({
         platform_role: 'Business',
         
-        email_verified: true,
       } as never),
-    ).toEqual({ platform_role: 'Business',  email_verified: true })
+    ).toEqual({ platform_role: 'Business' })
   })
 
   it('actualiza campos del perfil sin romper el shape', () => {

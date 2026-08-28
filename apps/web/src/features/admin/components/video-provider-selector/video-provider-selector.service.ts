@@ -1,8 +1,6 @@
-import { createClient } from '../../../../lib/supabase/client';
 import {
   COURSE_VIDEO_MAX_SIZE_BYTES,
   STREAMABLE_VIDEO_MIME_TYPES,
-  VIDEO_ASSET_CACHE_CONTROL,
   isStreamableVideoMimeType,
 } from '@/lib/media/video-upload-policy';
 import type { VideoProvider } from './types';
@@ -175,87 +173,12 @@ async function uploadCourseVideoWithApiRoute(file: File): Promise<string> {
   return result.url;
 }
 
-async function requestCourseVideoAdaptiveProcessing({
-  contentType,
-  publicUrl,
-  size,
-  sourcePath,
-}: {
-  contentType: File['type'];
-  publicUrl: string;
-  size: number;
-  sourcePath: string;
-}): Promise<string> {
-  const response = await fetch('/api/admin/upload/course-videos/transcode', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contentType,
-      publicUrl,
-      size,
-      sourcePath,
-    }),
-  });
-
-  if (!response.ok) {
-    return publicUrl;
-  }
-
-  const result = await response.json() as { success?: boolean; url?: string };
-  return result.success && result.url ? result.url : publicUrl;
-}
-
 export async function uploadCourseVideo(
   file: File,
   onProgress: (progress: number) => void
 ): Promise<string> {
-  const supabase = createClient();
-  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'mp4';
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-  const filePath = `videos/${fileName}`;
-
   onProgress(30);
-
-  const { data: uploadData, error: uploadError } = await supabase.storage.from('course-videos').upload(filePath, file, {
-    cacheControl: VIDEO_ASSET_CACHE_CONTROL,
-    upsert: false,
-    contentType: file.type,
-  });
-
-  onProgress(70);
-
-  if (uploadError) {
-    const shouldFallbackToApi =
-      uploadError.message?.includes('new row violates row-level security') ||
-      uploadError.message?.includes('permission denied');
-
-    if (shouldFallbackToApi) {
-      const fallbackUrl = await uploadCourseVideoWithApiRoute(file);
-      onProgress(100);
-      return fallbackUrl;
-    }
-
-    throw new Error(`Error al subir el video: ${uploadError.message}`);
-  }
-
-  if (!uploadData) {
-    throw new Error('No se recibió confirmación de la subida');
-  }
-
-  const { data: urlData } = supabase.storage.from('course-videos').getPublicUrl(filePath);
-
-  if (!urlData?.publicUrl) {
-    throw new Error('Error al obtener la URL pública del video');
-  }
-
-  onProgress(85);
-  const playbackUrl = await requestCourseVideoAdaptiveProcessing({
-    contentType: file.type,
-    publicUrl: urlData.publicUrl,
-    size: file.size,
-    sourcePath: uploadData.path,
-  });
-
+  const playbackUrl = await uploadCourseVideoWithApiRoute(file);
   onProgress(100);
   return playbackUrl;
 }

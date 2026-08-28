@@ -38,6 +38,10 @@ async function handlePost(
     }
 
     const { fileName, fileSize, folder } = body
+    const safeOrgSlug = orgSlug.trim().toLowerCase()
+    if (!/^[a-z0-9-]{3,80}$/.test(safeOrgSlug)) {
+      return apiError('INVALID_ORGANIZATION_SLUG', 'Organizacion invalida', 400)
+    }
 
     const ext = fileName.split('.').pop()?.toLowerCase() ?? ''
     if (!isStreamableVideoExtension(ext)) {
@@ -47,15 +51,13 @@ async function handlePost(
     if (fileSize && fileSize > INTRO_VIDEO_MAX_SIZE_BYTES) {
       return apiError(
         'INTRO_VIDEO_TOO_LARGE',
-        'El video introductorio es demasiado grande. Maximo 100MB',
+        `El video introductorio es demasiado grande. Maximo ${Math.round(INTRO_VIDEO_MAX_SIZE_BYTES / 1024 / 1024)}MB`,
         400,
       )
     }
 
-    const timestamp = Date.now()
-    const random = Math.random().toString(36).slice(2, 8)
-    const safeFolder = folder?.replace(/[^a-zA-Z0-9/_-]/g, '') || 'general'
-    const storagePath = `org/${orgSlug}/${safeFolder}/${timestamp}-${random}.${ext}`
+    const safeFolder = folder || 'lp'
+    const storagePath = `org/${safeOrgSlug}/${safeFolder}/${crypto.randomUUID()}.${ext}`
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!

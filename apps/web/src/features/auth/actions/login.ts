@@ -329,6 +329,13 @@ async function trySupabasePasswordLogin(input: {
       return { reason: 'AUTH_USER_ID_MISMATCH', success: false }
     }
 
+    if (!data.user.email_confirmed_at) {
+      await authClient.auth.signOut({ scope: 'local' })
+      return { reason: 'EMAIL_NOT_CONFIRMED', success: false }
+    }
+
+    await syncCanonicalEmailVerification(input.user, data.user.email_confirmed_at)
+
     return { success: true }
   } catch (error) {
     if (error instanceof SupabaseAuthBridgeError) {
@@ -410,6 +417,13 @@ async function trySupabasePasswordVerification(input: {
       return { reason: 'AUTH_USER_ID_MISMATCH', success: false }
     }
 
+    if (!data.user.email_confirmed_at) {
+      await authClient.auth.signOut({ scope: 'local' })
+      return { reason: 'EMAIL_NOT_CONFIRMED', success: false }
+    }
+
+    await syncCanonicalEmailVerification(input.user, data.user.email_confirmed_at)
+
     const { error: signOutError } = await authClient.auth.signOut({ scope: 'local' })
     if (signOutError) {
       return { reason: 'AUTH_PRE_MFA_SIGNOUT_FAILED', success: false }
@@ -425,5 +439,28 @@ async function trySupabasePasswordVerification(input: {
       reason: error instanceof Error ? error.message : 'AUTH_PASSWORD_VERIFY_ERROR',
       success: false,
     }
+  }
+}
+
+async function syncCanonicalEmailVerification(
+  profile: LoginUserRecord,
+  emailConfirmedAt: string,
+) {
+  if (profile.email_verified) return
+
+  const admin = createAdminClient()
+  const { error } = await admin
+    .from('users')
+    .update({
+      email_verified: true,
+      email_verified_at: emailConfirmedAt,
+    })
+    .eq('id', profile.id)
+
+  if (error) {
+    logger.error('Could not synchronize canonical email confirmation', {
+      code: error.code,
+      userId: profile.id,
+    })
   }
 }

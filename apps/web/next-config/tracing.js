@@ -33,7 +33,6 @@ const serverExternalPackages = [
   'nodemailer',
   'xml2js',
   'jszip',
-  'node-vibrant',
   'bcryptjs',
 ];
 

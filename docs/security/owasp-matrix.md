@@ -1,22 +1,25 @@
 # Matriz OWASP Top 10
 
-## Tarea cubierta
+Ultima revision tecnica: 2026-08-27.
 
-TECH_DEBT_REMEDIATION.md 5.0 - Matriz OWASP Top 10 -> estado del proyecto.
-
-| ID | Categoria OWASP 2021 | Estado SofLIA al 2026-05-18 | Evidencia local | Tarea correctora | Estado |
-|---|---|---|---|---|---|
-| A01 | Broken Access Control | Riesgo alto en SaaS multi-tenant; mitigacion de app formalizada con `requireOrgAccess`. | 120 route files bajo `/api/[orgSlug]`; test estatico exige guard directo/delegado; test unitario cubre denegacion cross-tenant. | 1.5, 2.5, 5.1 | Mitigacion base completada |
-| A02 | Cryptographic Failures | Secretos y tokens requieren politica operativa explicita. | Workflow `security-secrets` agregado con Gitleaks y politica de rotacion en `secrets-rotation.md`. | 5.2 | Mitigacion base completada |
-| A03 | Injection | Riesgo medio; SQL via Supabase client es parametrizado, pero HTML rico y prompt injection requieren guardrails. | 34 `.rpc(`; 6 `dangerouslySetInnerHTML`; sanitizador HTML, URL sanitizer de Markdown y guardrails de prompt agregados. | 1.4, 5.3 | Mitigacion base completada |
-| A04 | Insecure Design | Threat model STRIDE baseline creado; requiere firma humana. | `docs/security/threat-model.md` con registro de revision. | 5.4 | En progreso operativo |
-| A05 | Security Misconfiguration | Headers base y CSP report-only configurados; enforcement esta listo por bandera y requiere soak. | `apps/web/next-config/security-headers.js`, `/api/csp-report`, `docs/security/csp-enforcement.md`. | 5.5 | En progreso operativo |
-| A06 | Vulnerable and Outdated Components | CI de audit/licencias y Dependabot configurados; validacion local high/critical limpia; falta primera corrida GitHub. | `.github/workflows/security-secrets.yml`, `.github/dependabot.yml`, `dependency-policy.md`. | 5.6 | En progreso operativo |
-| A07 | Identification and Auth Failures | Lockout, HIBP, password 12+ y OAuth state tests implementados; MFA aun pendiente. | `auth-policy.md`, `login/lockout.ts`, `password-breach-check.server.ts`, `oauth-callback.service.test.ts`. | 5.7 | En progreso operativo |
-| A08 | Software and Data Integrity Failures | Politica RPO/RTO, SRI, signing, checksums, rollback y runbook restore definidos; falta restore drill real. | `docs/security/data-integrity-backups.md`, `docs/security/backup-restore-drill.md`. | 5.8 | En progreso operativo |
-| A09 | Security Logging and Monitoring Failures | Riesgo alto heredado por `console.*` y eventos de seguridad parciales. | `recordSecurityEvent` usado para prompt injection LIA/Study Planner. | 1.6, 4.11, 5.9 | En progreso |
-| A10 | SSRF | No auditado completo aqui. | `safe-fetch.ts` corresponde a 5.10, fuera de esta asignacion. | 5.10 | Pendiente |
+| ID | Categoria OWASP 2021 | Control actual | Evidencia local | Estado tecnico |
+|---|---|---|---|---|
+| A01 | Broken Access Control | API central default-deny, roles por superficie, membresia de organizacion, RLS forzado y grants minimos. Tablas de credenciales son exclusivas de `service_role`. | `apps/web/src/proxy/api-route-auth.ts`, `docs/security/rls-matrix.md`, `supabase/migrations/20260827120000_emergency_data_api_lockdown.sql` | Cerrado en codigo; migracion y retest productivo obligatorios |
+| A02 | Cryptographic Failures | Tokens firmados fallan cerrados en produccion si falta un secreto fuerte; MFA cifra secretos con AES-256-GCM; politica de rotacion e invalidacion documentada. | `apps/web/src/lib/security/signed-token.ts`, `docs/security/mfa-totp.md`, `docs/security/remediation-2026-08-27.md` | Cerrado en codigo; rotacion por incidente pendiente de operacion |
+| A03 | Injection | SQL de aplicacion parametrizado, validacion Zod obligatoria en cuerpos JSON, HTML rico saneado con DOMPurify y prompts delimitados como entrada no confiable. | `scripts/audit-route-validation.ts`, `apps/web/src/lib/sanitize`, `docs/security/xss-audit.md` | Cerrado |
+| A04 | Insecure Design | Threat model STRIDE, ownership explicito, deny-by-default, rollback y orden de despliegue definidos. | `docs/security/threat-model.md`, `docs/security/remediation-2026-08-27.md` | Cerrado tecnicamente; firma periodica del owner es control operativo |
+| A05 | Security Misconfiguration | CSP enforced con nonce por request, CSRF por `Origin`/`Sec-Fetch-Site`, CORS allowlist, limites de cuerpo y endpoints diagnosticos eliminados. | `apps/web/middleware.ts`, `apps/web/src/lib/security/content-security-policy.ts`, `docs/security/csp-enforcement.md` | Cerrado |
+| A06 | Vulnerable and Outdated Components | Dependencias actualizadas, overrides centralizados y CI de secretos/dependencias. | `package.json`, `package-lock.json`, `docs/security/dependency-policy.md` | `npm audit --audit-level=low`: 0 vulnerabilidades conocidas |
+| A07 | Identification and Auth Failures | Lockout, HIBP, passwords 12+, OAuth state, MFA TOTP/recovery, sesiones revocables y endpoints de auth explicitamente catalogados. | `docs/security/auth-policy.md`, `docs/security/mfa-totp.md`, `apps/web/src/proxy/api-route-auth.ts` | Cerrado; obligatoriedad MFA por rol es decision de rollout |
+| A08 | Software and Data Integrity Failures | Checksums/signing, backup/restore, migracion con rollback y supply-chain audit. | `docs/security/data-integrity-backups.md`, `docs/security/backup-restore-drill.md`, `docs/security/remediation-2026-08-27.md` | Cerrado tecnicamente; restore drill real es control operativo recurrente |
+| A09 | Security Logging and Monitoring Failures | Audit log append-only, eventos sin payload sensible, correlacion, alertas y jobs programados. | `supabase/migrations/20260518123000_phase5_security_privacy.sql`, `apps/web/src/lib/security/security-events.ts`, `netlify/functions/process-security-alerts.ts`, `netlify.toml` | Cerrado |
+| A10 | SSRF | Fetch server-side auditado; URLs de usuario pasan por HTTPS, allowlist y rechazo DNS de IP privada. Transcodificacion usa bucket/path autorizado, no `sourceUrl` externo. | `docs/security/ssrf-audit.md`, `apps/web/src/lib/security/safe-fetch.ts`, `netlify/functions/transcode-video-background/job-processor.ts` | Cerrado |
 
 ## Decision
 
-La matriz no declara cobertura OWASP completa. Esta pasada deja 5.4-5.8 con controles de repo listos y evidencia local, pero conserva pendientes operativos: firma del threat model, CSP enforcement despues del soak, primera corrida verde de audit/dependencias en GitHub, MFA Admin/Business, restore drill real, SSRF, upload hardening, audit log e IRP.
+La cobertura tecnica OWASP queda implementada en el repositorio. Esto no equivale a
+declarar contenido un incidente real: A01 y A02 solo quedan contenidos en produccion
+despues de aplicar la migracion, revocar sesiones/tokens, rotar secretos posiblemente
+expuestos y ejecutar las pruebas negativas entre dos usuarios y dos organizaciones.
+Las firmas de threat model, los restore drills y el rollout obligatorio de MFA son
+controles operativos recurrentes, no deuda de implementacion.

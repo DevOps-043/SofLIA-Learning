@@ -2,7 +2,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { SessionService } from '@/features/auth/services/session.service';
 import {
   conversationsPatchSchema,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
@@ -245,7 +245,7 @@ async function handlePatch(
 
     const { conversationId, title } = body;
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     
     // Verificar propiedad
     const { data: conversation } = await supabase

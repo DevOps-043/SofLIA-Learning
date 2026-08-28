@@ -1,5 +1,5 @@
 import { getConfigForLevel } from './html-sanitizer.config'
-import { getDOMPurify } from './html-sanitizer.dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 import { basicServerSanitize } from './html-sanitizer.server'
 import type { SanitizeOptions, SanitizerConfig } from './html-sanitizer.types'
 
@@ -27,20 +27,11 @@ export function sanitizeHtml(
   const config = getEffectiveConfig(options)
 
   try {
-    // getDOMPurify vive en un módulo 'use client': invocarlo desde una ruta o
-    // servicio de servidor lanza (client reference), lo que degradaba todo el
-    // HTML al fallback del catch. En servidor se usa el sanitizador propio.
-    const DOMPurify = typeof window === 'undefined' ? null : getDOMPurify()
-
-    if (DOMPurify) {
-      const clean = DOMPurify.sanitize(content, config)
-      return basicServerSanitize(
-        typeof clean === 'string' ? clean : String(clean),
-        config,
-      )
-    }
-
-    return basicServerSanitize(content, config)
+    const clean = DOMPurify.sanitize(content, config)
+    return basicServerSanitize(
+      typeof clean === 'string' ? clean : String(clean),
+      config,
+    )
   } catch {
     return content.replace(/<[^>]*>/g, '')
   }

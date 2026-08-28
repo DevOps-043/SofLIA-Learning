@@ -38,19 +38,16 @@ describe('getInstructorInfo', () => {
         id: 'i1',
         first_name: 'Ana',
         last_name: 'Perez',
-        email: 'ana@example.com',
         username: 'aperez',
       }),
     ).toEqual({
       name: 'Ana Perez',
-      email: 'ana@example.com',
     })
   })
 
   it('returns the fallback when instructor is missing', () => {
     expect(getInstructorInfo(null)).toEqual({
       name: 'Instructor',
-      email: 'instructor@example.com',
     })
   })
 })
@@ -113,7 +110,6 @@ describe('mapCourseRowToCourse', () => {
           id: 'instructor-1',
           first_name: 'Lia',
           last_name: 'Coach',
-          email: 'lia@example.com',
           username: 'lia',
         },
       },

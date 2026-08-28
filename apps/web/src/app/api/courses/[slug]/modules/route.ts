@@ -25,6 +25,8 @@ export async function GET(
       .from('courses')
       .select('id')
       .eq('slug', slug)
+      .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .single();
 
     if (courseError || !course) {
@@ -36,23 +38,22 @@ export async function GET(
 
     const courseId = course.id;
 
-    // Obtener módulos del curso (incluir todos, no solo publicados, para el panel de admin/instructor)
-    // Si no hay módulos publicados, mostrar todos para que el instructor pueda ver su contenido
+    // Esta ruta es pública: nunca debe reutilizarse para previews de borradores.
     const { data: allModules, error: allModulesError } = await supabase
       .from('course_modules')
       .select(`
         module_id,
         module_title,
+        module_description,
         module_order_index,
         module_duration_minutes,
         is_published
       `)
       .eq('course_id', courseId)
+      .eq('is_published', true)
       .order('module_order_index', { ascending: true });
 
-    // Filtrar solo los publicados si hay alguno publicado, sino mostrar todos
-    const publishedModules = (allModules || []).filter(m => m.is_published === true);
-    const modules = publishedModules.length > 0 ? publishedModules : (allModules || []);
+    const modules = allModules ?? [];
 
     const modulesError = allModulesError;
 
@@ -67,7 +68,7 @@ export async function GET(
     const currentUser = await SessionService.getCurrentUser();
     let userEnrollment: {
       enrollment_id: string;
-      overall_progress_percentage?: number;
+      overall_progress_percentage: number | null;
     } | null = null;
 
     if (currentUser) {
@@ -84,16 +85,12 @@ export async function GET(
     let allLessonsData: Array<{
       lesson_id: string;
       lesson_title: string;
-      lesson_description?: string;
+      lesson_description: string | null;
       lesson_order_index: number;
       duration_seconds: number;
-      total_duration_minutes?: number; // Tiempo total (video + materiales + actividades)
-      video_provider_id?: string;
-      video_provider?: string;
-      is_published: boolean;
+      total_duration_minutes: number | null; // Tiempo total (video + materiales + actividades)
+      is_published: boolean | null;
       module_id: string;
-      transcript_content?: unknown;
-      summary_content?: unknown;
     }> = [];
 
     // IMPORTANTE: Siempre leer de course_lessons (tabla principal)
@@ -110,17 +107,11 @@ export async function GET(
           lesson_order_index,
           duration_seconds,
           total_duration_minutes,
-          video_provider_id,
-          video_provider,
           is_published,
-          module_id,
-          transcript_content,
-          summary_content,
-          created_at,
-          updated_at,
-          instructor_id
+          module_id
         `)
         .in('module_id', moduleIds)
+        .eq('is_published', true)
         .order('lesson_order_index', { ascending: true });
 
       if (lessonsError) {
@@ -135,7 +126,7 @@ export async function GET(
 
     let progressMap = new Map<
       string,
-      { is_completed?: boolean; video_progress_percentage?: number }
+      { is_completed: boolean | null; video_progress_percentage: number | null }
     >();
 
     if (userEnrollment && allLessonsData.length > 0) {
@@ -161,8 +152,6 @@ export async function GET(
       lessonsByModule.get(lesson.module_id)!.push(lesson);
     });
 
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-
     // Aplicar traducciones a módulos y lecciones
     const modulesWithLessons = await Promise.all(
       modules.map(async (module) => {
@@ -178,11 +167,7 @@ export async function GET(
 
         const moduleLessons = lessonsByModule.get(module.module_id) || [];
 
-        const publishedLessons = moduleLessons.filter(
-          (lesson) => lesson.is_published === true
-        );
-        const lessons =
-          publishedLessons.length > 0 ? publishedLessons : moduleLessons;
+        const lessons = moduleLessons;
 
         // Traducir lecciones
         const translatedLessons = await Promise.all(
@@ -206,22 +191,6 @@ export async function GET(
 
 
         const lessonsWithProgress = translatedLessons.map((lesson) => {
-          let videoUrl = lesson.video_provider_id;
-
-          if (
-            lesson.video_provider === 'direct' &&
-            videoUrl &&
-            !videoUrl.startsWith('http')
-          ) {
-            if (!videoUrl.includes('/')) {
-              videoUrl = `${supabaseUrl}/storage/v1/object/public/course-videos/videos/${videoUrl}`;
-            } else if (!videoUrl.startsWith('course-videos/')) {
-              videoUrl = `${supabaseUrl}/storage/v1/object/public/${videoUrl}`;
-            } else {
-              videoUrl = `${supabaseUrl}/storage/v1/object/public/${videoUrl}`;
-            }
-          }
-
           const progress = progressMap.get(lesson.lesson_id);
 
           return {
@@ -232,12 +201,8 @@ export async function GET(
             duration_seconds: lesson.duration_seconds,
             // Tiempo total: video + materiales + actividades (o calcular desde duration_seconds)
             total_duration_minutes: lesson.total_duration_minutes || Math.ceil((lesson.duration_seconds || 0) / 60),
-            video_provider_id: videoUrl,
-            video_provider: lesson.video_provider,
             is_completed: progress?.is_completed ?? false,
             progress_percentage: progress?.video_progress_percentage ?? 0,
-            transcript_content: lesson.transcript_content,
-            summary_content: lesson.summary_content,
           };
         });
 
@@ -264,13 +229,12 @@ export async function GET(
 
     return withCacheHeaders(
       NextResponse.json(responseBody),
-      cacheHeaders.semiStatic
+      cacheHeaders.private
     );
   } catch (error) {
     return NextResponse.json(
       {
         error: 'Error interno del servidor',
-        details: error instanceof Error ? error.message : 'Error desconocido'
       },
       { status: 500 }
     );

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { logger } from '@/lib/logger';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 import { resolveBusinessAccess } from './business-auth/access.service';
 import { createBusinessAuthErrorResponse } from './business-auth/response';
@@ -30,6 +31,7 @@ export async function requireBusinessAccess(
       mode: getBusinessAccessMode(strategy),
       cookieStore: await cookies(),
       supabase: await createClient(),
+      securitySupabase: createAdminClient(),
       logger,
       options,
     });

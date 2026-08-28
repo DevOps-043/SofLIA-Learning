@@ -92,7 +92,7 @@ function buildReportPayload(params: {
     pathname: runtimeContext.originContext.pathname,
     user_agent: userAgent,
     screen_resolution: runtimeContext.screenResolution,
-    screenshot_url: runtimeContext.attachments[0]?.publicUrl ?? null,
+    screenshot_url: runtimeContext.attachments[0]?.storagePath ?? null,
     metadata: serializeReportProblemMetadata(
       buildReportProblemMetadata({
         source: runtimeContext.courseContext ? 'lia_course_chat' : 'lia_chat_automatic',

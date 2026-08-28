@@ -45,10 +45,7 @@ export async function GET(
   } catch (error) {
     logger.error('Error in /api/certificates/[id]/download:', error)
     return NextResponse.json(
-      {
-        error: 'Error al descargar certificado',
-        details: error instanceof Error ? error.message : 'Error desconocido',
-      },
+      { error: 'Error al descargar certificado' },
       { status: 500 },
     )
   }

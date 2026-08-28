@@ -2,7 +2,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/errors';
 import { withZodBody } from '@/lib/api/with-validation';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { SessionService } from '@/features/auth/services/session.service';
 import {
   conversationTitlePatchSchema,
@@ -31,7 +31,7 @@ async function handlePatch(
     const { conversationId } = await params;
     const { conversation_title } = body;
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Verificar que la conversación pertenece al usuario
     const { data: conversation, error: convError } = await supabase
@@ -50,7 +50,10 @@ async function handlePatch(
 
     // Actualizar el título
     // Si conversation_title no existe en la BD, retornar error informativo
-    const updatePayload: Record<string, unknown> = {
+    const updatePayload: {
+      updated_at: string;
+      conversation_title?: string | null;
+    } = {
       updated_at: new Date().toISOString()
     };
     
@@ -138,7 +141,7 @@ export async function DELETE(
     }
 
     const { conversationId } = await params;
-    const supabase = await createClient();
+    const supabase = createAdminClient();
 
     // Verificar que la conversación pertenece al usuario
     const { data: conversation, error: convError } = await supabase

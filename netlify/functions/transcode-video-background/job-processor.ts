@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { createAdminClient, getEnv } from './env';
+import { createAdminClient } from './env';
 import { resolveFfmpegPath } from './ffmpeg-path';
 import { probeVideo, transcodeRendition, writeMasterPlaylist } from './ffmpeg-workflow';
 import {
@@ -73,25 +73,13 @@ async function downloadSource(
   supabase: ReturnType<typeof createAdminClient>,
   bucket: string,
   sourcePath: string,
-  sourceUrl: string,
+  _sourceUrl: string,
   inputPath: string,
   sizeBytes?: number
 ) {
-  const currentProjectUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL') ?? ''
-  const isCurrentProject = currentProjectUrl && sourceUrl.startsWith(currentProjectUrl)
-
-  let buffer: Buffer
-
-  if (isCurrentProject || !sourceUrl.startsWith('http')) {
-    const { data: blob, error } = await supabase.storage.from(bucket).download(sourcePath)
-    if (error || !blob) throw new Error(error?.message ?? 'Failed to download source video')
-    buffer = Buffer.from(await blob.arrayBuffer())
-  } else {
-    console.log(`[transcode-bg] Fetching source from external URL: ${sourceUrl.slice(0, 100)}`)
-    const response = await fetch(sourceUrl, { signal: AbortSignal.timeout(300_000) })
-    if (!response.ok) throw new Error(`Failed to fetch source from external URL: HTTP ${response.status}`)
-    buffer = Buffer.from(await response.arrayBuffer())
-  }
+  const { data: blob, error } = await supabase.storage.from(bucket).download(sourcePath)
+  if (error || !blob) throw new Error(error?.message ?? 'Failed to download source video')
+  const buffer = Buffer.from(await blob.arrayBuffer())
 
   await writeFile(inputPath, buffer)
   console.log(`[transcode-bg] Downloaded source (${((sizeBytes ?? 0) / 1_048_576).toFixed(1)} MB)`)

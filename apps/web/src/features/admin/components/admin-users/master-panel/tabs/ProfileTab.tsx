@@ -2,7 +2,6 @@
 
 import { Loader2 } from 'lucide-react'
 import {
-  EnvelopeIcon,
   FlagIcon,
   MapPinIcon,
   PhoneIcon,
@@ -46,20 +45,6 @@ export function ProfileTab({ formData, setField, handleSave, isSaving }: Profile
               type="text"
               value={formData.username}
               onChange={(e) => setField('username', e.target.value)}
-              className={FIELD_INPUT_WITH_ICON_CLASS}
-              required
-            />
-          </div>
-        </div>
-
-        <div className="group">
-          <label className={FIELD_LABEL_CLASS}>{t('admin:users.demographics.email')} *</label>
-          <div className="relative">
-            <EnvelopeIcon className={FIELD_ICON_CLASS} />
-            <input
-              type="email"
-              value={formData.email}
-              onChange={(e) => setField('email', e.target.value)}
               className={FIELD_INPUT_WITH_ICON_CLASS}
               required
             />

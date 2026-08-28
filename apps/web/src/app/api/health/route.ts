@@ -3,7 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withApiObservability } from '@/lib/observability/api'
 import { isApmConfigured } from '@/lib/observability/apm'
 import { getOrCreateCorrelationId } from '@/lib/observability/correlation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,7 +49,7 @@ async function checkDatabase(): Promise<DependencyHealth> {
   const startedAt = performance.now()
 
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { error } = await timeout(
       supabase.from('users').select('id', { count: 'exact', head: true }).limit(1),
       HEALTH_CHECK_TIMEOUT_MS,
@@ -94,13 +95,15 @@ async function healthHandler(request: NextRequest) {
     } satisfies DependencyHealth,
   }
   const status = summarizeStatus(checks)
+  if (status !== 'ok') {
+    logger.warn('Public health check degraded', { checks, status })
+  }
 
   return NextResponse.json(
     {
       status,
       checkedAt: new Date().toISOString(),
       correlationId: getOrCreateCorrelationId(request.headers),
-      checks,
     },
     {
       status: status === 'down' ? 503 : 200,

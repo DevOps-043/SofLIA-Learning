@@ -33,15 +33,7 @@ export function hardenAnchorTags(html: string): string {
     const target = getAttributeValue(attributes, 'target');
 
     if (target === '_blank') {
-      const relValues = new Set(
-        (getAttributeValue(attributes, 'rel') || '')
-          .split(/\s+/)
-          .filter(Boolean),
-      );
-
-      relValues.add('noopener');
-      relValues.add('noreferrer');
-      attributes = upsertAttribute(attributes, 'rel', Array.from(relValues).join(' '));
+      attributes = upsertAttribute(attributes, 'rel', 'noopener noreferrer');
     }
 
     if (href && /^https?:\/\//i.test(href)) {

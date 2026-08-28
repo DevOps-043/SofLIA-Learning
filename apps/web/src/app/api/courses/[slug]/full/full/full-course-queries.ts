@@ -2,12 +2,14 @@ import { PurchasedCoursesService } from '@/features/courses/services/purchased-c
 import { fromLoose } from '@/lib/supabase/looseQuery'
 import type { CourseFullQueryResults } from './full-results.types'
 import type { CourseData, CourseSkillRow, FullCourseRequest } from './full.types'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function runCourseFullQueries(
   request: FullCourseRequest,
   courseData: CourseData,
   courseId: string,
 ): Promise<CourseFullQueryResults> {
+  const admin = createAdminClient()
   const [modulesResult, skillsResult, purchaseCheck, enrollmentResult, instructorResult] =
     await Promise.all([
       request.supabase
@@ -42,11 +44,11 @@ export async function runCourseFullQueries(
             .maybeSingle()
         : Promise.resolve({ data: null, error: null }),
       courseData.instructor_id
-        ? request.supabase
+        ? admin
             .from('users')
             .select(`
-              id, first_name, last_name, display_name, username, email,
-              profile_picture_url, bio, platform_role, location
+              id, first_name, last_name, display_name, username,
+              profile_picture_url, bio
             `)
             .eq('id', courseData.instructor_id)
             .maybeSingle()

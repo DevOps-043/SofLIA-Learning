@@ -88,10 +88,6 @@ export async function GET(
           error instanceof Error && error.message === 'COURSE_NOT_FOUND'
             ? 'Curso no encontrado'
             : 'Error interno del servidor',
-        details:
-          error instanceof Error && error.message !== 'COURSE_NOT_FOUND'
-            ? error.message
-            : undefined,
       },
       {
         status:

@@ -1,4 +1,6 @@
+import 'server-only'
 import { createClient } from '../../../lib/supabase/server'
+import { createAdminClient } from '../../../lib/supabase/admin'
 import { fromLoose } from '../../../lib/supabase/looseQuery'
 import {
   type CourseQueryRow,
@@ -9,6 +11,41 @@ import {
   extractPurchasedCourseIds,
   mapCourseRowToCourse,
 } from './course.service.utils'
+
+async function attachPublicInstructors(
+  courses: CourseQueryRow[],
+): Promise<CourseQueryRow[]> {
+  const instructorIds = [
+    ...new Set(
+      courses
+        .map((course) => course.instructor_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ]
+
+  if (instructorIds.length === 0) return courses
+
+  const admin = createAdminClient()
+  const { data, error } = await admin
+    .from('users')
+    .select('id, first_name, last_name, username')
+    .in('id', instructorIds)
+
+  if (error) {
+    throw new Error(`Error al obtener instructores publicos: ${error.message}`)
+  }
+
+  const instructorsById = new Map(
+    (data || []).map((instructor) => [instructor.id, instructor]),
+  )
+
+  return courses.map((course) => ({
+    ...course,
+    instructor: course.instructor_id
+      ? instructorsById.get(course.instructor_id) || null
+      : null,
+  }))
+}
 
 export interface CourseFilters {
   category?: string
@@ -41,16 +78,10 @@ export class CourseService {
           review_count,
           learning_objectives,
           created_at,
-          updated_at,
-          instructor:users!instructor_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            username
-          )
+          updated_at
         `)
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .order('created_at', { ascending: false })
 
     const [
@@ -78,7 +109,9 @@ export class CourseService {
     const userFavorites = extractFavoriteCourseIds(favoritesResult)
     const purchasedCourseIds = extractPurchasedCourseIds(purchasesResult)
 
-    return (coursesResult.data || []).map((course) => {
+    const publicCourses = await attachPublicInstructors(coursesResult.data || [])
+
+    return publicCourses.map((course) => {
       const isPurchased = purchasedCourseIds.includes(course.id)
 
       return mapCourseRowToCourse(course, {
@@ -113,17 +146,11 @@ export class CourseService {
           review_count,
           learning_objectives,
           created_at,
-          updated_at,
-          instructor:users!instructor_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            username
-          )
+          updated_at
         `)
       .eq('slug', slug)
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .single()
 
     const [courseResult, favoritesResult] = await Promise.all([
@@ -141,7 +168,9 @@ export class CourseService {
 
     const userFavorites = extractFavoriteCourseIds(favoritesResult)
 
-    return mapCourseRowToCourse(courseResult.data, {
+    const [publicCourse] = await attachPublicInstructors([courseResult.data])
+
+    return mapCourseRowToCourse(publicCourse, {
       isFavorite: userFavorites.includes(courseResult.data.id),
       status: 'Disponible',
     })
@@ -171,6 +200,7 @@ export class CourseService {
         `)
       .eq('id', courseId)
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .single()
 
     if (error || !data) {
@@ -192,6 +222,7 @@ export class CourseService {
       .from('courses')
       .select('category')
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .not('category', 'is', null)
 
     if (error) {
@@ -228,16 +259,10 @@ export class CourseService {
           review_count,
           learning_objectives,
           created_at,
-          updated_at,
-          instructor:users!instructor_id (
-            id,
-            first_name,
-            last_name,
-            email,
-            username
-          )
+          updated_at
         `)
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .eq('category', category)
       .order('created_at', { ascending: false })
 
@@ -245,7 +270,9 @@ export class CourseService {
       throw new Error(`Error al obtener cursos por categorÃ­a: ${error.message}`)
     }
 
-    return (data || []).map((course) =>
+    const publicCourses = await attachPublicInstructors(data || [])
+
+    return publicCourses.map((course) =>
       mapCourseRowToCourse(course, {
         status: 'Disponible',
       }),

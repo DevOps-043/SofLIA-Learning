@@ -1,11 +1,16 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireUser } from '@/lib/auth/requireUser';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { VIDEO_ASSET_CACHE_CONTROL, isStreamableVideoMimeType } from '@/lib/media/video-upload-policy';
-import { processStoredVideoForAdaptiveStreaming } from '@/lib/media/server/adaptive-video-transcoding.server';
 import { recordSecurityEvent } from '@/lib/security/security-events';
 import { sanitizePath, generateSafeFileName } from '@/lib/upload/validation';
 import { validateAndPrepareUpload } from '@/lib/upload/validation.server';
 import { logger } from '@/lib/utils/logger';
+import {
+  authorizeGenericUpload,
+  buildUserScopedUploadFolder,
+  GENERIC_UPLOAD_MAX_REQUEST_BYTES,
+} from '@/lib/upload/upload-authorization';
 
 export const runtime = 'nodejs';
 
@@ -13,14 +18,22 @@ const DEFAULT_ASSET_CACHE_CONTROL = '3600';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const auth = await requireUser();
+    if (auth instanceof NextResponse) return auth;
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      return NextResponse.json({ error: 'Storage no configurado' }, { status: 500 });
+    const contentLength = Number(request.headers.get('content-length'));
+    if (
+      !Number.isFinite(contentLength) ||
+      contentLength <= 0 ||
+      contentLength > GENERIC_UPLOAD_MAX_REQUEST_BYTES
+    ) {
+      return NextResponse.json(
+        { error: 'PAYLOAD_SIZE_NOT_ALLOWED' },
+        { status: 413 },
+      );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabase = createAdminClient();
     const formData = await request.formData();
     const fileValue = formData.get('file');
     const bucketValue = formData.get('bucket');
@@ -35,6 +48,27 @@ export async function POST(request: NextRequest) {
 
     if (!bucket) {
       return NextResponse.json({ error: 'No se proporciono bucket' }, { status: 400 });
+    }
+
+    const authorization = authorizeGenericUpload({
+      bucket,
+      userRole: auth.userRole,
+    });
+    if (!authorization.allowed) {
+      recordSecurityEvent('file-upload-rejected', {
+        pathname: request.nextUrl.pathname,
+        method: request.method,
+        resourceType: 'storage_bucket',
+        resourceId: bucket,
+        metadata: {
+          reason: authorization.code,
+          userId: auth.userId,
+        },
+      });
+      return NextResponse.json(
+        { error: authorization.code },
+        { status: authorization.code === 'DEDICATED_UPLOAD_REQUIRED' ? 409 : 403 },
+      );
     }
 
     const uploadValidation = await validateAndPrepareUpload(file, bucket);
@@ -61,9 +95,12 @@ export async function POST(request: NextRequest) {
     }
 
     const preparedFile = uploadValidation.file;
-    const sanitizedFolder = folder ? sanitizePath(folder) : '';
+    const sanitizedFolder = buildUserScopedUploadFolder(
+      auth.userId,
+      folder ? sanitizePath(folder) : '',
+    );
     const fileName = generateSafeFileName(file.name, preparedFile.detectedExtension);
-    const filePath = sanitizedFolder ? `${sanitizedFolder}/${fileName}` : fileName;
+    const filePath = `${sanitizedFolder}/${fileName}`;
 
     const { error } = await supabase.storage
       .from(bucket)
@@ -89,24 +126,11 @@ export async function POST(request: NextRequest) {
     });
 
     const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(filePath);
-    const adaptiveResult = bucket === 'intro-videos'
-      ? await processStoredVideoForAdaptiveStreaming({
-          bucket,
-          contentType: preparedFile.contentType,
-          publicUrl: urlData.publicUrl,
-          sizeBytes: preparedFile.sizeBytes,
-          sourcePath: filePath,
-          supabase,
-        })
-      : null;
-
     return NextResponse.json({
       success: true,
-      adaptive: adaptiveResult,
-      url: adaptiveResult?.playbackUrl ?? urlData.publicUrl,
-      path: adaptiveResult?.playbackPath ?? filePath,
+      url: urlData.publicUrl,
+      path: filePath,
       sourcePath: filePath,
-      sourceUrl: urlData.publicUrl,
       name: file.name,
       size: preparedFile.sizeBytes,
       type: preparedFile.contentType,
