@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import {
   createInvitationRuntime,
@@ -25,8 +25,11 @@ export async function POST(
       )
     }
 
-    const supabase = await createClient()
-    
+    // user_invitations perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role, ya autorizado por requireBusiness() arriba.
+    const supabase = createAdminClient()
+
     // Obtener la invitación para verificar que pertenece a la organización
     const { data: invitation, error: fetchError } = await supabase
       .from('user_invitations')
@@ -41,7 +44,10 @@ export async function POST(
 
     const result = await resendInvitation(
       invitationId,
-      await createInvitationRuntime(),
+      // 'admin': this route already authorized via requireBusiness() above and
+      // never resolves the caller's session from the runtime, so it can use
+      // the service-role client that still has grants on user_invitations.
+      await createInvitationRuntime({ client: 'admin' }),
     )
 
     if (!result.success) {

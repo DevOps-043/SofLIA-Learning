@@ -6,6 +6,7 @@ import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   buildPaginationMetadata,
   parsePaginationParams,
@@ -53,6 +54,14 @@ export async function GET(
     const role = searchParams.get('role') || undefined
     const status = searchParams.get('status') || undefined
     const supabase = await createClient()
+    // user_invitations y bulk_invite_links perdieron sus grants para el rol
+    // `authenticated` en la migracion 20260827120000_emergency_data_api_lockdown
+    // (contienen tokens/PII y ya no cruzan el Data API para roles de navegador).
+    // Esta ruta ya autorizo al llamante via requireBusiness(), asi que consulta
+    // esas dos tablas con el cliente de service role, igual que
+    // getOrganizationStats(); el filtro por organization_id sigue acotando el
+    // acceso a la org del admin autenticado.
+    const adminSupabase = createAdminClient()
 
     const [
       usersPage,
@@ -79,12 +88,12 @@ export async function GET(
         .from('organization_users')
         .select('user_id', { count: 'exact', head: true })
         .eq('organization_id', auth.organizationId),
-      supabase
+      adminSupabase
         .from('user_invitations')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', auth.organizationId)
         .eq('status', 'pending'),
-      supabase
+      adminSupabase
         .from('bulk_invite_links')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', auth.organizationId),
@@ -100,7 +109,7 @@ export async function GET(
     let resourcePagination = usersPage.pagination
 
     if (resource === 'invitations') {
-      let invitationsQuery = supabase
+      let invitationsQuery = adminSupabase
         .from('user_invitations')
         .select('id, email, role, status, created_at, expires_at, metadata', { count: 'exact' })
         .eq('organization_id', auth.organizationId)
@@ -123,7 +132,7 @@ export async function GET(
     }
 
     if (resource === 'links') {
-      let linksQuery = supabase
+      let linksQuery = adminSupabase
         .from('bulk_invite_links')
         .select('id, token, name, role, max_uses, current_uses, expires_at, created_at, created_by, status', { count: 'exact' })
         .eq('organization_id', auth.organizationId)

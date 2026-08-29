@@ -1,7 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 
@@ -26,7 +26,10 @@ export async function GET(
       )
     }
 
-    const supabase = await createClient()
+    // bulk_invite_links perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role, ya autorizado por requireBusiness() arriba.
+    const supabase = createAdminClient()
 
     const { data: links, error } = await supabase
       .from('bulk_invite_links')

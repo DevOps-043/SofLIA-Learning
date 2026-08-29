@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { logger } from '@/lib/logger'
 import { withZodBody } from '@/lib/api/with-validation'
@@ -28,7 +28,10 @@ export async function GET(
       )
     }
 
-    const supabase = await createClient()
+    // bulk_invite_links perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role, ya autorizado por requireBusiness() arriba.
+    const supabase = createAdminClient()
 
     const { data: link, error } = await supabase
       .from('bulk_invite_links')
@@ -85,7 +88,10 @@ async function handlePatch(
 
     const { action, name, maxUses, expiresAt } = body
 
-    const supabase = await createClient()
+    // bulk_invite_links perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role, ya autorizado por requireBusiness() arriba.
+    const supabase = createAdminClient()
 
     // First verify the link belongs to this organization
     const { data: existingLink, error: fetchError } = await supabase
@@ -219,7 +225,10 @@ export async function DELETE(
       )
     }
 
-    const supabase = await createClient()
+    // bulk_invite_links perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role, ya autorizado por requireBusiness() arriba.
+    const supabase = createAdminClient()
 
     const { error } = await supabase
       .from('bulk_invite_links')

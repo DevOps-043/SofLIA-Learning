@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { BusinessUsersServerService } from '@/features/business-panel/services/businessUsers.server.service'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 
 export async function DELETE(
@@ -15,8 +15,18 @@ export async function DELETE(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    const supabase = await createClient()
-    
+    if (!auth.organizationId) {
+      return NextResponse.json(
+        { success: false, error: 'No tienes una organización asignada' },
+        { status: 403 },
+      )
+    }
+
+    // user_invitations perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role igual que en el listado, ya autorizado por requireBusiness() arriba.
+    const supabase = createAdminClient()
+
     // Revocar invitación
     const { error } = await supabase
       .from('user_invitations')
