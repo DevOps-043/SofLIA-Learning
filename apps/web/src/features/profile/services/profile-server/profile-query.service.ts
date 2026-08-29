@@ -1,4 +1,4 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import { resolveUserPrimaryMembership } from '../../../../lib/services/user-org-context.service'
 import type { UserProfile } from '../../types/profile.types'
 import { mapProfileWithMembership } from './profile-row.mapper'
@@ -8,7 +8,10 @@ export async function getProfile(
   userId: string,
   organizationId?: string | null,
 ): Promise<UserProfile> {
-  const supabase = await createClient()
+  // Authentication is resolved by the API before this service receives the
+  // user id. Use the server client so legacy sessions do not lose their user
+  // context when the profile query is evaluated through RLS.
+  const supabase = createAdminClient()
   const [profileResult, membership] = await Promise.all([
     supabase
       .from('users')

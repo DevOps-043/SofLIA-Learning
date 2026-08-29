@@ -1,10 +1,10 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import type { UserSubscription } from '../../types/profile.types'
 import { mapSubscriptionRecord } from '../profile.shared'
 
 export async function getUserSubscriptions(userId: string): Promise<UserSubscription[]> {
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const { data: subscriptions, error } = await supabase
       .from('subscriptions')
       .select(`

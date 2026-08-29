@@ -6,8 +6,9 @@ import { getIdentifier } from '../rate-limit.identifier'
 import { rateLimitStore } from '../rate-limit.store'
 import { applyProxyRateLimits, resolveRouteRateLimitPolicy } from '@/proxy/rate-limits'
 
-function buildRequest(pathname: string): NextRequest {
+function buildRequest(pathname: string, method = 'GET'): NextRequest {
   return new NextRequest(new URL(pathname, 'https://soflia.test'), {
+    method,
     headers: {
       'user-agent': 'vitest-rate-limit',
       'x-forwarded-for': '203.0.113.10',
@@ -45,10 +46,13 @@ describe('rate limiting', () => {
   it('resolves endpoint-specific policies for expensive routes', () => {
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/me'))?.prefix).toBe('auth-read')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/dashboard-destination'))?.prefix).toBe('auth-read')
+    expect(resolveRouteRateLimitPolicy(buildRequest('/api/lia/personalization'))?.prefix).toBe('lia-read')
+    expect(resolveRouteRateLimitPolicy(buildRequest('/api/lia/conversations'))?.prefix).toBe('lia-read')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/login'))?.prefix).toBe('auth')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/web/start'))?.prefix).toBe('auth')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/forgot-password'))?.prefix).toBe('password')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/ai-chat'))?.prefix).toBe('ai-chat')
+    expect(resolveRouteRateLimitPolicy(buildRequest('/api/lia/chat', 'POST'))?.prefix).toBe('ai-chat')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/business/users/import'))?.prefix).toBe('bulk-import')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/admin/courses'))?.prefix).toBe('api-read')
   })

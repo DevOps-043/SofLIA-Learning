@@ -5,14 +5,13 @@ export function getErrorMessage(error: unknown): string {
 }
 
 export function createPersonalizationErrorResponse(
-  error: unknown,
+  _error: unknown,
   fallbackMessage: string,
   status = 500,
 ) {
   return NextResponse.json(
     {
       error: fallbackMessage,
-      message: getErrorMessage(error),
       success: false,
     },
     { status },

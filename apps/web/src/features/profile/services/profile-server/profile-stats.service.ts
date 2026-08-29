@@ -1,4 +1,4 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import { createEmptyUserStats } from '../profile.shared'
 
 interface UserProfileStatsRpcRow {
@@ -43,7 +43,7 @@ export async function getUserStats(userId: string): Promise<{
   coursesInProgress: number
 }> {
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     return getGlobalUserStats(supabase, userId)
   } catch {
     return createEmptyUserStats()
@@ -60,7 +60,7 @@ export async function getOrganizationUserStats(
   coursesInProgress: number
 }> {
   try {
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const [enrollmentsResult, assignmentsResult, certificatesResult] = await Promise.all([
       supabase
         .from('user_course_enrollments')
@@ -99,7 +99,7 @@ export async function getOrganizationUserStats(
 }
 
 async function getGlobalUserStats(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   userId: string,
 ) {
   const { data: rpcData, error: rpcError } = await (
@@ -148,7 +148,7 @@ async function getGlobalUserStats(
 }
 
 async function countCompletedLessonsForCourses(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   userId: string,
   courseIds: string[],
 ): Promise<number> {

@@ -81,6 +81,13 @@ export function resolveRouteRateLimitPolicy(request: NextRequest): RouteRateLimi
     return { config: ROUTE_RATE_LIMITS.cacheableRead, prefix: 'auth-read' }
   }
 
+  // GET handlers below /api/lia only read configuration, conversation history
+  // or capability metadata. They must retain local rate limiting when Redis is
+  // unavailable; POST/DELETE and actual AI generation remain fail-closed.
+  if (method === 'GET' && pathname.startsWith('/api/lia/')) {
+    return { config: ROUTE_RATE_LIMITS.cacheableRead, prefix: 'lia-read' }
+  }
+
   if (pathname.startsWith('/api/auth/reset-password') || pathname.startsWith('/api/auth/forgot-password')) {
     return { config: ROUTE_RATE_LIMITS.auth, prefix: 'password' }
   }

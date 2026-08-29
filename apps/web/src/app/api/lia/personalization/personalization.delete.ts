@@ -18,13 +18,13 @@ export async function DELETE() {
 
     return NextResponse.json({
       success: true,
-      message: 'ConfiguraciÃ³n eliminada correctamente',
+      message: 'Configuración eliminada correctamente',
     })
   } catch (error: unknown) {
-    logger.error('Error eliminando configuraciÃ³n de personalizaciÃ³n:', error)
+    logger.error('Error eliminando configuración de personalización:', error)
     return createPersonalizationErrorResponse(
       error,
-      'Error al eliminar configuraciÃ³n',
+      'Error al eliminar configuración',
     )
   }
 }

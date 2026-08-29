@@ -21,10 +21,10 @@ export async function GET() {
       success: true,
     })
   } catch (error: unknown) {
-    logger.error('Error obteniendo configuraciÃ³n de personalizaciÃ³n:', error)
+    logger.error('Error obteniendo configuración de personalización:', error)
     return createPersonalizationErrorResponse(
       error,
-      'Error al obtener configuraciÃ³n',
+      'Error al obtener configuración',
     )
   }
 }

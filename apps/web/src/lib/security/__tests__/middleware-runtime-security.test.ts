@@ -56,4 +56,13 @@ describe('compiled middleware security boundary', () => {
     expect(businessLayout).toContain('if (authUnavailable)')
     expect(businessLayout).toContain('AuthUnavailableScreen')
   })
+
+  it('keeps authenticated profile reads compatible with legacy sessions', () => {
+    const profileQuery = readWebFile(
+      'src/features/profile/services/profile-server/profile-query.service.ts',
+    )
+
+    expect(profileQuery).toContain("import { createAdminClient }")
+    expect(profileQuery).not.toContain("import { createClient }")
+  })
 })
