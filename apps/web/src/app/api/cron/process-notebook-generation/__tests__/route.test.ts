@@ -1,17 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { processNotebookGenerationJobs } from '@/features/notebook/services/notebook-generation.processor.server'
+import { runNotebookGenerationBatch } from '@/features/notebook/services/notebook-generation.batch.server'
 import { GET } from '../route'
 
 vi.mock('server-only', () => ({}))
-vi.mock('@/features/notebook/services/notebook-generation.processor.server', () => ({
-  processNotebookGenerationJobs: vi.fn(),
+vi.mock('@/features/notebook/services/notebook-generation.batch.server', () => ({
+  runNotebookGenerationBatch: vi.fn(),
 }))
 vi.mock('@/lib/logger', () => ({
   logger: { error: vi.fn() },
 }))
 
-const processJobsMock = vi.mocked(processNotebookGenerationJobs)
+const processJobsMock = vi.mocked(runNotebookGenerationBatch)
 
 function createRequest(secret = 'test-cron-secret') {
   return new Request(
@@ -50,7 +50,7 @@ describe('GET /api/cron/process-notebook-generation', () => {
 
   it('reports a missing production queue schema as a diagnosable 503', async () => {
     processJobsMock.mockRejectedValue(
-      new Error("PGRST205: public.notebook_generation_jobs was not found"),
+      new Error("PGRST205: public.notebook_ai_generation_jobs was not found"),
     )
 
     const response = await GET(createRequest())
@@ -63,7 +63,7 @@ describe('GET /api/cron/process-notebook-generation', () => {
       correlationId: 'test-correlation-id',
       error: 'La cola del notebook no esta disponible en la base de datos',
     })
-    expect(JSON.stringify(payload)).not.toContain('notebook_generation_jobs')
+    expect(JSON.stringify(payload)).not.toContain('notebook_ai_generation_jobs')
   })
 
   it('returns the processor result when the queue is healthy', async () => {

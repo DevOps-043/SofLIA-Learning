@@ -15,16 +15,14 @@
 
 import 'server-only'
 
-import { getAiModelSettings } from '@/lib/ai/model-settings/ai-model-settings.server.service'
 import type { PromptModelProfile } from '@/lib/ai/prompts'
 import type { AiPromptInput } from '@/lib/ai/providers/ai-text-gateway.server'
-import { generateStructuredContent } from '@/lib/ai/structured-generation.server'
 import { buildEnrichmentPrompt } from './notebook-enrichment.prompt'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { evaluatePromptInjectionRisk } from '@/lib/security/prompt-injection-detector'
 import { writeSecurityAuditLogAsync } from '@/lib/security/security-audit-log'
 import { logger } from '@/lib/utils/logger'
-import { flexibleFrom } from './notebook-enrichment.server.service'
+import { flexibleFrom } from './flexible-supabase.server'
 import {
   AI_ENRICHMENT_JSON_SCHEMA,
   clip,
@@ -81,6 +79,14 @@ async function generateEnrichment(input: {
   noteText: string
   prompt: AiPromptInput
 }): Promise<NormalizedEnrichment> {
+  // AI providers are optional for an idle queue and have a comparatively large
+  // dependency graph. Load them only after a job has been claimed so a missing
+  // provider configuration cannot crash cron route initialization.
+  const [{ getAiModelSettings }, { generateStructuredContent }] =
+    await Promise.all([
+      import('@/lib/ai/model-settings/ai-model-settings.server.service'),
+      import('@/lib/ai/structured-generation.server'),
+    ])
   const settings = await getAiModelSettings('notebook_enrichment')
   const result = await generateStructuredContent({
     audit: {

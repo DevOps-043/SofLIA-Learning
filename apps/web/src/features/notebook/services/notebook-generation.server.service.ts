@@ -5,7 +5,7 @@ import type { Json } from '@/lib/supabase/types'
 import {
   flexibleFrom,
   type FlexibleQueryResult,
-} from './notebook-enrichment.server.service'
+} from './flexible-supabase.server'
 
 import {
   computeNotebookGenerationSourceHash,

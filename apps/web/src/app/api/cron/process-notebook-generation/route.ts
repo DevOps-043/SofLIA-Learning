@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 
-import { processNotebookGenerationJobs } from '@/features/notebook/services/notebook-generation.processor.server'
+import { runNotebookGenerationBatch } from '@/features/notebook/services/notebook-generation.batch.server'
 import { logger } from '@/lib/logger'
 
 export const runtime = 'nodejs'
@@ -29,7 +29,7 @@ function isNotebookQueueSchemaUnavailable(error: unknown): boolean {
   const message = error instanceof Error ? error.message : String(error)
   return (
     message.includes('PGRST205') ||
-    message.includes('notebook_generation_jobs') ||
+    message.includes('notebook_ai_generation_jobs') ||
     message.includes('claim_notebook_generation_jobs')
   )
 }
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await processNotebookGenerationJobs({
+    const result = await runNotebookGenerationBatch({
       limit: boundedNumber(request, 'limit', 10, 1, 20),
       maxRuntimeMs: boundedNumber(request, 'maxRuntimeMs', 24_000, 10_000, 28_000),
     })

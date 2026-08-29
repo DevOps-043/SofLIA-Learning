@@ -44,6 +44,14 @@ export interface NotebookGenerationJob {
   userId: string
 }
 
+export interface NotebookGenerationBatchResult {
+  done: number
+  failed: number
+  partial: number
+  processed: number
+  rescheduled: number
+}
+
 export interface NotebookGeneratedArtifact {
   artifactId: string
   generatedAt: string | null

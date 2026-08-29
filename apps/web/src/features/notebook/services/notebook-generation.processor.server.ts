@@ -3,11 +3,6 @@ import 'server-only'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type { Json } from '@/lib/supabase/types'
 import { logger } from '@/lib/utils/logger'
-import { generateCourseCompendium } from '@/features/courses/services/course-compendium.service'
-import { generateLessonAutoNote } from '@/features/courses/services/lesson-auto-note.service'
-import { fetchRequiredLessonQuizStatus } from '@/features/courses/services/quiz/required-quiz-status.service'
-import { NoteService } from '@/features/courses/services/note.service'
-
 import {
   claimNotebookGenerationJobs,
   finishNotebookGenerationJob,
@@ -16,13 +11,14 @@ import {
 import { shouldWaitForLessonJobs } from './notebook-generation.helpers'
 import type {
   NotebookArtifactEvidenceInput,
+  NotebookGenerationBatchResult,
   NotebookGenerationJob,
 } from './notebook-generation.types'
 import {
   extractPublicActivityFeedback,
   normalizeVisibleAssistantRole,
 } from './notebook-generation.helpers'
-import { flexibleFrom } from './notebook-enrichment.server.service'
+import { flexibleFrom } from './flexible-supabase.server'
 
 type AdminClient = ReturnType<typeof createAdminClient>
 
@@ -84,14 +80,6 @@ interface QuizSubmissionRow {
 
 interface ActiveJobRow {
   job_id: string
-}
-
-export interface NotebookGenerationBatchResult {
-  done: number
-  failed: number
-  partial: number
-  processed: number
-  rescheduled: number
 }
 
 function toJson(value: Record<string, unknown>): Json {
@@ -280,6 +268,9 @@ async function collectCourseEvidence(
   client: AdminClient,
   job: NotebookGenerationJob,
 ): Promise<NotebookArtifactEvidenceInput[]> {
+  const { NoteService } = await import(
+    '@/features/courses/services/note.service'
+  )
   const notes = await NoteService.getNotesByCourseWithClient(
     client,
     job.userId,
@@ -339,6 +330,13 @@ async function processLessonJob(
   workerId: string,
 ): Promise<'done' | 'partial'> {
   if (!job.lessonId) throw new Error('LESSON_JOB_WITHOUT_LESSON')
+  const [{ generateLessonAutoNote }, { fetchRequiredLessonQuizStatus }] =
+    await Promise.all([
+      import('@/features/courses/services/lesson-auto-note.service'),
+      import(
+        '@/features/courses/services/quiz/required-quiz-status.service'
+      ),
+    ])
   const [courseTitle, quizStatus, evidence] = await Promise.all([
     getCourseTitle(client, job.courseId),
     fetchRequiredLessonQuizStatus(client, {
@@ -408,6 +406,9 @@ async function processCourseJob(
     getCourseTitle(client, job.courseId),
     collectCourseEvidence(client, job),
   ])
+  const { generateCourseCompendium } = await import(
+    '@/features/courses/services/course-compendium.service'
+  )
   const generated = await generateCourseCompendium({
     allowUpdate: true,
     courseId: job.courseId,
@@ -441,14 +442,14 @@ async function processCourseJob(
   return partial ? 'partial' : 'done'
 }
 
-export async function processNotebookGenerationJobs(input: {
-  limit: number
+export async function processClaimedNotebookGenerationJobs(input: {
+  client: AdminClient
+  jobs: NotebookGenerationJob[]
   maxRuntimeMs: number
-  workerId?: string
+  startedAt?: number
+  workerId: string
 }): Promise<NotebookGenerationBatchResult> {
-  const client = createAdminClient()
-  const workerId = input.workerId || `notebook-worker-${crypto.randomUUID()}`
-  const startedAt = Date.now()
+  const startedAt = input.startedAt ?? Date.now()
   const result: NotebookGenerationBatchResult = {
     done: 0,
     failed: 0,
@@ -456,21 +457,14 @@ export async function processNotebookGenerationJobs(input: {
     processed: 0,
     rescheduled: 0,
   }
-  const jobs = await claimNotebookGenerationJobs({
-    client,
-    leaseSeconds: 300,
-    limit: input.limit,
-    workerId,
-  })
-
-  for (const job of jobs) {
+  for (const job of input.jobs) {
     if (Date.now() - startedAt >= input.maxRuntimeMs) break
     result.processed += 1
     try {
       const outcome =
         job.jobType === 'lesson_auto_note'
-          ? await processLessonJob(client, job, workerId)
-          : await processCourseJob(client, job, workerId)
+          ? await processLessonJob(input.client, job, input.workerId)
+          : await processCourseJob(input.client, job, input.workerId)
       result[outcome] += 1
     } catch (error) {
       const message = error instanceof Error ? error.message : 'GENERATION_FAILED'
@@ -482,15 +476,15 @@ export async function processNotebookGenerationJobs(input: {
       try {
         await finishNotebookGenerationJob({
           artifactStatus: 'failed',
-          client,
+          client: input.client,
           evidence:
             job.jobType === 'lesson_auto_note'
-              ? await collectLessonEvidence(client, job)
-              : await collectCourseEvidence(client, job),
+              ? await collectLessonEvidence(input.client, job)
+              : await collectCourseEvidence(input.client, job),
           jobId: job.jobId,
           lastError: message,
           outcome: 'failed',
-          workerId,
+          workerId: input.workerId,
         })
       } catch (finishError) {
         logger.error('Notebook generation job could not be finalized', {
@@ -504,4 +498,28 @@ export async function processNotebookGenerationJobs(input: {
   }
 
   return result
+}
+
+export async function processNotebookGenerationJobs(input: {
+  limit: number
+  maxRuntimeMs: number
+  workerId?: string
+}): Promise<NotebookGenerationBatchResult> {
+  const client = createAdminClient()
+  const workerId = input.workerId || `notebook-worker-${crypto.randomUUID()}`
+  const startedAt = Date.now()
+  const jobs = await claimNotebookGenerationJobs({
+    client,
+    leaseSeconds: 300,
+    limit: input.limit,
+    workerId,
+  })
+
+  return processClaimedNotebookGenerationJobs({
+    client,
+    jobs,
+    maxRuntimeMs: input.maxRuntimeMs,
+    startedAt,
+    workerId,
+  })
 }

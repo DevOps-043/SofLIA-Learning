@@ -27,36 +27,15 @@ import type {
   NotebookNoteEnrichment,
   NotebookNoteEnrichmentState,
 } from '../types'
+import { flexibleFrom } from './flexible-supabase.server'
+
+export {
+  flexibleFrom,
+  type FlexibleBuilder,
+  type FlexibleQueryResult,
+} from './flexible-supabase.server'
 
 type AdminClient = ReturnType<typeof createAdminClient>
-
-/** Minimal structural facade over PostgREST for tables missing in gen types. */
-export interface FlexibleQueryResult<T> {
-  data: T | null
-  error: { code?: string; message: string } | null
-}
-
-export interface FlexibleBuilder {
-  delete(): FlexibleBuilder
-  eq(column: string, value: unknown): FlexibleBuilder
-  in(column: string, values: readonly unknown[]): FlexibleBuilder
-  insert(values: unknown): FlexibleBuilder
-  is(column: string, value: unknown): FlexibleBuilder
-  limit(count: number): FlexibleBuilder
-  lt(column: string, value: unknown): FlexibleBuilder
-  lte(column: string, value: unknown): FlexibleBuilder
-  maybeSingle<T>(): PromiseLike<FlexibleQueryResult<T>>
-  order(column: string, options?: { ascending?: boolean }): FlexibleBuilder
-  returns<T>(): PromiseLike<FlexibleQueryResult<T>>
-  select(columns?: string): FlexibleBuilder
-  single<T>(): PromiseLike<FlexibleQueryResult<T>>
-  update(values: unknown): FlexibleBuilder
-  upsert(values: unknown, options?: { onConflict?: string; ignoreDuplicates?: boolean }): FlexibleBuilder
-}
-
-export function flexibleFrom(client: AdminClient, table: string): FlexibleBuilder {
-  return (client as unknown as { from(table: string): FlexibleBuilder }).from(table)
-}
 
 /** Notes below this plain-text length are not worth an AI call. */
 const MIN_ENRICHABLE_TEXT_LENGTH = 80
