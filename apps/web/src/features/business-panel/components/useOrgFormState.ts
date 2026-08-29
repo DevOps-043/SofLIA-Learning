@@ -13,7 +13,6 @@ export interface OrgFormData {
   contact_phone: string
   website_url: string
   logo_url: string
-  max_users: string
   show_navbar_name: boolean
   banner_url: string
   icon_url: string
@@ -49,7 +48,6 @@ export function useOrgFormState({
     contact_phone: organization?.contact_phone || '',
     website_url: organization?.website_url || '',
     logo_url: organization?.logo_url || '',
-    max_users: organization?.max_users?.toString() || '10',
     show_navbar_name: organization?.show_navbar_name ?? true,
     banner_url: branding?.banner_url || '',
     icon_url: organization?.logo_url || '',
@@ -72,7 +70,6 @@ export function useOrgFormState({
         contact_phone: organization.contact_phone || '',
         website_url: organization.website_url || '',
         logo_url: organization.logo_url || '',
-        max_users: organization.max_users?.toString() || '10',
         show_navbar_name: organization.show_navbar_name ?? true,
         icon_url: organization.logo_url || '',
         industry: organization.industry || '',
@@ -107,7 +104,6 @@ export function useOrgFormState({
         contact_phone: formData.contact_phone.trim() || null,
         website_url: formData.website_url.trim() || null,
         logo_url: formData.logo_url.trim() || null,
-        max_users: parseInt(formData.max_users),
         show_navbar_name: formData.show_navbar_name,
         industry: formData.industry.trim() || null,
         company_size: formData.company_size.trim() || null,
@@ -145,7 +141,6 @@ export function useOrgFormState({
         contact_phone: organization.contact_phone || '',
         website_url: organization.website_url || '',
         logo_url: organization.logo_url || '',
-        max_users: organization.max_users?.toString() || '10',
         show_navbar_name: organization.show_navbar_name ?? true,
         banner_url: branding?.banner_url || '',
         icon_url: organization.logo_url || '',
