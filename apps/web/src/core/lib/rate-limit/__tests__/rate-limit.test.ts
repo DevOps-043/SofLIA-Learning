@@ -43,6 +43,8 @@ describe('rate limiting', () => {
   })
 
   it('resolves endpoint-specific policies for expensive routes', () => {
+    expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/me'))?.prefix).toBe('auth-read')
+    expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/dashboard-destination'))?.prefix).toBe('auth-read')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/login'))?.prefix).toBe('auth')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/web/start'))?.prefix).toBe('auth')
     expect(resolveRouteRateLimitPolicy(buildRequest('/api/auth/forgot-password'))?.prefix).toBe('password')

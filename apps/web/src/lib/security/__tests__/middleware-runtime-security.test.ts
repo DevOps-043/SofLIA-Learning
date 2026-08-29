@@ -25,9 +25,12 @@ describe('compiled middleware security boundary', () => {
 
   it('renders the root shell dynamically so Next can nonce its scripts', () => {
     const layout = readWebFile('src/app/layout.tsx')
+    const rootHead = readWebFile('src/app/RootHead.tsx')
 
     expect(layout).toContain("export const dynamic = 'force-dynamic'")
-    expect(layout).toContain('await headers()')
+    expect(layout).toContain("requestHeaders.get('x-nonce')")
+    expect(layout).toContain('<RootHead nonce={nonce} />')
+    expect(rootHead).toContain('nonce={nonce}')
   })
 
   it('prevents caching early security failures', () => {
@@ -35,5 +38,22 @@ describe('compiled middleware security boundary', () => {
 
     expect(middleware).toContain("response.headers.set('Cache-Control', 'private, no-store, max-age=0')")
     expect(middleware).toContain("response.headers.set('Pragma', 'no-cache')")
+  })
+
+  it('does not turn transient auth failures into a redirect loop', () => {
+    const approvedRedirect = readWebFile(
+      'src/features/onboarding/components/ApprovedRedirect.tsx',
+    )
+    const authHook = readWebFile('src/features/auth/hooks/useAuth.ts')
+    const businessLayout = readWebFile(
+      'src/features/business-panel/components/BusinessPanelLayout.tsx',
+    )
+
+    expect(approvedRedirect).not.toContain("removeItem('user-auth-cache')")
+    expect(approvedRedirect).not.toContain('window.location.reload()')
+    expect(approvedRedirect).toContain("router.replace('/auth/select-organization')")
+    expect(authHook).toContain('authUnavailable: Boolean(error)')
+    expect(businessLayout).toContain('if (authUnavailable)')
+    expect(businessLayout).toContain('AuthUnavailableScreen')
   })
 })

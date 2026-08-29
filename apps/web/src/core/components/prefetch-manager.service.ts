@@ -12,7 +12,7 @@ const STATIC_TOP_LEVEL_ROUTES = new Set([
   'profile',
 ])
 
-const DEFAULT_PUBLIC_PREFETCH_ROUTES = ['/dashboard', '/communities']
+const DEFAULT_PUBLIC_PREFETCH_ROUTES = ['/dashboard', '/profile']
 const MAX_CONSERVATIVE_PREFETCH_ROUTES = 3
 
 export interface PrefetchRouteOptions {
@@ -80,13 +80,13 @@ export function resolvePrefetchRoutes(
     routes = ['/admin/dashboard', '/admin/companies', '/admin/users', '/admin/workshops']
   } else {
     const relatedRoutes: Record<string, string[]> = {
-      '/': ['/dashboard', '/communities', '/courses', '/news'],
-      '/dashboard': ['/courses', '/communities', '/profile', '/certificates'],
-      '/communities': ['/dashboard', '/profile'],
-      '/courses': ['/dashboard', '/certificates'],
-      '/profile': ['/dashboard', '/courses'],
-      '/news': ['/dashboard', '/communities'],
-      '/auth': ['/dashboard', '/courses'],
+      // Only prefetch concrete routes that exist. Prefetching the removed
+      // /news, /communities and /courses index pages produced repeated RSC 404s
+      // in every browser session, even though the current page was healthy.
+      '/': ['/business', '/auth'],
+      '/dashboard': ['/profile', '/certificates'],
+      '/profile': ['/dashboard', '/certificates'],
+      '/auth': ['/dashboard'],
     }
 
     const exactRoutes = relatedRoutes[pathname]

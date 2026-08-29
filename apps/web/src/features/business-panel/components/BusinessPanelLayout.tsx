@@ -15,6 +15,7 @@ import {
 import { generateCSSVariables, getBackgroundStyle } from '../utils/styles'
 import { BusinessPanelHeader } from './BusinessPanelHeader'
 import { BusinessPanelSidebar } from './BusinessPanelSidebar'
+import { AuthUnavailableScreen } from './AuthUnavailableScreen'
 import { PremiumLoadingScreen } from './PremiumLoadingScreen'
 
 interface BusinessPanelLayoutProps {
@@ -22,7 +23,12 @@ interface BusinessPanelLayoutProps {
 }
 
 function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
-  const { user, isLoading: authLoading } = useAuth()
+  const {
+    authUnavailable,
+    user,
+    isLoading: authLoading,
+    refreshUser,
+  } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
   const { styles, effectiveStyles, loading: stylesLoading } =
@@ -101,7 +107,7 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
   }, [])
 
   useEffect(() => {
-    if (isLoading === false && user === null) {
+    if (!authUnavailable && isLoading === false && user === null) {
       let redirectPath = '/auth'
 
       if (typeof window !== 'undefined') {
@@ -118,14 +124,14 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
       return
     }
 
-    if (isLoading === false && user) {
+    if (!authUnavailable && isLoading === false && user) {
       const normalizedRole = user.platform_role?.toLowerCase().trim()
 
       if (normalizedRole !== 'business' && normalizedRole !== 'administrador') {
         router.push('/dashboard')
       }
     }
-  }, [isLoading, router, user])
+  }, [authUnavailable, isLoading, router, user])
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -180,6 +186,10 @@ function BusinessPanelLayoutInner({ children }: BusinessPanelLayoutProps) {
       liaPanel.closePanel()
     }
   }, [isLiaPanelOpen, liaPanel])
+
+  if (authUnavailable) {
+    return <AuthUnavailableScreen onRetry={() => void refreshUser()} />
+  }
 
   if (isLoading || stylesLoading) {
     return <PremiumLoadingScreen />

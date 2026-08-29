@@ -11,13 +11,33 @@ import { viewportHeightScript } from './head-scripts/viewport-height-script'
 
 const agentPolicyJsonScript = JSON.stringify(AGENT_POLICY_JSON).replace(/</g, '\\u003c')
 
-export function RootHead() {
+interface RootHeadProps {
+  nonce?: string
+}
+
+export function RootHead({ nonce }: RootHeadProps) {
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: chunkReloadScript }} />
-      <script dangerouslySetInnerHTML={{ __html: applePlatformScript }} />
-      <script dangerouslySetInnerHTML={{ __html: themePrepaintScript }} />
-      <script dangerouslySetInnerHTML={{ __html: viewportHeightScript }} />
+      <script
+        nonce={nonce}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: chunkReloadScript }}
+      />
+      <script
+        nonce={nonce}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: applePlatformScript }}
+      />
+      <script
+        nonce={nonce}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: themePrepaintScript }}
+      />
+      <script
+        nonce={nonce}
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: viewportHeightScript }}
+      />
 
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -37,6 +57,8 @@ export function RootHead() {
       <meta name="x-soflia-agent-policy-entrypoint" content={AGENT_POLICY_ENTRYPOINT} />
       <script
         id="soflia-agent-policy"
+        nonce={nonce}
+        suppressHydrationWarning
         type="application/json"
         dangerouslySetInnerHTML={{ __html: agentPolicyJsonScript }}
       />

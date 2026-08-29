@@ -40,4 +40,18 @@ describe('prefetch-manager.service', () => {
       '/acme/business-user/dashboard',
     ])
   })
+
+  it('never prefetches removed public index routes', () => {
+    expect(resolvePrefetchRoutes('/')).toEqual(['/business', '/auth'])
+    expect(resolvePrefetchRoutes('/dashboard')).toEqual([
+      '/profile',
+      '/certificates',
+    ])
+
+    for (const pathname of ['/', '/dashboard', '/profile', '/auth']) {
+      expect(resolvePrefetchRoutes(pathname)).not.toEqual(
+        expect.arrayContaining(['/news', '/communities', '/courses']),
+      )
+    }
+  })
 })

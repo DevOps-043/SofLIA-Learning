@@ -54,7 +54,8 @@ export const viewport: Viewport = {
 export const dynamic = 'force-dynamic'
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  await headers()
+  const requestHeaders = await headers()
+  const nonce = requestHeaders.get('x-nonce') ?? undefined
 
   return (
     <html
@@ -63,7 +64,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
     >
       <head>
-        <RootHead />
+        <RootHead nonce={nonce} />
       </head>
       <body
         className={`${interTight.className} antialiased bg-[var(--color-bg-dark)] text-[var(--color-contrast)] transition-colors duration-300`}

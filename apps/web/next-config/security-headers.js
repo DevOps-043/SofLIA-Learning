@@ -1,31 +1,3 @@
-function buildContentSecurityPolicy() {
-  return [
-    "default-src 'self'",
-    "script-src 'self' 'wasm-unsafe-eval' https://accounts.google.com https://apis.google.com https://*.googleapis.com https://*.supabase.co https://challenges.cloudflare.com https://js.hcaptcha.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "font-src 'self' data: https://fonts.gstatic.com https://r2cdn.perplexity.ai",
-    "img-src 'self' data: blob: https:",
-    "media-src 'self' blob: https://*.supabase.co",
-    // api.elevenlabs.io NO va aqui: el navegador nunca llama al proveedor TTS
-    // directamente, siempre pasa por /api/tts (que es quien custodia la API key).
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com",
-    "frame-src 'self' https://accounts.google.com https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://*.supabase.co https://challenges.cloudflare.com https://hcaptcha.com https://*.hcaptcha.com",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-    "report-to csp-endpoint",
-    "report-uri /api/csp-report",
-    ...(process.env.NODE_ENV === 'production' ? ['upgrade-insecure-requests'] : []),
-  ].join('; ');
-}
-
-function getContentSecurityPolicyHeaderName() {
-  return process.env.CSP_ENFORCEMENT === 'true'
-    ? 'Content-Security-Policy'
-    : 'Content-Security-Policy-Report-Only';
-}
-
 function securityHeaders() {
   const headers = [
     {
@@ -40,10 +12,9 @@ function securityHeaders() {
       key: 'Origin-Agent-Cluster',
       value: '?1',
     },
-    {
-      key: getContentSecurityPolicyHeaderName(),
-      value: buildContentSecurityPolicy(),
-    },
+    // CSP is intentionally absent here. It needs a fresh request nonce and is
+    // emitted by src/middleware.ts. A static report-only policy contradicted
+    // the enforced nonce policy and reported every valid Next.js inline script.
     {
       key: 'Reporting-Endpoints',
       value: 'csp-endpoint="/api/csp-report"',
@@ -93,7 +64,5 @@ function securityHeaders() {
 }
 
 module.exports = {
-  buildContentSecurityPolicy,
-  getContentSecurityPolicyHeaderName,
   securityHeaders,
 };

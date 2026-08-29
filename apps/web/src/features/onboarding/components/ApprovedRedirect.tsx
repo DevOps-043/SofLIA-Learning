@@ -15,17 +15,13 @@ export function ApprovedRedirect({ organizationSlug }: ApprovedRedirectProps) {
   const { t } = useTranslation('common')
 
   useEffect(() => {
-    // Clear auth cache so it picks up updated platform_role
-    try {
-      localStorage.removeItem('user-auth-cache')
-    } catch { /* ignore */ }
-
     const timer = setTimeout(() => {
       if (organizationSlug) {
-        router.push(`/${organizationSlug}/dashboard`)
+        router.replace(`/${organizationSlug}/dashboard`)
       } else {
-        // Fallback: reload to let login redirect handle it
-        window.location.reload()
+        // A missing slug is inconsistent data. Reloading /dashboard here caused
+        // an endless loop; the organization selector is a recoverable route.
+        router.replace('/auth/select-organization')
       }
     }, 2000)
 

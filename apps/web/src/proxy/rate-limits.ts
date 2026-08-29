@@ -69,6 +69,18 @@ export function resolveRouteRateLimitPolicy(request: NextRequest): RouteRateLimi
   const { pathname } = request.nextUrl
   const method = request.method.toUpperCase()
 
+  // Availability-sensitive, authenticated reads must not fail closed merely
+  // because the distributed limiter is temporarily unavailable. They retain
+  // the local limiter here (and /api/auth/me has an additional route limiter),
+  // while login, token, MFA and password mutations remain fail-closed below.
+  if (
+    method === 'GET' &&
+    (pathname === '/api/auth/me' ||
+      pathname === '/api/auth/dashboard-destination')
+  ) {
+    return { config: ROUTE_RATE_LIMITS.cacheableRead, prefix: 'auth-read' }
+  }
+
   if (pathname.startsWith('/api/auth/reset-password') || pathname.startsWith('/api/auth/forgot-password')) {
     return { config: ROUTE_RATE_LIMITS.auth, prefix: 'password' }
   }

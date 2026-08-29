@@ -115,7 +115,7 @@ const authFetcher = async (url: string): Promise<User | null> => {
         return null
       }
 
-      throw new Error('Error fetching user')
+      throw new Error(`AUTH_PROFILE_UNAVAILABLE:${response.status}`)
     }
 
     const data = (await response.json()) as AuthMeResponse
@@ -124,11 +124,14 @@ const authFetcher = async (url: string): Promise<User | null> => {
 
     return user
   } catch (error) {
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      return getCachedUser()
+    const cachedUser = getCachedUser()
+    if (cachedUser) {
+      return cachedUser
     }
 
-    return getCachedUser()
+    throw error instanceof Error
+      ? error
+      : new Error('AUTH_PROFILE_UNAVAILABLE')
   }
 }
 
@@ -180,6 +183,8 @@ export function useAuth() {
     logout,
     mutate,
     refreshUser,
+    authUnavailable: Boolean(error),
+    error,
     isAuthenticated: !!user && !error,
   }
 }
