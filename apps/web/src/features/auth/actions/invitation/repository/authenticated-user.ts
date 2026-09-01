@@ -41,12 +41,14 @@ async function resolveNativeAuthUserId(
   }
 
   try {
-    const getUser = authClient.auth?.getUser
-    if (!getUser) {
+    const auth = authClient.auth
+    if (!auth?.getUser) {
       return null
     }
 
-    const { data } = await getUser()
+    // Supabase Auth methods depend on their owning client context. Calling an
+    // extracted getUser reference can throw and incorrectly look unauthenticated.
+    const { data } = await auth.getUser()
     return data?.user?.id ?? null
   } catch {
     return null

@@ -69,7 +69,7 @@ export default function InvitePage() {
   const { t } = useTranslation('common');
   const { language } = useLanguage();
   const token = params?.token as string;
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, refreshUser } = useAuth();
 
   const [pageState, setPageState] = useState<PageState>('loading');
   const [invite, setInvite] = useState<InviteData | null>(null);
@@ -80,6 +80,7 @@ export default function InvitePage() {
   const [accepted, setAccepted] = useState(false);
   const [alreadyMember, setAlreadyMember] = useState(false);
   const [acceptedOrgSlug, setAcceptedOrgSlug] = useState<string | null>(null);
+  const [actionErrorKey, setActionErrorKey] = useState('');
 
   useEffect(() => {
     if (!token) {
@@ -142,6 +143,7 @@ export default function InvitePage() {
     if (!user?.id || !token) return;
 
     setAccepting(true);
+    setActionErrorKey('');
     try {
       const response = await fetch(`/api/invite/${token}`, {
         method: 'POST',
@@ -155,6 +157,11 @@ export default function InvitePage() {
         setAlreadyMember(Boolean(data.alreadyMember));
         setAccepted(true);
         setAcceptedOrgSlug(data.organizationSlug);
+      } else if (response.status === 401 || response.status === 403) {
+        await refreshUser();
+        setActionErrorKey(
+          getInvitationErrorTranslationKey({ error: data.error }),
+        );
       } else {
         setErrorKey(getInvitationErrorTranslationKey({ error: data.error }));
         setPageState('invalid');
@@ -333,6 +340,11 @@ export default function InvitePage() {
         </div>
 
         <div className={authExperienceStyles.actions}>
+          {actionErrorKey ? (
+            <p className={authExperienceStyles.subtitle} role="alert">
+              {t(actionErrorKey)}
+            </p>
+          ) : null}
           {user ? (
             <>
               <div className={authExperienceStyles.status}>
