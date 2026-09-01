@@ -31,6 +31,19 @@ describe('business sensitive-flow lockdown', () => {
     expect(roleResolver).not.toMatch(/return ['"](?:admin|owner)['"]/)
   })
 
+  it('keeps copied admin invite links on the validated invite landing page', () => {
+    const usersSection = readWorkspaceFile(
+      'src/app/admin/companies/[id]/edit/sections/UsersSection.tsx',
+    )
+    const legacyRegisterRoute = readWorkspaceFile('src/app/register/route.ts')
+    expect(usersSection).toContain(
+      'getBusinessInviteUrl(window.location.origin, token)',
+    )
+    expect(usersSection).not.toContain('/register?invite=')
+    expect(legacyRegisterRoute).toContain('getLegacyRegisterInvitePath(')
+    expect(legacyRegisterRoute).toContain('NextResponse.redirect(')
+  })
+
   it('guards course purchases in the database and keeps browser roles read-only', () => {
     const handler = readWorkspaceFile(
       'src/app/api/business/courses/purchase-handler.ts',
