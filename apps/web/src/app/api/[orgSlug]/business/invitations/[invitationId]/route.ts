@@ -24,8 +24,10 @@ export async function DELETE(
       )
     }
 
+    // user_invitations perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role igual que en el listado, ya autorizado por requireBusiness() arriba.
     const supabase = createAdminClient()
-
     // Revocar invitación
     const { error } = await supabase
       .from('user_invitations')

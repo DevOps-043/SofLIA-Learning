@@ -56,6 +56,9 @@ async function handlePost(
     // Generate unique token
     const token = nanoid(32)
 
+    // bulk_invite_links perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role, ya autorizado por requireBusiness() arriba.
     const supabase = createAdminClient()
     const insertPayload: BulkInviteLinkInsert = {
       organization_id: auth.organizationId,

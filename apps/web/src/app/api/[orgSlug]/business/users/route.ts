@@ -56,6 +56,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const search = searchParams.get('search')?.trim() || undefined
     const role = searchParams.get('role') || undefined
     const status = searchParams.get('status') || undefined
+    // This route has already authorized an organization administrator. The
+    // protected invitation tables are intentionally service-role-only.
     const supabase = createAdminClient()
 
     const [

@@ -34,6 +34,9 @@ export async function POST(
       )
     }
 
+    // user_invitations perdio sus grants para `authenticated` en la migracion
+    // 20260827120000_emergency_data_api_lockdown; se usa el cliente de service
+    // role, ya autorizado por requireBusiness() arriba.
     const supabase = createAdminClient()
 
     // Obtener la invitación para verificar que pertenece a la organización

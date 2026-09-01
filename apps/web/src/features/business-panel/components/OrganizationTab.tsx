@@ -88,17 +88,6 @@ export function OrganizationTab(props: OrganizationTabProps) {
               />
             </Field>
 
-            <Field label="Límite de usuarios" icon={<Users />}>
-              <input
-                className={styles.input}
-                name="max_users"
-                type="number"
-                min="1"
-                value={formData.max_users}
-                onChange={formState.handleChange}
-              />
-            </Field>
-
             <div className={styles.fieldWide}>
               <div className={styles.switchRow}>
                 <div className={styles.switchCopy}>

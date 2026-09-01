@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Building2, Globe, Mail, Type, Users } from 'lucide-react'
+import { Building2, Globe, Mail, Type } from 'lucide-react'
 import { SectionHeader, TextAreaField, TextField } from './FormField'
 import type { OrganizationFormState, OrganizationTabStyles, OrganizationTabTheme } from './types'
 
@@ -18,7 +18,6 @@ export function OrganizationBasicInfoSection({ formState, styles, theme }: {
         <TextAreaField id="description" name="description" label="Descripción" value={formData.description} onChange={handleChange} rows={4} maxLength={500} placeholder="Describe tu empresa..." theme={theme} styles={styles} />
         <TextField id="contact_email" name="contact_email" type="email" label="Email de Contacto" icon={<Mail className="w-4 h-4" />} value={formData.contact_email} onChange={handleChange} placeholder="contacto@empresa.com" styles={styles} />
         <TextField id="website_url" name="website_url" type="url" label="Sitio Web" icon={<Globe className="w-4 h-4" />} value={formData.website_url} onChange={handleChange} placeholder="https://www.empresa.com" styles={styles} />
-        <MaxUsersField formState={formState} styles={styles} theme={theme} />
       </div>
     </motion.div>
   )
@@ -31,15 +30,6 @@ function NavbarNameToggle({ formState, styles, theme }: { formState: Organizatio
       <motion.button type="button" onClick={() => formState.setFormData((prev) => ({ ...prev, show_navbar_name: !prev.show_navbar_name }))} whileTap={{ scale: 0.95 }} className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none" style={{ backgroundColor: formState.formData.show_navbar_name ? theme.actionColor : theme.hoverBg }}>
         <motion.span layout transition={{ type: 'spring', stiffness: 500, damping: 30 }} className="inline-block h-4 w-4 rounded-full bg-white shadow-sm" style={{ marginLeft: 4, translateX: formState.formData.show_navbar_name ? 18 : 0 }} />
       </motion.button>
-    </div>
-  )
-}
-
-function MaxUsersField({ formState, styles, theme }: { formState: OrganizationFormState; styles: OrganizationTabStyles; theme: OrganizationTabTheme }) {
-  return (
-    <div>
-      <label htmlFor="max_users" className="block text-sm font-medium mb-2" style={styles.labelStyle}><span className="flex items-center gap-2"><Users className="w-4 h-4" />Límite de usuarios</span></label>
-      <div className="flex items-center gap-3"><input type="number" id="max_users" name="max_users" value={formState.formData.max_users} onChange={formState.handleChange} min="1" className="flex-1 px-4 py-3 rounded-xl border-2 transition-colors focus:outline-none" style={styles.inputStyle} placeholder="10" /><span className="text-sm px-3 py-2 rounded-lg" style={{ backgroundColor: theme.hoverBg, color: theme.subtextColor }}>usuarios</span></div>
     </div>
   )
 }
