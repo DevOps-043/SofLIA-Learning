@@ -1,3 +1,4 @@
+import { createAdminClient } from '../../../lib/supabase/admin'
 import { createClient } from '../../../lib/supabase/server'
 import type { BusinessCourseDetail } from '../types/business-course-detail.types'
 import {
@@ -26,20 +27,32 @@ export class BusinessCourseDetailServerService {
     businessUserId,
     organizationId,
   }: BusinessCourseDetailOptions): Promise<BusinessCourseDetail | null> {
-    const supabase = await createClient()
-    const { data: course, error: courseError } = await fetchCourseRow(supabase, courseId)
+    const catalogClient = await createClient()
+    const purchaseClient = createAdminClient()
+    const { data: course, error: courseError } = await fetchCourseRow(
+      catalogClient,
+      courseId,
+    )
 
     if (courseError) throw courseError
     if (!course) return null
 
     const [modulesAndReviews, subscriptionStatus] = await Promise.all([
-      fetchCourseModulesAndReviews(supabase, course.id),
-      fetchSubscriptionStatus(supabase, businessUserId, organizationId, course.id),
+      fetchCourseModulesAndReviews(catalogClient, course.id),
+      fetchSubscriptionStatus(
+        purchaseClient,
+        businessUserId,
+        organizationId,
+        course.id,
+      ),
     ])
     const [modules, reviews] = modulesAndReviews
     const moduleIds = modules.map((module) => module.module_id)
-    const lessons = await fetchLessonsForModules(supabase, moduleIds)
-    const { materials, activities } = await fetchCourseSupplements(supabase, lessons)
+    const lessons = await fetchLessonsForModules(catalogClient, moduleIds)
+    const { materials, activities } = await fetchCourseSupplements(
+      catalogClient,
+      lessons,
+    )
     const modulesWithLessons = buildBusinessCourseModules(
       modules,
       lessons,
@@ -51,11 +64,14 @@ export class BusinessCourseDetailServerService {
       modulesWithLessons,
     )
     let instructorRow = instructorId
-      ? await fetchInstructorById(supabase, instructorId)
+      ? await fetchInstructorById(catalogClient, instructorId)
       : null
 
     if (!instructorRow) {
-      instructorRow = await resolveGeneratedCourseInstructor(supabase, course)
+      instructorRow = await resolveGeneratedCourseInstructor(
+        catalogClient,
+        course,
+      )
     }
 
     return {

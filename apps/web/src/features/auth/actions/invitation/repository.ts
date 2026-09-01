@@ -9,16 +9,20 @@ import { createMembershipMethods } from './repository/membership'
 import { createOrganizationMethods } from './repository/organizations'
 import { createUserMethods } from './repository/users'
 
-export function createInvitationRepository(supabase: unknown): InvitationRepository {
+export function createInvitationRepository(
+  dataClient: unknown,
+  authClient: unknown = dataClient,
+): InvitationRepository {
   return {
-    ...createBulkInviteRepositoryMethods(supabase),
-    ...createInvitationCreateMethods(supabase),
-    ...createInvitationDetailMethods(supabase),
-    ...createInvitationListMethods(supabase),
-    ...createInvitationStatusMethods(supabase),
-    ...createMembershipMethods(supabase),
-    ...createOrganizationMethods(supabase),
-    ...createUserMethods(supabase),
-    resolveAuthenticatedUserId: () => resolveAuthenticatedUserId(supabase),
+    ...createBulkInviteRepositoryMethods(dataClient),
+    ...createInvitationCreateMethods(dataClient),
+    ...createInvitationDetailMethods(dataClient),
+    ...createInvitationListMethods(dataClient),
+    ...createInvitationStatusMethods(dataClient),
+    ...createMembershipMethods(dataClient),
+    ...createOrganizationMethods(dataClient),
+    ...createUserMethods(dataClient),
+    resolveAuthenticatedUserId: () =>
+      resolveAuthenticatedUserId(authClient, dataClient),
   }
 }

@@ -5,13 +5,10 @@ import { SubscriptionService } from '@/features/business-panel/services/subscrip
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 
-import {
-  assignCoursesSchema,
-  type AssignCoursesBody,
-} from '../../_schemas'
+import { assignCoursesSchema, type AssignCoursesBody } from '../../_schemas'
 
 interface NodeUserRow {
   user_id: string
@@ -64,10 +61,10 @@ async function handlePost(_request: NextRequest, body: AssignCoursesBody) {
       return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
-    if (!auth.organizationId) {
+    if (!auth.organizationId || !auth.isOrgAdmin) {
       return apiError(
-        'NO_ORGANIZATION',
-        'No tienes una organización asignada',
+        'COURSE_ASSIGNMENT_FORBIDDEN',
+        'No tienes permisos para asignar cursos en esta organización',
         403,
       )
     }
@@ -86,7 +83,8 @@ async function handlePost(_request: NextRequest, body: AssignCoursesBody) {
       )
     }
 
-    const { entity_id, course_ids, start_date, due_date, approach, message } = body
+    const { entity_id, course_ids, start_date, due_date, approach, message } =
+      body
 
     if (start_date && due_date && new Date(start_date) > new Date(due_date)) {
       return apiError(
@@ -96,7 +94,7 @@ async function handlePost(_request: NextRequest, body: AssignCoursesBody) {
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: node, error: nodeError } = await supabase
       .from('organization_nodes')
@@ -145,9 +143,9 @@ async function handlePost(_request: NextRequest, body: AssignCoursesBody) {
       )
     }
 
-    const purchasedCourseIds = ((orgPurchases || []) as CoursePurchaseRow[]).map(
-      (p) => p.course_id,
-    )
+    const purchasedCourseIds = (
+      (orgPurchases || []) as CoursePurchaseRow[]
+    ).map((p) => p.course_id)
     const missingCourses = course_ids.filter(
       (id) => !purchasedCourseIds.includes(id),
     )
@@ -165,7 +163,10 @@ async function handlePost(_request: NextRequest, body: AssignCoursesBody) {
       .select('id, title')
       .in('id', course_ids)
     const courseTitleMap = new Map(
-      (coursesData || []).map((c: { id: string; title: string }) => [c.id, c.title]),
+      (coursesData || []).map((c: { id: string; title: string }) => [
+        c.id,
+        c.title,
+      ]),
     )
 
     const results = []
@@ -217,19 +218,25 @@ async function handlePost(_request: NextRequest, body: AssignCoursesBody) {
             onConflict: 'organization_id, user_id, course_id',
           })
 
-        const { data: existingEnrollments, error: existingEnrollmentsError } = await supabase
-          .from('user_course_enrollments')
-          .select('user_id')
-          .eq('course_id', courseId)
-          .eq('organization_id', organizationId)
-          .in('user_id', user_ids)
+        const { data: existingEnrollments, error: existingEnrollmentsError } =
+          await supabase
+            .from('user_course_enrollments')
+            .select('user_id')
+            .eq('course_id', courseId)
+            .eq('organization_id', organizationId)
+            .in('user_id', user_ids)
 
         if (existingEnrollmentsError) {
-          logger.warn('Error checking existing scoped enrollments:', existingEnrollmentsError)
+          logger.warn(
+            'Error checking existing scoped enrollments:',
+            existingEnrollmentsError,
+          )
         }
 
         const enrolledUserIds = new Set(
-          ((existingEnrollments || []) as { user_id: string }[]).map((enrollment) => enrollment.user_id),
+          ((existingEnrollments || []) as { user_id: string }[]).map(
+            (enrollment) => enrollment.user_id,
+          ),
         )
         const enrollmentsToCreate: UserCourseEnrollmentInsert[] = user_ids
           .filter((uid) => !enrolledUserIds.has(uid))

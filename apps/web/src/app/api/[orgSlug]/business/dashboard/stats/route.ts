@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
 import { logger } from '@/lib/utils/logger'
 
@@ -67,7 +67,7 @@ interface BusinessDashboardAggregate {
   previous_active_learners: number
 }
 
-type DashboardSupabaseClient = Awaited<ReturnType<typeof createClient>>
+type DashboardSupabaseClient = ReturnType<typeof createAdminClient>
 
 function toNumber(value: unknown): number {
   if (typeof value === 'number') return Number.isFinite(value) ? value : 0
@@ -200,7 +200,9 @@ function buildDashboardStats(aggregate: BusinessDashboardAggregate) {
           : 'negative',
     },
     invitedUsers: {
-      value: String(aggregate.invited_org_users + aggregate.pending_invitations),
+      value: String(
+        aggregate.invited_org_users + aggregate.pending_invitations,
+      ),
       change: withSign(invitedChange),
       changeType:
         aggregate.recent_invited_users >= aggregate.previous_invited_users
@@ -250,7 +252,9 @@ async function loadDashboardAggregateComprehensive(
       .returns<OrganizationUserStatsRow[]>(),
     supabase
       .from('organization_course_assignments')
-      .select('user_id, course_id, status, completion_percentage, assigned_at, completed_at, updated_at')
+      .select(
+        'user_id, course_id, status, completion_percentage, assigned_at, completed_at, updated_at',
+      )
       .eq('organization_id', organizationId)
       .returns<DashboardAssignmentRow[]>(),
     supabase
@@ -271,10 +275,13 @@ async function loadDashboardAggregateComprehensive(
   ])
 
   if (usersError) logger.error('Error fetching organization users:', usersError)
-  if (assignmentsError) logger.error('Error fetching assignments:', assignmentsError)
-  if (invitationsError) logger.error('Error fetching pending invitations:', invitationsError)
+  if (assignmentsError)
+    logger.error('Error fetching assignments:', assignmentsError)
+  if (invitationsError)
+    logger.error('Error fetching pending invitations:', invitationsError)
   if (linksError) logger.error('Error fetching bulk invite links:', linksError)
-  if (certificatesError) logger.error('Error fetching certificates:', certificatesError)
+  if (certificatesError)
+    logger.error('Error fetching certificates:', certificatesError)
 
   const activeUsersSet = new Set<string>()
   const aggregate = normalizeAggregate(null)
@@ -318,11 +325,14 @@ async function loadDashboardAggregateComprehensive(
   if (activeUserIds.length > 0) {
     const { data: enrollments, error: enrollmentsError } = await supabase
       .from('user_course_enrollments')
-      .select('user_id, course_id, enrollment_status, overall_progress_percentage, enrolled_at, started_at, completed_at, last_accessed_at, updated_at')
+      .select(
+        'user_id, course_id, enrollment_status, overall_progress_percentage, enrolled_at, started_at, completed_at, last_accessed_at, updated_at',
+      )
       .in('user_id', activeUserIds)
       .returns<DashboardEnrollmentRow[]>()
 
-    if (enrollmentsError) logger.error('Error fetching enrollments:', enrollmentsError)
+    if (enrollmentsError)
+      logger.error('Error fetching enrollments:', enrollmentsError)
     else enrollmentsData = enrollments || []
   }
 
@@ -341,11 +351,23 @@ async function loadDashboardAggregateComprehensive(
   for (const assignment of assignments || []) {
     if (!assignment.user_id || !assignment.course_id) continue
     const key = `${assignment.user_id}:${assignment.course_id}`
-    const progress = Math.min(100, Math.max(0, assignment.completion_percentage || 0))
-    const assignedAt = assignment.assigned_at ? new Date(assignment.assigned_at) : null
-    const completedAt = assignment.completed_at ? new Date(assignment.completed_at) : null
-    const isCompleted = assignment.status === 'completed' || progress >= 100 || Boolean(completedAt)
-    const lastActivityAt = completedAt || (assignment.updated_at ? new Date(assignment.updated_at) : null)
+    const progress = Math.min(
+      100,
+      Math.max(0, assignment.completion_percentage || 0),
+    )
+    const assignedAt = assignment.assigned_at
+      ? new Date(assignment.assigned_at)
+      : null
+    const completedAt = assignment.completed_at
+      ? new Date(assignment.completed_at)
+      : null
+    const isCompleted =
+      assignment.status === 'completed' ||
+      progress >= 100 ||
+      Boolean(completedAt)
+    const lastActivityAt =
+      completedAt ||
+      (assignment.updated_at ? new Date(assignment.updated_at) : null)
 
     courseStateMap.set(key, {
       userId: assignment.user_id,
@@ -361,23 +383,43 @@ async function loadDashboardAggregateComprehensive(
   for (const enrollment of enrollmentsData) {
     if (!enrollment.user_id || !enrollment.course_id) continue
     const key = `${enrollment.user_id}:${enrollment.course_id}`
-    const progress = Math.min(100, Math.max(0, Number(enrollment.overall_progress_percentage) || 0))
-    const completedAt = enrollment.completed_at ? new Date(enrollment.completed_at) : null
-    const isCompleted = enrollment.enrollment_status === 'completed' || progress >= 100 || Boolean(completedAt)
-    const enrolledAt = enrollment.enrolled_at ? new Date(enrollment.enrolled_at) : null
-    const lastActivityAt = completedAt ||
-      (enrollment.last_accessed_at ? new Date(enrollment.last_accessed_at) : null) ||
+    const progress = Math.min(
+      100,
+      Math.max(0, Number(enrollment.overall_progress_percentage) || 0),
+    )
+    const completedAt = enrollment.completed_at
+      ? new Date(enrollment.completed_at)
+      : null
+    const isCompleted =
+      enrollment.enrollment_status === 'completed' ||
+      progress >= 100 ||
+      Boolean(completedAt)
+    const enrolledAt = enrollment.enrolled_at
+      ? new Date(enrollment.enrolled_at)
+      : null
+    const lastActivityAt =
+      completedAt ||
+      (enrollment.last_accessed_at
+        ? new Date(enrollment.last_accessed_at)
+        : null) ||
       (enrollment.updated_at ? new Date(enrollment.updated_at) : null) ||
       (enrollment.started_at ? new Date(enrollment.started_at) : null)
 
     const existing = courseStateMap.get(key)
     if (existing) {
       existing.progress = Math.max(existing.progress, progress)
-      existing.isCompleted = existing.isCompleted || isCompleted || existing.progress >= 100
-      if (completedAt && (!existing.completedAt || completedAt > existing.completedAt)) {
+      existing.isCompleted =
+        existing.isCompleted || isCompleted || existing.progress >= 100
+      if (
+        completedAt &&
+        (!existing.completedAt || completedAt > existing.completedAt)
+      ) {
         existing.completedAt = completedAt
       }
-      if (lastActivityAt && (!existing.lastActivityAt || lastActivityAt > existing.lastActivityAt)) {
+      if (
+        lastActivityAt &&
+        (!existing.lastActivityAt || lastActivityAt > existing.lastActivityAt)
+      ) {
         existing.lastActivityAt = lastActivityAt
       }
     } else {
@@ -413,9 +455,17 @@ async function loadDashboardAggregateComprehensive(
       previousProgress += state.progress
     }
 
-    if (state.isCompleted && state.completedAt && state.completedAt >= thirtyDaysAgo) {
+    if (
+      state.isCompleted &&
+      state.completedAt &&
+      state.completedAt >= thirtyDaysAgo
+    ) {
       aggregate.recent_completed += 1
-    } else if (state.isCompleted && state.completedAt && state.completedAt >= previousPeriodStart) {
+    } else if (
+      state.isCompleted &&
+      state.completedAt &&
+      state.completedAt >= previousPeriodStart
+    ) {
       aggregate.previous_completed += 1
     }
 
@@ -423,7 +473,10 @@ async function loadDashboardAggregateComprehensive(
       activeLearnersSet.add(state.userId)
       if (state.lastActivityAt && state.lastActivityAt >= thirtyDaysAgo) {
         recentActiveLearnersSet.add(state.userId)
-      } else if (state.lastActivityAt && state.lastActivityAt >= previousPeriodStart) {
+      } else if (
+        state.lastActivityAt &&
+        state.lastActivityAt >= previousPeriodStart
+      ) {
         previousActiveLearnersSet.add(state.userId)
       }
     }
@@ -480,14 +533,18 @@ export async function GET(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    if (!auth.organizationId) {
+    if (!auth.organizationId || !auth.isOrgAdmin) {
       return NextResponse.json(
-        { success: false, error: 'No tienes una organizacion asignada' },
+        {
+          success: false,
+          error:
+            'No tienes permisos para ver estadisticas de esta organizacion',
+        },
         { status: 403 },
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const aggregate = await loadDashboardAggregateComprehensive(
       supabase,
       auth.organizationId,

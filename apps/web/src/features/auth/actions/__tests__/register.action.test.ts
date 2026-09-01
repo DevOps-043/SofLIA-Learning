@@ -28,6 +28,7 @@ vi.mock('@/features/auth/services/supabase-auth-bridge.service', () => ({
   createSupabaseAuthUser: createAuthUserMock,
   createSupabaseAuthUserWithLegacyId: createAuthUserMock,
   deleteSupabaseAuthUser: deleteAuthUserMock,
+  sendSupabaseSignupConfirmation: vi.fn(async () => undefined),
 }))
 
 vi.mock('../password-breach-check.server', () => ({
@@ -40,8 +41,8 @@ function createRegisterFormData(overrides: Record<string, string> = {}) {
     firstName: 'Ada',
     lastName: 'Lovelace',
     username: 'adalovelace',
-    email: 'ada@example.com',
-    confirmEmail: 'ada@example.com',
+    email: 'qa.registration@gmail.com',
+    confirmEmail: 'qa.registration@gmail.com',
     password: 'Password1234!',
     confirmPassword: 'Password1234!',
     countryCode: 'MX',
@@ -57,9 +58,11 @@ function createRegisterFormData(overrides: Record<string, string> = {}) {
   return formData
 }
 
-function createSupabaseMock(options: {
-  organizationUserInsertError?: { message: string }
-} = {}) {
+function createSupabaseMock(
+  options: {
+    organizationUserInsertError?: { message: string }
+  } = {},
+) {
   const usersTable = {
     select: vi.fn(() => ({
       or: vi.fn().mockResolvedValue({ data: [], error: null }),
@@ -100,7 +103,7 @@ function createSupabaseMock(options: {
         single: vi.fn().mockResolvedValue({
           data: {
             current_uses: 0,
-            expires_at: '2026-06-01T00:00:00.000Z',
+            expires_at: '2099-06-01T00:00:00.000Z',
             id: 'bulk-1',
             max_uses: 10,
             organization_id: 'org-1',
@@ -162,7 +165,7 @@ describe('registerAction', () => {
     expect(result).toMatchObject({ success: true })
     expect(createAuthUserMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        email: 'ada@example.com',
+        email: 'qa.registration@gmail.com',
         password: 'Password1234!',
       }),
     )

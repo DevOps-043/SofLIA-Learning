@@ -1,7 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 
@@ -18,7 +18,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     if (auth instanceof NextResponse) return auth
 
     const { id: companyId, linkId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { error } = await supabase
       .from('bulk_invite_links')
@@ -30,19 +30,22 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       techDebtLogger.error('Error deleting bulk invite link:', error)
       return NextResponse.json(
         { success: false, error: 'Error al eliminar el enlace' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Enlace eliminado correctamente'
+      message: 'Enlace eliminado correctamente',
     })
   } catch (error) {
-    techDebtLogger.error('Error in DELETE /api/admin/companies/[id]/invite-links/[linkId]:', error)
+    techDebtLogger.error(
+      'Error in DELETE /api/admin/companies/[id]/invite-links/[linkId]:',
+      error,
+    )
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

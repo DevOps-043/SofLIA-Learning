@@ -1,15 +1,13 @@
 import { createHash } from 'crypto'
 import { cookies } from 'next/headers'
 
-import {
-  refreshTokensTable,
-  userSessionsTable,
-} from './tables'
+import { refreshTokensTable, userSessionsTable } from './tables'
 
 export async function resolveAuthenticatedUserId(
-  supabase: unknown
+  authClient: unknown,
+  securityClient: unknown = authClient,
 ): Promise<string | null> {
-  const nativeUserId = await resolveNativeAuthUserId(supabase)
+  const nativeUserId = await resolveNativeAuthUserId(authClient)
   if (nativeUserId) {
     return nativeUserId
   }
@@ -18,7 +16,7 @@ export async function resolveAuthenticatedUserId(
   const sessionCookie = cookieStore.get('aprende-y-aplica-session')
 
   if (sessionCookie?.value) {
-    const { data: session } = await userSessionsTable(supabase)
+    const { data: session } = await userSessionsTable(securityClient)
       .select('user_id')
       .eq('jwt_id', sessionCookie.value)
       .eq('revoked', false)
@@ -30,10 +28,12 @@ export async function resolveAuthenticatedUserId(
     }
   }
 
-  return resolveRefreshTokenUserId(supabase, cookieStore)
+  return resolveRefreshTokenUserId(securityClient, cookieStore)
 }
 
-async function resolveNativeAuthUserId(supabase: unknown): Promise<string | null> {
+async function resolveNativeAuthUserId(
+  supabase: unknown,
+): Promise<string | null> {
   const authClient = supabase as {
     auth?: {
       getUser?: () => Promise<{ data?: { user?: { id?: string } | null } }>
@@ -55,7 +55,7 @@ async function resolveNativeAuthUserId(supabase: unknown): Promise<string | null
 
 async function resolveRefreshTokenUserId(
   supabase: unknown,
-  cookieStore: Awaited<ReturnType<typeof cookies>>
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
 ): Promise<string | null> {
   const refreshTokenCookie = cookieStore.get('refresh_token')
   const accessTokenCookie = cookieStore.get('access_token')

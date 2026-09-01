@@ -1,10 +1,10 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 
 interface RouteParams {
   params: Promise<{
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (auth instanceof NextResponse) return auth
 
     const { id: companyId, linkId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: link, error } = await supabase
       .from('bulk_invite_links')
@@ -31,19 +31,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (error || !link) {
       return NextResponse.json(
         { success: false, error: 'Enlace no encontrado' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      link
+      link,
     })
   } catch (error) {
-    techDebtLogger.error('Error in GET /api/admin/companies/[id]/invite-links/[linkId]:', error)
+    techDebtLogger.error(
+      'Error in GET /api/admin/companies/[id]/invite-links/[linkId]:',
+      error,
+    )
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { apiError } from '@/lib/api/errors'
@@ -11,7 +11,7 @@ import {
 } from '@/app/api/business/hierarchy/_schemas'
 
 interface RouteContext {
-  params: Promise<{ orgSlug: string }>;
+  params: Promise<{ orgSlug: string }>
 }
 
 interface OrganizationNodeUserRow {
@@ -35,19 +35,26 @@ async function handlePost(
   { params }: RouteContext,
 ) {
   try {
-    const { orgSlug } = await params;
-    const auth = await requireBusiness({ organizationSlug: orgSlug });
-    if (auth instanceof NextResponse) return auth;
+    const { orgSlug } = await params
+    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    if (auth instanceof NextResponse) return auth
 
-    if (!auth.organizationId) {
-      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
+    if (!auth.organizationId || !auth.isOrgAdmin) {
+      return apiError(
+        'COURSE_ASSIGNMENT_FORBIDDEN',
+        'No tienes permisos para asignar cursos en esta organización',
+        403,
+      )
     }
 
-    const organizationId = auth.organizationId;
-    const userId = auth.userId;
+    const organizationId = auth.organizationId
+    const userId = auth.userId
 
     // Validar membresía
-    const hasSubscription = await SubscriptionService.hasActiveSubscription(userId, organizationId)
+    const hasSubscription = await SubscriptionService.hasActiveSubscription(
+      userId,
+      organizationId,
+    )
     if (!hasSubscription) {
       return apiError(
         'NO_ACTIVE_SUBSCRIPTION',
@@ -56,9 +63,10 @@ async function handlePost(
       )
     }
 
-    const { entity_id, course_ids, start_date, due_date, approach, message } = body
+    const { entity_id, course_ids, start_date, due_date, approach, message } =
+      body
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // 1. Verificar nodo
     const { data: node, error: nodeError } = await supabase
@@ -110,8 +118,11 @@ async function handlePost(
       )
     }
 
-    const purchasedCourseIds = orgPurchases?.map((purchase) => purchase.course_id) || []
-    const missingCourses = course_ids.filter((id: string) => !purchasedCourseIds.includes(id))
+    const purchasedCourseIds =
+      orgPurchases?.map((purchase) => purchase.course_id) || []
+    const missingCourses = course_ids.filter(
+      (id: string) => !purchasedCourseIds.includes(id),
+    )
 
     if (missingCourses.length > 0) {
       return apiError(
@@ -127,24 +138,28 @@ async function handlePost(
       .select('id, title')
       .in('id', course_ids)
     const courseTitleMap = new Map(
-      (coursesData || []).map((c: { id: string; title: string }) => [c.id, c.title])
+      (coursesData || []).map((c: { id: string; title: string }) => [
+        c.id,
+        c.title,
+      ]),
     )
 
     const results = await Promise.all(
       course_ids.map(async (courseId: string) => {
         const courseTitle = courseTitleMap.get(courseId) || 'Curso'
 
-        await supabase
-          .from('organization_node_courses')
-          .upsert({
+        await supabase.from('organization_node_courses').upsert(
+          {
             node_id: entity_id,
             course_id: courseId,
             assigned_by: userId,
             status: 'active',
             assigned_at: new Date().toISOString(),
             due_date: due_date || null,
-            message: message || null
-          }, { onConflict: 'node_id, course_id' })
+            message: message || null,
+          },
+          { onConflict: 'node_id, course_id' },
+        )
 
         if (user_ids.length > 0) {
           const assignmentsToUpsert = user_ids.map((uid: string) => ({
@@ -158,26 +173,34 @@ async function handlePost(
             approach: approach || null,
             message: message || null,
             status: 'assigned',
-            completion_percentage: 0
+            completion_percentage: 0,
           }))
 
           await supabase
             .from('organization_course_assignments')
-            .upsert(assignmentsToUpsert, { onConflict: 'organization_id, user_id, course_id' })
+            .upsert(assignmentsToUpsert, {
+              onConflict: 'organization_id, user_id, course_id',
+            })
 
-          const { data: existingEnrollments, error: existingEnrollmentsError } = await supabase
-            .from('user_course_enrollments')
-            .select('user_id')
-            .eq('course_id', courseId)
-            .eq('organization_id', organizationId)
-            .in('user_id', user_ids)
+          const { data: existingEnrollments, error: existingEnrollmentsError } =
+            await supabase
+              .from('user_course_enrollments')
+              .select('user_id')
+              .eq('course_id', courseId)
+              .eq('organization_id', organizationId)
+              .in('user_id', user_ids)
 
           if (existingEnrollmentsError) {
-            logger.warn('Error checking existing scoped enrollments:', existingEnrollmentsError)
+            logger.warn(
+              'Error checking existing scoped enrollments:',
+              existingEnrollmentsError,
+            )
           }
 
           const enrolledUserIds = new Set(
-            (existingEnrollments || []).map((enrollment: { user_id: string }) => enrollment.user_id),
+            (existingEnrollments || []).map(
+              (enrollment: { user_id: string }) => enrollment.user_id,
+            ),
           )
           const enrollmentsToCreate = user_ids
             .filter((uid: string) => !enrolledUserIds.has(uid))
@@ -187,7 +210,7 @@ async function handlePost(
               organization_id: organizationId,
               enrollment_status: 'active',
               enrolled_at: new Date().toISOString(),
-              last_accessed_at: new Date().toISOString()
+              last_accessed_at: new Date().toISOString(),
             }))
 
           if (enrollmentsToCreate.length > 0) {
@@ -202,7 +225,7 @@ async function handlePost(
         }
 
         return { course_id: courseId, course_title: courseTitle, success: true }
-      })
+      }),
     )
 
     return NextResponse.json({
@@ -212,10 +235,9 @@ async function handlePost(
         entity_id,
         entity_name: node.name,
         total_users: user_ids.length,
-        results
-      }
+        results,
+      },
     })
-
   } catch (error: unknown) {
     logger.error('Error en POST assign:', error)
     return apiError('ASSIGN_COURSES_FAILED', getErrorMessage(error), 500)

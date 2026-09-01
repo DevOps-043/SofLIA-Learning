@@ -4,21 +4,52 @@ import {
   consumeBulkInvitation,
   consumeInvitation,
 } from '../invitation-consumption.service'
-import { createInvitationRepositoryMock, createInvitationRuntimeMock } from './test-helpers'
+import {
+  createInvitationRepositoryMock,
+  createInvitationRuntimeMock,
+} from './test-helpers'
 
 describe('invitation-consumption.service', () => {
   it('treats missing classic invitations as idempotent success', async () => {
     const repo = createInvitationRepositoryMock({
       getInvitationForConsume: vi.fn(async () => null),
+      resolveAuthenticatedUserId: vi.fn(async () => 'user-1'),
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
     await expect(
-      consumeInvitation('missing', 'org-1', 'user-1', runtime)
+      consumeInvitation('missing', 'org-1', 'user-1', runtime),
     ).resolves.toEqual({
       success: true,
     })
     expect(runtime.logger.warn).toHaveBeenCalled()
+  })
+
+  it('blocks classic invitation consumption without an authenticated session', async () => {
+    const repo = createInvitationRepositoryMock({
+      resolveAuthenticatedUserId: vi.fn(async () => null),
+    })
+    const runtime = createInvitationRuntimeMock({ repo })
+
+    await expect(
+      consumeInvitation('token-1', 'org-1', 'user-1', runtime),
+    ).resolves.toEqual({
+      error: 'No autenticado. Por favor inicia sesion.',
+      success: false,
+    })
+    expect(repo.getInvitationForConsume).not.toHaveBeenCalled()
+  })
+
+  it('blocks classic invitation consumption for a different user id', async () => {
+    const repo = createInvitationRepositoryMock({
+      resolveAuthenticatedUserId: vi.fn(async () => 'user-2'),
+    })
+    const runtime = createInvitationRuntimeMock({ repo })
+
+    await expect(
+      consumeInvitation('token-1', 'org-1', 'user-1', runtime),
+    ).resolves.toEqual({ error: 'No autorizado.', success: false })
+    expect(repo.getInvitationForConsume).not.toHaveBeenCalled()
   })
 
   it('blocks bulk consumption without an authenticated session', async () => {
@@ -27,7 +58,9 @@ describe('invitation-consumption.service', () => {
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
-    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+    await expect(
+      consumeBulkInvitation('token-1', 'user-1', runtime),
+    ).resolves.toEqual({
       error: 'No autenticado. Por favor inicia sesion.',
       success: false,
     })
@@ -39,7 +72,9 @@ describe('invitation-consumption.service', () => {
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
-    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+    await expect(
+      consumeBulkInvitation('token-1', 'user-1', runtime),
+    ).resolves.toEqual({
       error: 'No autorizado.',
       success: false,
     })
@@ -60,11 +95,16 @@ describe('invitation-consumption.service', () => {
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
-    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+    await expect(
+      consumeBulkInvitation('token-1', 'user-1', runtime),
+    ).resolves.toEqual({
       error: 'Este enlace de invitacion ha expirado',
       success: false,
     })
-    expect(repo.markBulkInviteLinkStatus).toHaveBeenCalledWith('link-1', 'expired')
+    expect(repo.markBulkInviteLinkStatus).toHaveBeenCalledWith(
+      'link-1',
+      'expired',
+    )
   })
 
   it('marks exhausted links before rejecting new registrations', async () => {
@@ -82,11 +122,16 @@ describe('invitation-consumption.service', () => {
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
-    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+    await expect(
+      consumeBulkInvitation('token-1', 'user-1', runtime),
+    ).resolves.toEqual({
       error: 'Este enlace ha alcanzado el limite de registros',
       success: false,
     })
-    expect(repo.markBulkInviteLinkStatus).toHaveBeenCalledWith('link-1', 'exhausted')
+    expect(repo.markBulkInviteLinkStatus).toHaveBeenCalledWith(
+      'link-1',
+      'exhausted',
+    )
   })
 
   it('creates membership, reserves usage atomically and returns organization slug on success', async () => {
@@ -105,7 +150,9 @@ describe('invitation-consumption.service', () => {
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
-    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+    await expect(
+      consumeBulkInvitation('token-1', 'user-1', runtime),
+    ).resolves.toEqual({
       organizationSlug: 'soflia',
       success: true,
     })
@@ -113,7 +160,7 @@ describe('invitation-consumption.service', () => {
       jobTitle: null,
       joinedAt: '2026-04-02T12:00:00.000Z',
       organizationId: 'org-1',
-      role: 'admin',
+      role: 'member',
       status: 'active',
       userId: 'user-1',
     })
@@ -121,10 +168,13 @@ describe('invitation-consumption.service', () => {
       'link-1',
       1,
       2,
-      undefined
+      undefined,
     )
     expect(repo.setUserBusinessRole).toHaveBeenCalledWith('user-1')
-    expect(repo.createBulkInviteRegistration).toHaveBeenCalledWith('link-1', 'user-1')
+    expect(repo.createBulkInviteRegistration).toHaveBeenCalledWith(
+      'link-1',
+      'user-1',
+    )
   })
 
   it('does not reserve bulk usage when membership creation fails', async () => {
@@ -145,7 +195,9 @@ describe('invitation-consumption.service', () => {
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
-    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+    await expect(
+      consumeBulkInvitation('token-1', 'user-1', runtime),
+    ).resolves.toEqual({
       error: 'Error interno al procesar invitacion',
       success: false,
     })
@@ -180,11 +232,16 @@ describe('invitation-consumption.service', () => {
     })
     const runtime = createInvitationRuntimeMock({ repo })
 
-    await expect(consumeBulkInvitation('token-1', 'user-1', runtime)).resolves.toEqual({
+    await expect(
+      consumeBulkInvitation('token-1', 'user-1', runtime),
+    ).resolves.toEqual({
       error: 'Este enlace ha alcanzado el limite de registros',
       success: false,
     })
-    expect(repo.deleteOrganizationMembership).toHaveBeenCalledWith('user-1', 'org-1')
+    expect(repo.deleteOrganizationMembership).toHaveBeenCalledWith(
+      'user-1',
+      'org-1',
+    )
     expect(repo.setUserBusinessRole).not.toHaveBeenCalled()
   })
 })

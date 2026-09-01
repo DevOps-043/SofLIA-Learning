@@ -1,7 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { withZodBody } from '@/lib/api/with-validation'
@@ -25,7 +25,7 @@ interface RouteParams {
 async function handlePost(
   _request: NextRequest,
   body: InviteLinkCreateBody,
-  { params }: RouteParams
+  { params }: RouteParams,
 ) {
   try {
     const auth = await requireAdmin()
@@ -36,7 +36,7 @@ async function handlePost(
     const expirationDate = new Date(expiresAt)
 
     const token = nanoid(32)
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const insertPayload: BulkInviteLinkInsert = {
       organization_id: companyId,
       created_by: auth.userId,
@@ -45,13 +45,13 @@ async function handlePost(
       max_uses: maxUses,
       role,
       expires_at: expirationDate.toISOString(),
-      status: 'active'
+      status: 'active',
     }
 
-    const { data: link, error } = await fromLoose<BulkInviteLinkRow, BulkInviteLinkInsert>(
-      supabase,
-      'bulk_invite_links'
-    )
+    const { data: link, error } = await fromLoose<
+      BulkInviteLinkRow,
+      BulkInviteLinkInsert
+    >(supabase, 'bulk_invite_links')
       .insert(insertPayload)
       .select(SELECT_COLUMNS.bulk_invite_links)
       .single()
@@ -60,24 +60,27 @@ async function handlePost(
       techDebtLogger.error('Error creating bulk invite link:', error)
       return NextResponse.json(
         { success: false, error: 'Error al crear el enlace de invitacion' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      link
+      link,
     })
   } catch (error) {
-    techDebtLogger.error('Error in POST /api/admin/companies/[id]/invite-links:', error)
+    techDebtLogger.error(
+      'Error in POST /api/admin/companies/[id]/invite-links:',
+      error,
+    )
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
 export const POST = withZodBody<InviteLinkCreateBody, RouteParams>(
   inviteLinkCreateSchema,
-  handlePost
+  handlePost,
 )

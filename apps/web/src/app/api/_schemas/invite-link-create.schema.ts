@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
-const inviteLinkRoleSchema = z.enum(['member', 'admin', 'owner'])
+// Bearer links can only grant baseline membership. Privileged roles require an
+// email-bound individual invitation and the corresponding authorization check.
+const inviteLinkRoleSchema = z.literal('member')
 
 export const inviteLinkCreateSchema = z
   .object({
@@ -26,7 +28,7 @@ export interface BulkInviteLinkInsert {
   token: string
   name: string | null
   max_uses: number
-  role: 'member' | 'admin' | 'owner'
+  role: 'member'
   expires_at: string
   status: 'active'
 }

@@ -8,6 +8,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import 'server-only'
 
 import { fromLoose } from '@/lib/supabase/looseQuery'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { BusinessPlanId, BillingCycle } from './subscription.utils'
 
 /**
@@ -23,17 +24,17 @@ export class SubscriptionService {
    *   Si se omite, se resuelve automáticamente desde organization_users (puede ser incorrecto
    *   cuando el usuario pertenece a múltiples empresas).
    */
-  static async hasActiveSubscription(userId: string, organizationId?: string): Promise<boolean> {
+  static async hasActiveSubscription(
+    userId: string,
+    organizationId?: string,
+  ): Promise<boolean> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
-
+      const supabase = createAdminClient()
 
       // Si se proporcionó organizationId directamente, usarlo sin resolución adicional
       let resolvedOrganizationId: string | null = organizationId ?? null
 
       if (!resolvedOrganizationId) {
-
         // Fallback: Buscar en la tabla organization_users
         // NOTA: Para usuarios multi-empresa esto puede retornar la org incorrecta.
         // Siempre pasar organizationId explícitamente cuando esté disponible.
@@ -60,15 +61,19 @@ export class SubscriptionService {
       // Verificar suscripción de la organización (con fechas)
       const { data: organization, error: orgError } = await supabase
         .from('organizations')
-        .select('id, name, subscription_plan, subscription_status, subscription_end_date, is_active')
+        .select(
+          'id, name, subscription_plan, subscription_status, subscription_end_date, is_active',
+        )
         .eq('id', organizationId_resolved)
         .single()
 
       if (orgError || !organization) {
         // Si no hay organización, intentar verificar en la tabla subscriptions
-        return await this.checkSubscriptionTable(userId, organizationId_resolved)
+        return await this.checkSubscriptionTable(
+          userId,
+          organizationId_resolved,
+        )
       }
-
 
       // Verificar que la organización esté activa
       if (!organization.is_active) {
@@ -81,7 +86,10 @@ export class SubscriptionService {
 
       if (!plan || !validPlans.includes(plan)) {
         // Si el plan no es válido, verificar en la tabla subscriptions
-        return await this.checkSubscriptionTable(userId, organizationId_resolved)
+        return await this.checkSubscriptionTable(
+          userId,
+          organizationId_resolved,
+        )
       }
 
       // Verificar que el estado sea activo o trial
@@ -104,7 +112,10 @@ export class SubscriptionService {
 
       return true
     } catch (error) {
-      techDebtLogger.error('💥 [SubscriptionService] Error checking subscription:', error)
+      techDebtLogger.error(
+        '💥 [SubscriptionService] Error checking subscription:',
+        error,
+      )
       return false
     }
   }
@@ -112,10 +123,12 @@ export class SubscriptionService {
   /**
    * Verifica suscripción en la tabla subscriptions como respaldo
    */
-  private static async checkSubscriptionTable(userId: string, organizationId: string): Promise<boolean> {
+  private static async checkSubscriptionTable(
+    userId: string,
+    organizationId: string,
+  ): Promise<boolean> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
+      const supabase = createAdminClient()
 
       // Buscar suscripción activa en la tabla subscriptions
       const { data: subscription, error: subError } = await fromLoose<{
@@ -162,7 +175,7 @@ export class SubscriptionService {
    */
   static calculateBillingPeriod(
     subscriptionStartDate: string | null,
-    billingCycle: 'monthly' | 'yearly' | null
+    billingCycle: 'monthly' | 'yearly' | null,
   ): { start: Date; end: Date } | null {
     if (!subscriptionStartDate || !billingCycle) {
       return null
@@ -174,7 +187,8 @@ export class SubscriptionService {
     // Calcular cuántos períodos han pasado desde el inicio
     let periodsPassed = 0
     if (billingCycle === 'monthly') {
-      const monthsDiff = (now.getFullYear() - startDate.getFullYear()) * 12 +
+      const monthsDiff =
+        (now.getFullYear() - startDate.getFullYear()) * 12 +
         (now.getMonth() - startDate.getMonth())
       periodsPassed = Math.floor(monthsDiff)
     } else {
@@ -201,7 +215,7 @@ export class SubscriptionService {
 
     return {
       start: currentPeriodStart,
-      end: currentPeriodEnd
+      end: currentPeriodEnd,
     }
   }
 
@@ -211,15 +225,14 @@ export class SubscriptionService {
   static async getOrganizationMonthlyCourseCount(
     organizationId: string,
     billingPeriodStart: Date,
-    billingPeriodEnd: Date
+    billingPeriodEnd: Date,
   ): Promise<number> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
+      const supabase = createAdminClient()
 
       const { count, error } = await supabase
         .from('organization_course_purchases')
-        .select('id', { count: 'exact', head: true })
+        .select('purchase_id', { count: 'exact', head: true })
         .eq('organization_id', organizationId)
         .eq('access_status', 'active')
         .gte('purchased_at', billingPeriodStart.toISOString())
@@ -242,11 +255,15 @@ export class SubscriptionService {
    */
   static async canOrganizationPurchaseCourse(
     organizationId: string,
-    maxCourses: number = 10
-  ): Promise<{ canPurchase: boolean; currentCount: number; maxCourses: number; billingPeriod: { start: Date; end: Date } | null }> {
+    maxCourses: number = 10,
+  ): Promise<{
+    canPurchase: boolean
+    currentCount: number
+    maxCourses: number
+    billingPeriod: { start: Date; end: Date } | null
+  }> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
+      const supabase = createAdminClient()
 
       // Obtener información de la organización
       const { data: organization, error: orgError } = await supabase
@@ -260,14 +277,14 @@ export class SubscriptionService {
           canPurchase: false,
           currentCount: 0,
           maxCourses,
-          billingPeriod: null
+          billingPeriod: null,
         }
       }
 
       // Calcular período de facturación actual
       const billingPeriod = this.calculateBillingPeriod(
         organization.subscription_start_date,
-        organization.billing_cycle as 'monthly' | 'yearly' | null
+        organization.billing_cycle as 'monthly' | 'yearly' | null,
       )
 
       if (!billingPeriod) {
@@ -275,7 +292,7 @@ export class SubscriptionService {
           canPurchase: false,
           currentCount: 0,
           maxCourses,
-          billingPeriod: null
+          billingPeriod: null,
         }
       }
 
@@ -283,14 +300,14 @@ export class SubscriptionService {
       const currentCount = await this.getOrganizationMonthlyCourseCount(
         organizationId,
         billingPeriod.start,
-        billingPeriod.end
+        billingPeriod.end,
       )
 
       return {
         canPurchase: currentCount < maxCourses,
         currentCount,
         maxCourses,
-        billingPeriod
+        billingPeriod,
       }
     } catch (error) {
       techDebtLogger.error('Error in canOrganizationPurchaseCourse:', error)
@@ -298,7 +315,7 @@ export class SubscriptionService {
         canPurchase: false,
         currentCount: 0,
         maxCourses,
-        billingPeriod: null
+        billingPeriod: null,
       }
     }
   }

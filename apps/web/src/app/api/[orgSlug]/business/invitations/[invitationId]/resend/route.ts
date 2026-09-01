@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import {
   createInvitationRuntime,
@@ -9,11 +9,11 @@ import {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orgSlug: string, invitationId: string } }
+  { params }: { params: { orgSlug: string; invitationId: string } },
 ) {
   try {
     const { orgSlug, invitationId } = params
-    
+
     // Auth check
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
@@ -21,12 +21,21 @@ export async function POST(
     if (!auth.organizationId) {
       return NextResponse.json(
         { success: false, error: 'Organización no encontrada' },
-        { status: 400 }
+        { status: 400 },
+      )
+    }
+    if (!auth.isOrgAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tienes permisos para reenviar invitaciones',
+        },
+        { status: 403 },
       )
     }
 
-    const supabase = await createClient()
-    
+    const supabase = createAdminClient()
+
     // Obtener la invitación para verificar que pertenece a la organización
     const { data: invitation, error: fetchError } = await supabase
       .from('user_invitations')
@@ -36,7 +45,10 @@ export async function POST(
       .single()
 
     if (fetchError || !invitation) {
-      return NextResponse.json({ success: false, error: 'Invitación no encontrada' }, { status: 404 })
+      return NextResponse.json(
+        { success: false, error: 'Invitación no encontrada' },
+        { status: 404 },
+      )
     }
 
     const result = await resendInvitation(
@@ -45,12 +57,18 @@ export async function POST(
     )
 
     if (!result.success) {
-      return NextResponse.json({ success: false, error: result.error }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 400 },
+      )
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
     logger.error('Unexpected error resending invitation:', error)
-    return NextResponse.json({ success: false, error: 'Error inesperado' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: 'Error inesperado' },
+      { status: 500 },
+    )
   }
 }

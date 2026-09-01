@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { logger } from '@/lib/logger'
 import { withZodBody } from '@/lib/api/with-validation'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import {
   inviteLinkPatchSchema,
   type InviteLinkPatchBody,
@@ -14,7 +14,7 @@ import {
 // GET - Get a specific invite link
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireBusiness()
@@ -23,12 +23,21 @@ export async function GET(
     if (!auth.organizationId) {
       return NextResponse.json(
         { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+        { status: 403 },
+      )
+    }
+    if (!auth.isOrgAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tienes permisos para consultar enlaces de invitacion',
+        },
+        { status: 403 },
       )
     }
 
     const { id } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: link, error } = await supabase
       .from('bulk_invite_links')
@@ -40,19 +49,19 @@ export async function GET(
     if (error || !link) {
       return NextResponse.json(
         { success: false, error: 'Enlace no encontrado' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      link
+      link,
     })
   } catch (error) {
     logger.error('Error in GET /api/business/invite-links/[id]', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -61,7 +70,7 @@ export async function GET(
 async function handlePatch(
   request: NextRequest,
   body: InviteLinkPatchBody,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireBusiness()
@@ -70,21 +79,24 @@ async function handlePatch(
     if (!auth.organizationId) {
       return NextResponse.json(
         { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
     if (!auth.isOrgAdmin) {
       return NextResponse.json(
-        { success: false, error: 'No tienes permisos para modificar enlaces de invitación' },
-        { status: 403 }
+        {
+          success: false,
+          error: 'No tienes permisos para modificar enlaces de invitación',
+        },
+        { status: 403 },
       )
     }
 
     const { id } = await params
     const { action, name, maxUses, expiresAt } = body
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // First verify the link belongs to this organization
     const { data: existingLink, error: fetchError } = await supabase
@@ -97,7 +109,7 @@ async function handlePatch(
     if (fetchError || !existingLink) {
       return NextResponse.json(
         { success: false, error: 'Enlace no encontrado' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -108,7 +120,7 @@ async function handlePatch(
       if (existingLink.status !== 'active') {
         return NextResponse.json(
           { success: false, error: 'Solo se pueden pausar enlaces activos' },
-          { status: 400 }
+          { status: 400 },
         )
       }
       updateData.status = 'paused'
@@ -116,7 +128,7 @@ async function handlePatch(
       if (existingLink.status !== 'paused') {
         return NextResponse.json(
           { success: false, error: 'Solo se pueden reanudar enlaces pausados' },
-          { status: 400 }
+          { status: 400 },
         )
       }
       // Check if link hasn't expired or exhausted
@@ -133,8 +145,12 @@ async function handlePatch(
       if (maxUses !== undefined) {
         if (maxUses < existingLink.current_uses) {
           return NextResponse.json(
-            { success: false, error: 'El máximo de usos no puede ser menor que los usos actuales' },
-            { status: 400 }
+            {
+              success: false,
+              error:
+                'El máximo de usos no puede ser menor que los usos actuales',
+            },
+            { status: 400 },
           )
         }
         updateData.max_uses = maxUses
@@ -143,8 +159,11 @@ async function handlePatch(
         const newExpiration = new Date(expiresAt)
         if (newExpiration <= new Date()) {
           return NextResponse.json(
-            { success: false, error: 'La fecha de expiración debe ser en el futuro' },
-            { status: 400 }
+            {
+              success: false,
+              error: 'La fecha de expiración debe ser en el futuro',
+            },
+            { status: 400 },
           )
         }
         updateData.expires_at = newExpiration.toISOString()
@@ -153,8 +172,11 @@ async function handlePatch(
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
-        { success: false, error: 'No se proporcionaron campos para actualizar' },
-        { status: 400 }
+        {
+          success: false,
+          error: 'No se proporcionaron campos para actualizar',
+        },
+        { status: 400 },
       )
     }
 
@@ -173,19 +195,19 @@ async function handlePatch(
       })
       return NextResponse.json(
         { success: false, error: 'Error al actualizar el enlace' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      link
+      link,
     })
   } catch (error) {
     logger.error('Error in PATCH /api/business/invite-links/[id]', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -195,7 +217,7 @@ export const PATCH = withZodBody(inviteLinkPatchSchema, handlePatch)
 // DELETE - Delete an invite link
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireBusiness()
@@ -204,19 +226,22 @@ export async function DELETE(
     if (!auth.organizationId) {
       return NextResponse.json(
         { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
     if (!auth.isOrgAdmin) {
       return NextResponse.json(
-        { success: false, error: 'No tienes permisos para eliminar enlaces de invitación' },
-        { status: 403 }
+        {
+          success: false,
+          error: 'No tienes permisos para eliminar enlaces de invitación',
+        },
+        { status: 403 },
       )
     }
 
     const { id } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { error } = await supabase
       .from('bulk_invite_links')
@@ -231,19 +256,19 @@ export async function DELETE(
       })
       return NextResponse.json(
         { success: false, error: 'Error al eliminar el enlace' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Enlace eliminado correctamente'
+      message: 'Enlace eliminado correctamente',
     })
   } catch (error) {
     logger.error('Error in DELETE /api/business/invite-links/[id]', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

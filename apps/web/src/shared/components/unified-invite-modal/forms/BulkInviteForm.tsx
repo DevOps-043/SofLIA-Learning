@@ -65,7 +65,7 @@ export function BulkInviteForm({ controller, onClose, theme }: BulkInviteFormPro
             <label className={labelClass} style={{ color: theme.mutedText }}>
               {t('users.modals.bulkInvite.fields.role', 'Rol asignado')} <span className={styles.required}>*</span>
             </label>
-            <InviteRoleSelector form={bulkForm} onRoleChange={(role) => setBulkForm((form) => ({ ...form, role }))} roleLabels={roleLabels} status={status} theme={theme} />
+            <InviteRoleSelector allowedRoles={['member']} form={bulkForm} onRoleChange={(role) => setBulkForm((form) => ({ ...form, role }))} roleLabels={roleLabels} status={status} theme={theme} />
           </div>
           <div className={styles.field}>
             <label className={labelClass} style={{ color: theme.mutedText }}>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
@@ -16,14 +16,22 @@ import { courseAssignSchema, type CourseAssignBody } from './schema'
 async function handlePost(
   _request: NextRequest,
   body: CourseAssignBody,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireBusiness()
     if (auth instanceof NextResponse) return auth
 
+    if (!auth.organizationId || !auth.isOrgAdmin) {
+      return apiError(
+        'COURSE_ASSIGNMENT_FORBIDDEN',
+        'No tienes permisos para asignar cursos en esta organizacion',
+        403,
+      )
+    }
+
     const { id: courseId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Obtener usuario autenticado
     const currentUser = await SessionService.getCurrentUser()
@@ -32,14 +40,13 @@ async function handlePost(
     }
 
     // Obtener organizationId
-    if (!auth.organizationId) {
-      return apiError('NO_ORGANIZATION', 'No tienes una organización asignada', 403)
-    }
-
     const organizationId = auth.organizationId
 
     // Validar que la organización tenga membresía activa
-    const hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id, organizationId)
+    const hasSubscription = await SubscriptionService.hasActiveSubscription(
+      currentUser.id,
+      organizationId,
+    )
     if (!hasSubscription) {
       return apiError(
         'SUBSCRIPTION_REQUIRED',
@@ -71,6 +78,7 @@ async function handlePost(
       .select('id, title')
       .eq('id', courseId)
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .single()
 
     if (courseError || !course) {
@@ -105,7 +113,7 @@ async function handlePost(
     if (start_date && due_date) {
       const startDateObj = new Date(start_date)
       const dueDateObj = new Date(due_date)
-      
+
       if (startDateObj > dueDateObj) {
         return apiError(
           'INVALID_DATE_RANGE',
@@ -124,8 +132,8 @@ async function handlePost(
       .in('user_id', user_ids)
       .or('status.is.null,status.in.(assigned,in_progress)')
 
-    const existingUserIds = existingAssignments?.map(a => a.user_id) || []
-    const newUserIds = user_ids.filter(id => !existingUserIds.includes(id))
+    const existingUserIds = existingAssignments?.map((a) => a.user_id) || []
+    const newUserIds = user_ids.filter((id) => !existingUserIds.includes(id))
 
     if (newUserIds.length === 0) {
       return apiError(
@@ -138,7 +146,7 @@ async function handlePost(
     const now = new Date().toISOString()
 
     // Crear asignaciones para los usuarios que no tienen el curso
-    const assignments = newUserIds.map(userId => ({
+    const assignments = newUserIds.map((userId) => ({
       organization_id: organizationId,
       user_id: userId,
       course_id: courseId,
@@ -149,7 +157,7 @@ async function handlePost(
       approach: approach || null,
       message: message && message.trim() ? message.trim() : null,
       status: 'assigned',
-      completion_percentage: 0
+      completion_percentage: 0,
     }))
 
     const { data: createdAssignments, error: assignError } = await supabase
@@ -164,21 +172,29 @@ async function handlePost(
 
     // Crear enrollments faltantes en bloque. Antes se hacia una consulta por usuario,
     // lo que hacia lenta la asignacion masiva y retrasaba la aparicion en dashboards.
-    const { data: existingEnrollments, error: existingEnrollmentsError } = await supabase
-      .from('user_course_enrollments')
-      .select('user_id')
-      .eq('course_id', courseId)
-      .eq('organization_id', organizationId)
-      .in('user_id', newUserIds)
+    const { data: existingEnrollments, error: existingEnrollmentsError } =
+      await supabase
+        .from('user_course_enrollments')
+        .select('user_id')
+        .eq('course_id', courseId)
+        .eq('organization_id', organizationId)
+        .in('user_id', newUserIds)
 
     if (existingEnrollmentsError) {
-      logger.warn('Error checking existing enrollments:', existingEnrollmentsError)
+      logger.warn(
+        'Error checking existing enrollments:',
+        existingEnrollmentsError,
+      )
     }
 
-    const usersWithEnrollment = new Set((existingEnrollments || []).map((enrollment: { user_id: string }) => enrollment.user_id))
+    const usersWithEnrollment = new Set(
+      (existingEnrollments || []).map(
+        (enrollment: { user_id: string }) => enrollment.user_id,
+      ),
+    )
     const enrollmentsToCreate = newUserIds
-      .filter(userId => !usersWithEnrollment.has(userId))
-      .map(userId => ({
+      .filter((userId) => !usersWithEnrollment.has(userId))
+      .map((userId) => ({
         user_id: userId,
         course_id: courseId,
         organization_id: organizationId,
@@ -186,7 +202,7 @@ async function handlePost(
         overall_progress_percentage: 0,
         enrolled_at: now,
         started_at: now,
-        last_accessed_at: now
+        last_accessed_at: now,
       }))
 
     if (enrollmentsToCreate.length > 0) {
@@ -200,24 +216,27 @@ async function handlePost(
       }
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `Curso asignado exitosamente a ${createdAssignments.length} usuario(s)`,
-      data: {
-        course_id: courseId,
-        course_title: course.title,
-        assigned_count: createdAssignments.length,
-        already_assigned_count: existingUserIds.length,
-        assignments: createdAssignments.map(a => ({
-          assignment_id: a.id,
-          user_id: a.user_id
-        }))
-      }
-    }, {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0',
-      }
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Curso asignado exitosamente a ${createdAssignments.length} usuario(s)`,
+        data: {
+          course_id: courseId,
+          course_title: course.title,
+          assigned_count: createdAssignments.length,
+          already_assigned_count: existingUserIds.length,
+          assignments: createdAssignments.map((a) => ({
+            assignment_id: a.id,
+            user_id: a.user_id,
+          })),
+        },
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      },
+    )
   } catch (error) {
     logger.error('💥 Error in /api/business/courses/[id]/assign:', error)
     return apiError('ASSIGN_COURSE_FAILED', 'Error interno del servidor', 500)
