@@ -3,6 +3,7 @@ import { logger } from '../../../../lib/logger';
 import { createAdminClient } from '../../../../lib/supabase/admin';
 import { AuthService } from '../../services/auth.service';
 import { OAuthService } from '../../services/oauth.service';
+import { confirmEmailFromTrustedSso } from '../supabase-auth-bridge.service';
 import {
   createServerAuthSession,
   notifyLoginSuccessWithTimeout,
@@ -75,6 +76,15 @@ export async function processOAuthCallback<TProviderTokens>({
       };
     }
 
+    if (normalizedProfile.emailVerified === false) {
+      logger.warn(
+        `${provider.providerLabel} OAuth: email no verificado por proveedor`,
+      );
+      return {
+        error: 'El proveedor SSO no ha verificado este correo.',
+      };
+    }
+
     const supabase = createAdminClient();
     const initialOrgContext = parseOAuthOrganizationContext(orgContextCookie);
     const existingUser = await OAuthService.findUserByEmail(
@@ -142,6 +152,15 @@ export async function processOAuthCallback<TProviderTokens>({
       );
       isNewUser = true;
     }
+
+    // El callback del proveedor ya demostro control de la direccion. Se
+    // confirma tanto Supabase Auth como public.users antes de emitir sesion,
+    // incluso si era una cuenta manual preexistente todavia no confirmada.
+    await confirmEmailFromTrustedSso({
+      email: normalizedProfile.email,
+      provider: provider.provider,
+      userId,
+    });
 
     await linkOAuthUserToOrganization({
       bulkInviteLink,

@@ -72,4 +72,32 @@ describe('processOAuthCallback OAuth state validation', () => {
       error: 'Error procesando autenticacion. Intentalo de nuevo.',
     });
   });
+
+  it('does not trust an email that the SSO provider explicitly marks unverified', async () => {
+    const tokens: OAuthTokens = {
+      access_token: 'access-token',
+      scope: 'openid email',
+      token_type: 'Bearer',
+    };
+    const provider = createProvider(vi.fn().mockResolvedValue(tokens));
+    vi.mocked(provider.getProfile).mockResolvedValue({
+      email: 'person@example.com',
+      emailVerified: false,
+      firstName: 'Person',
+      fullName: 'Person Example',
+      lastName: 'Example',
+      providerAccountId: 'provider-account',
+    });
+
+    const result = await processOAuthCallback({
+      params: { code: 'auth-code', state: 'csrf-token' },
+      provider,
+      requestMetadata,
+      storedState: 'csrf-token',
+    });
+
+    expect(result).toEqual({
+      error: 'El proveedor SSO no ha verificado este correo.',
+    });
+  });
 });

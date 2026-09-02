@@ -22,6 +22,20 @@ describe('unverified account containment', () => {
     ),
     'utf8',
   )
+  const oauthCallback = fs.readFileSync(
+    path.resolve(
+      process.cwd(),
+      'src/features/auth/services/oauth-flow/oauth-callback.service.ts',
+    ),
+    'utf8',
+  )
+  const emailConfirmationRoute = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/app/auth/confirm/route.ts'),
+    'utf8',
+  )
+  const configGuard = readRepositoryFile(
+    'scripts/security/check-supabase-auth-verification.mjs',
+  )
   const adminUpdateSchema = fs.readFileSync(
     path.resolve(process.cwd(), 'src/lib/schemas/user/update-user.schema.ts'),
     'utf8',
@@ -40,7 +54,23 @@ describe('unverified account containment', () => {
     expect(registerAction).toContain('emailVerified: false')
     expect(registerAction).toContain('sendSupabaseSignupConfirmation')
     expect(authBridge).toContain('email_confirm: profile.email_verified === true')
-    expect(authBridge).not.toContain('email_confirm: true')
+  })
+
+  it('confirms trusted SSO identities and supports token-hash email callbacks', () => {
+    expect(oauthCallback).toContain('confirmEmailFromTrustedSso')
+    expect(authBridge).toContain('AUTH_EMAIL_MISMATCH')
+    expect(authBridge).toContain('email_confirm: true')
+    expect(emailConfirmationRoute).toMatch(
+      /searchParams\.get\(["']token_hash["']\)/,
+    )
+    expect(emailConfirmationRoute).toMatch(/["']email["']/)
+    expect(emailConfirmationRoute).toMatch(/["']signup["']/)
+  })
+
+  it('detects hosted Auth configuration drift', () => {
+    expect(configGuard).toContain('disable_signup=true')
+    expect(configGuard).toContain('mailer_autoconfirm=false')
+    expect(configGuard).toContain('/auth/v1/settings')
   })
 
   it('derives the profile badge from Auth and quarantines incident accounts', () => {

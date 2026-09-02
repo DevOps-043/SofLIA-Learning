@@ -14,9 +14,11 @@ describe('oauth-profile.service', () => {
         given_name: 'Ana',
         id: 'google-user',
         name: 'Ana Lopez',
+        email_verified: true,
       })
     ).toEqual({
       email: 'ana@example.com',
+      emailVerified: true,
       firstName: 'Ana',
       fullName: 'Ana Lopez',
       lastName: 'Lopez',
@@ -34,6 +36,7 @@ describe('oauth-profile.service', () => {
       })
     ).toEqual({
       email: 'user@example.com',
+      emailVerified: undefined,
       firstName: 'Usuario',
       fullName: 'user@example.com',
       lastName: '',
@@ -53,6 +56,7 @@ describe('oauth-profile.service', () => {
       })
     ).toEqual({
       email: 'mario@example.com',
+      emailVerified: true,
       firstName: 'Mario',
       fullName: 'Mario Casas',
       lastName: 'Casas',
@@ -69,6 +73,7 @@ describe('oauth-profile.service', () => {
       })
     ).toEqual({
       email: 'lucia@example.com',
+      emailVerified: true,
       firstName: 'Lucia',
       fullName: 'Lucia Herrera',
       lastName: 'Herrera',
