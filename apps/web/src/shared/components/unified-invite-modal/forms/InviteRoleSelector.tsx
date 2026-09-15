@@ -3,7 +3,12 @@ import type { BulkInviteForm, IndividualInviteForm } from '../types';
 import styles from './InviteForm.module.css';
 import type { RoleSelectorProps } from './types';
 
-export function InviteRoleSelector<TForm extends BulkInviteForm | IndividualInviteForm>({
+const ALL_INVITE_ROLES = ['member', 'admin', 'owner'] as const;
+
+export function InviteRoleSelector<
+  TForm extends BulkInviteForm | IndividualInviteForm,
+>({
+  allowedRoles = ALL_INVITE_ROLES,
   form,
   onRoleChange,
   roleLabels,
@@ -11,7 +16,7 @@ export function InviteRoleSelector<TForm extends BulkInviteForm | IndividualInvi
 }: RoleSelectorProps<TForm>) {
   return (
     <div className={styles.roleGrid}>
-      {(['member', 'admin', 'owner'] as const).map((role) => {
+      {allowedRoles.map((role) => {
         const isActive = form.role === role;
         return (
           <button
@@ -22,7 +27,9 @@ export function InviteRoleSelector<TForm extends BulkInviteForm | IndividualInvi
             onClick={() => onRoleChange(role)}
             type="button"
           >
-            <span className={styles.roleIcon} aria-hidden="true"><Shield /></span>
+            <span className={styles.roleIcon} aria-hidden="true">
+              <Shield />
+            </span>
             <span className={styles.roleCopy}>
               <strong>{roleLabels[role].label}</strong>
               <span>{roleLabels[role].desc}</span>

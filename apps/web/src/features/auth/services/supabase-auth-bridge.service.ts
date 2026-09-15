@@ -47,6 +47,11 @@ type RpcClient = {
 export class SupabaseAuthBridgeError extends Error {
   constructor(
     readonly code:
+      | 'AUTH_EMAIL_CONFIRM_FAILED'
+      | 'AUTH_EMAIL_MISMATCH'
+      | 'AUTH_PROFILE_LOOKUP_FAILED'
+      | 'AUTH_PROFILE_NOT_FOUND'
+      | 'AUTH_PROFILE_SYNC_FAILED'
       | 'AUTH_USER_CREATE_FAILED'
       | 'AUTH_USER_ID_MISMATCH'
       | 'AUTH_USER_LOOKUP_FAILED'
@@ -173,6 +178,114 @@ export async function revokeSupabaseAuthSessions(userId: string) {
   }
 
   return typeof data === 'number' ? data : 0
+}
+
+/**
+ * Confirma el correo canónico cuando un proveedor SSO de confianza ya probó
+ * que la persona controla esa dirección.
+ *
+ * La comparación previa de las tres identidades (proveedor, Auth y perfil
+ * público) evita que una asociación inconsistente confirme la cuenta
+ * equivocada. La operación es idempotente para que un reintento del callback
+ * pueda reparar una sincronización parcial sin debilitar el control.
+ */
+export async function confirmEmailFromTrustedSso(input: {
+  email: string
+  provider: string
+  userId: string
+}) {
+  const expectedEmail = normalizeEmail(input.email)
+  if (!expectedEmail) {
+    throw new SupabaseAuthBridgeError(
+      'MISSING_EMAIL',
+      'El proveedor SSO no devolvio un email valido.',
+    )
+  }
+
+  const admin = createAdminClient()
+  const [authLookup, profileLookup] = await Promise.all([
+    admin.auth.admin.getUserById(input.userId),
+    admin
+      .from('users')
+      .select('email')
+      .eq('id', input.userId)
+      .maybeSingle<{ email: string | null }>(),
+  ])
+
+  if (authLookup.error && !isMissingAuthUserError(authLookup.error)) {
+    throw new SupabaseAuthBridgeError(
+      'AUTH_USER_LOOKUP_FAILED',
+      authLookup.error.message,
+    )
+  }
+  if (!authLookup.data.user) {
+    throw new SupabaseAuthBridgeError(
+      'AUTH_USER_NOT_FOUND',
+      'No existe el usuario de Supabase Auth asociado al acceso SSO.',
+    )
+  }
+  if (profileLookup.error) {
+    throw new SupabaseAuthBridgeError(
+      'AUTH_PROFILE_LOOKUP_FAILED',
+      profileLookup.error.message,
+    )
+  }
+  if (!profileLookup.data) {
+    throw new SupabaseAuthBridgeError(
+      'AUTH_PROFILE_NOT_FOUND',
+      'No existe el perfil publico asociado al acceso SSO.',
+    )
+  }
+
+  const authEmail = normalizeEmail(authLookup.data.user.email)
+  const profileEmail = normalizeEmail(profileLookup.data.email)
+  if (authEmail !== expectedEmail || profileEmail !== expectedEmail) {
+    logger.warn('Trusted SSO email identity mismatch', {
+      provider: input.provider,
+      userId: input.userId,
+    })
+    throw new SupabaseAuthBridgeError(
+      'AUTH_EMAIL_MISMATCH',
+      'El email SSO no coincide con la identidad canonica de la cuenta.',
+    )
+  }
+
+  let confirmedAt = authLookup.data.user.email_confirmed_at
+  if (!confirmedAt) {
+    const { data, error } = await admin.auth.admin.updateUserById(
+      input.userId,
+      {
+        email_confirm: true,
+      },
+    )
+    const updatedConfirmedAt = data.user?.email_confirmed_at
+
+    if (error || !updatedConfirmedAt) {
+      throw new SupabaseAuthBridgeError(
+        'AUTH_EMAIL_CONFIRM_FAILED',
+        error?.message || 'Supabase Auth no confirmo el email SSO.',
+      )
+    }
+
+    confirmedAt = updatedConfirmedAt
+  }
+
+  const { error: syncError } = await admin
+    .from('users')
+    .update({
+      email_verified: true,
+      email_verified_at: confirmedAt,
+    })
+    .eq('id', input.userId)
+
+  if (syncError) {
+    throw new SupabaseAuthBridgeError(
+      'AUTH_PROFILE_SYNC_FAILED',
+      syncError.message,
+    )
+  }
+
+  return { confirmedAt }
 }
 
 export async function sendSupabaseSignupConfirmation(emailAddress: string) {

@@ -1,7 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   consumeBulkInvitation,
   createInvitationRuntime,
@@ -41,71 +40,20 @@ interface BulkInviteLinkRow {
 function bulkInviteLinksTable(client: unknown) {
   return fromLoose<BulkInviteLinkRow, { status?: string }>(
     client,
-    'bulk_invite_links'
+    'bulk_invite_links',
   )
 }
 
 function normalizeOrganization(
-  organization: BulkInviteLinkRow['organizations']
+  organization: BulkInviteLinkRow['organizations'],
 ): BulkInviteOrganizationRow | null {
-  return Array.isArray(organization) ? organization[0] ?? null : organization
-}
-
-/**
- * SECURITY: Obtiene el userId autenticado del servidor verificando ambos sistemas de sesión:
- * 1. Sistema legacy: cookie 'aprende-y-aplica-session' → tabla user_session
- * 2. Sistema nuevo: cookie 'refresh_token' → tabla refresh_tokens (SHA-256)
- * Nunca confía en el userId que viene del cliente (body/query).
- */
-async function getAuthenticatedUserId(): Promise<string | null> {
-  const cookieStore = await cookies()
-  const supabase = await createClient()
-
-  const { data: nativeSession } = await supabase.auth.getUser()
-  if (nativeSession.user?.id) {
-    return nativeSession.user.id
-  }
-
-  // SISTEMA 1: Legacy session
-  const sessionCookie = cookieStore.get('aprende-y-aplica-session')
-  if (sessionCookie) {
-    const { data: session } = await supabase
-      .from('user_session')
-      .select('user_id')
-      .eq('jwt_id', sessionCookie.value)
-      .eq('revoked', false)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle()
-    if (session?.user_id) return session.user_id
-  }
-
-  // SISTEMA 2: Refresh token (nuevo)
-  const refreshTokenCookie = cookieStore.get('refresh_token')
-  const accessTokenCookie = cookieStore.get('access_token')
-  if (refreshTokenCookie && accessTokenCookie) {
-    const encoder = new TextEncoder()
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(refreshTokenCookie.value))
-    const tokenHash = Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('')
-    const { data: tokenData } = await supabase
-      .from('refresh_tokens')
-      .select('user_id')
-      .eq('token_hash', tokenHash)
-      .eq('is_revoked', false)
-      .gt('expires_at', new Date().toISOString())
-      .maybeSingle()
-    if (tokenData?.user_id) return tokenData.user_id
-  }
-
-  return null
+  return Array.isArray(organization) ? (organization[0] ?? null) : organization
 }
 
 // GET - Validate an invite token (public endpoint)
-// ... (rest of the GEThandler remains the same)
 export async function GET(
   request: Request,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   try {
     const { token } = await params
@@ -113,15 +61,18 @@ export async function GET(
     if (!token || token.length < 10) {
       return NextResponse.json(
         { success: false, error: 'Token inválido', valid: false },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
-    const supabase = await createClient()
+    // The token is the bearer credential. This server-only endpoint exposes a
+    // deliberately narrow projection; browser roles cannot query the table.
+    const supabase = createAdminClient()
 
     // Get the invite link and organization details
     const { data: link, error } = await bulkInviteLinksTable(supabase)
-      .select(`
+      .select(
+        `
         id,
         token,
         name,
@@ -143,19 +94,50 @@ export async function GET(
           google_login_enabled,
           microsoft_login_enabled
         )
-      `)
+      `,
+      )
       .eq('token', token)
       .single()
 
-    if (error || !link) {
+    if (error) {
+      if (error.code !== 'PGRST116') {
+        techDebtLogger.error('Error resolving bulk invite link:', {
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+          message: error.message,
+        })
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'No fue posible validar el enlace de invitacion',
+            valid: false,
+            reason: 'validation_error',
+          },
+          { status: 500 },
+        )
+      }
+
       return NextResponse.json(
         {
           success: false,
           error: 'Enlace de invitación no encontrado',
           valid: false,
-          reason: 'not_found'
+          reason: 'not_found',
         },
-        { status: 404 }
+        { status: 404 },
+      )
+    }
+
+    if (!link) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Enlace de invitación no encontrado',
+          valid: false,
+          reason: 'not_found',
+        },
+        { status: 404 },
       )
     }
 
@@ -169,7 +151,8 @@ export async function GET(
         message = 'Este enlace de invitación ha expirado'
       } else if (link.status === 'exhausted') {
         reason = 'exhausted'
-        message = 'Este enlace de invitación ha alcanzado el límite de registros'
+        message =
+          'Este enlace de invitación ha alcanzado el límite de registros'
       } else if (link.status === 'paused') {
         reason = 'paused'
         message = 'Este enlace de invitación está temporalmente pausado'
@@ -177,7 +160,7 @@ export async function GET(
 
       return NextResponse.json(
         { success: false, error: message, valid: false, reason },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -193,14 +176,16 @@ export async function GET(
           success: false,
           error: 'Este enlace de invitación ha expirado',
           valid: false,
-          reason: 'expired'
+          reason: 'expired',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
     // Check if max uses reached
-    if ((link.current_uses ?? 0) >= (link.max_uses ?? Number.POSITIVE_INFINITY)) {
+    if (
+      (link.current_uses ?? 0) >= (link.max_uses ?? Number.POSITIVE_INFINITY)
+    ) {
       // Update status to exhausted
       await bulkInviteLinksTable(supabase)
         .update({ status: 'exhausted' })
@@ -209,11 +194,12 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: 'Este enlace de invitación ha alcanzado el límite de registros',
+          error:
+            'Este enlace de invitación ha alcanzado el límite de registros',
           valid: false,
-          reason: 'exhausted'
+          reason: 'exhausted',
         },
-        { status: 400 }
+        { status: 400 },
       )
     }
 
@@ -228,24 +214,30 @@ export async function GET(
         name: link.name,
         role: link.role,
         remainingUses: (link.max_uses ?? 0) - (link.current_uses ?? 0),
-        expiresAt: link.expires_at
+        expiresAt: link.expires_at,
       },
-      organization: organization ? {
-        id: organization.id,
-        name: organization.name,
-        slug: organization.slug,
-        logoUrl: organization.brand_logo_url || organization.logo_url || organization.brand_favicon_url || null,
-        primaryColor: organization.brand_color_primary,
-        accentColor: organization.brand_color_accent,
-        googleLoginEnabled: organization.google_login_enabled,
-        microsoftLoginEnabled: organization.microsoft_login_enabled
-      } : null
+      organization: organization
+        ? {
+            id: organization.id,
+            name: organization.name,
+            slug: organization.slug,
+            logoUrl:
+              organization.brand_logo_url ||
+              organization.logo_url ||
+              organization.brand_favicon_url ||
+              null,
+            primaryColor: organization.brand_color_primary,
+            accentColor: organization.brand_color_accent,
+            googleLoginEnabled: organization.google_login_enabled,
+            microsoftLoginEnabled: organization.microsoft_login_enabled,
+          }
+        : null,
     })
   } catch (error) {
     techDebtLogger.error('Error in GET /api/invite/[token]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor', valid: false },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
@@ -254,7 +246,7 @@ export async function GET(
 async function handlePost(
   _request: NextRequest,
   body: AcceptInviteBody,
-  { params }: { params: Promise<{ token: string }> }
+  { params }: { params: Promise<{ token: string }> },
 ) {
   try {
     const { token } = await params
@@ -267,36 +259,42 @@ async function handlePost(
     // NO confiar en el userId que envía el cliente desde el browser.
     // Esto previene que una sesión de admin/owner acepte invitaciones
     // en nombre de otro usuario, o que se inyecte un userId arbitrario.
-    const authenticatedUserId = await getAuthenticatedUserId()
+    const runtime = await createInvitationRuntime()
+    const authenticatedUserId = await runtime.repo.resolveAuthenticatedUserId()
 
     if (!authenticatedUserId) {
       return NextResponse.json(
         { success: false, error: 'No autenticado. Por favor inicia sesión.' },
-        { status: 401 }
+        { status: 401 },
       )
     }
 
     // Validación extra de defensa: si el cliente envía userId, verificar que coincida
     const { userId: clientUserId } = body
     if (clientUserId && clientUserId !== authenticatedUserId) {
-      techDebtLogger.error('[SECURITY] Invite userId mismatch — client:', clientUserId, 'session:', authenticatedUserId)
+      techDebtLogger.error(
+        '[SECURITY] Invite userId mismatch — client:',
+        clientUserId,
+        'session:',
+        authenticatedUserId,
+      )
       return NextResponse.json(
         { success: false, error: 'No autorizado.' },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
     const result = await consumeBulkInvitation(
       token,
       authenticatedUserId,
-      await createInvitationRuntime(),
-    );
+      runtime,
+    )
 
     if (!result.success) {
-      const status = result.error?.includes('encontrado') ? 404 : 400;
+      const status = result.error?.includes('encontrado') ? 404 : 400
       return NextResponse.json(
         { success: false, error: result.error },
-        { status }
+        { status },
       )
     }
 
@@ -306,13 +304,13 @@ async function handlePost(
       message: result.alreadyMember
         ? 'Ya formas parte de esta organización'
         : 'Te has unido exitosamente a la organización',
-      organizationSlug: result.organizationSlug || null
+      organizationSlug: result.organizationSlug || null,
     })
   } catch (error) {
     techDebtLogger.error('Error in POST /api/invite/[token]:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

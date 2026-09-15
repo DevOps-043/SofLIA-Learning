@@ -9,10 +9,7 @@ import { logger } from '@/lib/utils/logger'
 
 import { createBusinessUserSchema, type CreateBusinessUserBody } from './schema'
 
-async function handlePost(
-  _request: NextRequest,
-  body: CreateBusinessUserBody,
-) {
+async function handlePost(_request: NextRequest, body: CreateBusinessUserBody) {
   const auth = await requireBusiness()
   if (auth instanceof NextResponse) return auth
 
@@ -23,9 +20,36 @@ async function handlePost(
       403,
     )
   }
+  if (!auth.isOrgAdmin) {
+    return apiError(
+      'FORBIDDEN',
+      'No tienes permisos para gestionar usuarios en esta organización.',
+      403,
+    )
+  }
+  if (!body.username?.trim() || !body.job_title?.trim()) {
+    return apiError(
+      'INVALID_USER_DATA',
+      'El nombre de usuario y el cargo son obligatorios.',
+      400,
+    )
+  }
+
+  const requestedRole = body.org_role || 'member'
+  const allowedRoles =
+    auth.organizationRole === 'owner' || auth.userRole === 'Administrador'
+      ? ['member', 'admin', 'owner']
+      : ['member', 'admin']
+  if (!allowedRoles.includes(requestedRole)) {
+    return apiError(
+      'FORBIDDEN_ROLE_ASSIGNMENT',
+      `No tienes permisos para asignar el rol '${requestedRole}'.`,
+      403,
+    )
+  }
 
   const userData: CreateBusinessUserRequest = {
-    username: body.username,
+    username: body.username.trim(),
     email: body.email,
     password: body.password,
     first_name: body.first_name,
@@ -33,10 +57,12 @@ async function handlePost(
     display_name: body.display_name ?? undefined,
     date_of_birth: body.date_of_birth ?? undefined,
     gender: body.gender ?? undefined,
-    job_title: body.job_title ?? undefined,
-    org_role: body.org_role || 'member',
+    job_title: body.job_title.trim(),
+    org_role: requestedRole,
     send_invitation:
-      body.send_invitation !== undefined ? body.send_invitation : !body.password,
+      body.send_invitation !== undefined
+        ? body.send_invitation
+        : !body.password,
   }
 
   try {

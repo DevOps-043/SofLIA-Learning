@@ -133,6 +133,7 @@ export interface UserInvitationRow {
 
 export interface UserInvitationWrite {
   accepted_at?: string
+  created_by?: string | null
   email?: string
   expires_at?: string
   metadata?: UserInvitationMetadata | null
@@ -156,12 +157,18 @@ export interface InvitationRecord {
 }
 
 export interface CreateInvitationInput {
+  createdBy: string
   email: string
   token: string
   role: string
   organizationId: string
   expiresAt: string
   metadata: UserInvitationMetadata | null
+}
+
+export interface OrganizationAdminAuthorization {
+  canAssignOwner: boolean
+  userId: string
 }
 
 export interface CreateOrganizationMembershipInput {
@@ -212,18 +219,23 @@ export interface RefreshTokenRow {
 }
 
 export interface InvitationRepository {
-  addOrganizationMembership(input: CreateOrganizationMembershipInput): Promise<void>
+  addOrganizationMembership(
+    input: CreateOrganizationMembershipInput,
+  ): Promise<void>
   acceptInvitation(invitationId: string, acceptedAt: string): Promise<void>
   createBulkInviteRegistration(linkId: string, userId: string): Promise<void>
-  deleteOrganizationMembership(userId: string, organizationId: string): Promise<void>
+  deleteOrganizationMembership(
+    userId: string,
+    organizationId: string,
+  ): Promise<void>
   createInvitation(input: CreateInvitationInput): Promise<{ id: string }>
   findOrganizationMembership(
     userId: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<OrganizationMembershipRecord | null>
   findPendingInvitationByEmail(
     email: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<InvitationRecord | null>
   findUserByEmail(email: string): Promise<UserRecord | null>
   findUserById(userId: string): Promise<UserRecord | null>
@@ -233,20 +245,22 @@ export interface InvitationRepository {
   getInvitationForConsume(
     tokenOrEmail: string,
     organizationId: string,
-    lookupByToken: boolean
+    lookupByToken: boolean,
   ): Promise<InvitationRecord | null>
-  getOrganizationById(organizationId: string): Promise<OrganizationSummary | null>
+  getOrganizationById(
+    organizationId: string,
+  ): Promise<OrganizationSummary | null>
   getOrganizationSlug(organizationId: string): Promise<string | null>
   listOrganizationInvitations(
     organizationId: string,
-    status?: InvitationStatus
+    status?: InvitationStatus,
   ): Promise<InvitationRecord[]>
   markBulkInviteLinkStatus(linkId: string, status: string): Promise<void>
   markInvitationExpired(invitationId: string): Promise<void>
   refreshInvitation(
     invitationId: string,
     token: string,
-    expiresAt: string
+    expiresAt: string,
   ): Promise<void>
   resolveAuthenticatedUserId(): Promise<string | null>
   revokePendingInvitation(invitationId: string): Promise<void>
@@ -254,7 +268,7 @@ export interface InvitationRepository {
     linkId: string,
     expectedCurrentUses: number | null,
     nextUses: number,
-    nextStatus?: string
+    nextStatus?: string,
   ): Promise<boolean>
   setUserBusinessRole(userId: string): Promise<void>
 }
@@ -272,11 +286,14 @@ export interface InvitationEmailService {
     organizationName: string,
     organizationSlug: string,
     customMessage?: string,
-    organizationLogoUrl?: string
+    organizationLogoUrl?: string,
   ): Promise<unknown>
 }
 
 export interface InvitationRuntime {
+  authorizeOrganizationAdmin(
+    organizationId: string,
+  ): Promise<OrganizationAdminAuthorization | null>
   createToken: () => string
   emailService: InvitationEmailService
   logger: InvitationLogger

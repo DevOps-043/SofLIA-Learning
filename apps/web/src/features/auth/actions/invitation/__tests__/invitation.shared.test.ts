@@ -36,6 +36,8 @@ describe('invitation/shared', () => {
 
   it('normalizes bulk invite roles and lifecycle checks', () => {
     expect(resolveInvitationRole(null)).toBe('member')
+    expect(resolveInvitationRole('admin')).toBe('member')
+    expect(resolveInvitationRole('owner')).toBe('member')
     expect(
       getBulkInviteStateCheck(
         {
@@ -47,8 +49,8 @@ describe('invitation/shared', () => {
           role: 'admin',
           status: 'active',
         },
-        new Date('2026-04-02T12:00:00.000Z')
-      )
+        new Date('2026-04-02T12:00:00.000Z'),
+      ),
     ).toEqual({
       error: 'Este enlace ha alcanzado el limite de registros',
       statusToPersist: 'exhausted',

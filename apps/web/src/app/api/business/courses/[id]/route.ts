@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
@@ -57,7 +58,7 @@ interface ModuleWithLessons extends CourseModuleRow {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const auth = await requireBusiness()
@@ -71,18 +72,23 @@ export async function GET(
 
     if (!id || id === 'undefined' || id === 'null') {
       logger.error('❌ Invalid course ID:', id)
-      return NextResponse.json({
-        success: false,
-        error: 'ID de curso no válido'
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'ID de curso no válido',
+        },
+        { status: 400 },
+      )
     }
 
     const supabase = await createClient()
+    const purchaseClient = createAdminClient()
 
     // Obtener información del curso (buscar por ID)
     const { data: course, error: courseError } = await supabase
       .from('courses')
-      .select(`
+      .select(
+        `
         id,
         title,
         description,
@@ -100,7 +106,8 @@ export async function GET(
         learning_objectives,
         created_at,
         updated_at
-      `)
+      `,
+      )
       .eq('id', id)
       .single()
 
@@ -111,28 +118,37 @@ export async function GET(
         message: courseError.message,
         details: courseError.details,
         hint: courseError.hint,
-        courseId: id
+        courseId: id,
       })
 
       if (courseError.code === 'PGRST116') {
-        return NextResponse.json({
-          success: false,
-          error: `Curso con ID "${id}" no encontrado en la base de datos`
-        }, { status: 404 })
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Curso con ID "${id}" no encontrado en la base de datos`,
+          },
+          { status: 404 },
+        )
       }
 
-      return NextResponse.json({
-        success: false,
-        error: `Error al obtener el curso: ${courseError.message || 'Error desconocido'}`
-      }, { status: 500 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Error al obtener el curso: ${courseError.message || 'Error desconocido'}`,
+        },
+        { status: 500 },
+      )
     }
 
     if (!course) {
       logger.error('❌ Course not found (null result):', id)
-      return NextResponse.json({
-        success: false,
-        error: `Curso con ID "${id}" no encontrado`
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Curso con ID "${id}" no encontrado`,
+        },
+        { status: 404 },
+      )
     }
 
     logger.info(`✅ Course found: ${course.title} (${course.id})`)
@@ -143,7 +159,9 @@ export async function GET(
 
     // Si el curso no tiene instructor_id, intentar obtenerlo de la primera lección
     if (!instructorId) {
-      logger.info('🔍 Course has no instructor_id, trying to get from first lesson...')
+      logger.info(
+        '🔍 Course has no instructor_id, trying to get from first lesson...',
+      )
 
       // Obtener el primer módulo
       const { data: firstModule } = await supabase
@@ -168,7 +186,9 @@ export async function GET(
 
         if (firstLesson?.instructor_id) {
           instructorId = firstLesson.instructor_id
-          logger.info(`✅ Found instructor_id from first lesson: ${instructorId}`)
+          logger.info(
+            `✅ Found instructor_id from first lesson: ${instructorId}`,
+          )
         }
       }
     }
@@ -176,12 +196,15 @@ export async function GET(
     if (instructorId) {
       const { data: instructorData, error: instructorError } = await supabase
         .from('users')
-        .select('id, first_name, last_name, display_name, username, email, profile_picture_url, bio, location, platform_role')
+        .select(
+          'id, first_name, last_name, display_name, username, email, profile_picture_url, bio, location, platform_role',
+        )
         .eq('id', instructorId)
         .single()
 
       if (!instructorError && instructorData) {
-        const name = instructorData.display_name ||
+        const name =
+          instructorData.display_name ||
           `${instructorData.first_name || ''} ${instructorData.last_name || ''}`.trim() ||
           instructorData.username ||
           'Instructor'
@@ -193,7 +216,7 @@ export async function GET(
           profile_picture_url: instructorData.profile_picture_url,
           bio: instructorData.bio,
           location: instructorData.location,
-          platform_role: instructorData.platform_role
+          platform_role: instructorData.platform_role,
         }
         logger.info(`✅ Instructor loaded: ${name}`)
       } else {
@@ -206,7 +229,8 @@ export async function GET(
     // Obtener módulos del curso (usar course.id, no el parámetro id)
     const { data: modules, error: modulesError } = await supabase
       .from('course_modules')
-      .select(`
+      .select(
+        `
         module_id,
         module_title,
         module_description,
@@ -214,7 +238,8 @@ export async function GET(
         module_duration_minutes,
         is_required,
         is_published
-      `)
+      `,
+      )
       .eq('course_id', course.id)
       .eq('is_published', true)
       .order('module_order_index', { ascending: true })
@@ -225,7 +250,8 @@ export async function GET(
       (modules || []).map(async (module): Promise<ModuleWithLessons> => {
         const { data: lessons, error: lessonsError } = await supabase
           .from('course_lessons')
-          .select(`
+          .select(
+            `
             lesson_id,
             lesson_title,
             lesson_description,
@@ -235,7 +261,8 @@ export async function GET(
             video_provider,
             video_provider_id,
             is_published
-          `)
+          `,
+          )
           .eq('module_id', module.module_id)
           .eq('is_published', true)
           .order('lesson_order_index', { ascending: true })
@@ -251,7 +278,10 @@ export async function GET(
 
         // Primero, intentar usar total_duration_minutes de cada lección
         for (const lesson of lessonsList) {
-          if (lesson.total_duration_minutes && lesson.total_duration_minutes > 0) {
+          if (
+            lesson.total_duration_minutes &&
+            lesson.total_duration_minutes > 0
+          ) {
             totalModuleDuration += lesson.total_duration_minutes
             hasLessonTotalDuration = true
           } else if (lesson.duration_seconds && lesson.duration_seconds > 0) {
@@ -271,7 +301,7 @@ export async function GET(
 
           const materialsMinutes = (materials || []).reduce(
             (sum, material) => sum + (material.estimated_time_minutes || 0),
-            0
+            0,
           )
 
           // Obtener tiempo de actividades
@@ -283,7 +313,7 @@ export async function GET(
 
           const activitiesMinutes = (activities || []).reduce(
             (sum, activity) => sum + (activity.estimated_time_minutes || 0),
-            0
+            0,
           )
 
           totalModuleDuration += materialsMinutes + activitiesMinutes
@@ -293,9 +323,9 @@ export async function GET(
           ...module,
           lessons: lessonsList,
           // Guardar duración total calculada para uso en el frontend
-          calculated_duration_minutes: totalModuleDuration
+          calculated_duration_minutes: totalModuleDuration,
         }
-      })
+      }),
     )
 
     // Obtener reviews recientes (usar course.id, no el parámetro id)
@@ -303,7 +333,8 @@ export async function GET(
     try {
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('course_reviews')
-        .select(`
+        .select(
+          `
           review_id,
           review_title,
           review_content,
@@ -312,7 +343,8 @@ export async function GET(
           created_at,
           user_id,
           users!inner (display_name, first_name, last_name, username, profile_picture_url)
-        `)
+        `,
+        )
         .eq('course_id', course.id)
         .eq('is_public', true)
         .order('created_at', { ascending: false })
@@ -334,11 +366,16 @@ export async function GET(
     const totalModules = modulesWithLessons.length
     const totalLessons = modulesWithLessons.reduce(
       (sum, module) => sum + (module.lessons?.length || 0),
-      0
+      0,
     )
     // Usar calculated_duration_minutes que ya incluye videos + materiales + actividades
     const totalDuration = modulesWithLessons.reduce((sum, module) => {
-      return sum + (module.calculated_duration_minutes || module.module_duration_minutes || 0)
+      return (
+        sum +
+        (module.calculated_duration_minutes ||
+          module.module_duration_minutes ||
+          0)
+      )
     }, 0)
 
     // Verificar membresía y estado de compra a nivel de organización
@@ -356,15 +393,21 @@ export async function GET(
         try {
           // Verificar membresía activa — pasar auth.organizationId para evitar resolución
           // incorrecta en usuarios pertenecientes a múltiples empresas
-          hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id, auth.organizationId)
+          hasSubscription = await SubscriptionService.hasActiveSubscription(
+            currentUser.id,
+            auth.organizationId,
+          )
         } catch (subError) {
-          logger.warn('⚠️ Error checking subscription (non-critical):', subError)
+          logger.warn(
+            '⚠️ Error checking subscription (non-critical):',
+            subError,
+          )
           hasSubscription = false
         }
 
         try {
           // Verificar si la organización ya compró el curso
-          const { data: orgPurchase } = await supabase
+          const { data: orgPurchase } = await purchaseClient
             .from('organization_course_purchases')
             .select('purchase_id')
             .eq('organization_id', auth.organizationId)
@@ -376,10 +419,11 @@ export async function GET(
 
           // Si no está comprado, verificar si puede comprarlo gratis
           if (!isOrganizationPurchased && hasSubscription) {
-            const limitCheck = await SubscriptionService.canOrganizationPurchaseCourse(
-              auth.organizationId,
-              10
-            )
+            const limitCheck =
+              await SubscriptionService.canOrganizationPurchaseCourse(
+                auth.organizationId,
+                10,
+              )
             canPurchaseForFree = limitCheck.canPurchase
             monthlyCourseCount = limitCheck.currentCount
             maxCoursesPerPeriod = limitCheck.maxCourses
@@ -387,7 +431,10 @@ export async function GET(
 
           canAssign = hasSubscription && isOrganizationPurchased
         } catch (purchaseError) {
-          logger.warn('⚠️ Error checking organization purchase (non-critical):', purchaseError)
+          logger.warn(
+            '⚠️ Error checking organization purchase (non-critical):',
+            purchaseError,
+          )
           isOrganizationPurchased = false
           canAssign = false
         }
@@ -419,24 +466,26 @@ export async function GET(
         stats: {
           total_modules: totalModules,
           total_lessons: totalLessons,
-          total_duration_minutes: totalDuration
+          total_duration_minutes: totalDuration,
         },
         modules: modulesWithLessons,
-        reviews: (reviews || []).map((review) => ({
-          id: review.review_id,
-          title: review.review_title,
-          content: review.review_content,
-          rating: review.rating,
-          is_verified: review.is_verified,
-          created_at: review.created_at,
-          user: {
-            name: review.users?.display_name ||
-              `${review.users?.first_name || ''} ${review.users?.last_name || ''}`.trim() ||
-              review.users?.username ||
-              'Usuario',
-            profile_picture_url: review.users?.profile_picture_url
-          }
-        })) || [],
+        reviews:
+          (reviews || []).map((review) => ({
+            id: review.review_id,
+            title: review.review_title,
+            content: review.review_content,
+            rating: review.rating,
+            is_verified: review.is_verified,
+            created_at: review.created_at,
+            user: {
+              name:
+                review.users?.display_name ||
+                `${review.users?.first_name || ''} ${review.users?.last_name || ''}`.trim() ||
+                review.users?.username ||
+                'Usuario',
+              profile_picture_url: review.users?.profile_picture_url,
+            },
+          })) || [],
         subscription_status: {
           has_subscription: hasSubscription,
           is_purchased: isOrganizationPurchased, // Mantener para compatibilidad
@@ -444,24 +493,28 @@ export async function GET(
           can_assign: canAssign,
           can_purchase_for_free: canPurchaseForFree,
           monthly_course_count: monthlyCourseCount,
-          max_courses_per_period: maxCoursesPerPeriod
-        }
-      }
+          max_courses_per_period: maxCoursesPerPeriod,
+        },
+      },
     })
   } catch (error) {
     logger.error('💥 Error in /api/business/courses/[id]:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Error desconocido'
     const errorStack = error instanceof Error ? error.stack : undefined
 
     logger.error('💥 Error details:', {
       message: errorMessage,
       stack: errorStack,
-      error
+      error,
     })
 
-    return NextResponse.json({
-      success: false,
-      error: `Error al obtener detalles del curso: ${errorMessage}`
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: `Error al obtener detalles del curso: ${errorMessage}`,
+      },
+      { status: 500 },
+    )
   }
 }

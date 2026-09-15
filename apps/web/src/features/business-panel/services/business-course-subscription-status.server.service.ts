@@ -1,9 +1,13 @@
+import type { createAdminClient } from '../../../lib/supabase/admin'
 import { logger } from '../../../lib/logger'
 import type { BusinessCourseSubscriptionStatus } from '../types/business-course-detail.types'
 import { SubscriptionService } from './subscription.service'
 import { buildSubscriptionStatus } from './business-course-subscription-status.mapper'
 
+type PurchaseStatusClient = ReturnType<typeof createAdminClient>
+
 export async function fetchSubscriptionStatus(
+  supabase: PurchaseStatusClient,
   businessUserId: string,
   organizationId: string | undefined,
   courseId: string,
@@ -16,6 +20,7 @@ export async function fetchSubscriptionStatus(
     organizationId,
   )
   const purchaseStatus = await getOrganizationCoursePurchaseStatus(
+    supabase,
     organizationId,
     courseId,
     hasSubscription,
@@ -48,6 +53,7 @@ async function hasActiveBusinessSubscription(
 }
 
 async function getOrganizationCoursePurchaseStatus(
+  supabase: PurchaseStatusClient,
   organizationId: string,
   courseId: string,
   hasSubscription: boolean,
@@ -57,13 +63,6 @@ async function getOrganizationCoursePurchaseStatus(
   let canPurchaseForFree = false
 
   try {
-    // organization_course_purchases nunca tuvo policies de RLS para
-    // `authenticated`; el barrido deny-by-default de la migracion
-    // 20260827120000_emergency_data_api_lockdown la dejo sin grants. La
-    // ruta que invoca este servicio ya autorizo al llamante via
-    // requireBusiness(), asi que se usa el cliente de service role.
-    const { createAdminClient } = await import('@/lib/supabase/admin')
-    const supabase = createAdminClient()
     const { data: orgPurchase } = await supabase
       .from('organization_course_purchases')
       .select('purchase_id')

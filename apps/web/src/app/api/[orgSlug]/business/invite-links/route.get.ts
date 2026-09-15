@@ -5,13 +5,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 
-import { nanoid } from 'nanoid'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 
 // GET - List all bulk invite links for the organization
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ orgSlug: string }> }
+  { params }: { params: Promise<{ orgSlug: string }> },
 ) {
   try {
     const { orgSlug } = await params
@@ -22,7 +21,16 @@ export async function GET(
     if (!auth.organizationId) {
       return NextResponse.json(
         { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+        { status: 403 },
+      )
+    }
+    if (!auth.isOrgAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tienes permisos para consultar enlaces de invitacion',
+        },
+        { status: 403 },
       )
     }
 
@@ -41,19 +49,22 @@ export async function GET(
       techDebtLogger.error('Error fetching bulk invite links:', error)
       return NextResponse.json(
         { success: false, error: 'Error al obtener enlaces de invitación' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      links: links || []
+      links: links || [],
     })
   } catch (error) {
-    techDebtLogger.error('Error in GET /api/[orgSlug]/business/invite-links:', error)
+    techDebtLogger.error(
+      'Error in GET /api/[orgSlug]/business/invite-links:',
+      error,
+    )
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

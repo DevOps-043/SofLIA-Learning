@@ -11,17 +11,32 @@ import { AutoNotificationsService } from '@/features/notifications/services/auto
 
 export async function inviteUser(
   input: InviteUserActionInput,
-  runtime: InvitationRuntime
+  runtime: InvitationRuntime,
 ): Promise<InviteResult> {
   try {
     const data = parseInviteUserInput(input)
     const normalizedEmail = normalizeEmail(data.email)
+    const authorization = await runtime.authorizeOrganizationAdmin(
+      data.organizationId,
+    )
+    if (!authorization) {
+      return {
+        success: false,
+        error: 'No tienes permisos para invitar usuarios a esta organizacion',
+      }
+    }
+    if (data.role === 'owner' && !authorization.canAssignOwner) {
+      return {
+        success: false,
+        error: 'Solo un propietario puede invitar a otro propietario',
+      }
+    }
 
     const existingUser = await runtime.repo.findUserByEmail(normalizedEmail)
     if (existingUser) {
       const orgUser = await runtime.repo.findOrganizationMembership(
         existingUser.id,
-        data.organizationId
+        data.organizationId,
       )
 
       if (orgUser) {
@@ -30,21 +45,11 @@ export async function inviteUser(
           error: 'Este usuario ya pertenece a la organizacion',
         }
       }
-
-      // Notificar in-app si el usuario ya existe
-      const organization = await runtime.repo.getOrganizationById(data.organizationId)
-      if (organization) {
-        await AutoNotificationsService.notifyUserInvited(
-          existingUser.id,
-          data.organizationId,
-          organization.name ?? 'Organizacion'
-        )
-      }
     }
 
     const existingInvitation = await runtime.repo.findPendingInvitationByEmail(
       normalizedEmail,
-      data.organizationId
+      data.organizationId,
     )
 
     if (existingInvitation) {
@@ -56,6 +61,7 @@ export async function inviteUser(
 
     const token = runtime.createToken()
     const invitation = await runtime.repo.createInvitation({
+      createdBy: authorization.userId,
       email: normalizedEmail,
       expiresAt: buildInvitationExpiry(runtime.now()),
       metadata: {
@@ -67,7 +73,9 @@ export async function inviteUser(
       token,
     })
 
-    const organization = await runtime.repo.getOrganizationById(data.organizationId)
+    const organization = await runtime.repo.getOrganizationById(
+      data.organizationId,
+    )
 
     try {
       await runtime.emailService.sendOrganizationInvitationEmail(
@@ -76,16 +84,35 @@ export async function inviteUser(
         organization?.name ?? 'Organizacion',
         organization?.slug ?? '',
         data.customMessage,
-        organization?.logoUrl ?? undefined
+        organization?.logoUrl ?? undefined,
       )
 
       runtime.logger.info('Invitation sent successfully', {
-        email: data.email,
         invitationId: invitation.id,
         organizationId: data.organizationId,
       })
     } catch (emailError) {
       runtime.logger.error('Error sending invitation email:', emailError)
+      await runtime.repo.revokePendingInvitation(invitation.id)
+      return {
+        success: false,
+        error: 'No se pudo enviar el correo de invitacion. Intenta nuevamente.',
+      }
+    }
+
+    if (existingUser && organization) {
+      try {
+        await AutoNotificationsService.notifyUserInvited(
+          existingUser.id,
+          data.organizationId,
+          organization.name ?? 'Organizacion',
+        )
+      } catch {
+        runtime.logger.warn('Invitation in-app notification failed', {
+          invitationId: invitation.id,
+          organizationId: data.organizationId,
+        })
+      }
     }
 
     return {

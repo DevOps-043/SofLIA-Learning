@@ -19,6 +19,8 @@
     "audit:pagination": "tsx scripts/audit-api-pagination.ts",
     "audit:route-validation": "tsx scripts/audit-route-validation.ts",
     "pentest:local": "node scripts/security/pentest-local.mjs",
+    "security:check-auth-verification": "node scripts/security/check-supabase-auth-verification.mjs",
+    "security:check-email-templates": "node scripts/security/check-supabase-email-templates.mjs",
     "lint": "npm run lint --workspaces",
     "type-check": "npm run type-check --workspaces && tsc --noEmit",
     "load:seed": "tsx tools/load-testing/seed.ts",

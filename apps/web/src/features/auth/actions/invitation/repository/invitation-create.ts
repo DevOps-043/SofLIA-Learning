@@ -14,12 +14,13 @@ type InvitationCreateMethods = Pick<
 >
 
 export function createInvitationCreateMethods(
-  supabase: unknown
+  supabase: unknown,
 ): InvitationCreateMethods {
   return {
     async createInvitation(input: CreateInvitationInput) {
       const { data, error } = await userInvitationsTable(supabase)
         .insert({
+          created_by: input.createdBy,
           email: input.email,
           expires_at: input.expiresAt,
           metadata: input.metadata,
@@ -39,7 +40,7 @@ export function createInvitationCreateMethods(
 
     async findPendingInvitationByEmail(
       email: string,
-      organizationId: string
+      organizationId: string,
     ): Promise<InvitationRecord | null> {
       const normalized = email.trim()
       if (!normalized) {
@@ -47,7 +48,9 @@ export function createInvitationCreateMethods(
       }
 
       const { data } = await userInvitationsTable(supabase)
-        .select('id, email, token, role, status, expires_at, organization_id, metadata, created_at')
+        .select(
+          'id, email, token, role, status, expires_at, organization_id, metadata, created_at',
+        )
         .eq('organization_id', organizationId)
         .eq('status', 'pending')
         .ilike('email', escapeIlikePattern(normalized))

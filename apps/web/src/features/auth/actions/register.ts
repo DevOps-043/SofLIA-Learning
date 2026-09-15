@@ -3,7 +3,6 @@
 import { z } from 'zod'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '../../../lib/supabase/server'
 import { requireHumanVerification } from '@/lib/security/bot-protection'
 import { recordSecurityEvent } from '@/lib/security/security-events'
 import {
@@ -21,11 +20,12 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { validatePasswordIsNotBreached } from './password-breach-check.server'
 import { validatePublicRegistrationEmail } from './registration-email-policy.server'
 import {
-  consumeInvitationAction,
   findInvitationByEmailAction,
   validateInvitationAction,
 } from './invitation'
 import { createInvitationRepository } from './invitation/repository'
+import { consumeProvisionedUserInvitation } from './invitation/invitation-consumption.service'
+import { createInvitationRuntime } from './invitation/runtime'
 import { finalizeBulkInviteRegistration } from './invitation/invitation-redemption.service'
 import { validateBulkInviteRegistration } from './invitation/invitation-validation.service'
 import { sendSupabaseSignupConfirmation } from '../services/supabase-auth-bridge.service'
@@ -80,21 +80,26 @@ export async function registerAction(formData: FormData) {
       recordSecurityEvent('registration-failure', {
         metadata: { reason: 'human_verification_failed' },
       })
-      return { error: humanVerification.error || 'Verificacion humana requerida' }
+      return {
+        error: humanVerification.error || 'Verificacion humana requerida',
+      }
     }
 
     const rawData = Object.fromEntries(formData)
     const parsed = registerSchema.parse({
       ...rawData,
-      acceptTerms: rawData.acceptTerms === 'true' || rawData.acceptTerms === 'on',
+      acceptTerms:
+        rawData.acceptTerms === 'true' || rawData.acceptTerms === 'on',
     })
     const breachError = await validatePasswordIsNotBreached(parsed.password)
     if (breachError) return { error: breachError }
     const emailPolicyError = validatePublicRegistrationEmail(parsed.email)
     if (emailPolicyError) return { error: emailPolicyError }
 
-    const supabase = await createClient()
-    const invitationRepository = createInvitationRepository(supabase)
+    // Invitation tables are intentionally hidden from browser roles. Registration
+    // is a server action, so redemption uses the service client after validating
+    // the invitation token/email and organization below.
+    const invitationRepository = createInvitationRepository(createAdminClient())
     const organizationContext = await resolveOrganizationRegistrationContext({
       bulkInviteToken: formData.get('bulkInviteToken')?.toString(),
       email: parsed.email,
@@ -123,7 +128,10 @@ export async function registerAction(formData: FormData) {
       phone: parsed.phoneNumber,
       username: parsed.username,
     }).catch((error) => {
-      techDebtLogger.error('[registerAction] Error provisioning account:', error)
+      techDebtLogger.error(
+        '[registerAction] Error provisioning account:',
+        error,
+      )
       return { error: mapProvisioningError(error) }
     })
     if ('error' in provisioned) return { error: provisioned.error }
@@ -132,7 +140,10 @@ export async function registerAction(formData: FormData) {
       await sendSupabaseSignupConfirmation(parsed.email)
     } catch (error) {
       await rollbackProvisionedAuthAccount(provisioned.userId)
-      techDebtLogger.error('[registerAction] Error sending email confirmation:', error)
+      techDebtLogger.error(
+        '[registerAction] Error sending email confirmation:',
+        error,
+      )
       return {
         error:
           'No se pudo enviar el correo de verificacion. Intenta registrarte nuevamente mas tarde.',
@@ -226,7 +237,8 @@ async function resolveOrganizationRegistrationContext(input: {
   }
 
   return {
-    cargoTitle: invitation.position || input.submittedCargoTitle?.trim() || 'Usuario',
+    cargoTitle:
+      invitation.position || input.submittedCargoTitle?.trim() || 'Usuario',
     organizationId: input.organizationId,
     role: invitation.role || 'member',
   }
@@ -236,7 +248,9 @@ async function validateRegistrationOrganization(
   organizationId: string,
   organizationSlug: string,
 ) {
-  const supabase = await createClient()
+  // Anonymous registrations cannot read organizations after the API lockdown.
+  // Keep the lookup server-side and return only a generic eligibility result.
+  const supabase = createAdminClient()
   const { data: organization, error } = await supabase
     .from('organizations')
     .select('id, slug, subscription_plan, subscription_status, is_active')
@@ -264,9 +278,8 @@ async function resolveBulkInviteContext(input: {
   organizationId?: string
   submittedCargoTitle?: string
 }) {
-  const supabase = await createClient()
   const validation = await validateBulkInviteRegistration(
-    createInvitationRepository(supabase),
+    createInvitationRepository(createAdminClient()),
     input.bulkInviteToken as string,
     input.organizationId as string,
   )
@@ -290,7 +303,9 @@ async function resolveIndividualInviteContext(input: {
   organizationId?: string
   submittedCargoTitle?: string
 }) {
-  const validation = await validateInvitationAction(input.invitationToken as string)
+  const validation = await validateInvitationAction(
+    input.invitationToken as string,
+  )
   if (!validation.valid) {
     return { error: validation.error || 'Invitacion invalida o expirada' }
   }
@@ -316,22 +331,23 @@ async function createOrganizationMembership(input: {
   userId: string
 }) {
   const adminSupabase = createAdminClient()
-  const { error } = await adminSupabase
-    .from('organization_users')
-    .upsert(
-      {
-        job_title: input.cargoTitle,
-        joined_at: new Date().toISOString(),
-        organization_id: input.organizationId,
-        role: input.role,
-        status: 'active',
-        user_id: input.userId,
-      },
-      { onConflict: 'organization_id,user_id' },
-    )
+  const { error } = await adminSupabase.from('organization_users').upsert(
+    {
+      job_title: input.cargoTitle,
+      joined_at: new Date().toISOString(),
+      organization_id: input.organizationId,
+      role: input.role,
+      status: 'active',
+      user_id: input.userId,
+    },
+    { onConflict: 'organization_id,user_id' },
+  )
 
   if (!error) return {}
-  techDebtLogger.error('[registerAction] Error creating organization membership:', error)
+  techDebtLogger.error(
+    '[registerAction] Error creating organization membership:',
+    error,
+  )
   return { error: 'Error al vincular la cuenta con la organizacion' }
 }
 
@@ -355,10 +371,11 @@ async function consumeRegistrationInvitation(input: {
       : { error: result.error || 'Error al finalizar la invitacion masiva' }
   }
 
-  const result = await consumeInvitationAction(
+  const result = await consumeProvisionedUserInvitation(
     input.invitationToken || input.email,
     input.organizationId,
     input.userId,
+    await createInvitationRuntime(),
   )
   return result.success
     ? {}

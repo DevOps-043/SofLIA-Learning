@@ -8,7 +8,7 @@ import type {
 } from '../types'
 
 export function createInvitationRepositoryMock(
-  overrides: Partial<InvitationRepository> = {}
+  overrides: Partial<InvitationRepository> = {},
 ): InvitationRepository {
   return {
     addOrganizationMembership: vi.fn(async () => undefined),
@@ -39,7 +39,7 @@ export function createInvitationRepositoryMock(
 }
 
 export function createInvitationRuntimeMock(
-  overrides: Partial<InvitationRuntime> = {}
+  overrides: Partial<InvitationRuntime> = {},
 ): InvitationRuntime {
   const logger: InvitationLogger = {
     error: vi.fn(),
@@ -52,6 +52,10 @@ export function createInvitationRuntimeMock(
   }
 
   return {
+    authorizeOrganizationAdmin: vi.fn(async () => ({
+      canAssignOwner: true,
+      userId: 'admin-1',
+    })),
     createToken: () => 'a'.repeat(64),
     emailService,
     logger,

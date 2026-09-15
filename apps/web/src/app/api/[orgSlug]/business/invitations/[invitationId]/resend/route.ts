@@ -9,11 +9,11 @@ import {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { orgSlug: string, invitationId: string } }
+  { params }: { params: { orgSlug: string; invitationId: string } },
 ) {
   try {
     const { orgSlug, invitationId } = params
-    
+
     // Auth check
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
@@ -21,7 +21,16 @@ export async function POST(
     if (!auth.organizationId) {
       return NextResponse.json(
         { success: false, error: 'Organización no encontrada' },
-        { status: 400 }
+        { status: 400 },
+      )
+    }
+    if (!auth.isOrgAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tienes permisos para reenviar invitaciones',
+        },
+        { status: 403 },
       )
     }
 
@@ -39,24 +48,30 @@ export async function POST(
       .single()
 
     if (fetchError || !invitation) {
-      return NextResponse.json({ success: false, error: 'Invitación no encontrada' }, { status: 404 })
+      return NextResponse.json(
+        { success: false, error: 'Invitación no encontrada' },
+        { status: 404 },
+      )
     }
 
     const result = await resendInvitation(
       invitationId,
-      // 'admin': this route already authorized via requireBusiness() above and
-      // never resolves the caller's session from the runtime, so it can use
-      // the service-role client that still has grants on user_invitations.
-      await createInvitationRuntime({ client: 'admin' }),
+      await createInvitationRuntime(),
     )
 
     if (!result.success) {
-      return NextResponse.json({ success: false, error: result.error }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: result.error },
+        { status: 400 },
+      )
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
     logger.error('Unexpected error resending invitation:', error)
-    return NextResponse.json({ success: false, error: 'Error inesperado' }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: 'Error inesperado' },
+      { status: 500 },
+    )
   }
 }

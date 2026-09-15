@@ -9,12 +9,18 @@ import type {
 export async function listOrganizationInvitations(
   organizationId: string,
   status: InvitationStatus | undefined,
-  runtime: InvitationRuntime
+  runtime: InvitationRuntime,
 ): Promise<ListOrganizationInvitationsResult> {
   try {
+    const authorization =
+      await runtime.authorizeOrganizationAdmin(organizationId)
+    if (!authorization) {
+      return { success: false, error: 'No autorizado' }
+    }
+
     const invitations = await runtime.repo.listOrganizationInvitations(
       organizationId,
-      status
+      status,
     )
 
     return {
@@ -27,7 +33,7 @@ export async function listOrganizationInvitations(
           metadata: invitation.metadata,
           role: invitation.role,
           status: invitation.status,
-        })
+        }),
       ),
       success: true,
     }
@@ -39,13 +45,20 @@ export async function listOrganizationInvitations(
 
 export async function resendInvitation(
   invitationId: string,
-  runtime: InvitationRuntime
+  runtime: InvitationRuntime,
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const invitation = await runtime.repo.getInvitationById(invitationId)
 
     if (!invitation) {
       return { success: false, error: 'Invitacion no encontrada' }
+    }
+
+    const authorization = await runtime.authorizeOrganizationAdmin(
+      invitation.organizationId,
+    )
+    if (!authorization) {
+      return { success: false, error: 'No autorizado' }
     }
 
     if (invitation.status !== 'pending') {
@@ -67,10 +80,15 @@ export async function resendInvitation(
         invitation.organization?.name ?? 'Organizacion',
         invitation.organization?.slug ?? '',
         invitation.metadata?.custom_message ?? undefined,
-        invitation.organization?.logoUrl ?? undefined
+        invitation.organization?.logoUrl ?? undefined,
       )
     } catch (emailError) {
       runtime.logger.error('Error resending invitation email:', emailError)
+      await runtime.repo.refreshInvitation(
+        invitationId,
+        invitation.token,
+        invitation.expiresAt,
+      )
       return { success: false, error: 'Error enviando email' }
     }
 
@@ -83,9 +101,21 @@ export async function resendInvitation(
 
 export async function revokeInvitation(
   invitationId: string,
-  runtime: InvitationRuntime
+  runtime: InvitationRuntime,
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    const invitation = await runtime.repo.getInvitationById(invitationId)
+    if (!invitation) {
+      return { success: false, error: 'Invitacion no encontrada' }
+    }
+
+    const authorization = await runtime.authorizeOrganizationAdmin(
+      invitation.organizationId,
+    )
+    if (!authorization) {
+      return { success: false, error: 'No autorizado' }
+    }
+
     await runtime.repo.revokePendingInvitation(invitationId)
     return { success: true }
   } catch (error) {

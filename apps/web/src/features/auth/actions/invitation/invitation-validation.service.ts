@@ -20,12 +20,12 @@ import type {
 export async function findInvitationByEmail(
   email: string,
   organizationId: string,
-  runtime: InvitationRuntime
+  runtime: InvitationRuntime,
 ): Promise<FindInvitationResult> {
   try {
     const invitation = await runtime.repo.findPendingInvitationByEmail(
       normalizeEmail(email),
-      organizationId
+      organizationId,
     )
 
     if (!invitation) {
@@ -50,7 +50,7 @@ export async function findInvitationByEmail(
 
 export async function validateInvitation(
   token: string,
-  runtime: InvitationRuntime
+  runtime: InvitationRuntime,
 ): Promise<ValidateResult> {
   try {
     const parsed = validateInvitationSchema.parse({ token })
@@ -61,7 +61,10 @@ export async function validateInvitation(
     }
 
     if (invitation.status !== 'pending') {
-      return { valid: false, error: getInvitationStatusError(invitation.status) }
+      return {
+        valid: false,
+        error: getInvitationStatusError(invitation.status),
+      }
     }
 
     if (isExpired(invitation.expiresAt, runtime.now())) {
@@ -94,9 +97,10 @@ export async function validateInvitation(
 export async function validateInvitationToken(
   repository: InvitationRepository,
   token: string,
-  now: Date = new Date()
+  now: Date = new Date(),
 ): Promise<ValidateResult> {
   return validateInvitation(token, {
+    authorizeOrganizationAdmin: async () => null,
     createToken: () => '',
     emailService: {
       async sendOrganizationInvitationEmail() {
@@ -117,7 +121,7 @@ export async function validateBulkInviteRegistration(
   repository: InvitationRepository,
   token: string,
   organizationId: string,
-  now: Date = new Date()
+  now: Date = new Date(),
 ): Promise<BulkInviteValidationResult> {
   const link = await repository.getBulkInviteLinkByToken(token)
 

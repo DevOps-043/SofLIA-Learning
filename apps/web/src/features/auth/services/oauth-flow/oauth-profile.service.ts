@@ -50,6 +50,7 @@ export function normalizeGoogleOAuthProfile(
 
   return {
     email,
+    emailVerified: profile.email_verified,
     firstName,
     fullName: hasExplicitName
       ? profile.name || buildFullName(firstName, lastName, email)
@@ -72,6 +73,9 @@ export function normalizeMicrosoftOAuthProfile(
 
   return {
     email,
+    // Microsoft Graph only returns this profile after authenticating the
+    // account owning mail/userPrincipalName.
+    emailVerified: true,
     firstName,
     fullName:
       profile.displayName || buildFullName(firstName, lastName, email),

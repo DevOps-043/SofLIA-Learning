@@ -1,11 +1,9 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-
-import { nanoid } from 'nanoid'
 
 // GET - List all bulk invite links for the organization
 export async function GET() {
@@ -16,15 +14,26 @@ export async function GET() {
     if (!auth.organizationId) {
       return NextResponse.json(
         { success: false, error: 'No tienes una organización asignada' },
-        { status: 403 }
+        { status: 403 },
+      )
+    }
+    if (!auth.isOrgAdmin) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'No tienes permisos para consultar enlaces de invitacion',
+        },
+        { status: 403 },
       )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: links, error } = await supabase
       .from('bulk_invite_links')
-      .select('id, code, role, max_uses, used_count, expires_at, created_at, created_by, is_active')
+      .select(
+        'id, code, role, max_uses, used_count, expires_at, created_at, created_by, is_active',
+      )
       .eq('organization_id', auth.organizationId)
       .order('created_at', { ascending: false })
       .limit(100)
@@ -33,19 +42,19 @@ export async function GET() {
       techDebtLogger.error('Error fetching bulk invite links:', error)
       return NextResponse.json(
         { success: false, error: 'Error al obtener enlaces de invitación' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      links: links || []
+      links: links || [],
     })
   } catch (error) {
     techDebtLogger.error('Error in GET /api/business/invite-links:', error)
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

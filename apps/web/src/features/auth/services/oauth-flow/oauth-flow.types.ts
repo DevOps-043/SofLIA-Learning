@@ -27,6 +27,8 @@ export interface OAuthOrganizationContext {
 export interface NormalizedOAuthProfile {
   providerAccountId: string;
   email: string;
+  /** False means the provider explicitly says it has not verified the email. */
+  emailVerified?: boolean;
   fullName: string;
   firstName: string;
   lastName: string;

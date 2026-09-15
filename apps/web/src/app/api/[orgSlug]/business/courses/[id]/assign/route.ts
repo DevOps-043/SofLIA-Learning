@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
@@ -34,11 +34,15 @@ async function handleDelete(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    if (!auth.organizationId) {
-      return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
+    if (!auth.organizationId || !auth.isOrgAdmin) {
+      return apiError(
+        'COURSE_ASSIGNMENT_FORBIDDEN',
+        'No tienes permisos para gestionar asignaciones en esta organizacion',
+        403,
+      )
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { error: deleteError, count } = await supabase
       .from('organization_course_assignments')
@@ -56,7 +60,9 @@ async function handleDelete(
       )
     }
 
-    logger.info(`Revoked ${count} direct course assignment(s) for course ${courseId}`)
+    logger.info(
+      `Revoked ${count} direct course assignment(s) for course ${courseId}`,
+    )
 
     return NextResponse.json({
       success: true,
@@ -64,8 +70,15 @@ async function handleDelete(
       revoked_count: count ?? 0,
     })
   } catch (error) {
-    logger.error('Error in DELETE /api/[orgSlug]/business/courses/[id]/assign:', error)
-    return apiError('REVOKE_COURSE_ASSIGNMENTS_FAILED', 'Error interno del servidor', 500)
+    logger.error(
+      'Error in DELETE /api/[orgSlug]/business/courses/[id]/assign:',
+      error,
+    )
+    return apiError(
+      'REVOKE_COURSE_ASSIGNMENTS_FAILED',
+      'Error interno del servidor',
+      500,
+    )
   }
 }
 
@@ -84,20 +97,27 @@ async function handlePost(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    const supabase = await createClient()
+    if (!auth.organizationId || !auth.isOrgAdmin) {
+      return apiError(
+        'COURSE_ASSIGNMENT_FORBIDDEN',
+        'No tienes permisos para asignar cursos en esta organizacion',
+        403,
+      )
+    }
+
+    const supabase = createAdminClient()
 
     const currentUser = await SessionService.getCurrentUser()
     if (!currentUser) {
       return apiError('UNAUTHENTICATED', 'No autenticado', 401)
     }
 
-    if (!auth.organizationId) {
-      return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
-    }
-
     const organizationId = auth.organizationId
 
-    const hasSubscription = await SubscriptionService.hasActiveSubscription(currentUser.id, organizationId)
+    const hasSubscription = await SubscriptionService.hasActiveSubscription(
+      currentUser.id,
+      organizationId,
+    )
     if (!hasSubscription) {
       return apiError(
         'SUBSCRIPTION_REQUIRED',
@@ -127,6 +147,7 @@ async function handlePost(
       .select('id, title')
       .eq('id', courseId)
       .eq('is_active', true)
+      .eq('approval_status', 'approved')
       .single()
 
     if (courseError || !course) {
@@ -144,19 +165,36 @@ async function handlePost(
         const lpTarget =
           body.target.type === 'all'
             ? ({ type: 'all' } as const)
-            : ({ type: 'node', nodeIds: body.target.nodeIds ?? [], includeDescendants: body.target.includeDescendants ?? true } as const)
-        resolvedUserIds = await LearningPathDefaultsService.resolveTargetUserIds(organizationId, lpTarget)
+            : ({
+                type: 'node',
+                nodeIds: body.target.nodeIds ?? [],
+                includeDescendants: body.target.includeDescendants ?? true,
+              } as const)
+        resolvedUserIds =
+          await LearningPathDefaultsService.resolveTargetUserIds(
+            organizationId,
+            lpTarget,
+          )
       } catch (targetError) {
-        logger.error('Error resolving target users for course assignment:', targetError)
+        logger.error(
+          'Error resolving target users for course assignment:',
+          targetError,
+        )
         return apiError(
           'TARGET_RESOLUTION_FAILED',
-          targetError instanceof Error ? targetError.message : 'Error al resolver usuarios del destino',
+          targetError instanceof Error
+            ? targetError.message
+            : 'Error al resolver usuarios del destino',
           400,
         )
       }
 
       if (resolvedUserIds.length === 0) {
-        return apiError('NO_USERS_FOUND', 'No se encontraron usuarios activos para este destino', 400)
+        return apiError(
+          'NO_USERS_FOUND',
+          'No se encontraron usuarios activos para este destino',
+          400,
+        )
       }
     } else {
       const explicitUserIds = user_ids ?? []
@@ -169,7 +207,11 @@ async function handlePost(
 
       if (orgUsersError) {
         logger.error('Error validating organization users:', orgUsersError)
-        return apiError('VALIDATE_USERS_FAILED', 'Error al validar usuarios', 500)
+        return apiError(
+          'VALIDATE_USERS_FAILED',
+          'Error al validar usuarios',
+          500,
+        )
       }
 
       if (!orgUsers || orgUsers.length !== explicitUserIds.length) {
@@ -196,9 +238,8 @@ async function handlePost(
       }
     }
 
-    const assignmentMessage = typeof message === 'string' && message.trim()
-      ? message.trim()
-      : null
+    const assignmentMessage =
+      typeof message === 'string' && message.trim() ? message.trim() : null
 
     let assignResult
     try {
@@ -226,24 +267,27 @@ async function handlePost(
       )
     }
 
-    return NextResponse.json({
-      success: true,
-      message: `Curso asignado exitosamente a ${assignResult.assigned} usuario(s)`,
-      data: {
-        course_id: courseId,
-        course_title: course.title,
-        assigned_count: assignResult.assigned,
-        already_assigned_count: assignResult.existing,
-        assignments: assignResult.createdAssignments.map((assignment) => ({
-          assignment_id: assignment.id,
-          user_id: assignment.user_id,
-        })),
+    return NextResponse.json(
+      {
+        success: true,
+        message: `Curso asignado exitosamente a ${assignResult.assigned} usuario(s)`,
+        data: {
+          course_id: courseId,
+          course_title: course.title,
+          assigned_count: assignResult.assigned,
+          already_assigned_count: assignResult.existing,
+          assignments: assignResult.createdAssignments.map((assignment) => ({
+            assignment_id: assignment.id,
+            user_id: assignment.user_id,
+          })),
+        },
       },
-    }, {
-      headers: {
-        'Cache-Control': 'no-store, max-age=0',
+      {
+        headers: {
+          'Cache-Control': 'no-store, max-age=0',
+        },
       },
-    })
+    )
   } catch (error) {
     logger.error('Error in /api/[orgSlug]/business/courses/[id]/assign:', error)
     return apiError('ASSIGN_COURSE_FAILED', 'Error interno del servidor', 500)

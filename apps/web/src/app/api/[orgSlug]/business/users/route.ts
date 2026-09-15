@@ -5,7 +5,6 @@ import { requireBusiness } from '@/lib/auth/requireBusiness'
 import { apiError } from '@/lib/api/errors'
 import { withZodBody } from '@/lib/api/with-validation'
 import { CreateBusinessUserRequest } from '@/features/business-panel/services/businessUsers.service'
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import {
   buildPaginationMetadata,
@@ -27,10 +26,7 @@ function getResource(value: string | null): UsersResource {
   return 'users'
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: RouteContext,
-) {
+export async function GET(request: NextRequest, { params }: RouteContext) {
   try {
     const { orgSlug } = await params
 
@@ -43,6 +39,13 @@ export async function GET(
         { status: 403 },
       )
     }
+    if (!auth.isOrgAdmin) {
+      return apiError(
+        'FORBIDDEN',
+        'No tienes permisos para gestionar usuarios en esta organizacion.',
+        403,
+      )
+    }
 
     const { searchParams } = request.nextUrl
     const resource = getResource(searchParams.get('resource'))
@@ -53,15 +56,9 @@ export async function GET(
     const search = searchParams.get('search')?.trim() || undefined
     const role = searchParams.get('role') || undefined
     const status = searchParams.get('status') || undefined
-    const supabase = await createClient()
-    // user_invitations y bulk_invite_links perdieron sus grants para el rol
-    // `authenticated` en la migracion 20260827120000_emergency_data_api_lockdown
-    // (contienen tokens/PII y ya no cruzan el Data API para roles de navegador).
-    // Esta ruta ya autorizo al llamante via requireBusiness(), asi que consulta
-    // esas dos tablas con el cliente de service role, igual que
-    // getOrganizationStats(); el filtro por organization_id sigue acotando el
-    // acceso a la org del admin autenticado.
-    const adminSupabase = createAdminClient()
+    // This route has already authorized an organization administrator. The
+    // protected invitation tables are intentionally service-role-only.
+    const supabase = createAdminClient()
 
     const [
       usersPage,
@@ -72,13 +69,16 @@ export async function GET(
       { data: orgInfo },
     ] = await Promise.all([
       resource === 'users'
-        ? BusinessUsersServerService.getOrganizationUsersPage(auth.organizationId, {
-            page,
-            pageSize,
-            search,
-            role,
-            status,
-          })
+        ? BusinessUsersServerService.getOrganizationUsersPage(
+            auth.organizationId,
+            {
+              page,
+              pageSize,
+              search,
+              role,
+              status,
+            },
+          )
         : Promise.resolve({
             users: [],
             pagination: buildPaginationMetadata(page, pageSize, 0),
@@ -88,12 +88,12 @@ export async function GET(
         .from('organization_users')
         .select('user_id', { count: 'exact', head: true })
         .eq('organization_id', auth.organizationId),
-      adminSupabase
+      supabase
         .from('user_invitations')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', auth.organizationId)
         .eq('status', 'pending'),
-      adminSupabase
+      supabase
         .from('bulk_invite_links')
         .select('id', { count: 'exact', head: true })
         .eq('organization_id', auth.organizationId),
@@ -109,9 +109,11 @@ export async function GET(
     let resourcePagination = usersPage.pagination
 
     if (resource === 'invitations') {
-      let invitationsQuery = adminSupabase
+      let invitationsQuery = supabase
         .from('user_invitations')
-        .select('id, email, role, status, created_at, expires_at, metadata', { count: 'exact' })
+        .select('id, email, role, status, created_at, expires_at, metadata', {
+          count: 'exact',
+        })
         .eq('organization_id', auth.organizationId)
         .eq('status', 'pending')
 
@@ -132,9 +134,12 @@ export async function GET(
     }
 
     if (resource === 'links') {
-      let linksQuery = adminSupabase
+      let linksQuery = supabase
         .from('bulk_invite_links')
-        .select('id, token, name, role, max_uses, current_uses, expires_at, created_at, created_by, status', { count: 'exact' })
+        .select(
+          'id, token, name, role, max_uses, current_uses, expires_at, created_at, created_by, status',
+          { count: 'exact' },
+        )
         .eq('organization_id', auth.organizationId)
 
       if (search) {
@@ -153,29 +158,32 @@ export async function GET(
       resourcePagination = buildPaginationMetadata(page, pageSize, count || 0)
     }
 
-    return NextResponse.json({
-      success: true,
-      resource,
-      users: usersPage.users || [],
-      stats: stats || {},
-      invitations,
-      inviteLinks,
-      pagination: resourcePagination,
-      totals: {
-        users: usersCountResult.count || 0,
-        invitations: invitationsCountResult.count || 0,
-        inviteLinks: inviteLinksCountResult.count || 0,
+    return NextResponse.json(
+      {
+        success: true,
+        resource,
+        users: usersPage.users || [],
+        stats: stats || {},
+        invitations,
+        inviteLinks,
+        pagination: resourcePagination,
+        totals: {
+          users: usersCountResult.count || 0,
+          invitations: invitationsCountResult.count || 0,
+          inviteLinks: inviteLinksCountResult.count || 0,
+        },
+        organization: {
+          id: auth.organizationId,
+          name: orgInfo?.name || '',
+          logo_url: orgInfo?.brand_logo_url || orgInfo?.logo_url || null,
+        },
       },
-      organization: {
-        id: auth.organizationId,
-        name: orgInfo?.name || '',
-        logo_url: orgInfo?.brand_logo_url || orgInfo?.logo_url || null,
+      {
+        headers: {
+          'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        },
       },
-    }, {
-      headers: {
-        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
-      },
-    })
+    )
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     logger.error('Error in /api/[orgSlug]/business/users GET:', {
@@ -201,7 +209,11 @@ async function handlePost(
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
-      return apiError('NO_ORGANIZATION', 'No tienes una organizacion asignada', 403)
+      return apiError(
+        'NO_ORGANIZATION',
+        'No tienes una organizacion asignada',
+        403,
+      )
     }
 
     if (!auth.isOrgAdmin) {
@@ -218,9 +230,10 @@ async function handlePost(
     }
 
     const requestedRole = body.org_role || 'member'
-    const allowedRoles = auth.organizationRole === 'owner'
-      ? ['member', 'admin', 'owner']
-      : ['member', 'admin']
+    const allowedRoles =
+      auth.organizationRole === 'owner'
+        ? ['member', 'admin', 'owner']
+        : ['member', 'admin']
 
     if (!allowedRoles.includes(requestedRole)) {
       return apiError(
@@ -241,7 +254,10 @@ async function handlePost(
       gender: body.gender,
       job_title: body.job_title,
       org_role: requestedRole,
-      send_invitation: body.send_invitation !== undefined ? body.send_invitation : !body.password,
+      send_invitation:
+        body.send_invitation !== undefined
+          ? body.send_invitation
+          : !body.password,
     }
 
     const newUser = await BusinessUsersServerService.createOrganizationUser(

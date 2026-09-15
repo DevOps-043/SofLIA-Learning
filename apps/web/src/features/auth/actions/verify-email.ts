@@ -1,8 +1,8 @@
 'use server'
 
-import { createClient } from '../../../lib/supabase/server'
-import { createAdminClient } from '../../../lib/supabase/admin'
 import { z } from 'zod'
+
+import { verifyEmailConfirmation } from '../services/email-verification.service'
 
 const verifyEmailSchema = z.object({
   token: z.string().min(1, 'Token requerido'),
@@ -22,39 +22,15 @@ export async function verifyEmailAction(formData: FormData | { token: string }) 
       token = parsed.token
     }
 
-    const supabase = await createClient()
-    
-    // Verificar con Supabase Auth
-    const { data, error } = await supabase.auth.verifyOtp({
-      token_hash: token,
+    const result = await verifyEmailConfirmation({
+      tokenHash: token,
       type: 'email',
     })
-    
-    if (error) {
-      return { error: 'Código de verificación inválido o expirado' }
-    }
-    
-    if (!data.user?.id || !data.user.email_confirmed_at) {
-      return { error: 'No se pudo obtener información del usuario' }
-    }
 
-    // Actualizar email_verified en users
-    const { error: updateError } = await createAdminClient()
-      .from('users')
-      .update({
-        email_verified: true,
-        email_verified_at: data.user.email_confirmed_at,
-      })
-      .eq('id', data.user.id)
-    
-    if (updateError) {
-      return { error: 'Error al actualizar verificación de email' }
-    }
-    
-    return { 
-      success: true, 
+    return {
+      success: true,
       message: 'Email verificado correctamente',
-      user: data.user 
+      userId: result.userId,
     }
   } catch (error) {
     if (error instanceof z.ZodError) {

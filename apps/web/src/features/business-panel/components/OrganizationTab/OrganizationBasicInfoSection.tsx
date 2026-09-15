@@ -33,4 +33,3 @@ function NavbarNameToggle({ formState, styles, theme }: { formState: Organizatio
     </div>
   )
 }
-

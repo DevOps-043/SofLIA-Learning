@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 import { requireAdmin } from '@/lib/auth/requireAdmin'
 import { logger } from '@/lib/logger'
 import { withZodBody } from '@/lib/api/with-validation'
-import { SELECT_COLUMNS } from '@/lib/supabase/select-types';
+import { SELECT_COLUMNS } from '@/lib/supabase/select-types'
 import {
   inviteLinkPatchSchema,
   type InviteLinkPatchBody,
@@ -22,7 +22,7 @@ interface RouteParams {
 async function handlePatch(
   request: NextRequest,
   body: InviteLinkPatchBody,
-  { params }: RouteParams
+  { params }: RouteParams,
 ) {
   try {
     const auth = await requireAdmin()
@@ -31,7 +31,7 @@ async function handlePatch(
     const { id: companyId, linkId } = await params
     const { action, name, maxUses, expiresAt } = body
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: existingLink, error: fetchError } = await supabase
       .from('bulk_invite_links')
@@ -43,7 +43,7 @@ async function handlePatch(
     if (fetchError || !existingLink) {
       return NextResponse.json(
         { success: false, error: 'Enlace no encontrado' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
@@ -53,7 +53,7 @@ async function handlePatch(
       if (existingLink.status !== 'active') {
         return NextResponse.json(
           { success: false, error: 'Solo se pueden pausar enlaces activos' },
-          { status: 400 }
+          { status: 400 },
         )
       }
       updateData.status = 'paused'
@@ -61,7 +61,7 @@ async function handlePatch(
       if (existingLink.status !== 'paused') {
         return NextResponse.json(
           { success: false, error: 'Solo se pueden reanudar enlaces pausados' },
-          { status: 400 }
+          { status: 400 },
         )
       }
       if (new Date(existingLink.expires_at) <= new Date()) {
@@ -76,8 +76,12 @@ async function handlePatch(
       if (maxUses !== undefined) {
         if (maxUses < existingLink.current_uses) {
           return NextResponse.json(
-            { success: false, error: 'El máximo de usos no puede ser menor que los usos actuales' },
-            { status: 400 }
+            {
+              success: false,
+              error:
+                'El máximo de usos no puede ser menor que los usos actuales',
+            },
+            { status: 400 },
           )
         }
         updateData.max_uses = maxUses
@@ -86,8 +90,11 @@ async function handlePatch(
         const newExpiration = new Date(expiresAt)
         if (newExpiration <= new Date()) {
           return NextResponse.json(
-            { success: false, error: 'La fecha de expiración debe ser en el futuro' },
-            { status: 400 }
+            {
+              success: false,
+              error: 'La fecha de expiración debe ser en el futuro',
+            },
+            { status: 400 },
           )
         }
         updateData.expires_at = newExpiration.toISOString()
@@ -96,8 +103,11 @@ async function handlePatch(
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json(
-        { success: false, error: 'No se proporcionaron campos para actualizar' },
-        { status: 400 }
+        {
+          success: false,
+          error: 'No se proporcionaron campos para actualizar',
+        },
+        { status: 400 },
       )
     }
 
@@ -116,19 +126,22 @@ async function handlePatch(
       })
       return NextResponse.json(
         { success: false, error: 'Error al actualizar el enlace' },
-        { status: 500 }
+        { status: 500 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      link
+      link,
     })
   } catch (error) {
-    logger.error('Error in PATCH /api/admin/companies/[id]/invite-links/[linkId]', error)
+    logger.error(
+      'Error in PATCH /api/admin/companies/[id]/invite-links/[linkId]',
+      error,
+    )
     return NextResponse.json(
       { success: false, error: 'Error interno del servidor' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useAuth } from '@/features/auth/hooks/useAuth'
+import { getBusinessInviteUrl } from '@/features/business-panel/services/business-invite-modal.service'
 import { SectionWrapper } from './shared'
 import { InviteLinksTable } from './users-section/InviteLinksTable'
 import { InvitationsTable } from './users-section/InvitationsTable'
@@ -65,7 +66,7 @@ function UsersSection(props: UsersSectionProps) {
           <InviteLinksTable
             links={state.filteredLinks}
             onCopy={(token) => {
-              const url = `${window.location.origin}/register?invite=${token}`
+              const url = getBusinessInviteUrl(window.location.origin, token)
               navigator.clipboard.writeText(url)
               state.setModalConfig({
                 isOpen: true,

@@ -4,6 +4,7 @@ type LooseQueryError = {
   message: string
   code?: string
   details?: string
+  hint?: string
 }
 
 type LooseSelectOptions = {
