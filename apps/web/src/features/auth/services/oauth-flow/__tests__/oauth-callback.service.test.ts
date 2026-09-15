@@ -5,9 +5,13 @@ vi.mock('../../../../../lib/supabase/admin', () => ({ createAdminClient: vi.fn((
 vi.mock('../../auth.service', () => ({ AuthService: { clearExpiredSessions: vi.fn() } }));
 vi.mock('../../oauth.service', () => ({ OAuthService: {
   resolveOAuthUser: vi.fn(),
+  findOAuthAccount: vi.fn(),
   createUserFromOAuth: vi.fn(),
   upsertOAuthAccount: vi.fn(),
 } }));
+vi.mock('../../supabase-auth-bridge.service', () => ({
+  confirmEmailFromTrustedSso: vi.fn(),
+}));
 vi.mock('../../auth-session.service', () => ({
   createServerAuthSession: vi.fn(),
   updateLastLoginAt: vi.fn(),
@@ -25,6 +29,7 @@ import type { OAuthTokens } from '../../../types/oauth.types';
 import type { RequestMetadata } from '../../auth-session.service';
 import { createServerAuthSession } from '../../auth-session.service';
 import { OAuthService } from '../../oauth.service';
+import { confirmEmailFromTrustedSso } from '../../supabase-auth-bridge.service';
 import { resolveOAuthInvitationContext } from '../oauth-invitation.service';
 import { resolveOAuthDashboardDestination } from '../oauth-redirect.service';
 
@@ -128,6 +133,8 @@ describe('processOAuthCallback identity resolution', () => {
     vi.resetAllMocks();
     vi.mocked(resolveOAuthInvitationContext).mockResolvedValue({ value: { orgContext: {} } });
     vi.mocked(resolveOAuthDashboardDestination).mockResolvedValue('/dashboard');
+    vi.mocked(OAuthService.findOAuthAccount).mockResolvedValue(null);
+    vi.mocked(confirmEmailFromTrustedSso).mockResolvedValue({ confirmedAt: '2026-01-01T00:00:00.000Z' });
   });
 
   async function callback() {
@@ -146,9 +153,22 @@ describe('processOAuthCallback identity resolution', () => {
     vi.mocked(OAuthService.resolveOAuthUser).mockResolvedValue({
       id: 'original-user', email: 'person@new.example', username: 'original',
     });
+    // The provider identity was already linked before this login (e.g. a
+    // returning user whose provider-reported email changed since last time),
+    // so confirmEmailFromTrustedSso must be told it may self-heal instead of
+    // treating the email drift as a suspicious new link.
+    vi.mocked(OAuthService.findOAuthAccount).mockResolvedValue({
+      id: 'oauth-account-1', user_id: 'original-user', provider: 'google',
+      provider_account_id: 'stable-google-id', created_at: new Date(0), updated_at: new Date(0),
+    });
     const result = await callback();
 
     expect(OAuthService.resolveOAuthUser).toHaveBeenCalledWith('google', 'stable-google-id', 'person@old.example', undefined);
+    expect(OAuthService.findOAuthAccount).toHaveBeenCalledWith('google', 'stable-google-id');
+    expect(confirmEmailFromTrustedSso).toHaveBeenCalledWith(expect.objectContaining({
+      isProviderAlreadyLinked: true,
+      userId: 'original-user',
+    }));
     expect(result).toMatchObject({ userId: 'original-user', isNewUser: false, destination: '/dashboard' });
     expect(OAuthService.createUserFromOAuth).not.toHaveBeenCalled();
     expect(OAuthService.upsertOAuthAccount).toHaveBeenCalledWith('original-user', 'google', 'stable-google-id', expect.any(Object));

@@ -87,12 +87,24 @@ export async function processOAuthCallback<TProviderTokens>({
 
     const supabase = createAdminClient();
     const initialOrgContext = parseOAuthOrganizationContext(orgContextCookie);
-    const existingUser = await OAuthService.resolveOAuthUser(
-      provider.provider,
-      normalizedProfile.providerAccountId,
-      normalizedProfile.email,
-      initialOrgContext.orgId
-    );
+    // Se resuelve en paralelo si esta cuenta de proveedor ya estaba vinculada
+    // antes de este login: resolveOAuthUser hace la misma consulta
+    // internamente, pero no expone el resultado. Ese dato distingue, en
+    // confirmEmailFromTrustedSso, un vinculo ya probado (puede autorepararse
+    // si el email cambio del lado del proveedor) de uno nuevo (debe seguir
+    // siendo estricto).
+    const [existingUser, linkedProviderAccount] = await Promise.all([
+      OAuthService.resolveOAuthUser(
+        provider.provider,
+        normalizedProfile.providerAccountId,
+        normalizedProfile.email,
+        initialOrgContext.orgId
+      ),
+      OAuthService.findOAuthAccount(
+        provider.provider,
+        normalizedProfile.providerAccountId,
+      ),
+    ]);
 
     const invitationContextResult = await resolveOAuthInvitationContext({
       email: normalizedProfile.email,
@@ -160,6 +172,7 @@ export async function processOAuthCallback<TProviderTokens>({
     // incluso si era una cuenta manual preexistente todavia no confirmada.
     await confirmEmailFromTrustedSso({
       email: normalizedProfile.email,
+      isProviderAlreadyLinked: Boolean(linkedProviderAccount),
       provider: provider.provider,
       userId,
     });
