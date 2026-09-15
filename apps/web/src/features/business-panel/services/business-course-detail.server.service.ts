@@ -34,7 +34,7 @@ export class BusinessCourseDetailServerService {
 
     const [modulesAndReviews, subscriptionStatus] = await Promise.all([
       fetchCourseModulesAndReviews(supabase, course.id),
-      fetchSubscriptionStatus(supabase, businessUserId, organizationId, course.id),
+      fetchSubscriptionStatus(businessUserId, organizationId, course.id),
     ])
     const [modules, reviews] = modulesAndReviews
     const moduleIds = modules.map((module) => module.module_id)

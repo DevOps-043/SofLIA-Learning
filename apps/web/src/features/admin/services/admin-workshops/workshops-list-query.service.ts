@@ -1,11 +1,14 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import type { AdminWorkshop } from './workshops-transform.service'
 import { enrichWorkshopRows } from './workshops-enrichment.service'
 import { COURSE_WORKSHOP_SELECT } from './workshops-query.selects'
 import type { CourseWorkshopRow } from './workshops-query.types'
 
 export async function getAllWorkshops(): Promise<AdminWorkshop[]> {
-  const supabase = await createClient()
+  // Ver comentario en workshops-page-query.service.ts: courses requiere el
+  // cliente de service role para el catalogo de super-admin desde el
+  // lockdown 20260827120000.
+  const supabase = createAdminClient()
 
   const { data: courses, error } = await supabase
     .from('courses')

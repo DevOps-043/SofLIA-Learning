@@ -1,4 +1,4 @@
-import type { createClient } from '../../../../lib/supabase/server'
+import type { createAdminClient } from '../../../../lib/supabase/admin'
 import { enrichWorkshops } from './workshops-query.helpers'
 import type {
   CourseWorkshopRow,
@@ -7,7 +7,7 @@ import type {
   ModuleDurationRow,
 } from './workshops-query.types'
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+type SupabaseServerClient = ReturnType<typeof createAdminClient>
 
 export async function enrichWorkshopRows(
   supabase: SupabaseServerClient,

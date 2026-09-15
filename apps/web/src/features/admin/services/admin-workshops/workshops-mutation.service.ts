@@ -1,5 +1,5 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import { sanitizeSlug, generateUniqueSlugAsync } from '../../../../lib/slug'
 import { AuditLogService } from '../auditLog.service'
 import {
@@ -64,7 +64,10 @@ function auditValues(value: unknown): Record<string, unknown> | undefined {
 export class AdminWorkshopsMutationService {
   static async createWorkshop(workshopData: Partial<AdminWorkshop>, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<AdminWorkshop> {
 
-    const supabase = await createClient()
+    // Ver comentario en workshops-page-query.service.ts: courses requiere el
+    // cliente de service role desde el lockdown 20260827120000 (columnas como
+    // approved_by/rejection_reason ya no son visibles para `authenticated`).
+    const supabase = createAdminClient()
 
     try {
       // Seguridad: sanitizar y generar slug unico
@@ -199,7 +202,10 @@ export class AdminWorkshopsMutationService {
   }
 
   static async updateWorkshop(workshopId: string, workshopData: Partial<AdminWorkshop>, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<AdminWorkshop> {
-    const supabase = await createClient()
+    // Ver comentario en workshops-page-query.service.ts: courses requiere el
+    // cliente de service role desde el lockdown 20260827120000 (columnas como
+    // approved_by/rejection_reason ya no son visibles para `authenticated`).
+    const supabase = createAdminClient()
 
     try {
       // Obtener datos anteriores para el log de auditoria
@@ -305,7 +311,10 @@ export class AdminWorkshopsMutationService {
   }
 
   static async deleteWorkshop(workshopId: string, adminUserId: string, requestInfo?: { ip?: string, userAgent?: string }): Promise<void> {
-    const supabase = await createClient()
+    // Ver comentario en workshops-page-query.service.ts: courses requiere el
+    // cliente de service role desde el lockdown 20260827120000 (columnas como
+    // approved_by/rejection_reason ya no son visibles para `authenticated`).
+    const supabase = createAdminClient()
 
     try {
       // Obtener datos del taller antes de eliminarlo para el log de auditoria

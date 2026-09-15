@@ -25,8 +25,14 @@ export class SubscriptionService {
    */
   static async hasActiveSubscription(userId: string, organizationId?: string): Promise<boolean> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
+      // subscriptions y organization_course_purchases nunca tuvieron policies
+      // de RLS para `authenticated`, asi que el barrido de deny-by-default de
+      // la migracion 20260827120000_emergency_data_api_lockdown las dejo sin
+      // grants. Estos metodos ya reciben organizationId/userId verificados
+      // por el llamante (requireBusiness()), asi que usan el cliente de
+      // service role.
+      const { createAdminClient } = await import('@/lib/supabase/admin')
+      const supabase = createAdminClient()
 
 
       // Si se proporcionó organizationId directamente, usarlo sin resolución adicional
@@ -114,8 +120,14 @@ export class SubscriptionService {
    */
   private static async checkSubscriptionTable(userId: string, organizationId: string): Promise<boolean> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
+      // subscriptions y organization_course_purchases nunca tuvieron policies
+      // de RLS para `authenticated`, asi que el barrido de deny-by-default de
+      // la migracion 20260827120000_emergency_data_api_lockdown las dejo sin
+      // grants. Estos metodos ya reciben organizationId/userId verificados
+      // por el llamante (requireBusiness()), asi que usan el cliente de
+      // service role.
+      const { createAdminClient } = await import('@/lib/supabase/admin')
+      const supabase = createAdminClient()
 
       // Buscar suscripción activa en la tabla subscriptions
       const { data: subscription, error: subError } = await fromLoose<{
@@ -214,8 +226,14 @@ export class SubscriptionService {
     billingPeriodEnd: Date
   ): Promise<number> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
+      // subscriptions y organization_course_purchases nunca tuvieron policies
+      // de RLS para `authenticated`, asi que el barrido de deny-by-default de
+      // la migracion 20260827120000_emergency_data_api_lockdown las dejo sin
+      // grants. Estos metodos ya reciben organizationId/userId verificados
+      // por el llamante (requireBusiness()), asi que usan el cliente de
+      // service role.
+      const { createAdminClient } = await import('@/lib/supabase/admin')
+      const supabase = createAdminClient()
 
       const { count, error } = await supabase
         .from('organization_course_purchases')
@@ -245,8 +263,14 @@ export class SubscriptionService {
     maxCourses: number = 10
   ): Promise<{ canPurchase: boolean; currentCount: number; maxCourses: number; billingPeriod: { start: Date; end: Date } | null }> {
     try {
-      const { createClient } = await import('@/lib/supabase/server')
-      const supabase = await createClient()
+      // subscriptions y organization_course_purchases nunca tuvieron policies
+      // de RLS para `authenticated`, asi que el barrido de deny-by-default de
+      // la migracion 20260827120000_emergency_data_api_lockdown las dejo sin
+      // grants. Estos metodos ya reciben organizationId/userId verificados
+      // por el llamante (requireBusiness()), asi que usan el cliente de
+      // service role.
+      const { createAdminClient } = await import('@/lib/supabase/admin')
+      const supabase = createAdminClient()
 
       // Obtener información de la organización
       const { data: organization, error: orgError } = await supabase

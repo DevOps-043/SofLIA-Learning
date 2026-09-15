@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
@@ -20,7 +20,13 @@ export async function POST(
     const auth = await requireBusiness({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    const supabase = await createClient()
+    // payment_methods es service-role-only (tabla sensible en la migracion
+    // 20260827120000_emergency_data_api_lockdown) y organization_course_purchases
+    // / transactions nunca tuvieron policies de RLS para `authenticated`, asi
+    // que perdieron sus grants en el mismo barrido deny-by-default. Esta ruta
+    // ya autorizo al llamante via requireBusiness(), asi que usa el cliente
+    // de service role para toda la operacion de compra.
+    const supabase = createAdminClient()
 
     // Obtener usuario autenticado
     const currentUser = await SessionService.getCurrentUser()

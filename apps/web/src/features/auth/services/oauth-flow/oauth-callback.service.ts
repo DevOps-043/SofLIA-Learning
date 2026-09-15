@@ -77,7 +77,9 @@ export async function processOAuthCallback<TProviderTokens>({
 
     const supabase = createAdminClient();
     const initialOrgContext = parseOAuthOrganizationContext(orgContextCookie);
-    const existingUser = await OAuthService.findUserByEmail(
+    const existingUser = await OAuthService.resolveOAuthUser(
+      provider.provider,
+      normalizedProfile.providerAccountId,
       normalizedProfile.email,
       initialOrgContext.orgId
     );

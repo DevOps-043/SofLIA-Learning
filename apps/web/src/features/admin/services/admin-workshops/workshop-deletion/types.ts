@@ -1,6 +1,6 @@
-import type { createClient } from '@/lib/supabase/server'
+import type { createAdminClient } from '@/lib/supabase/admin'
 
-export type SupabaseClient = Awaited<ReturnType<typeof createClient>>
+export type SupabaseClient = ReturnType<typeof createAdminClient>
 
 export type LooseQueryError = {
   message: string
