@@ -11,6 +11,7 @@ export function hasRoleAccess(role: ValidRole, pathname: string): boolean {
   if (role === 'Administrador') return true;
   if (role === 'Instructor') return hasInstructorAccess(pathname);
   if (role === 'Business') return hasBusinessAccess(pathname);
+  if (role === 'Business User') return hasBusinessUserAccess(pathname);
   if (role === 'Usuario') return hasUserAccess(pathname);
 
   return false;
@@ -37,6 +38,15 @@ function hasBusinessAccess(pathname: string): boolean {
     isOrgScopedUser ||
     matchesRoute(pathname, ROLE_ROUTES.user)
   );
+}
+
+// A Business User is an organization employee, not an org admin: they get
+// their org-scoped `/business-user` area plus the generic self-service routes
+// (dashboard/profile/courses), but never `/business-panel` (org-admin only).
+function hasBusinessUserAccess(pathname: string): boolean {
+  if (matchesRoute(pathname, ROLE_ROUTES.admin)) return false;
+
+  return pathname.includes('/business-user') || matchesRoute(pathname, ROLE_ROUTES.user);
 }
 
 function hasUserAccess(pathname: string): boolean {

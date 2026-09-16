@@ -1,6 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { logger } from '../../lib/logger';
+import { createAdminClient } from '../../lib/supabase/admin';
 import type { Database } from '../../lib/supabase/types';
 import { getClientIp, logSecurityEvent } from './auth.logging';
 import { hasRoleAccess, normalizeRole } from './auth.roles';
@@ -53,7 +54,16 @@ export async function validateRoleAccess(
       userId = resolvedUser.userId;
     }
 
-    const { data: userData, error: userError } = await supabase
+    // `userId` is already trusted at this point: it came from a real native
+    // Supabase session (preResolvedUserId), or resolveAuthenticatedUserId just
+    // verified it server-side against user_session/refresh_tokens via the
+    // service-role client. OAuth logins (Google/Microsoft) never mint a native
+    // sb-*-auth-token cookie -- they only set this app's custom session cookies
+    // -- so the anon-key `supabase` client above has no auth.uid() here and the
+    // users_select_own RLS policy (20260827120000_emergency_data_api_lockdown)
+    // silently hides the row. Read platform_role with the service-role client
+    // instead, consistent with the rest of this identity resolution.
+    const { data: userData, error: userError } = await createAdminClient()
       .from('users')
       .select('id, platform_role, email, username')
       .eq('id', userId)
