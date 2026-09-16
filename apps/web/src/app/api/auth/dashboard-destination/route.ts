@@ -1,7 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextResponse } from 'next/server';
 import { apiError } from '@/lib/api/errors';
-import { createClient } from '../../../../lib/supabase/server';
+import { createAdminClient } from '../../../../lib/supabase/admin';
 import { resolveOAuthDashboardDestination } from '../../../../features/auth/services/oauth-flow';
 import { SessionService } from '../../../../features/auth/services/session.service';
 
@@ -29,7 +29,7 @@ export async function GET() {
     }
 
     const destination = await resolveOAuthDashboardDestination(
-      await createClient(),
+      createAdminClient(),
       user.id,
     );
 

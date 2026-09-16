@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { ChevronRight, Loader2, Shield, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useOrganization } from '@/core/hooks/useOrganization';
+import { useOrganizationContext } from '@/core/providers/OrganizationProvider';
 import type { Organization } from '@/core/stores/organizationStore';
 import { getOrganizationDashboardPath } from '@/core/utils/organizationNavigation';
 import {
@@ -21,6 +22,8 @@ export default function SelectOrganizationPage() {
   const {
     organizations: userOrganizations = [],
     isLoading,
+  } = useOrganizationContext();
+  const {
     isHydrated,
     setCurrentOrganization,
   } = useOrganization();

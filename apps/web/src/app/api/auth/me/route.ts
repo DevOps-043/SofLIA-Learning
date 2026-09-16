@@ -3,7 +3,7 @@ import { SessionService } from '../../../../features/auth/services/session.servi
 import { cacheHeaders } from '../../../../lib/utils/cache-headers';
 import { apiError } from '@/lib/api/errors';
 import { logger } from '@/lib/utils/logger';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { MemoryCache } from '@/lib/cache/memory-cache';
 import { applyAuthReadRateLimit } from '@/lib/auth/auth-rate-limit'
 import { resolveUserPrimaryMembershipWithOrg } from '@/lib/services/user-org-context.service'
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
       jobTitle = cachedOrg.jobTitle;
     } else {
       try {
-        const supabase = await createClient();
+        const supabase = createAdminClient();
         const membership = await resolveUserPrimaryMembershipWithOrg(supabase, user.id);
 
         if (membership) {

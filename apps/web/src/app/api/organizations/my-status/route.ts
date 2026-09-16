@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/auth/requireUser'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/logger'
 
 interface OrganizationStatusInfo {
@@ -21,7 +21,8 @@ export async function GET() {
   if (auth instanceof NextResponse) return auth
 
   try {
-    const supabase = await createClient()
+    // requireUser verified the app session; all reads stay scoped to auth.userId.
+    const supabase = createAdminClient()
 
     // ⛔ 1. Verificar si el usuario está baneado globalmente
     const { data: userData } = await supabase
@@ -29,6 +30,7 @@ export async function GET() {
       .select('is_banned, ban_reason')
       .eq('id', auth.userId)
       .single()
+      .throwOnError()
 
     if (userData?.is_banned) {
       return NextResponse.json({
@@ -44,9 +46,11 @@ export async function GET() {
       .select('organization_id, role, organizations!inner(id, name, slug, is_active, subscription_status)')
       .eq('user_id', auth.userId)
       .eq('role', 'owner')
+      .eq('status', 'active')
       .order('joined_at', { ascending: true })
       .limit(1)
       .maybeSingle()
+      .throwOnError()
 
     if (ownershipData) {
       const org = getOrganizationStatusInfo(ownershipData.organizations)
@@ -81,6 +85,7 @@ export async function GET() {
       .order('joined_at', { ascending: true })
       .limit(1)
       .maybeSingle()
+      .throwOnError()
 
     if (membershipData) {
       const org = getOrganizationStatusInfo(membershipData.organizations)
@@ -105,6 +110,7 @@ export async function GET() {
       .order('joined_at', { ascending: true })
       .limit(1)
       .maybeSingle()
+      .throwOnError()
 
     if (suspendedMembership) {
       const org = getOrganizationStatusInfo(suspendedMembership.organizations)
@@ -127,6 +133,7 @@ export async function GET() {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle()
+      .throwOnError()
 
     if (joinRequest) {
       const org = getOrganizationStatusInfo(joinRequest.organizations)

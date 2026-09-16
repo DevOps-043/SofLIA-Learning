@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { logger } from '../../../lib/logger';
-import { createClient } from '../../../lib/supabase/server';
+import { createAdminClient } from '../../../lib/supabase/admin';
 import { resolveOAuthDashboardDestination } from '../services/oauth-flow';
 import { SessionService } from '../services/session.service';
 
@@ -16,7 +16,7 @@ export async function redirectToDashboard() {
     }
 
     const destination = await resolveOAuthDashboardDestination(
-      await createClient(),
+      createAdminClient(),
       user.id
     );
 

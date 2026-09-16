@@ -87,6 +87,7 @@ const organizationsFetcher = async (
     const response = await fetch(url, {
       method: 'GET',
       credentials: 'include',
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -204,23 +205,17 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
     }
   );
 
-  // Sync SWR loading state into Zustand so consumers of useOrganization()
-  // see accurate isLoading before the first fetch completes.
+  // A deferred request is still loading. Wait for its result to reach the
+  // store before consumers can interpret an empty list as "no organizations".
+  const isOrganizationDataLoading =
+    !mounted ||
+    (userOrganizations.length === 0 &&
+      (!shouldFetchOrganizations || isLoading ||
+        fetchedOrganizations === undefined || Boolean(fetchedOrganizations?.length)));
+
   useEffect(() => {
-    const hasOrganizationSnapshot =
-      currentOrganization !== null || userOrganizations.length > 0;
-    setStoreLoading(
-      !mounted ||
-        (shouldFetchOrganizations && isLoading && !hasOrganizationSnapshot)
-    );
-  }, [
-    mounted,
-    isLoading,
-    shouldFetchOrganizations,
-    currentOrganization,
-    userOrganizations.length,
-    setStoreLoading,
-  ]);
+    setStoreLoading(isOrganizationDataLoading);
+  }, [isOrganizationDataLoading, setStoreLoading]);
 
   // Sync fetched organizations to store
   // Also handles empty array (user has no active orgs) to avoid stale data
@@ -305,12 +300,7 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       organizations: userOrganizations,
       isB2B: currentOrganization !== null,
       canSwitch: userOrganizations.length > 1,
-      isLoading:
-        !mounted ||
-        (shouldFetchOrganizations &&
-          isLoading &&
-          currentOrganization === null &&
-          userOrganizations.length === 0),
+      isLoading: isOrganizationDataLoading,
       switchOrganization,
       isOrgAdmin:
         currentOrganization !== null &&
@@ -318,11 +308,9 @@ export function OrganizationProvider({ children }: OrganizationProviderProps) {
       refreshOrganizations,
     }),
     [
-      mounted,
       currentOrganization,
       userOrganizations,
-      isLoading,
-      shouldFetchOrganizations,
+      isOrganizationDataLoading,
       switchOrganization,
       refreshOrganizations,
     ]
