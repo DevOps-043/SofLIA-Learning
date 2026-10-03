@@ -224,7 +224,6 @@ export function NewNoteModal({
                           value={lessonId}
                           options={lessonOptions}
                           disabled={!courseId}
-                          triggerClassName="w-full"
                           onSelect={setLessonId}
                         />
                       </div>
