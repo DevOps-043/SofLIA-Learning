@@ -30,7 +30,7 @@
   "dependencies": {
     "@aprende-y-aplica/shared": "*",
     "@aprende-y-aplica/ui": "*",
-    "@asteasolutions/zod-to-openapi": "^7.3.4",
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@emotion/is-prop-valid": "^1.3.1",
     "@fullcalendar/core": "^6.1.19",
     "@fullcalendar/daygrid": "^6.1.15",
