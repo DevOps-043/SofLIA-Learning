@@ -8,6 +8,7 @@
     "prebuild": "npm run check:server-runtime && tsx ../../scripts/generate-openapi.ts",
     "check:server-runtime": "node --no-experimental-require-module ../../scripts/check-server-sanitizer-runtime.cjs",
     "build": "next build",
+    "postbuild": "node --no-experimental-require-module --conditions=react-server ../../scripts/check-built-notebook-runtime.cjs",
     "start": "next start",
     "lint": "eslint src --ext .js,.jsx,.ts,.tsx",
     "type-check": "npm run type-check:core && npm run type-check:app && npm run type-check:features",

@@ -28,6 +28,9 @@ const outputFileTracingExcludes = {
 };
 
 const serverExternalPackages = [
+  // Keep jsdom's worker files out of Webpack's server bundle and resolve the
+  // sanitizer's compatible jsdom version through its own package directory.
+  'isomorphic-dompurify',
   'exceljs',
   'pdfmake',
   'nodemailer',
