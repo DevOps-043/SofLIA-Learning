@@ -29,7 +29,10 @@ export async function fetchInitialDashboardData(
       .limit(100),
   ])
 
-  if (directAssignments.error) logger.error('❌ Error fetching direct assignments:', directAssignments.error)
+  if (directAssignments.error) {
+    logger.error('Error fetching direct assignments:', directAssignments.error)
+    throw new Error('No se pudieron consultar los cursos asignados')
+  }
   if (certificates.error) logger.error('❌ Error fetching certificates:', certificates.error)
 
   return {

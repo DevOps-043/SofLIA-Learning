@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   emptyLessonContentSnapshot,
   fetchLessonContentSnapshot,
@@ -25,6 +25,8 @@ export function useLessonContentState({
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [loading, setLoading] = useState(!initialContent);
+  const [error, setError] = useState<string | null>(null);
+  const requestVersion = useRef(0);
 
   const loadLessonContent = useCallback(
     async ({
@@ -34,6 +36,8 @@ export function useLessonContentState({
       forceRefresh?: boolean;
       preserveVisibleContent?: boolean;
     } = {}) => {
+      const version = ++requestVersion.current;
+      setError(null);
       if (!lessonId || !slug) {
         setSnapshot(emptyLessonContentSnapshot);
         setIsRefreshing(false);
@@ -54,32 +58,42 @@ export function useLessonContentState({
           selectedLang,
           slug,
         });
+        if (version !== requestVersion.current) return;
         setSnapshot(nextSnapshot);
       } catch {
+        if (version !== requestVersion.current) return;
+        setError('No se pudieron cargar las actividades. Vuelve a intentarlo.');
         if (!preserveVisibleContent) {
           setSnapshot(emptyLessonContentSnapshot);
         }
       } finally {
-        setIsRefreshing(false);
-        setLoading(false);
+        if (version === requestVersion.current) {
+          setIsRefreshing(false);
+          setLoading(false);
+        }
       }
     },
     [lessonId, organizationId, selectedLang, slug]
   );
 
   useEffect(() => {
+    // Invalidate requests from the previous lesson or an older refresh.
+    requestVersion.current += 1;
+    setError(null);
     if (initialContent) {
       setSnapshot(initialContent);
       setIsRefreshing(false);
       setLoading(false);
-      return;
+    } else {
+      setSnapshot(emptyLessonContentSnapshot);
+      void loadLessonContent();
     }
-
-    void loadLessonContent();
+    return () => { requestVersion.current += 1; };
   }, [initialContent, loadLessonContent]);
 
   return {
     ...snapshot,
+    error,
     isRefreshing,
     loadLessonContent,
     loading,

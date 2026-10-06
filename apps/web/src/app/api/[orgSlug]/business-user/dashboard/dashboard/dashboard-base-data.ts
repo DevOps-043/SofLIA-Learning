@@ -39,7 +39,10 @@ export async function fetchDashboardBaseData(
       .limit(100),
   ])
 
-  if (assignmentsResult.error) logger.error('Error fetching direct assignments:', assignmentsResult.error)
+  if (assignmentsResult.error) {
+    logger.error('Error fetching direct assignments:', assignmentsResult.error)
+    throw new Error('No se pudieron consultar los cursos asignados')
+  }
   if (certificatesResult.error) logger.error('Error fetching certificates:', certificatesResult.error)
 
   const combinedAssignments = (assignmentsResult.data || [])

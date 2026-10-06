@@ -167,12 +167,12 @@ export function useBusinessUserDashboardPageLogic() {
     isLoading: isDashboardLoading,
     mutate: mutateDashboardData,
   } = useSWR<BusinessUserDashboardData>(
-    orgSlug ? `business-user-dashboard:${orgSlug}` : null,
+    orgSlug && user?.id ? `business-user-dashboard:${orgSlug}:${user.id}` : null,
     () => fetchBusinessUserDashboardData(orgSlug as string),
     {
       dedupingInterval: 8000,
       errorRetryCount: 1,
-      keepPreviousData: true,
+      keepPreviousData: false,
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
     },
@@ -183,7 +183,7 @@ export function useBusinessUserDashboardPageLogic() {
   const stats = dashboardData?.stats ?? EMPTY_DASHBOARD_STATS
   const assignedCourses = dashboardData?.assignedCourses ?? []
   const learningPaths = dashboardData?.learningPaths ?? []
-  const loading = Boolean(orgSlug) && isDashboardLoading && !dashboardData
+  const loading = Boolean(orgSlug) && (!user?.id || isDashboardLoading) && !dashboardData
   const error = !orgSlug
     ? 'No se pudo determinar la organizacion'
     : dashboardError instanceof ApiJsonResponseError && dashboardError.shouldRedirectToAuth

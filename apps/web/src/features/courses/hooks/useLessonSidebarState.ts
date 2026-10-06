@@ -38,6 +38,8 @@ export function useLessonSidebarState({
   const currentOrganizationId = useCurrentOrganizationId();
   const routeOrgSlug = params?.orgSlug;
   const organizationId = routeOrgSlug ? currentOrganizationId : null;
+  const scope = JSON.stringify([slug, selectedLang, organizationId]);
+  const [snapshotScope, setSnapshotScope] = useState(scope);
   const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(false);
   const [isMaterialCollapsed, setIsMaterialCollapsed] = useState(false);
   const [isNotesCollapsed, setIsNotesCollapsed] = useState(false);
@@ -58,7 +60,8 @@ export function useLessonSidebarState({
   const lessonsActivitiesRef = useRef(lessonsActivities);
   const lessonsMaterialsRef = useRef(lessonsMaterials);
   const lessonContentSnapshotsRef = useRef(lessonContentSnapshots);
-
+  const scopeVersionRef = useRef(0);
+  const requestVersionsRef = useRef(new Map<string, number>());
   useEffect(() => {
     lessonsActivitiesRef.current = lessonsActivities;
   }, [lessonsActivities]);
@@ -70,6 +73,21 @@ export function useLessonSidebarState({
   useEffect(() => {
     lessonContentSnapshotsRef.current = lessonContentSnapshots;
   }, [lessonContentSnapshots]);
+
+  useEffect(() => {
+    scopeVersionRef.current += 1;
+    requestVersionsRef.current.clear();
+    setSnapshotScope(scope);
+    lessonsActivitiesRef.current = {};
+    lessonsMaterialsRef.current = {};
+    lessonContentSnapshotsRef.current = {};
+    setLessonsActivities({});
+    setLessonsMaterials({});
+    setLessonContentSnapshots({});
+    setLessonsQuizStatus({});
+    setLessonTranslationContexts({});
+    return () => { scopeVersionRef.current += 1; };
+  }, [scope]);
 
   const openLeftPanel = useCallback(() => {
     setIsLeftPanelOpen(true);
@@ -116,6 +134,9 @@ export function useLessonSidebarState({
       }
 
       try {
+        const scopeVersion = scopeVersionRef.current;
+        const requestVersion = (requestVersionsRef.current.get(lessonId) ?? 0) + 1;
+        requestVersionsRef.current.set(lessonId, requestVersion);
         const data = await fetchLessonContentSnapshot({
           forceRefresh,
           lessonId,
@@ -123,6 +144,11 @@ export function useLessonSidebarState({
           selectedLang,
           slug,
         });
+
+        if (
+          scopeVersion !== scopeVersionRef.current ||
+          requestVersion !== requestVersionsRef.current.get(lessonId)
+        ) return;
 
         setLessonContentSnapshots((previous) => ({
           ...previous,
@@ -145,13 +171,7 @@ export function useLessonSidebarState({
           [lessonId]: data.translationContext ?? null,
         }));
       } catch {
-        setLessonsActivities((previous) => ({ ...previous, [lessonId]: [] }));
-        setLessonsMaterials((previous) => ({ ...previous, [lessonId]: [] }));
-        setLessonsQuizStatus((previous) => ({ ...previous, [lessonId]: null }));
-        setLessonTranslationContexts((previous) => ({
-          ...previous,
-          [lessonId]: null,
-        }));
+        // A failed refresh must not erase known quiz/progress data.
       }
     },
     [organizationId, selectedLang, slug]
@@ -241,11 +261,11 @@ export function useLessonSidebarState({
     isLeftPanelOpen,
     isMaterialCollapsed,
     isNotesCollapsed,
-    lessonsActivities,
-    lessonsMaterials,
-    lessonsQuizStatus,
-    lessonContentSnapshots,
-    lessonTranslationContexts,
+    lessonsActivities: snapshotScope === scope ? lessonsActivities : {},
+    lessonsMaterials: snapshotScope === scope ? lessonsMaterials : {},
+    lessonsQuizStatus: snapshotScope === scope ? lessonsQuizStatus : {},
+    lessonContentSnapshots: snapshotScope === scope ? lessonContentSnapshots : {},
+    lessonTranslationContexts: snapshotScope === scope ? lessonTranslationContexts : {},
     loadLessonActivitiesAndMaterials,
     openContentSection,
     openLeftPanel,

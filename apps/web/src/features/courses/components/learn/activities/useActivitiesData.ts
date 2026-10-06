@@ -56,6 +56,7 @@ export function useActivitiesData({
   }, [content, lessonId, onLessonContentRefresh]);
 
   return {
+    error: content.error,
     activities: content.activities,
     collapsedActivities: collapse.collapsedActivities,
     collapsedMaterials: collapse.collapsedMaterials,

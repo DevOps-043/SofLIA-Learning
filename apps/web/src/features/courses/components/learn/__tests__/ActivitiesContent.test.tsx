@@ -2,6 +2,7 @@
 
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { useState } from 'react'
 
 import { ActivitiesContent } from '../ActivitiesContent'
 
@@ -38,11 +39,13 @@ vi.mock('../quiz-feedback', () => ({
 }))
 
 vi.mock('../activities/useActivitiesData', () => ({
-  useActivitiesData: () => ({
+  useActivitiesData: ({ lessonId }: { lessonId: string }) => {
+    const [initialLessonId] = useState(lessonId)
+    return ({
     activities: [
       {
         activity_id: 'activity-1',
-        activity_title: 'Actividad final',
+        activity_title: `Actividad ${initialLessonId}`,
         activity_type: 'reflection',
         is_required: true,
       },
@@ -58,7 +61,8 @@ vi.mock('../activities/useActivitiesData', () => ({
     refreshLessonContent: vi.fn(),
     toggleActivityCollapse: vi.fn(),
     toggleMaterialCollapse: vi.fn(),
-  }),
+    })
+  },
 }))
 
 vi.mock('../activities/ActivityCard', () => ({
@@ -76,6 +80,15 @@ afterEach(() => {
 })
 
 describe('ActivitiesContent', () => {
+  it('resets lesson-specific child state when navigating between lessons', () => {
+    const props = { selectedLang: 'es' as const, slug: 'course-slug', lesson: { lesson_id: 'first', lesson_title: 'First' } }
+    const { rerender } = render(<ActivitiesContent {...props} />)
+    expect(screen.getByText('Actividad first')).toBeTruthy()
+    rerender(<ActivitiesContent {...props} lesson={{ lesson_id: 'second', lesson_title: 'Second' }} />)
+    expect(screen.queryByText('Actividad first')).toBeNull()
+    expect(screen.getByText('Actividad second')).toBeTruthy()
+  })
+
   it('renders final course button on last lesson activities', () => {
     const onCompleteCourse = vi.fn()
 

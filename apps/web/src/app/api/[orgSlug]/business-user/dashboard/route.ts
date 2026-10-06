@@ -21,18 +21,26 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 
     const supabase = await createClient()
 
-    // Phase 1: run all independent queries in parallel.
-    // - base data (assignments + certs) has no external dependencies
-    // - LP loading has no dependency on assignments
-    // - org data has no dependency on either
+    // Finish default assignments before reading the dashboard snapshot.
+    await LearningPathDefaultsService.applyDefaultRulesForUser({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+    }).catch((err: unknown) => {
+      logger.error('Error applying default learning paths for dashboard:', err)
+    })
+
+    await CourseDefaultsService.applyDefaultRulesForUser({
+      userId: auth.userId,
+      organizationId: auth.organizationId,
+    }).catch((err: unknown) => {
+      logger.error('Error applying default courses for dashboard:', err)
+    })
+
     const [baseData, learningPaths, orgResult] = await Promise.all([
       fetchDashboardBaseData(supabase, auth),
       loadBusinessUserLearningPaths({
         userId: auth.userId,
         organizationId: auth.organizationId,
-      }).catch((err: unknown) => {
-        logger.error('Error preparing learning paths for dashboard:', err)
-        return []
       }),
       supabase
         .from('organizations')
@@ -41,25 +49,6 @@ export async function GET(_request: NextRequest, context: RouteContext) {
         .eq('is_active', true)
         .single(),
     ])
-
-    // Fire-and-forget: apply default LP rules for this user.
-    // This is a write-side side-effect (idempotent assignment). It must NOT block
-    // the dashboard response — it runs in the background after we have the data.
-    LearningPathDefaultsService.applyDefaultRulesForUser({
-      userId: auth.userId,
-      organizationId: auth.organizationId,
-    }).catch((err: unknown) => {
-      logger.error('Error applying default learning paths for dashboard:', err)
-    })
-
-    // Fire-and-forget: apply default course rules for this user, same non-blocking
-    // pattern as the learning path defaults above.
-    CourseDefaultsService.applyDefaultRulesForUser({
-      userId: auth.userId,
-      organizationId: auth.organizationId,
-    }).catch((err: unknown) => {
-      logger.error('Error applying default courses for dashboard:', err)
-    })
 
     // Phase 2: enrichment queries need courseIds/instructorIds from Phase 1.
     const enrichment = await fetchDashboardEnrichment(supabase, auth, baseData, learningPaths)

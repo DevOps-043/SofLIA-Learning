@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback } from "react";
+import { useParams } from "next/navigation";
+import { useCurrentOrganizationId } from "@/core/stores/organizationStore";
 
 import { useLiaCourse } from "../../context/LiaCourseContext";
 import { ActivityListSection } from "./activities-content/ActivityListSection";
@@ -16,6 +18,17 @@ import { QuizFeedbackInline, useQuizFeedback } from "./quiz-feedback";
 import type { ActivitiesContentProps } from "./activities-content/types";
 
 export function ActivitiesContent(props: ActivitiesContentProps) {
+  const params = useParams();
+  const organizationId = useCurrentOrganizationId();
+  const scope = JSON.stringify([
+    props.slug, props.lesson.lesson_id, props.selectedLang,
+    params?.orgSlug ? organizationId : null,
+  ]);
+
+  return <LessonActivitiesContent key={scope} {...props} />;
+}
+
+function LessonActivitiesContent(props: ActivitiesContentProps) {
   const lia = useLiaCourse();
   const data = useActivitiesData({
     initialContent: props.initialContent,
@@ -88,12 +101,25 @@ export function ActivitiesContent(props: ActivitiesContentProps) {
     return <ActivitiesLoadingState lessonTitle={props.lesson.lesson_title} />;
   }
 
+  const errorNotice = data.error ? (
+    <div role="alert" className="p-6 text-center">
+      <p>{data.error}</p>
+      <button type="button" disabled={data.isRefreshing} onClick={() => void data.refreshLessonContent()} className="mt-4 underline">
+        Reintentar
+      </button>
+    </div>
+  ) : null;
+
   if (!hasActivities && !hasMaterials) {
+    if (errorNotice) {
+      return <ActivitiesContentShell isRefreshing={data.isRefreshing} lessonTitle={props.lesson.lesson_title}>{errorNotice}</ActivitiesContentShell>;
+    }
     return <ActivitiesEmptyState lessonTitle={props.lesson.lesson_title} />;
   }
 
   return (
     <ActivitiesContentShell isRefreshing={data.isRefreshing} lessonTitle={props.lesson.lesson_title}>
+      {errorNotice}
       <ActivityListSection data={data} lessonId={props.lesson.lesson_id} onQuizSubmitted={handleQuizSubmitted} onRequestQuizFeedback={requestQuizFeedback} onTriggerLiaFeedback={requestQuizFeedback} slug={props.slug} />
       <MaterialListSection data={data} lessonId={props.lesson.lesson_id} onQuizSubmitted={handleQuizSubmitted} onRequestQuizFeedback={requestQuizFeedback} slug={props.slug} />
       <QuizFeedbackInline
