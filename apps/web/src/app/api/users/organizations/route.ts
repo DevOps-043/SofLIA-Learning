@@ -1,6 +1,7 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { cacheHeaders } from '@/lib/utils/cache-headers';
 import { SessionService } from '@/features/auth/services/session.service';
 import { logger } from '@/lib/logger';
 
@@ -21,7 +22,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const supabase = await createClient();
+    // The app session is verified above. SSO cookies do not establish auth.uid()
+    // for RLS, so read server-side and scope every membership to this user.
+    const supabase = createAdminClient();
 
     // Fetch all organizations the user belongs to with their role
     const { data: memberships, error: membershipError } = await supabase
@@ -98,13 +101,7 @@ export async function GET(request: NextRequest) {
       success: true,
       organizations,
     }, {
-      headers: {
-        // Private cache: only the user's own browser stores this, never a shared CDN.
-        // 5-min max-age covers the typical session without extra round trips.
-        // stale-while-revalidate=600 lets the browser serve stale data instantly and
-        // refresh silently in the background — avoids the org-switcher flash on navigation.
-        'Cache-Control': 'private, max-age=300, stale-while-revalidate=600',
-      },
+      headers: cacheHeaders.private,
     });
   } catch (error) {
     logger.error('Error in /api/users/organizations:', error);

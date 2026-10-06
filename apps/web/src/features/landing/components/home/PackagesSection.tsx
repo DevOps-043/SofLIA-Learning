@@ -22,6 +22,7 @@ export function PackagesSection() {
   const reduceMotion = useReducedMotion();
   const packages = t('packages.items', { returnObjects: true }) as PackageItem[];
   const sectionRef = useRef<HTMLElement>(null);
+  const tabsRef = useRef<HTMLDivElement>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const { activeStage, goToStage } = useScrollStage(sectionRef, packages.length);
   const activePackage = packages[activeStage] ?? packages[0];
@@ -41,10 +42,18 @@ export function PackagesSection() {
   useEffect(() => {
     if (!window.matchMedia('(max-width: 1199px)').matches) return;
 
-    tabRefs.current[activeStage]?.scrollIntoView({
+    const tabs = tabsRef.current;
+    const activeTab = tabRefs.current[activeStage];
+    if (!tabs || !activeTab) return;
+
+    // Scroll only the horizontal rail. scrollIntoView also moves the page to
+    // this section when the initial tab is selected during hydration.
+    const tabsRect = tabs.getBoundingClientRect();
+    const tabRect = activeTab.getBoundingClientRect();
+    tabs.scrollTo({
+      left: tabs.scrollLeft + tabRect.left - tabsRect.left -
+        (tabs.clientWidth - tabRect.width) / 2,
       behavior: reduceMotion ? 'auto' : 'smooth',
-      block: 'nearest',
-      inline: 'center',
     });
   }, [activeStage, reduceMotion]);
 
@@ -69,7 +78,7 @@ export function PackagesSection() {
   const selectPackage = (index: number, focusTab = false) => {
     const nextIndex = Math.min(Math.max(index, 0), packages.length - 1);
     goToStage(nextIndex);
-    if (focusTab) tabRefs.current[nextIndex]?.focus();
+    if (focusTab) tabRefs.current[nextIndex]?.focus({ preventScroll: true });
   };
 
   const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
@@ -101,6 +110,7 @@ export function PackagesSection() {
           <div className={styles.packagesLayout}>
             <div className={styles.packageRail}>
               <div
+                ref={tabsRef}
                 className={styles.packageTabs}
                 role="tablist"
                 aria-label={t('packages.tabsLabel')}

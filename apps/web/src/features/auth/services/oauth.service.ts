@@ -92,16 +92,47 @@ export class OAuthService {
       .select(SELECT_COLUMNS.oauth_accounts)
       .eq('provider', provider)
       .eq('provider_account_id', providerAccountId)
-      .single();
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // No encontrado
-      }
       throw new Error(`Error buscando cuenta OAuth: ${error.message}`);
     }
 
-    return mapOAuthAccount(data);
+    return data ? mapOAuthAccount(data) : null;
+  }
+
+  /** La identidad del proveedor persiste aunque cambie el correo de la cuenta. */
+  static async resolveOAuthUser(
+    provider: OAuthProvider,
+    providerAccountId: string,
+    email: string,
+    preferredOrganizationId?: string
+  ): Promise<OAuthUserRecord | null> {
+    if (!providerAccountId?.trim()) {
+      throw new Error('Identificador de cuenta OAuth no disponible');
+    }
+
+    const account = await this.findOAuthAccount(provider, providerAccountId);
+    if (!account) {
+      return this.findUserByEmail(email, preferredOrganizationId);
+    }
+
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, email, username, first_name, last_name, email_verified, platform_role')
+      .eq('id', account.user_id)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Error buscando usuario vinculado a OAuth: ${error.message}`);
+    }
+    if (!data) {
+      // No buscar por email: eso podria reasignar una identidad ya vinculada.
+      throw new Error('La cuenta OAuth no tiene un perfil de usuario asociado');
+    }
+
+    return data as OAuthUserRecord;
   }
 
   /**

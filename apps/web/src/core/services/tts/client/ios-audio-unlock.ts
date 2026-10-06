@@ -25,13 +25,17 @@ const GESTURE_EVENTS = ['pointerdown', 'touchend', 'mousedown', 'keydown'] as co
 let sharedAudio: HTMLAudioElement | null = null;
 let blessed = false;
 let listening = false;
+let unlocking = false;
+let silentWavUrl: string | null = null;
 
 /**
- * Genera un WAV de silencio mínimo y válido como data URI. Se construye en código
- * (no se memoriza un base64 frágil) y iOS reproduce WAV/PCM de forma nativa, así
+ * Genera un WAV de silencio mínimo y válido como URL blob permitida por la CSP.
+ * Se construye en código (no se memoriza un base64 frágil), y iOS reproduce
+ * WAV/PCM de forma nativa, así
  * que sirve para bendecir el elemento sin emitir sonido audible.
  */
-function createSilentWavDataUri(): string {
+function getSilentWavUrl(): string {
+  if (silentWavUrl) return silentWavUrl;
   const sampleRate = 8000;
   const numSamples = 8; // ~1 ms: suficiente para que `play()` arranque.
   const bytesPerSample = 2; // 16-bit PCM mono
@@ -60,12 +64,8 @@ function createSilentWavDataUri(): string {
   view.setUint32(40, dataSize, true);
   // Las muestras quedan en cero = silencio.
 
-  const bytes = new Uint8Array(buffer);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i += 1) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return `data:audio/wav;base64,${btoa(binary)}`;
+  silentWavUrl = URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }));
+  return silentWavUrl;
 }
 
 /**
@@ -98,12 +98,13 @@ function detachGestureListeners(): void {
 
 function handleUnlockGesture(): void {
   const audio = getSharedAudioElement();
-  if (!audio || blessed) return;
+  if (!audio || blessed || unlocking) return;
 
+  unlocking = true;
   try {
     // Reproducir un clip silencioso DENTRO del gesto "bendice" el elemento: iOS
     // permitirá reproducciones programáticas posteriores sobre este mismo nodo.
-    audio.src = createSilentWavDataUri();
+    audio.src = getSilentWavUrl();
     const playback = audio.play();
     Promise.resolve(playback)
       .then(() => {
@@ -115,11 +116,18 @@ function handleUnlockGesture(): void {
         }
         blessed = true;
         detachGestureListeners();
+        if (silentWavUrl) {
+          URL.revokeObjectURL(silentWavUrl);
+          silentWavUrl = null;
+        }
+        unlocking = false;
       })
       .catch(() => {
+        unlocking = false;
         // Gesto no concluyente (p. ej. scroll): se reintenta en el próximo gesto.
       });
   } catch {
+    unlocking = false;
     /* entorno sin soporte de audio: se reintenta en el próximo gesto */
   }
 }

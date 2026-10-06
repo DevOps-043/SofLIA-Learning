@@ -1,11 +1,13 @@
+import type { createAdminClient } from '../../../lib/supabase/admin'
 import { logger } from '../../../lib/logger'
 import type { BusinessCourseSubscriptionStatus } from '../types/business-course-detail.types'
 import { SubscriptionService } from './subscription.service'
-import type { BusinessCourseDetailSupabaseClient } from './business-course-detail.server.types'
 import { buildSubscriptionStatus } from './business-course-subscription-status.mapper'
 
+type PurchaseStatusClient = ReturnType<typeof createAdminClient>
+
 export async function fetchSubscriptionStatus(
-  supabase: BusinessCourseDetailSupabaseClient,
+  supabase: PurchaseStatusClient,
   businessUserId: string,
   organizationId: string | undefined,
   courseId: string,
@@ -51,7 +53,7 @@ async function hasActiveBusinessSubscription(
 }
 
 async function getOrganizationCoursePurchaseStatus(
-  supabase: BusinessCourseDetailSupabaseClient,
+  supabase: PurchaseStatusClient,
   organizationId: string,
   courseId: string,
   hasSubscription: boolean,

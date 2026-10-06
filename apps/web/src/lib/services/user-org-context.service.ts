@@ -76,6 +76,7 @@ export async function resolveUserPrimaryMembershipWithOrg(
     .select('id, organization_id, job_title, job_description, organizations!inner(id, name, logo_url, brand_logo_url, brand_favicon_url, slug)')
     .eq('user_id', userId)
     .eq('status', 'active')
+    .eq('organizations.is_active', true)
     .order('joined_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .limit(1)

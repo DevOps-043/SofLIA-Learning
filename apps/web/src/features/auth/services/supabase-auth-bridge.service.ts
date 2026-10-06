@@ -188,11 +188,23 @@ export async function revokeSupabaseAuthSessions(userId: string) {
  * público) evita que una asociación inconsistente confirme la cuenta
  * equivocada. La operación es idempotente para que un reintento del callback
  * pueda reparar una sincronización parcial sin debilitar el control.
+ *
+ * `isProviderAlreadyLinked` (ver OAuthService.resolveOAuthUser) distingue dos
+ * situaciones muy distintas cuando el email no coincide:
+ *  - vinculo nuevo (el perfil se encontro solo por email): un desajuste aqui
+ *    es senal de alarma real, se sigue fallando explicito.
+ *  - vinculo ya existente por provider_account_id: la identidad NO esta en
+ *    duda, el proveedor ya demostro dos veces el control de esta cuenta. Un
+ *    desajuste aqui solo significa que el correo cambio del lado del
+ *    proveedor (p. ej. migracion de dominio corporativo) y auth.users/
+ *    public.users quedaron desactualizados: se sincronizan en vez de
+ *    bloquear el acceso.
  */
 export async function confirmEmailFromTrustedSso(input: {
   email: string
   provider: string
   userId: string
+  isProviderAlreadyLinked: boolean
 }) {
   const expectedEmail = normalizeEmail(input.email)
   if (!expectedEmail) {
@@ -237,24 +249,47 @@ export async function confirmEmailFromTrustedSso(input: {
     )
   }
 
-  const authEmail = normalizeEmail(authLookup.data.user.email)
-  const profileEmail = normalizeEmail(profileLookup.data.email)
-  if (authEmail !== expectedEmail || profileEmail !== expectedEmail) {
-    logger.warn('Trusted SSO email identity mismatch', {
+  const authEmailStale = normalizeEmail(authLookup.data.user.email) !== expectedEmail
+  const profileEmailStale = normalizeEmail(profileLookup.data.email) !== expectedEmail
+
+  if (authEmailStale || profileEmailStale) {
+    if (!input.isProviderAlreadyLinked) {
+      logger.warn('Trusted SSO email identity mismatch', {
+        provider: input.provider,
+        userId: input.userId,
+      })
+      throw new SupabaseAuthBridgeError(
+        'AUTH_EMAIL_MISMATCH',
+        'El email SSO no coincide con la identidad canonica de la cuenta.',
+      )
+    }
+
+    logger.info('Syncing stale email for an already-linked SSO account', {
       provider: input.provider,
       userId: input.userId,
     })
-    throw new SupabaseAuthBridgeError(
-      'AUTH_EMAIL_MISMATCH',
-      'El email SSO no coincide con la identidad canonica de la cuenta.',
-    )
+
+    if (profileEmailStale) {
+      const { error: syncProfileEmailError } = await admin
+        .from('users')
+        .update({ email: expectedEmail })
+        .eq('id', input.userId)
+
+      if (syncProfileEmailError) {
+        throw new SupabaseAuthBridgeError(
+          'AUTH_PROFILE_SYNC_FAILED',
+          syncProfileEmailError.message,
+        )
+      }
+    }
   }
 
   let confirmedAt = authLookup.data.user.email_confirmed_at
-  if (!confirmedAt) {
+  if (!confirmedAt || authEmailStale) {
     const { data, error } = await admin.auth.admin.updateUserById(
       input.userId,
       {
+        ...(authEmailStale ? { email: expectedEmail } : {}),
         email_confirm: true,
       },
     )

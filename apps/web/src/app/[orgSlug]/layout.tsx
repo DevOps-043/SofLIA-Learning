@@ -1,7 +1,6 @@
 import { redirect, notFound } from 'next/navigation';
-import { cookies } from 'next/headers';
 
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { OrganizationLayoutClient } from './OrganizationLayoutClient';
 
 interface OrgLayoutProps {
@@ -36,9 +35,6 @@ export default async function OrganizationLayout({
     return <>{children}</>;
   }
 
-  // Create Supabase client for server-side validation
-  const supabase = await createClient();
-
   // Get current user using specific SessionService that handles custom cookies
   const { SessionService } = await import('@/features/auth/services/session.service');
   const authUser = await SessionService.getCurrentUser();
@@ -47,6 +43,10 @@ export default async function OrganizationLayout({
   if (!authUser) {
     redirect(`/auth?redirect=/${orgSlug}/dashboard`);
   }
+
+  // SSO uses the app session. Only query after verifying it and keep the
+  // user/slug/active-membership checks below before exposing organization data.
+  const supabase = createAdminClient();
 
   // Run all three queries in parallel:
   // - users: to know if the user is a platform admin
@@ -88,7 +88,7 @@ export default async function OrganizationLayout({
 
   if (!isPlatformAdmin) {
     const membership = membershipResult.data;
-    if (!membership) {
+    if (membershipResult.error || !membership) {
       redirect('/dashboard?error=not_member');
     }
 

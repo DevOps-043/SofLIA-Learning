@@ -1,4 +1,4 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import type {
   AdminWorkshopListFilters,
   AdminWorkshopListResult,
@@ -14,7 +14,13 @@ import type { CourseWorkshopRow } from './workshops-query.types'
 export async function getWorkshopsPage(
   filters: AdminWorkshopListFilters,
 ): Promise<AdminWorkshopListResult> {
-  const supabase = await createClient()
+  // courses perdio su acceso general para `authenticated` en la migracion
+  // 20260827120000_emergency_data_api_lockdown: la nueva RLS solo expone filas
+  // aprobadas/activas y un subconjunto de columnas (el catalogo publico), lo
+  // que rompe la gestion de super-admin (necesita ver borradores/inactivos y
+  // columnas como approved_by/rejection_reason). Esta ruta ya esta autorizada
+  // por requireAdmin(), asi que usa el cliente de service role.
+  const supabase = createAdminClient()
   const { safePage, safeLimit, from, to } = getPaginationBounds(filters.page, filters.limit)
   const searchTerm = normalizeSearchTerm(filters.search)
   const category = filters.category?.trim()
@@ -66,7 +72,7 @@ export async function getWorkshopsPage(
 }
 
 async function findMatchingInstructorIds(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  supabase: ReturnType<typeof createAdminClient>,
   searchTerm: string,
 ) {
   if (!searchTerm) return []

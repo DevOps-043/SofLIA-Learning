@@ -1,8 +1,11 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import type { WorkshopStats } from './workshops-transform.service'
 
 export async function getWorkshopStats(): Promise<WorkshopStats> {
-  const supabase = await createClient()
+  // Ver comentario en workshops-page-query.service.ts: courses requiere el
+  // cliente de service role para el catalogo de super-admin desde el
+  // lockdown 20260827120000.
+  const supabase = createAdminClient()
   const [
     { count: totalWorkshops },
     { count: activeWorkshops },

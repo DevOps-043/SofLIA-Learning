@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const {
-  createClientMock,
+  createAdminClientMock,
   getCurrentUserMock,
   resolveOAuthDashboardDestinationMock,
 } = vi.hoisted(() => ({
-  createClientMock: vi.fn(),
+  createAdminClientMock: vi.fn(),
   getCurrentUserMock: vi.fn(),
   resolveOAuthDashboardDestinationMock: vi.fn(),
 }))
@@ -20,8 +20,8 @@ vi.mock('@/features/auth/services/oauth-flow', () => ({
   resolveOAuthDashboardDestination: resolveOAuthDashboardDestinationMock,
 }))
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: createClientMock,
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: createAdminClientMock,
 }))
 
 vi.mock('@/lib/utils/logger', () => ({
@@ -35,7 +35,7 @@ import { GET } from '../route'
 describe('/api/auth/dashboard-destination route', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    createClientMock.mockResolvedValue({ from: vi.fn() })
+    createAdminClientMock.mockReturnValue({ from: vi.fn() })
   })
 
   it('returns an error envelope when the user is not authenticated', async () => {
@@ -45,6 +45,7 @@ describe('/api/auth/dashboard-destination route', () => {
     const payload = await response.json()
 
     expect(response.status).toBe(401)
+    expect(createAdminClientMock).not.toHaveBeenCalled()
     expect(payload).toEqual({
       details: { destination: '/auth' },
       error: 'UNAUTHENTICATED',
@@ -65,7 +66,7 @@ describe('/api/auth/dashboard-destination route', () => {
       success: true,
     })
     expect(resolveOAuthDashboardDestinationMock).toHaveBeenCalledWith(
-      expect.anything(),
+      createAdminClientMock.mock.results[0].value,
       'user-1',
     )
   })
