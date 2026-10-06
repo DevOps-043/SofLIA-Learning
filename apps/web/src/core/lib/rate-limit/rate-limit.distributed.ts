@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { fetchWithCircuitBreaker } from '@/lib/resilience/circuit-breaker'
+import { logger } from '@/lib/utils/logger'
 import { createRateLimitHeaders } from './rate-limit.headers'
 import { getIdentifier } from './rate-limit.identifier'
 import { checkRateLimit } from './rate-limit.check'
@@ -30,7 +31,19 @@ export async function checkDistributedRateLimit(
 ): Promise<RateLimitResult> {
   if (!REDIS_URL || !REDIS_TOKEN) {
     if (process.env.NODE_ENV === 'production' && SECURITY_CRITICAL_PREFIXES.has(prefix)) {
-      return createUnavailableRateLimitResult(config)
+      // No Redis installation is required when the server already has Supabase.
+      // This is a shared, atomic counter, never a per-instance memory fallback.
+      // A configured Redis outage still fails closed below: switching stores in
+      // the middle of a window would give callers a second request budget.
+      try {
+        return await checkSupabaseRateLimit(request, config, prefix)
+      } catch {
+        logger.error('Distributed rate limiter unavailable', {
+          prefix,
+          reason: 'SUPABASE_RATE_LIMIT_UNAVAILABLE',
+        })
+        return createUnavailableRateLimitResult(config)
+      }
     }
     return checkRateLimit(request, config, prefix)
   }
@@ -39,6 +52,10 @@ export async function checkDistributedRateLimit(
     return await checkRedisRateLimit(request, config, prefix)
   } catch {
     if (process.env.NODE_ENV === 'production' && SECURITY_CRITICAL_PREFIXES.has(prefix)) {
+      logger.error('Distributed rate limiter unavailable', {
+        prefix,
+        reason: 'REDIS_REQUEST_FAILED',
+      })
       return createUnavailableRateLimitResult(config)
     }
     return checkRateLimit(request, config, prefix)
@@ -81,8 +98,58 @@ async function checkRedisRateLimit(
 
   const ttlMs = await executeRedisCommand<number>(['PTTL', key])
   const reset = new Date(now + (ttlMs > 0 ? ttlMs : config.windowMs))
+  return createCountedRateLimitResult(count, reset, config)
+}
+
+async function checkSupabaseRateLimit(
+  request: NextRequest,
+  config: RateLimitConfig,
+  prefix: string,
+): Promise<RateLimitResult> {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const token = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
+  if (!url || !token) throw new Error('SUPABASE_RATE_LIMIT_CREDENTIALS_MISSING')
+
+  const response = await fetchWithCircuitBreaker(
+    'supabase-rate-limit',
+    `${url.replace(/\/$/, '')}/rest/v1/rpc/check_distributed_rate_limit`,
+    {
+      method: 'POST',
+      headers: {
+        apikey: token,
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        p_key: `${KEY_PREFIX}:${getIdentifier(request, prefix)}`,
+        p_limit: config.maxRequests + (config.burst ?? 0),
+        p_window_ms: config.windowMs,
+      }),
+      cache: 'no-store',
+    },
+    { timeoutMs: 2_000, maxRetries: 0, minimumRequestCount: 3, resetTimeoutMs: 30_000 },
+  )
+  if (!response.ok) throw new Error('SUPABASE_RATE_LIMIT_REQUEST_FAILED')
+
+  const payload: unknown = await response.json()
+  const row = Array.isArray(payload) && payload.length === 1 ? payload[0] : null
+  if (!row || typeof row !== 'object' || !Number.isSafeInteger(row.request_count)
+    || row.request_count < 1 || typeof row.reset_at !== 'string') {
+    throw new Error('SUPABASE_RATE_LIMIT_INVALID_RESPONSE')
+  }
+  const reset = new Date(row.reset_at)
+  if (!Number.isFinite(reset.getTime())) throw new Error('SUPABASE_RATE_LIMIT_INVALID_RESPONSE')
+  return createCountedRateLimitResult(row.request_count, reset, config)
+}
+
+function createCountedRateLimitResult(
+  count: number,
+  reset: Date,
+  config: RateLimitConfig,
+): RateLimitResult {
+  const effectiveLimit = config.maxRequests + (config.burst ?? 0)
   const remaining = Math.max(0, effectiveLimit - count)
-  const retryAfter = Math.max(1, Math.ceil((reset.getTime() - now) / 1000))
+  const retryAfter = Math.max(1, Math.ceil((reset.getTime() - Date.now()) / 1000))
   const headers = createRateLimitHeaders(effectiveLimit, remaining, reset, retryAfter)
 
   if (count > effectiveLimit) {

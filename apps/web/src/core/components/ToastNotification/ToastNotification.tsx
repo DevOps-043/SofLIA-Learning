@@ -74,8 +74,8 @@ export function ToastNotification({
     : 'fixed top-4 left-0 right-0 z-[99999] flex justify-center pointer-events-none'
 
   const cardClass = position === 'top-right'
-    ? `pointer-events-auto w-auto max-w-sm bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center gap-3`
-    : `pointer-events-auto max-w-md w-[calc(100%-2rem)] sm:w-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center justify-center gap-3 text-center`
+    ? `relative overflow-hidden pointer-events-auto w-auto max-w-sm bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center gap-3`
+    : `relative overflow-hidden pointer-events-auto max-w-md w-[calc(100%-2rem)] sm:w-auto bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ${styles.bg} ${styles.border} border rounded-lg shadow-lg p-4 flex items-center justify-center gap-3 text-center`
 
   const toastContent = (
     <AnimatePresence>

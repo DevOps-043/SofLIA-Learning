@@ -4,6 +4,7 @@ import { logger as techDebtLogger } from '@/lib/utils/logger'
 import { useEffect, useState, type CSSProperties } from 'react'
 
 import { TeamRequiredBanner } from '@/features/business-panel/components/hierarchy/TeamRequiredBanner'
+import { LiveSessionsWidget } from '@/features/live/LiveCatalog'
 import { useMotionSafe } from '@/lib/utils/motion'
 
 import { DashboardCoursesSection } from './business-user-dashboard-shell/DashboardCoursesSection'
@@ -69,6 +70,7 @@ export function BusinessUserDashboardShell(props: BusinessUserDashboardShellProp
         <div className={styles.shell}>
           <TeamRequiredBanner orgSlug={props.orgSlug} />
           <DashboardHero {...props} interfaceTransition={interfaceTransition} />
+          {props.orgSlug && <LiveSessionsWidget orgSlug={props.orgSlug} />}
           <DashboardCoursesSection
             {...props}
             collapsedGroups={collapsedGroups}

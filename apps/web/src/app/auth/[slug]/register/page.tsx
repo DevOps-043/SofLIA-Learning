@@ -10,6 +10,7 @@ import type { OrganizationAuthStyles } from '@/features/auth/components/Organiza
 import { validateInvitationAction } from '@/features/auth/actions/invitation';
 import { getExistingAccountInvitationLoginPath } from '@/features/auth/services/invitation-auth-routing.service';
 import { getInvitationErrorTranslationKey } from '@/features/auth/services/invitation-i18n.service';
+import { resolveOrganizationRegistrationInvitationParams } from '@/features/auth/services/organization-registration-invitation.service';
 import Link from 'next/link';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 
@@ -44,8 +45,11 @@ export default function OrganizationRegisterPage() {
   const router = useRouter();
   const { t } = useTranslation('common');
   const slug = params?.slug as string;
-  const token = searchParams?.get('token'); // Individual invitation token
-  const bulkToken = searchParams?.get('bulk_token'); // Bulk invite link token
+  const {
+    bulkInviteToken: bulkToken,
+    hasInvalidToken,
+    invitationToken: token,
+  } = resolveOrganizationRegistrationInvitationParams(searchParams);
 
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [invitation, setInvitation] = useState<InvitationData | null>(null);
@@ -67,6 +71,10 @@ export default function OrganizationRegisterPage() {
         setOrgErrorKey(null);
         setInvitationErrorKey(null);
 
+        if (hasInvalidToken) {
+          setInvitationErrorKey('auth.invitation.errors.invalid');
+        }
+
         // 1. Cargar información de la organización
         const response = await fetch(`/api/organizations/${slug}`, {
           credentials: 'include',
@@ -83,8 +91,10 @@ export default function OrganizationRegisterPage() {
         setOrganization(data.organization);
 
         // 2. Si hay bulk_token (enlace de invitación masiva), validarlo
-        if (bulkToken) {
-          const bulkResponse = await fetch(`/api/invite/${bulkToken}`);
+        if (bulkToken && !hasInvalidToken) {
+          const bulkResponse = await fetch(
+            `/api/invite/${encodeURIComponent(bulkToken)}`,
+          );
           const bulkData = await bulkResponse.json();
 
           if (!bulkData.success || !bulkData.valid) {
@@ -105,7 +115,7 @@ export default function OrganizationRegisterPage() {
           }
         }
         // 3. Si hay token de invitación individual, validarlo
-        else if (token) {
+        else if (token && !hasInvalidToken) {
           const validation = await validateInvitationAction(token);
 
           if (!validation.valid) {
@@ -143,7 +153,7 @@ export default function OrganizationRegisterPage() {
     };
 
     fetchOrganizationAndValidateToken();
-  }, [slug, token, bulkToken, router]);
+  }, [slug, token, bulkToken, hasInvalidToken, router]);
 
   if (isLoading) {
     return (
@@ -191,6 +201,16 @@ export default function OrganizationRegisterPage() {
   return (
     <OrganizationAuthLayout organization={organization} variant="registration">
       <div className="space-y-4">
+        {!token && !bulkToken && !hasInvalidToken && (
+          <div className="flex items-start gap-3 rounded-xl border border-blue-500/25 bg-blue-500/10 px-4 py-3">
+            <div className="mt-0.5 rounded-lg bg-blue-500/15 p-1.5 text-blue-600 dark:text-blue-300">
+              <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+            </div>
+            <p className="text-xs leading-relaxed text-blue-800 dark:text-blue-200">
+              {t('auth.invitation.pendingEmailRequired')}
+            </p>
+          </div>
+        )}
         {/* Si hay error de invitación pero la organización existe, mostrar mensaje */}
         {invitationErrorMessage && (
           <div className="flex items-start gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3">

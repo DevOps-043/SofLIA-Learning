@@ -79,7 +79,7 @@ export async function middleware(request: NextRequest, event: NextFetchEvent) {
   const { pathname } = request.nextUrl;
   const correlationId = getOrCreateCorrelationId(request.headers)
   const nonce = createContentSecurityPolicyNonce()
-  const contentSecurityPolicy = buildEnforcedContentSecurityPolicy(nonce)
+  const contentSecurityPolicy = buildEnforcedContentSecurityPolicy(nonce, /^\/[^/]+\/live\/[0-9a-f-]{36}\/?$/i.test(pathname))
   const forwardedRequestHeaders = new Headers(request.headers)
   setCorrelationId(forwardedRequestHeaders, correlationId)
   forwardedRequestHeaders.set('x-nonce', nonce)

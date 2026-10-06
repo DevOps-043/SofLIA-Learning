@@ -14,6 +14,7 @@ import {
   type LiaDownloadRequest,
 } from '../services/lia-chat-stream.service';
 import { extractVisibleScreenContent } from '../components/LiaSidePanel/services/visible-screen-content.service';
+import { getLiaChatErrorMessage, readLiaChatRequestError } from '../services/lia-chat-error.service';
 
 
 type LegacyAuthUser = {
@@ -176,7 +177,7 @@ export function useLiaGeneralChat(
         });
 
         if (!response.ok) {
-          throw new Error('Error en la comunicación con SofLIA');
+          throw await readLiaChatRequestError(response);
         }
 
         const reader = response.body?.getReader();
@@ -271,8 +272,7 @@ export function useLiaGeneralChat(
         const errorResponse: SofLIAMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
-          content:
-            'Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta de nuevo.',
+          content: getLiaChatErrorMessage(err),
           timestamp: new Date(),
         };
 

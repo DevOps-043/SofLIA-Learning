@@ -74,12 +74,23 @@ export function createInvitationDetailMethods(
         .select('id, email, token, role, status, expires_at, organization_id, metadata, created_at')
         .eq('status', 'pending')
 
-      const { data } = lookupByToken
-        ? await query.eq('token', tokenOrEmail).single()
+      const { data, error } = lookupByToken
+        ? await query
+            .eq('organization_id', organizationId)
+            .eq('token', tokenOrEmail)
+            .single()
         : await query
             .eq('organization_id', organizationId)
             .ilike('email', escapeIlikePattern(tokenOrEmail.trim()))
             .single()
+
+      if (error) {
+        const errorCode = (error as { code?: string }).code
+        if (errorCode === 'PGRST116') {
+          return null
+        }
+        throw error
+      }
 
       return data ? toInvitationRecord(data) : null
     },

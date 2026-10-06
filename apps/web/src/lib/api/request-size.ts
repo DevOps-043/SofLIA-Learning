@@ -11,6 +11,7 @@ const MULTIPART_ROUTE_LIMITS: ReadonlyArray<{
   matches: (pathname: string) => boolean
   maxBytes: number
 }> = [
+  { matches: (path) => /^\/api\/[^/]+\/live\/[0-9a-f-]{36}\/upload$/i.test(path), maxBytes: 11 * MB },
   { matches: (path) => path === '/api/admin/upload/course-videos', maxBytes: 1025 * MB },
   { matches: (path) => path === '/api/lia/dictation', maxBytes: 26 * MB },
   { matches: (path) => path === '/api/upload', maxBytes: 13 * MB },

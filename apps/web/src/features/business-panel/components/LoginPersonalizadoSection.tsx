@@ -110,7 +110,7 @@ export function LoginPersonalizadoSection({
                 type: 'login' as const,
               },
               {
-                label: 'Registro',
+                label: 'Registro de invitados',
                 url: registerUrl,
                 type: 'register' as const,
               },
@@ -134,6 +134,12 @@ export function LoginPersonalizadoSection({
                 </button>
               </div>
             ))}
+          </div>
+          <div className={styles.notice}>
+            <ShieldCheck aria-hidden="true" />
+            El enlace de registro solo admite correos con una invitación
+            individual pendiente. Para compartir acceso sin asignar un correo,
+            crea y comparte un enlace de invitación masiva desde Usuarios.
           </div>
         </div>
       </section>

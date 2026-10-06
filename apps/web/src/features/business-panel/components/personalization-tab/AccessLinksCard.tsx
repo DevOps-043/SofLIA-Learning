@@ -9,7 +9,7 @@ export function AccessLinksCard({ state }: { state: PersonalizationTabState }) {
   const theme = useBusinessPanelTheme()
   const links = [
     { label: 'Link de Login', url: state.loginUrl, copied: state.copiedLogin, type: 'login' as const },
-    { label: 'Link de Registro', url: state.registerUrl, copied: state.copiedRegister, type: 'register' as const },
+    { label: 'Registro de invitados', url: state.registerUrl, copied: state.copiedRegister, type: 'register' as const },
   ]
 
   return (
@@ -33,6 +33,11 @@ export function AccessLinksCard({ state }: { state: PersonalizationTabState }) {
           </motion.div>
         ))}
       </div>
+      <p className="relative mt-4 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+        Este enlace requiere que el correo ya tenga una invitación individual
+        pendiente. Para altas abiertas controladas, comparte un enlace de
+        invitación masiva.
+      </p>
     </motion.div>
   )
 }

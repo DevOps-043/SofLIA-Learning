@@ -47,7 +47,7 @@ export function createInvitationCreateMethods(
         return null
       }
 
-      const { data } = await userInvitationsTable(supabase)
+      const { data, error } = await userInvitationsTable(supabase)
         .select(
           'id, email, token, role, status, expires_at, organization_id, metadata, created_at',
         )
@@ -55,6 +55,10 @@ export function createInvitationCreateMethods(
         .eq('status', 'pending')
         .ilike('email', escapeIlikePattern(normalized))
         .maybeSingle()
+
+      if (error) {
+        throw error
+      }
 
       return data ? toInvitationRecord(data) : null
     },

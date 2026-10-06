@@ -1,4 +1,5 @@
 import type { LiaChatResponsePayload, LoadedLiaMessage } from './types';
+import { readLiaChatRequestError } from '../../services/lia-chat-error.service';
 
 export async function postLiaCourseMessage(
   body: unknown,
@@ -12,7 +13,7 @@ export async function postLiaCourseMessage(
   });
 
   if (!response.ok) {
-    throw new Error('Error en la comunicación con SofLIA');
+    throw await readLiaChatRequestError(response);
   }
 
   return (await response.json()) as LiaChatResponsePayload;

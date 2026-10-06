@@ -291,6 +291,7 @@
       "termsNotice": "By joining, you accept the platform terms of use",
       "registerManualFallback": "{{error}}. You can register manually if you have a pending invitation.",
       "registerManualFallbackHint": "You can continue with manual registration if you have a pending invitation.",
+      "pendingEmailRequired": "Registration is limited to invited people. Use the same email address that received the invitation or ask an administrator for a bulk invitation link.",
       "errors": {
         "acceptConnection": "Connection error while accepting the invitation",
         "connection": "Connection error. Please try again.",

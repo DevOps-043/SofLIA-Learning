@@ -64,7 +64,7 @@ export function useSubmitLiaCourseMessage({
       } catch (error) {
         if (!isAbortError(error, abortControllerRef.current?.signal)) {
           setError(normalizeUnknownError(error));
-          setMessages((prev) => [...prev, createAssistantErrorMessage()]);
+          setMessages((prev) => [...prev, createAssistantErrorMessage(error)]);
         }
       } finally {
         setIsLoading(false);

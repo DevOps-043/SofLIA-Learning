@@ -291,6 +291,7 @@
       "termsNotice": "Al unirte, aceptas los términos de uso de la plataforma",
       "registerManualFallback": "{{error}}. Puedes registrarte manualmente si tienes una invitación pendiente.",
       "registerManualFallbackHint": "Puedes continuar con el registro manual si tienes una invitación pendiente.",
+      "pendingEmailRequired": "Este registro es exclusivo para personas invitadas. Usa el mismo correo al que se envió la invitación o solicita al administrador un enlace de invitación masiva.",
       "errors": {
         "acceptConnection": "Error de conexión al aceptar la invitación",
         "connection": "Error de conexión. Intenta nuevamente.",

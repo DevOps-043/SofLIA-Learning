@@ -20,21 +20,26 @@ export const metadata: Metadata = {
 
 export const dynamic = 'force-dynamic'
 
-interface VerificationPageProps {
-  searchParams?: {
-    returnTo?: string | string[]
-  }
+interface VerificationSearchParams {
+  returnTo?: string | string[]
 }
 
-export default function VerificationPage(props: VerificationPageProps) {
-  const cookieStore = cookies()
+interface VerificationPageProps {
+  searchParams?: Promise<VerificationSearchParams>
+}
+
+export default async function VerificationPage(props: VerificationPageProps) {
+  const [cookieStore, searchParams] = await Promise.all([
+    cookies(),
+    props.searchParams ?? Promise.resolve<VerificationSearchParams>({}),
+  ])
   const challenge = verifyToken<VerificationChallengeCookie>(
     cookieStore.get(VERIFICATION_CHALLENGE_COOKIE_NAME)?.value,
   )
   const returnTo = sanitizeReturnTo(
-    Array.isArray(props.searchParams?.returnTo)
-      ? props.searchParams?.returnTo[0]
-      : props.searchParams?.returnTo,
+    Array.isArray(searchParams.returnTo)
+      ? searchParams.returnTo[0]
+      : searchParams.returnTo,
   )
 
   return (

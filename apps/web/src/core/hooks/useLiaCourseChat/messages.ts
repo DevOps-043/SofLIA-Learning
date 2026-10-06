@@ -1,5 +1,6 @@
 import type { SofLIAMessage } from '../../types/lia.types';
 import type { LoadedLiaMessage } from './types';
+import { getLiaChatErrorMessage } from '../../services/lia-chat-error.service';
 
 export function normalizeCourseMessage(message: string): string {
   return message.trim();
@@ -39,12 +40,11 @@ export function createUserMessage(content: string): SofLIAMessage {
   };
 }
 
-export function createAssistantErrorMessage(): SofLIAMessage {
+export function createAssistantErrorMessage(error?: unknown): SofLIAMessage {
   return {
     id: createMessageId(),
     role: 'assistant',
-    content:
-      'Lo siento, ocurrió un error al procesar tu mensaje. Por favor, intenta de nuevo.',
+    content: getLiaChatErrorMessage(error),
     timestamp: new Date(),
   };
 }

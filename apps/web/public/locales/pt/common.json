@@ -291,6 +291,7 @@
       "termsNotice": "Ao entrar, você aceita os termos de uso da plataforma",
       "registerManualFallback": "{{error}}. Você pode se registrar manualmente se tiver um convite pendente.",
       "registerManualFallbackHint": "Você pode continuar com o cadastro manual se tiver um convite pendente.",
+      "pendingEmailRequired": "Este cadastro é exclusivo para pessoas convidadas. Use o mesmo e-mail que recebeu o convite ou solicite ao administrador um link de convite em massa.",
       "errors": {
         "acceptConnection": "Erro de conexão ao aceitar o convite",
         "connection": "Erro de conexão. Tente novamente.",

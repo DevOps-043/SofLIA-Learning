@@ -107,6 +107,7 @@ export function OrganizationRegisterForm(
         message={error || ''}
         type="error"
         duration={6000}
+        position="top-right"
       />
     </>
   )
