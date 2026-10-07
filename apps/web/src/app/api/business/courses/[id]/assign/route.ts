@@ -138,7 +138,7 @@ async function handlePost(
     if (newUserIds.length === 0) {
       return apiError(
         'COURSE_ALREADY_ASSIGNED',
-        'Todos los usuarios seleccionados ya tienen este curso asignado',
+        'El curso ya está asignado a los usuarios seleccionados. Para quitar una asignación directa, haz clic en «Clic para quitar» junto al usuario y confirma los cambios.',
         400,
       )
     }

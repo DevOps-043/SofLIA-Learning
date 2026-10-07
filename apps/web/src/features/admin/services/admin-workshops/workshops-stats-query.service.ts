@@ -7,10 +7,10 @@ export async function getWorkshopStats(): Promise<WorkshopStats> {
   // lockdown 20260827120000.
   const supabase = createAdminClient()
   const [
-    { count: totalWorkshops },
-    { count: activeWorkshops },
-    { data: coursesData },
-    { data: assignmentsData },
+    totalResult,
+    activeResult,
+    coursesResult,
+    enrollmentsResult,
   ] = await Promise.all([
     supabase
       .from('courses')
@@ -23,19 +23,24 @@ export async function getWorkshopStats(): Promise<WorkshopStats> {
       .or('approval_status.eq.approved,approval_status.is.null'),
     supabase
       .from('courses')
-      .select('student_count, duration_total_minutes, instructor_id')
+      .select('duration_total_minutes, instructor_id')
       .or('approval_status.eq.approved,approval_status.is.null'),
     supabase
       .from('user_course_enrollments')
-      .select('course_id')
-      .eq('enrollment_status', 'active'),
+      .select('course_id, courses!inner(id)', { count: 'exact', head: true })
+      .in('enrollment_status', ['active', 'completed'])
+      .or('approval_status.eq.approved,approval_status.is.null', { referencedTable: 'courses' }),
   ])
 
-  const stats = summarizeWorkshopStats(coursesData || [], assignmentsData?.length || 0)
+  for (const result of [totalResult, activeResult, coursesResult, enrollmentsResult]) {
+    if (result.error) throw result.error
+  }
+
+  const stats = summarizeWorkshopStats(coursesResult.data || [], enrollmentsResult.count ?? 0)
 
   return {
-    totalWorkshops: totalWorkshops || 0,
-    activeWorkshops: activeWorkshops || 0,
+    totalWorkshops: totalResult.count ?? 0,
+    activeWorkshops: activeResult.count ?? 0,
     totalStudents: stats.totalStudents,
     averageDuration: stats.averageDuration,
     totalInstructors: stats.totalInstructors,

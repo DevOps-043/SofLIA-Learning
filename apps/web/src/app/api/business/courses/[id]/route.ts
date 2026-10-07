@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireBusiness } from '@/lib/auth/requireBusiness'
+import { requireBusinessCourseCatalog } from '@/features/business-panel/services/business-course-catalog-auth.server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { createClient } from '@/lib/supabase/server'
+import { getCourseEnrollmentCounts } from '@/features/courses/services/course-enrollment-counts.server.service'
 import { logger } from '@/lib/utils/logger'
 import { SubscriptionService } from '@/features/business-panel/services/subscription.service'
 import { SessionService } from '@/features/auth/services/session.service'
@@ -61,7 +61,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireBusiness()
+    const auth = await requireBusinessCourseCatalog()
     if (auth instanceof NextResponse) {
       logger.error('❌ Authentication failed in /api/business/courses/[id]')
       return auth
@@ -81,8 +81,8 @@ export async function GET(
       )
     }
 
-    const supabase = await createClient()
-    const purchaseClient = createAdminClient()
+    const supabase = createAdminClient()
+    const purchaseClient = supabase
 
     // Obtener información del curso (buscar por ID)
     const { data: course, error: courseError } = await supabase
@@ -109,6 +109,8 @@ export async function GET(
       `,
       )
       .eq('id', id)
+      .eq('is_active', true)
+      .or('approval_status.eq.approved,approval_status.is.null')
       .single()
 
     if (courseError) {
@@ -362,6 +364,8 @@ export async function GET(
       reviews = []
     }
 
+    const enrollmentCounts = await getCourseEnrollmentCounts(supabase, [course.id], auth.organizationId)
+
     // Calcular estadísticas de módulos y lecciones
     const totalModules = modulesWithLessons.length
     const totalLessons = modulesWithLessons.reduce(
@@ -458,7 +462,7 @@ export async function GET(
         slug: course.slug,
         price: course.price,
         rating: course.average_rating || 0,
-        student_count: course.student_count || 0,
+        student_count: enrollmentCounts.get(course.id) ?? 0,
         review_count: course.review_count || 0,
         learning_objectives: course.learning_objectives || [],
         created_at: course.created_at,

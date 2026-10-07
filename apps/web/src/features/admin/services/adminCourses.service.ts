@@ -1,5 +1,6 @@
 import { logger as techDebtLogger } from '@/lib/utils/logger'
-import { createClient } from '../../../lib/supabase/server'
+import { createAdminCourseContentClient } from './admin-course-content.client'
+import { getCourseEnrollmentCounts } from '@/features/courses/services/course-enrollment-counts.server.service'
 import type { Json, Tables } from '../../../lib/supabase/types'
 
 interface CourseInstructor {
@@ -86,7 +87,7 @@ function mapAdminCourse(course: CourseRow): AdminCourse {
 
 export class AdminCoursesService {
   static async getAllCourses(): Promise<AdminCourse[]> {
-    const supabase = await createClient()
+    const supabase = await createAdminCourseContentClient()
 
     try {
       // ✅ OPTIMIZACIÓN: Usar JOIN para obtener instructor en la misma query
@@ -122,21 +123,22 @@ export class AdminCoursesService {
         .order('title', { ascending: true })
 
       if (error) {
-        return []
+        throw error
       }
 
 
       // Mapear datos con instructor ya incluido
       const courses = ((data || []) as unknown as CourseRow[]).map(mapAdminCourse)
-
-      return courses
+      const counts = await getCourseEnrollmentCounts(supabase, courses.map(course => course.id))
+      return courses.map(course => ({ ...course, student_count: counts.get(course.id) ?? 0 }))
     } catch (error) {
-      return []
+      techDebtLogger.error('Error fetching admin courses:', error)
+      throw error
     }
   }
 
   static async getActiveCourses(): Promise<AdminCourse[]> {
-    const supabase = await createClient()
+    const supabase = await createAdminCourseContentClient()
 
     try {
       // ✅ OPTIMIZACIÓN: Usar JOIN para obtener instructor en la misma query
@@ -173,22 +175,23 @@ export class AdminCoursesService {
         .order('title', { ascending: true })
 
       if (error) {
-        return []
+        throw error
       }
 
 
       // Mapear datos con instructor ya incluido
       const courses = ((data || []) as unknown as CourseRow[]).map(mapAdminCourse)
-
-      return courses
+      const counts = await getCourseEnrollmentCounts(supabase, courses.map(course => course.id))
+      return courses.map(course => ({ ...course, student_count: counts.get(course.id) ?? 0 }))
     } catch (error) {
-      return []
+      techDebtLogger.error('Error fetching active admin courses:', error)
+      throw error
     }
   }
 
   // NUEVO: Obtener Cursos Pendientes de Aprobación
   static async getPendingCourses(): Promise<AdminCourse[]> {
-    const supabase = await createClient()
+    const supabase = await createAdminCourseContentClient()
 
     try {
       const { data, error } = await supabase
@@ -236,7 +239,7 @@ export class AdminCoursesService {
 
   // NUEVO: Aprobar Curso
   static async approveCourse(courseId: string, adminId: string): Promise<boolean> {
-    const supabase = await createClient()
+    const supabase = await createAdminCourseContentClient()
 
     // 1. Actualizar curso
     const { error: courseError } = await supabase
@@ -273,7 +276,7 @@ export class AdminCoursesService {
 
   // NUEVO: Rechazar Curso
   static async rejectCourse(courseId: string, reason: string): Promise<boolean> {
-    const supabase = await createClient()
+    const supabase = await createAdminCourseContentClient()
 
     const { error } = await supabase
       .from('courses')
@@ -289,7 +292,7 @@ export class AdminCoursesService {
 
   // NUEVO: Obtener detalle completo del curso (Módulos -> Lecciones -> Materiales)
   static async getCourseFullDetails(courseId: string): Promise<CourseRow & { modules?: ModuleRow[] } | null> {
-    const supabase = await createClient()
+    const supabase = await createAdminCourseContentClient()
 
     const { data, error } = await supabase
       .from('courses')

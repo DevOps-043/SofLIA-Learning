@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { requireBusinessCourseCatalog } from '@/features/business-panel/services/business-course-catalog-auth.server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 
 interface AssignedUser {
@@ -20,7 +20,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const auth = await requireBusiness()
+    const auth = await requireBusinessCourseCatalog()
     if (auth instanceof NextResponse) return auth
 
     // Usar organizationId de auth (viene de requireBusiness)
@@ -32,7 +32,7 @@ export async function GET(
     }
 
     const { id: courseId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const organizationId = auth.organizationId
     const assignedUsersMap = new Map<string, AssignedUser>()
 
@@ -44,10 +44,10 @@ export async function GET(
       .select('user_id')
       .eq('organization_id', organizationId)
       .eq('course_id', courseId)
-      .in('status', ['assigned', 'in_progress'])
+      .or('status.is.null,status.in.(assigned,in_progress)')
 
     if (directError) {
-      logger.error('Error fetching direct assignments:', directError)
+      throw directError
     } else {
       logger.info(`📋 Direct assignments found: ${directAssignments?.length || 0}`)
         ; (directAssignments || []).forEach((a: { user_id: string }) => {

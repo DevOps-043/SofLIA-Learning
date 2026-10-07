@@ -22,7 +22,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   const { hasAccess, isLoading: accessLoading, error: accessError } = useCourseAccess(
     logic.slug,
     logic.organizationId,
-    Boolean(logic.orgSlug),
+    Boolean(logic.orgSlug && logic.organizationId),
   )
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
@@ -57,7 +57,7 @@ export function CourseLearnPageShell({ logic }: CourseLearnPageShellProps) {
   // Block only on course data — access check runs in background and doesn't delay render.
   // In B2B every org member has access; the check-purchase call is a redundant safety net.
   // We only block render when hasAccess is definitively false (never when still null/loading).
-  if (!logic.ready || logic.loading) {
+  if (!logic.ready || logic.loading || !logic.organizationId) {
     return <CourseLearnLoadingState logic={logic} />
   }
 

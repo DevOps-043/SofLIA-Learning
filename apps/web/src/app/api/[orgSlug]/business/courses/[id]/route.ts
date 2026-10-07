@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireBusiness } from '../../../../../../lib/auth/requireBusiness'
+import { requireBusinessCourseCatalog } from '@/features/business-panel/services/business-course-catalog-auth.server'
 import { logger } from '../../../../../../lib/logger'
 import { BusinessCourseDetailServerService } from '../../../../../../features/business-panel/services/business-course-detail.server.service'
 import { cacheHeaders } from '@/lib/utils/cache-headers'
@@ -11,7 +11,7 @@ export async function GET(
   try {
     const { orgSlug, id } = await params
 
-    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    const auth = await requireBusinessCourseCatalog({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) {
       return auth
     }

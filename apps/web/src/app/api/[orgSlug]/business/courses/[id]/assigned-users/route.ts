@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { requireBusinessCourseCatalog } from '@/features/business-panel/services/business-course-catalog-auth.server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { logger } from '@/lib/utils/logger'
 
 interface AssignedUser {
@@ -21,7 +21,7 @@ export async function GET(
   try {
     const { orgSlug, id: courseId } = await params
 
-    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    const auth = await requireBusinessCourseCatalog({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
     if (!auth.organizationId) {
@@ -31,7 +31,7 @@ export async function GET(
       }, { status: 403 })
     }
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
     const organizationId = auth.organizationId
     const assignedUsersMap = new Map<string, AssignedUser>()
 
@@ -43,10 +43,10 @@ export async function GET(
       .select('user_id')
       .eq('organization_id', organizationId)
       .eq('course_id', courseId)
-      .in('status', ['assigned', 'in_progress'])
+      .or('status.is.null,status.in.(assigned,in_progress)')
 
     if (directError) {
-      logger.error('Error fetching direct assignments:', directError)
+      throw directError
     } else {
       logger.info(`📋 Direct assignments found: ${directAssignments?.length || 0}`)
       ;(directAssignments || []).forEach((a: { user_id: string }) => {
@@ -65,6 +65,7 @@ export async function GET(
         .from('learning_path_items')
         .select('learning_path_id')
         .eq('course_id', courseId)
+      if (pathItemsError) throw pathItemsError
 
       if (!pathItemsError && pathItems && pathItems.length > 0) {
         const learningPathIds = [...new Set(pathItems.map((item: { learning_path_id: string }) => item.learning_path_id))]
@@ -75,6 +76,7 @@ export async function GET(
           .select('id, title')
           .in('id', learningPathIds)
           .eq('is_active', true)
+        if (activePathsError) throw activePathsError
 
         if (!activePathsError && activePaths && activePaths.length > 0) {
           const activePathIds = activePaths.map((p: { id: string }) => p.id)
@@ -89,6 +91,7 @@ export async function GET(
             .eq('organization_id', organizationId)
             .eq('status', 'active')
             .in('learning_path_id', activePathIds)
+          if (orgLpError) throw orgLpError
 
           // Si la org tiene algún learning path asignado con este curso,
           // todos los miembros de la org tienen acceso al curso
@@ -98,6 +101,7 @@ export async function GET(
               .select('user_id')
               .eq('organization_id', organizationId)
               .eq('status', 'active')
+            if (orgMembersError) throw orgMembersError
 
             if (!orgMembersError && orgMembers) {
               const firstAssignedPathId = orgLpAssignments[0].learning_path_id
@@ -121,6 +125,7 @@ export async function GET(
             .eq('organization_id', organizationId)
             .eq('status', 'assigned')
             .in('learning_path_id', activePathIds)
+          if (userLpError) throw userLpError
 
           if (!userLpError && userLpAssignments) {
             userLpAssignments.forEach((assignment: { user_id: string; learning_path_id: string }) => {
@@ -137,8 +142,8 @@ export async function GET(
         }
       }
     } catch (lpError) {
-      // Learning path tables might not exist in all environments — log and continue
       logger.error('Error checking learning path course assignments:', lpError)
+      throw lpError
     }
 
     const assignedUsers = Array.from(assignedUsersMap.values())
@@ -159,7 +164,7 @@ export async function GET(
     logger.error('💥 Error in /api/[orgSlug]/business/courses/[id]/assigned-users:', error)
     return NextResponse.json({
       success: false,
-      error: 'Error interno del servidor',
+      error: 'No se pudieron consultar las asignaciones del curso. Vuelve a abrir esta ventana para intentar de nuevo.',
       user_ids: [],
       assigned_users: []
     }, { status: 500 })

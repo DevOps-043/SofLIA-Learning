@@ -13,7 +13,7 @@ interface CourseAccessState {
 
 /**
  * Hook para verificar si el usuario tiene acceso a un curso
- * Verifica que el usuario esté autenticado y que haya comprado el curso
+ * Verifica la inscripción o asignación del usuario en la organización consultada.
  */
 export function useCourseAccess(
     courseSlug: string,
@@ -21,22 +21,31 @@ export function useCourseAccess(
     enabled = true,
 ): CourseAccessState {
     const { user, loading: authLoading } = useAuth();
+    const userId = user?.id ?? null;
     const currentOrganization = useOrganizationStore(state => state.currentOrganization);
     const scopedOrganizationId = organizationId === undefined
         ? currentOrganization?.id ?? null
         : organizationId;
-    const [state, setState] = useState<CourseAccessState>({
+    const requestKey = JSON.stringify([userId, courseSlug, scopedOrganizationId]);
+    const [state, setState] = useState<CourseAccessState & { requestKey: string | null }>({
+        requestKey: null,
         hasAccess: null,
         isLoading: true,
         error: null,
     });
 
     useEffect(() => {
+        const controller = new AbortController();
+        let active = true;
+        const applyState = (nextState: CourseAccessState) => {
+            if (active) setState({ ...nextState, requestKey });
+        };
+
         async function checkAccess() {
             if (!enabled || !courseSlug) {
-                setState({
-                    hasAccess: false,
-                    isLoading: false,
+                applyState({
+                    hasAccess: null,
+                    isLoading: true,
                     error: null,
                 });
                 return;
@@ -44,12 +53,13 @@ export function useCourseAccess(
 
             // Esperar a que termine la autenticación
             if (authLoading) {
+                applyState({ hasAccess: null, isLoading: true, error: null });
                 return;
             }
 
             // Si no hay usuario, no tiene acceso
-            if (!user) {
-                setState({
+            if (!userId) {
+                applyState({
                     hasAccess: false,
                     isLoading: false,
                     error: 'Debes iniciar sesión para acceder a este curso',
@@ -58,6 +68,7 @@ export function useCourseAccess(
             }
 
             try {
+                applyState({ hasAccess: null, isLoading: true, error: null });
                 // Construir URL con el ID de la organización activa si existe
                 let url = `/api/courses/${courseSlug}/check-purchase`;
                 if (scopedOrganizationId) {
@@ -65,7 +76,11 @@ export function useCourseAccess(
                 }
 
                 // Verificar si el usuario ha comprado el curso o lo tiene asignado
-                const response = await fetch(url);
+                const response = await fetch(url, {
+                    credentials: 'include',
+                    cache: 'no-store',
+                    signal: controller.signal,
+                });
 
                 if (!response.ok) {
                     throw new Error('Error al verificar acceso al curso');
@@ -73,16 +88,17 @@ export function useCourseAccess(
 
                 const data = await response.json();
 
-                setState({
+                applyState({
                     hasAccess: data.isPurchased,
                     isLoading: false,
                     error: data.isPurchased
                         ? null
-                        : 'No tienes acceso a este curso. Por favor, adquiérelo primero.',
+                        : 'No tienes acceso a este curso en esta organización. Solicita la asignación al administrador.',
                 });
             } catch (error) {
+                if (!active || controller.signal.aborted) return;
                 techDebtLogger.error('[useCourseAccess] Error:', error);
-                setState({
+                applyState({
                     hasAccess: false,
                     isLoading: false,
                     error: 'Error al verificar acceso al curso',
@@ -90,8 +106,16 @@ export function useCourseAccess(
             }
         }
 
-        checkAccess();
-    }, [courseSlug, user, authLoading, scopedOrganizationId, enabled]);
+        void checkAccess();
+        return () => {
+            active = false;
+            controller.abort();
+        };
+    }, [courseSlug, userId, authLoading, scopedOrganizationId, enabled, requestKey]);
 
-    return state;
+    if (!enabled || authLoading || state.requestKey !== requestKey) {
+        return { hasAccess: null, isLoading: true, error: null };
+    }
+
+    return { hasAccess: state.hasAccess, isLoading: state.isLoading, error: state.error };
 }

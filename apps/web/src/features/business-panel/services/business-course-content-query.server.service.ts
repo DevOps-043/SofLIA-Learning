@@ -20,7 +20,9 @@ export async function fetchCourseRow(
       student_count, review_count, learning_objectives, created_at, updated_at
     `)
     .eq('id', courseId)
-    .single<CourseRow>()
+    .eq('is_active', true)
+    .or('approval_status.eq.approved,approval_status.is.null')
+    .maybeSingle<CourseRow>()
 }
 
 export async function fetchCourseModulesAndReviews(
@@ -34,7 +36,10 @@ export async function fetchCourseModulesAndReviews(
       .eq('course_id', courseId)
       .eq('is_published', true)
       .order('module_order_index', { ascending: true })
-      .then((result) => result.data as CourseModuleRow[] || []),
+      .then((result) => {
+        if (result.error) throw result.error
+        return result.data as CourseModuleRow[] || []
+      }),
     supabase
       .from('course_reviews')
       .select(`
@@ -45,7 +50,10 @@ export async function fetchCourseModulesAndReviews(
       .eq('is_public', true)
       .order('created_at', { ascending: false })
       .limit(10)
-      .then((result) => result.data as CourseReviewRow[] || []),
+      .then((result) => {
+        if (result.error) throw result.error
+        return result.data as CourseReviewRow[] || []
+      }),
   ])
 }
 
@@ -65,5 +73,8 @@ export async function fetchLessonsForModules(
     .in('module_id', moduleIds)
     .eq('is_published', true)
     .order('lesson_order_index', { ascending: true })
-    .then((result) => result.data as CourseLessonRow[] || [])
+    .then((result) => {
+      if (result.error) throw result.error
+      return result.data as CourseLessonRow[] || []
+    })
 }

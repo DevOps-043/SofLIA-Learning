@@ -10,7 +10,7 @@ interface BusinessAssignCourseFooterProps {
 }
 
 export function BusinessAssignCourseFooter({ modal, t, theme }: BusinessAssignCourseFooterProps) {
-  const isDisabled = modal.isAssigning || resolveIsDisabled(modal)
+  const isDisabled = modal.isAssigning || modal.loadingAssignments || !modal.assignmentsReady || resolveIsDisabled(modal)
 
   return (
     <footer className={modalStyles.footer}>

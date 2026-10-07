@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
-import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { requireBusinessCourseCatalog } from '@/features/business-panel/services/business-course-catalog-auth.server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getCourseEnrollmentCounts } from '@/features/courses/services/course-enrollment-counts.server.service'
 import { logger } from '@/lib/utils/logger'
 
 export async function GET() {
   try {
-    const auth = await requireBusiness()
+    const auth = await requireBusinessCourseCatalog()
     if (auth instanceof NextResponse) return auth
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Obtener todos los cursos activos
     const { data: courses, error: coursesError } = await supabase
@@ -33,6 +34,7 @@ export async function GET() {
         updated_at
       `)
       .eq('is_active', true)
+      .or('approval_status.eq.approved,approval_status.is.null')
       .order('created_at', { ascending: false })
 
     if (coursesError) {
@@ -69,6 +71,12 @@ export async function GET() {
       }
     }
 
+    const enrollmentCounts = await getCourseEnrollmentCounts(
+      supabase,
+      (courses ?? []).map(course => course.id),
+      auth.organizationId,
+    )
+
     // Transformar datos
     const coursesWithInstructors = courses?.map(course => {
       const instructor = instructorMap.get(course.instructor_id) || {
@@ -89,7 +97,7 @@ export async function GET() {
         slug: course.slug,
         price: course.price,
         rating: course.average_rating || 0,
-        student_count: course.student_count || 0,
+        student_count: enrollmentCounts.get(course.id) ?? 0,
         review_count: course.review_count || 0,
         learning_objectives: course.learning_objectives,
         created_at: course.created_at,

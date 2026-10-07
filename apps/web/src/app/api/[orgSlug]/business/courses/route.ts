@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireBusiness } from '@/lib/auth/requireBusiness'
-import { createClient } from '@/lib/supabase/server'
+import { requireBusinessCourseCatalog } from '@/features/business-panel/services/business-course-catalog-auth.server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getCourseEnrollmentCounts } from '@/features/courses/services/course-enrollment-counts.server.service'
 import { logger } from '@/lib/utils/logger'
 
 interface RouteContext {
@@ -24,10 +25,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     // Verificar autenticación y acceso a esta organización específica
-    const auth = await requireBusiness({ organizationSlug: orgSlug })
+    const auth = await requireBusinessCourseCatalog({ organizationSlug: orgSlug })
     if (auth instanceof NextResponse) return auth
 
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     // Single join query: cursos + datos del instructor en un solo round trip a Supabase.
     // Usar !instructor_id para indicar la FK explícita evita ambigüedad cuando hay
@@ -62,6 +63,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         )
       `)
       .eq('is_active', true)
+      .or('approval_status.eq.approved,approval_status.is.null')
       .order('created_at', { ascending: false })
 
     if (coursesError) {
@@ -72,6 +74,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
         courses: []
       }, { status: 500 })
     }
+
+    const enrollmentCounts = await getCourseEnrollmentCounts(
+      supabase,
+      (courses ?? []).map(course => course.id),
+      auth.organizationId,
+    )
 
     // Transformar datos — instructor ya viene embebido en cada fila
     const coursesWithInstructors = courses?.map(course => {
@@ -107,7 +115,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         slug: course.slug,
         price: course.price,
         rating: course.average_rating || 0,
-        student_count: course.student_count || 0,
+        student_count: enrollmentCounts.get(course.id) ?? 0,
         review_count: course.review_count || 0,
         learning_objectives: course.learning_objectives,
         created_at: course.created_at,
@@ -120,12 +128,8 @@ export async function GET(request: NextRequest, context: RouteContext) {
       courses: coursesWithInstructors
     }, {
       headers: {
-        // private: sólo el navegador del usuario puede cachear (no CDN compartida).
-        // max-age=300: sirve del caché por 5 min sin re-validar.
-        // stale-while-revalidate=3600: si el caché expiró, sirve el dato viejo
-        // inmediatamente y revalida en background — el usuario nunca ve un spinner
-        // al volver a la página en la misma sesión.
-        'Cache-Control': 'private, max-age=300, stale-while-revalidate=3600'
+        // Enrollment counts must reflect assignments made in the same session.
+        'Cache-Control': 'private, no-store'
       }
     })
   } catch (error) {

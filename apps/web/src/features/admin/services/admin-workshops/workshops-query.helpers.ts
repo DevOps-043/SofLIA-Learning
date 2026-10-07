@@ -31,7 +31,8 @@ export function enrichWorkshops(input: {
   courses: CourseWorkshopRow[]
   instructors: InstructorLookupRow[]
   modules: ModuleDurationRow[]
-  enrollments: EnrollmentCourseRow[]
+  enrollments?: EnrollmentCourseRow[]
+  enrollmentCounts?: Map<string, number>
 }): AdminWorkshop[] {
   const instructorsMap = new Map<string, { name: string; picture: string | null }>(
     input.instructors.map((instructor) => [
@@ -43,7 +44,7 @@ export function enrichWorkshops(input: {
     ]),
   )
   const durationMap = sumByCourse(input.modules, 'module_duration_minutes')
-  const enrollmentsMap = countByCourse(input.enrollments)
+  const enrollmentsMap = input.enrollmentCounts ?? countByCourse(input.enrollments ?? [])
 
   return input.courses.map((workshop): AdminWorkshop => {
     const instructor = workshop.instructor_id

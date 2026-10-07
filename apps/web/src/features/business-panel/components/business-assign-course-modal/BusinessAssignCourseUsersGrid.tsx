@@ -12,7 +12,7 @@ interface BusinessAssignCourseUsersGridProps {
 export function BusinessAssignCourseUsersGrid({ modal, t, theme }: BusinessAssignCourseUsersGridProps) {
   return (
     <div className={modalStyles.userGrid}>
-      {modal.loadingUsers ? (
+      {modal.loadingUsers || modal.loadingAssignments ? (
         <div className={modalStyles.emptyNotice}>
           <div className="w-10 h-10 border-4 rounded-full animate-spin" style={{ borderColor: `color-mix(in srgb, ${theme.onPrimaryColor} 10.2%, transparent)`, borderTopColor: theme.primaryColor }} />
           <span>{t('assignCourse.loading.users', 'Cargando usuarios...')}</span>

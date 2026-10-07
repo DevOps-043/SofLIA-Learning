@@ -35,7 +35,7 @@ export function BusinessAssignCourseUserCard({ index, modal, theme, user }: Busi
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.02 }}
       onClick={handleClick}
-      disabled={isLockedAssigned}
+      disabled={isLockedAssigned || modal.loadingAssignments || !modal.assignmentsReady || modal.isAssigning}
       title={isLockedAssigned && sourceLabel ? `No se puede remover aquí: ${sourceLabel}` : undefined}
       className={`${modalStyles.userCard} ${isSelected || isPendingRemoval ? modalStyles.userCardSelected : ''}`}
       style={{
@@ -71,7 +71,7 @@ function UserAvatar({ displayName, isPendingRemoval, isSelected, theme, user }: 
 function UserAssignmentBadge({ isAlreadyAssigned, isDirect, isPendingRemoval, sourceLabel, theme }: { isAlreadyAssigned: boolean; isDirect: boolean; isPendingRemoval: boolean; sourceLabel: string | null; theme: BusinessAssignCourseTheme }) {
   if (isPendingRemoval) return <span className={modalStyles.badge} style={{ color: theme.dangerColor }}>Quitar</span>;
   if (!isAlreadyAssigned) return null;
-  return <span className={modalStyles.badge} style={{ color: isDirect ? theme.dangerColor : theme.accentColor }}><UserCheck aria-hidden="true" className="mr-1 inline h-3 w-3" />{isDirect ? 'Click para quitar' : sourceLabel ?? 'Asignado'}</span>;
+  return <span className={modalStyles.badge} style={{ color: isDirect ? theme.dangerColor : theme.accentColor }}><UserCheck aria-hidden="true" className="mr-1 inline h-3 w-3" />{isDirect ? 'Clic para quitar' : sourceLabel ?? 'Asignado'}</span>;
 }
 
 function getSourceLabel(sourceInfo?: AssignedUserSourceInfo) {

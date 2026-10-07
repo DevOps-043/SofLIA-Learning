@@ -1,8 +1,8 @@
 import type { createAdminClient } from '../../../../lib/supabase/admin'
+import { getCourseEnrollmentCounts } from '@/features/courses/services/course-enrollment-counts.server.service'
 import { enrichWorkshops } from './workshops-query.helpers'
 import type {
   CourseWorkshopRow,
-  EnrollmentCourseRow,
   InstructorLookupRow,
   ModuleDurationRow,
 } from './workshops-query.types'
@@ -18,7 +18,7 @@ export async function enrichWorkshopRows(
     ...new Set(courses.map((course) => course.instructor_id).filter(Boolean)),
   ] as string[]
 
-  const [instructorsResult, modulesResult, assignmentsResult] = await Promise.all([
+  const [instructorsResult, modulesResult, enrollmentCounts] = await Promise.all([
     instructorIds.length > 0
       ? supabase
           .from('users')
@@ -31,22 +31,16 @@ export async function enrichWorkshopRows(
       .select('course_id, module_duration_minutes')
       .in('course_id', courseIds)
       .returns<ModuleDurationRow[]>(),
-    supabase
-      .from('user_course_enrollments')
-      .select('course_id')
-      .in('course_id', courseIds)
-      .eq('enrollment_status', 'active')
-      .returns<EnrollmentCourseRow[]>(),
+    getCourseEnrollmentCounts(supabase, courseIds),
   ])
 
   if (instructorsResult.error) throw instructorsResult.error
   if (modulesResult.error) throw modulesResult.error
-  if (assignmentsResult.error) throw assignmentsResult.error
 
   return enrichWorkshops({
     courses,
     instructors: instructorsResult.data || [],
     modules: modulesResult.data || [],
-    enrollments: assignmentsResult.data || [],
+    enrollmentCounts,
   })
 }

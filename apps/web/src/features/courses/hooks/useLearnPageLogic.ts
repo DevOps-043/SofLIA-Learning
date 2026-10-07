@@ -4,7 +4,7 @@ import { useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
-import { useCurrentOrganizationId, useOrganizationStore } from '../../../core/stores/organizationStore'
+import { useOrganizationStore } from '../../../core/stores/organizationStore'
 import { useVideoPlayerOptional } from '../../../app/courses/[slug]/learn/VideoPlayerContext'
 import { useAuth } from '../../auth/hooks/useAuth'
 import { useLiaCourse } from '../context/LiaCourseContext'
@@ -59,9 +59,11 @@ export function useLearnPageLogic() {
     setInteractionBlocked: setLiaInteractionBlocked,
   } = useLiaCourse()
   const { user } = useAuth()
-  const currentOrganizationId = useCurrentOrganizationId()
-  const organizationId = orgSlug ? currentOrganizationId : null
   const currentOrganization = useOrganizationStore((store) => store.currentOrganization)
+  // A persisted org may belong to the previous page until the layout syncs it.
+  const organizationId = orgSlug && currentOrganization?.slug === orgSlug
+    ? currentOrganization.id
+    : null
   // El store de organización hidrata de forma asíncrona: hasta que termina,
   // `organizationId` es null y dispararía una carga de `learn-data` con el
   // contexto de organización equivocado (y un segundo fetch al hidratar).
@@ -73,7 +75,7 @@ export function useLearnPageLogic() {
   // En B2B el aprendizaje siempre vive dentro de una organizacion. La ruta
   // legacy sin slug de empresa queda solo para resolver a que organizacion se
   // debe mover el progreso historico, por eso no carga learn-data.
-  const isCourseDataEnabled = ready && isOrganizationHydrated && Boolean(orgSlug)
+  const isCourseDataEnabled = ready && isOrganizationHydrated && Boolean(orgSlug && organizationId)
 
   const state = useLearnPageLocalState()
   const videoPlayerContext = useVideoPlayerOptional()

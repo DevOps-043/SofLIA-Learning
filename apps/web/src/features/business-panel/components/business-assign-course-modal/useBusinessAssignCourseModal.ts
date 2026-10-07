@@ -11,6 +11,7 @@ import {
   filterBusinessAssignableUsers,
   getSelectedUsers,
   getSelectableUserIds,
+  getCourseAssignmentErrorMessage,
   normalizeLiaSuggestedDate,
   toggleSelectedUserId,
 } from './service'
@@ -52,6 +53,9 @@ export function useBusinessAssignCourseModal({
   const [pendingRemovalIds, setPendingRemovalIds] = useState<Set<string>>(new Set())
   const [isSuggesting, setIsSuggesting] = useState(false)
   const [suggestionReason, setSuggestionReason] = useState<string | null>(null)
+  const [loadingAssignments, setLoadingAssignments] = useState(true)
+  const [assignmentsReady, setAssignmentsReady] = useState(false)
+  const [assignmentsReloadVersion, setAssignmentsReloadVersion] = useState(0)
 
   useEffect(() => {
     if (isOpen) {
@@ -62,9 +66,15 @@ export function useBusinessAssignCourseModal({
 
   // Fetch already-assigned users
   useEffect(() => {
-    if (!isOpen || !courseId) return
+    if (!isOpen || !courseId || !orgSlug) return
 
     let isCancelled = false
+    setLoadingAssignments(true)
+    setAssignmentsReady(false)
+    setAlreadyAssignedUserIds(new Set())
+    setAssignedUserSources(new Map())
+    setSelectedUserIds(new Set())
+    setPendingRemovalIds(new Set())
 
     async function fetchAssignedUsers() {
       try {
@@ -72,14 +82,15 @@ export function useBusinessAssignCourseModal({
           `/api/${orgSlug}/business/courses/${courseId}/assigned-users`,
           { credentials: 'include', cache: 'no-store' },
         )
-        if (!response.ok) return
+        if (!response.ok) throw new Error('No se pudieron consultar las asignaciones del curso. Vuelve a abrir esta ventana para intentar de nuevo.')
 
         const data = (await response.json()) as {
           user_ids?: string[]
           assigned_users?: Array<{ user_id: string; source: string; team_name?: string; learning_path_title?: string }>
           success?: boolean
         }
-        if (!isCancelled && data.success && Array.isArray(data.user_ids)) {
+        if (!data.success || !Array.isArray(data.user_ids)) throw new Error('No se pudieron consultar las asignaciones del curso. Vuelve a abrir esta ventana para intentar de nuevo.')
+        if (!isCancelled) {
           setAlreadyAssignedUserIds(new Set(data.user_ids))
           if (Array.isArray(data.assigned_users)) {
             const sourceMap = new Map<string, { source: string; team_name?: string; learning_path_title?: string }>()
@@ -88,15 +99,19 @@ export function useBusinessAssignCourseModal({
             }
             setAssignedUserSources(sourceMap)
           }
+          setAssignmentsReady(true)
         }
       } catch (fetchError) {
         techDebtLogger.error('Error fetching assigned users:', fetchError)
+        if (!isCancelled) setError(fetchError instanceof Error ? fetchError.message : 'No se pudieron consultar las asignaciones del curso.')
+      } finally {
+        if (!isCancelled) setLoadingAssignments(false)
       }
     }
 
     void fetchAssignedUsers()
     return () => { isCancelled = true }
-  }, [courseId, isOpen, orgSlug])
+  }, [courseId, isOpen, orgSlug, assignmentsReloadVersion])
 
   // Fetch hierarchy nodes for structure-based assignment
   useEffect(() => {
@@ -146,7 +161,7 @@ export function useBusinessAssignCourseModal({
   }
 
   function handleToggleUser(userId: string) {
-    if (alreadyAssignedUserIds.has(userId)) return
+    if (!assignmentsReady || alreadyAssignedUserIds.has(userId)) return
     setSelectedUserIds((current) => toggleSelectedUserId(current, userId))
   }
 
@@ -160,6 +175,7 @@ export function useBusinessAssignCourseModal({
   }
 
   function handleToggleRemoval(userId: string) {
+    if (!assignmentsReady) return
     const source = assignedUserSources.get(userId)?.source
     if (source !== 'direct') return
     setPendingRemovalIds((prev) => {
@@ -171,11 +187,13 @@ export function useBusinessAssignCourseModal({
   }
 
   function handleSelectAllUsers() {
+    if (!assignmentsReady) return
     if (selectableUserIds.length === 0) return
     setSelectedUserIds(allUsersSelected ? new Set() : new Set(selectableUserIds))
   }
 
   async function handleAssign() {
+    if (!assignmentsReady || loadingAssignments || isAssigning) return
     if (assignmentMode === 'users') {
       if (selectedUserIds.size === 0 && pendingRemovalIds.size === 0) {
         setError(t('assignCourse.errors.selectUser'))
@@ -199,8 +217,8 @@ export function useBusinessAssignCourseModal({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_ids: Array.from(pendingRemovalIds) }),
           })
-          const deleteData = (await deleteResponse.json()) as { error?: string }
-          if (!deleteResponse.ok) throw new Error(deleteData.error ?? t('assignCourse.errors.assignFailed'))
+          const deleteData = (await deleteResponse.json()) as { error?: string; message?: string }
+          if (!deleteResponse.ok) throw new Error(getCourseAssignmentErrorMessage(deleteData, t('assignCourse.errors.assignFailed')))
         }
 
         if (selectedUserIds.size > 0) {
@@ -211,8 +229,8 @@ export function useBusinessAssignCourseModal({
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(buildBusinessAssignCoursePayload({ selectedUserIds, dueDate })),
           })
-          const data = (await response.json()) as { error?: string }
-          if (!response.ok) throw new Error(data.error ?? t('assignCourse.errors.assignFailed'))
+          const data = (await response.json()) as { error?: string; message?: string }
+          if (!response.ok) throw new Error(getCourseAssignmentErrorMessage(data, t('assignCourse.errors.assignFailed')))
         }
       } else {
         const target =
@@ -227,14 +245,17 @@ export function useBusinessAssignCourseModal({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ target, due_date: dueDate || null, start_date: null, approach: null, message: null }),
         })
-        const data = (await response.json()) as { error?: string }
-        if (!response.ok) throw new Error(data.error ?? t('assignCourse.errors.assignFailed'))
+        const data = (await response.json()) as { error?: string; message?: string }
+        if (!response.ok) throw new Error(getCourseAssignmentErrorMessage(data, t('assignCourse.errors.assignFailed')))
       }
 
       resetState()
       onAssignComplete()
       onClose()
     } catch (assignError) {
+      // A concurrent assignment (or partial removal) changed server state.
+      // Reload the badges so the next action is based on current assignments.
+      setAssignmentsReloadVersion(current => current + 1)
       setError(
         assignError instanceof Error ? assignError.message : t('assignCourse.errors.assignFailed'),
       )
@@ -327,6 +348,8 @@ IMPORTANTE: Tu respuesta debe ser EXCLUSIVAMENTE un objeto JSON válido con este
     error,
     isAssigning,
     loadingUsers,
+    loadingAssignments,
+    assignmentsReady,
     searchTerm,
     setSearchTerm,
     handleAssign,

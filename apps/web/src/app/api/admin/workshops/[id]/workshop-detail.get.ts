@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/auth/requireAdmin'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { getCourseEnrollmentCounts } from '@/features/courses/services/course-enrollment-counts.server.service'
+import { logger } from '@/lib/utils/logger'
 import type { WorkshopRouteContext } from './workshop-detail.types'
 
 export async function GET(
@@ -12,7 +14,7 @@ export async function GET(
     if (auth instanceof NextResponse) return auth
 
     const { id: workshopId } = await params
-    const supabase = await createClient()
+    const supabase = createAdminClient()
 
     const { data: workshop, error } = await supabase
       .from('courses')
@@ -40,14 +42,20 @@ export async function GET(
         updated_at
       `)
       .eq('id', workshopId)
-      .single()
+      .maybeSingle()
 
     if (error) {
+      throw error
+    }
+
+    if (!workshop) {
       return NextResponse.json(
         { error: 'Workshop not found' },
         { status: 404 },
       )
     }
+
+    const enrollmentCounts = await getCourseEnrollmentCounts(supabase, [workshopId])
 
     let instructorName = null
     if (workshop.instructor_id) {
@@ -69,10 +77,12 @@ export async function GET(
       success: true,
       workshop: {
         ...workshop,
+        student_count: enrollmentCounts.get(workshopId) ?? 0,
         instructor_name: instructorName,
       },
     })
   } catch (error) {
+    logger.error('Error fetching admin workshop detail', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 },

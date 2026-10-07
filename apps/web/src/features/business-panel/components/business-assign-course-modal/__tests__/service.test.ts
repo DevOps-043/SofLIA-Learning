@@ -5,11 +5,17 @@ import {
   filterBusinessAssignableUsers,
   getDateInputValue,
   getBusinessAssignCourseDisplayName,
+  getCourseAssignmentErrorMessage,
   normalizeLiaSuggestedDate,
   toggleSelectedUserId,
 } from '../service'
 
 describe('business-assign-course-modal.service', () => {
+  it('shows the API message instead of an internal assignment error code', () => {
+    expect(getCourseAssignmentErrorMessage({ error: 'COURSE_ALREADY_ASSIGNED', message: 'Este curso ya está asignado.' }, 'Error')).toBe('Este curso ya está asignado.')
+    expect(getCourseAssignmentErrorMessage({ error: 'COURSE_ALREADY_ASSIGNED' }, 'Error')).toContain('Clic para quitar')
+    expect(getCourseAssignmentErrorMessage({ error: 'UNKNOWN_INTERNAL_CODE' }, 'No se pudo asignar el curso.')).toBe('No se pudo asignar el curso.')
+  })
   it('resuelve display name con fallbacks', () => {
     expect(
       getBusinessAssignCourseDisplayName({

@@ -12,3 +12,4 @@ export {
   toEndOfDayIso,
 } from './date-utils'
 export { buildBusinessAssignCoursePayload } from './payload'
+export { getCourseAssignmentErrorMessage } from './assignment-errors'

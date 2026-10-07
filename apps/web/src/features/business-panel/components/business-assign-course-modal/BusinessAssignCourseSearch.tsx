@@ -25,6 +25,7 @@ export function BusinessAssignCourseSearch({ modal, t, theme }: BusinessAssignCo
         <button
           type="button"
           onClick={modal.handleSelectAllUsers}
+          disabled={modal.loadingAssignments || !modal.assignmentsReady || modal.isAssigning}
           className="lg:col-span-4 flex items-center justify-center gap-3 py-4 rounded-2xl border transition-all text-[10px] font-black uppercase tracking-widest"
           style={{
             backgroundColor: modal.allUsersSelected ? `color-mix(in srgb, ${theme.primaryColor} 8.2%, transparent)` : theme.inputBg,

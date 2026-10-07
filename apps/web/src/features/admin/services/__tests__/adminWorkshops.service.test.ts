@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('server-only', () => ({}))
 
-vi.mock('@/lib/supabase/server', () => ({
-  createClient: vi.fn(),
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(),
 }))
 
 vi.mock('../../../lib/slug', () => ({
@@ -15,14 +15,14 @@ vi.mock('../auditLog.service', () => ({
   AuditLogService: { log: vi.fn().mockResolvedValue(undefined) },
 }))
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminWorkshopsService } from '../adminWorkshops.service'
 
 // ─── helpers ─────────────────────────────────────────────────────────────────
 
 /** Creates a thenable fluent chain that resolves to `result` when awaited. */
 function makeChain(result: unknown): Record<string, unknown> & PromiseLike<unknown> {
-  const methods = ['from','select','eq','neq','in','not','or','order','insert','update','delete','single','limit','range','head']
+  const methods = ['from','select','eq','neq','in','not','or','order','insert','update','delete','single','limit','range','head','returns']
   const chain = {} as Record<string, unknown> & PromiseLike<unknown>
   for (const m of methods) chain[m] = vi.fn(() => chain)
   chain.then = (onfulfilled?: ((v: unknown) => unknown) | null) => Promise.resolve(result).then(onfulfilled)
@@ -35,7 +35,7 @@ function makeSupabase(result: unknown) {
   const sb: Record<string, unknown> = {}
   // from() returns a thenable chain
   sb.from = vi.fn(() => makeChain(result))
-  vi.mocked(createClient).mockResolvedValue(sb as never)
+  vi.mocked(createAdminClient).mockReturnValue(sb as never)
   return sb
 }
 

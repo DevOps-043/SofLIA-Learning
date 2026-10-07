@@ -1,5 +1,7 @@
+import 'server-only'
+
 import { createAdminClient } from '../../../lib/supabase/admin'
-import { createClient } from '../../../lib/supabase/server'
+import { getCourseEnrollmentCounts } from '@/features/courses/services/course-enrollment-counts.server.service'
 import type { BusinessCourseDetail } from '../types/business-course-detail.types'
 import {
   buildBusinessCourseModules,
@@ -27,8 +29,10 @@ export class BusinessCourseDetailServerService {
     businessUserId,
     organizationId,
   }: BusinessCourseDetailOptions): Promise<BusinessCourseDetail | null> {
-    const catalogClient = await createClient()
-    const purchaseClient = createAdminClient()
+    // Called by the business route after requireBusiness authorizes the org.
+    // Catalog preview must not depend on the manager's personal enrollment.
+    const catalogClient = createAdminClient()
+    const purchaseClient = catalogClient
     const { data: course, error: courseError } = await fetchCourseRow(
       catalogClient,
       courseId,
@@ -37,7 +41,7 @@ export class BusinessCourseDetailServerService {
     if (courseError) throw courseError
     if (!course) return null
 
-    const [modulesAndReviews, subscriptionStatus] = await Promise.all([
+    const [modulesAndReviews, subscriptionStatus, enrollmentCounts] = await Promise.all([
       fetchCourseModulesAndReviews(catalogClient, course.id),
       fetchSubscriptionStatus(
         purchaseClient,
@@ -45,6 +49,7 @@ export class BusinessCourseDetailServerService {
         organizationId,
         course.id,
       ),
+      getCourseEnrollmentCounts(catalogClient, [course.id], organizationId),
     ])
     const [modules, reviews] = modulesAndReviews
     const moduleIds = modules.map((module) => module.module_id)
@@ -86,7 +91,7 @@ export class BusinessCourseDetailServerService {
       slug: course.slug,
       price: course.price,
       rating: course.average_rating || 0,
-      student_count: course.student_count || 0,
+      student_count: enrollmentCounts.get(course.id) ?? 0,
       review_count: course.review_count || 0,
       learning_objectives: course.learning_objectives || [],
       created_at: course.created_at,
