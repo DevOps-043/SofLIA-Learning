@@ -9,10 +9,8 @@ import type { AiModelPurposeDefinition } from './types'
  * configurable de forma independiente desde el panel de superadmin.
  *
  * INVARIANTES:
- * - Los `defaults` de este archivo replican EXACTAMENTE los valores que cada punto
- *   de llamada usaba cuando la configuración vivía en variables de entorno. Al
- *   desplegar sin ningún override en base de datos, el comportamiento en runtime
- *   es idéntico al anterior.
+ * - Los `defaults` se aplican cuando no hay override ni entorno. El chat general
+ *   usa GPT-6 Luna; los demás propósitos conservan sus modelos independientes.
  * - `legacyModelEnvVars` conserva el orden de precedencia original de las variables
  *   de entorno, que se siguen respetando como fallback cuando no hay override.
  * - Añadir un propósito aquí es suficiente para que aparezca en el panel; la base de
@@ -24,8 +22,7 @@ export const PLATFORM_DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash'
 
 /**
  * Proveedor al que se atribuye un propósito cuando el nombre del modelo no
- * permite deducirlo y no hay selección explícita. Es Gemini porque todos los
- * defaults del catálogo son modelos de Gemini: mantiene el comportamiento
+ * permite deducirlo y no hay selección explícita. Gemini conserva el comportamiento
  * histórico ante cualquier valor heredado del entorno que no reconozcamos.
  */
 export const PLATFORM_DEFAULT_AI_PROVIDER: AiProvider = 'google'
@@ -69,7 +66,7 @@ export const AI_MODEL_PURPOSES = [
     capabilities: ALL_CAPABILITIES,
     defaults: {
       maxOutputTokens: 8_192,
-      model: PLATFORM_DEFAULT_GEMINI_MODEL,
+      model: 'gpt-6-luna',
       temperature: 0.7,
       thinkingLevel: 'default',
     },

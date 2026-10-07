@@ -27,4 +27,11 @@ describe('buildOpenAiReasoningEffort', () => {
     // La API rechaza `reasoning` en modelos que no razonan.
     expect(buildOpenAiReasoningEffort('high', 'gpt-4.1-mini')).toBeUndefined()
   })
+
+  it('desactiva el razonamiento de GPT-6 Luna con none sin cambiar modelos anteriores', () => {
+    expect(buildOpenAiReasoningEffort('off', 'gpt-6-luna')).toBe('none')
+    expect(buildOpenAiReasoningEffort('off', ' GPT-6-LUNA ')).toBe('none')
+    expect(buildOpenAiReasoningEffort('high', 'gpt-6-luna')).toBe('high')
+    expect(buildOpenAiReasoningEffort('off', 'gpt-5.1')).toBe('minimal')
+  })
 })

@@ -5,8 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run check:server-runtime && tsx ../../scripts/generate-openapi.ts",
+    "prebuild": "npm run check:server-runtime && npm run check:zoom-sdk && tsx ../../scripts/generate-openapi.ts",
     "check:server-runtime": "node --no-experimental-require-module ../../scripts/check-server-sanitizer-runtime.cjs",
+    "check:zoom-sdk": "node ../../scripts/check-zoom-sdk-build.cjs",
     "build": "next build",
     "postbuild": "node --no-experimental-require-module --conditions=react-server ../../scripts/check-built-notebook-runtime.cjs",
     "start": "next start",

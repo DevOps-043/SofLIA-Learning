@@ -13,7 +13,7 @@ import { supportsOpenAiMinimalReasoning, supportsOpenAiReasoning } from './provi
  * Módulo puro: sin dependencias del SDK ni del entorno.
  */
 
-export const OPENAI_REASONING_EFFORTS = ['minimal', 'low', 'medium', 'high'] as const
+export const OPENAI_REASONING_EFFORTS = ['none', 'minimal', 'low', 'medium', 'high'] as const
 
 export type OpenAiReasoningEffort = (typeof OPENAI_REASONING_EFFORTS)[number]
 
@@ -36,6 +36,8 @@ export function buildOpenAiReasoningEffort(
   if (!supportsOpenAiReasoning(model)) return undefined
 
   if (level === 'off') {
+    // GPT-6 Luna admite `none`, pero rechaza el antiguo valor `minimal`.
+    if (/^gpt-6-luna(?:-|$)/i.test(model.trim())) return 'none'
     // `minimal` solo existe en GPT-5+; en la serie `o` el mínimo real es `low`.
     return supportsOpenAiMinimalReasoning(model) ? 'minimal' : 'low'
   }

@@ -33,6 +33,32 @@ Estado: límites distribuidos en middleware/proxy con Redis REST o Supabase.
 4. Verificar que los 429 incluyan `Retry-After` y `X-RateLimit-*`.
 5. Confirmar que múltiples instancias comparten conteo usando la misma llave en el backend seleccionado.
 
+## Prueba real del chat
+
+Desde la raíz del repositorio, en PowerShell:
+
+```powershell
+$env:SOFLIA_LIVE_SMOKE = '1'
+npm run test --workspace=apps/web -- src/app/api/lia/chat/__tests__/chat.live.test.ts
+Remove-Item Env:SOFLIA_LIVE_SMOKE
+```
+
+Esta prueba optativa carga `apps/web/.env.local`, consulta el modelo guardado de
+`lia_general` y exige `gpt-6-luna`. Usa Supabase y OpenAI reales: verifica el
+contador compartido y su respuesta 429, una respuesta del chat por JSON y un
+segundo turno por SSE que debe recordar un código aleatorio. Solo se simula el
+contexto HTTP sin sesión; no guarda conversaciones de usuarios. Consume tokens
+de OpenAI y crea un contador temporal. No valida un despliegue remoto ni sustituye
+la comprobación del chat autenticado en el navegador.
+
+Si el contador real funciona pero el sitio devuelve `503
+RATE_LIMIT_SERVICE_UNAVAILABLE`, revisar en Netlify el despliegue activo, las
+variables disponibles en Functions y el motivo seguro del log del limiter
+(`REDIS_REQUEST_FAILED` o `SUPABASE_RATE_LIMIT_UNAVAILABLE`). La configuración de
+Redis, si existe, tiene precedencia; una RPC sana no basta para corregir una
+instancia que sigue usando Redis. La corrección debe llegar al servidor activo
+antes de dar el chat de producción por recuperado.
+
 ## Riesgos conocidos
 
 - Supabase añade una escritura por solicitud crítica cuando no hay Redis. La limpieza elimina hasta 1000 contadores vencidos hace más de un día en aproximadamente el 1% de las llamadas.

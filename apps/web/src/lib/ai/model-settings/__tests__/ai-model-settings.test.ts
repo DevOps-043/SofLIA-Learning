@@ -74,7 +74,8 @@ describe('getAiModelSettings — precedencia', () => {
 
     const settings = await getAiModelSettings('lia_general')
 
-    expect(settings.model).toBe('gemini-3.5-flash')
+    expect(settings.model).toBe('gpt-6-luna')
+    expect(settings.provider).toBe('openai')
     expect(settings.modelSource).toBe('default')
     expect(settings.hasDatabaseOverride).toBe(false)
     expect(settings.maxOutputTokens).toBe(8192)
@@ -140,7 +141,7 @@ describe('getAiModelSettings — precedencia', () => {
     expect((await getAiModelSettings('soflia_dialogue_tutor')).model).toBe(
       'modelo-de-actividades',
     )
-    expect((await getAiModelSettings('lia_general')).model).toBe('gemini-3.5-flash')
+    expect((await getAiModelSettings('lia_general')).model).toBe('gpt-6-luna')
   })
 
   it('degrada a entorno/defaults si la base de datos falla', async () => {
@@ -149,7 +150,7 @@ describe('getAiModelSettings — precedencia', () => {
 
     const settings = await getAiModelSettings('lia_general')
 
-    expect(settings.model).toBe('gemini-3.5-flash')
+    expect(settings.model).toBe('gpt-6-luna')
     expect(settings.hasDatabaseOverride).toBe(false)
   })
 
@@ -384,7 +385,7 @@ describe('provider en la configuración resuelta', () => {
     selectMock.mockResolvedValue({ data: [], error: null })
     const { getAiModelSettings } = await loadService()
 
-    const settings = await getAiModelSettings('lia_general')
+    const settings = await getAiModelSettings('ai_moderation')
 
     expect(settings.provider).toBe('google')
     expect(settings.providerSelection).toBe('auto')
