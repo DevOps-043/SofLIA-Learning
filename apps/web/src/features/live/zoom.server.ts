@@ -18,14 +18,54 @@ export async function zoomRequest(
     `https://api.zoom.us/v2${path}`,
     {
       method,
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
       ...(body ? { body: JSON.stringify(body) } : {}),
-      cache: "no-store", signal: AbortSignal.timeout(20000),
+      cache: "no-store",
+      signal: AbortSignal.timeout(20000),
     },
   );
   if (!response.ok) {
     if (response.status === 401) cachedToken = null;
-    throw new LiveError(502, "Zoom rechazó la operación. Revisa la cuenta del anfitrión y sus permisos.");
+    const detail: unknown = await response.json().catch(() => null);
+    const code =
+      detail &&
+      typeof detail === "object" &&
+      "code" in detail &&
+      typeof detail.code === "number"
+        ? detail.code
+        : undefined;
+    if (code === 1001)
+      throw new LiveError(
+        502,
+        "El anfitrión no existe en la cuenta de Zoom conectada. Vincula un usuario de esa misma cuenta de Zoom.",
+      );
+    const webinar = /\/(?:users\/[^/]+\/)?webinars(?:\/|$)/.test(path);
+    if (code === 4711 || code === 200 || response.status === 403)
+      throw new LiveError(
+        502,
+        webinar
+          ? "Zoom no autorizó el webinar. El anfitrión necesita licencia de Zoom Webinars y la aplicación debe tener permisos de webinars. Para una clase normal, elige Reunión."
+          : "Zoom no autorizó esta operación. Revisa los permisos de la aplicación y el acceso al anfitrión en la cuenta conectada.",
+      );
+    if (response.status === 401 || code === 4700) {
+      cachedToken = null;
+      throw new LiveError(
+        502,
+        "Zoom rechazó el token de acceso. Revisa la activación de la aplicación y sus credenciales.",
+      );
+    }
+    if (response.status === 429)
+      throw new LiveError(
+        503,
+        "Zoom alcanzó su límite de solicitudes. Espera antes de volver a intentar la operación.",
+      );
+    throw new LiveError(
+      502,
+      "Zoom no pudo completar la operación. Revisa el estado del servicio y la configuración del recurso.",
+    );
   }
   return response.status === 204 ? null : response.json();
 }
@@ -35,11 +75,15 @@ let tokenInFlight: Promise<string> | null = null;
 
 /** Una clase comparte token administrativo; no solicita OAuth por cada alumno. */
 async function zoomAccessToken(): Promise<string> {
-  if (cachedToken && cachedToken.expiresAt > Date.now()) return cachedToken.value;
+  if (cachedToken && cachedToken.expiresAt > Date.now())
+    return cachedToken.value;
   if (tokenInFlight) return tokenInFlight;
   tokenInFlight = requestZoomAccessToken();
-  try { return await tokenInFlight; }
-  finally { tokenInFlight = null; }
+  try {
+    return await tokenInFlight;
+  } finally {
+    tokenInFlight = null;
+  }
 }
 
 async function requestZoomAccessToken(): Promise<string> {
@@ -59,8 +103,16 @@ async function requestZoomAccessToken(): Promise<string> {
   if (!tokenResponse.ok)
     throw new LiveError(502, "No fue posible autenticar la cuenta de Zoom");
   const token = await tokenResponse.json();
-  if (typeof token.access_token !== "string" || !token.access_token || !Number.isFinite(token.expires_in) || token.expires_in <= 0)
+  if (
+    typeof token.access_token !== "string" ||
+    !token.access_token ||
+    !Number.isFinite(token.expires_in) ||
+    token.expires_in <= 0
+  )
     throw new LiveError(502, "Zoom no devolvió un token administrativo válido");
-  cachedToken = { value: token.access_token, expiresAt: Date.now() + Math.max(0, token.expires_in - 60) * 1000 };
+  cachedToken = {
+    value: token.access_token,
+    expiresAt: Date.now() + Math.max(0, token.expires_in - 60) * 1000,
+  };
   return token.access_token;
 }

@@ -21,7 +21,8 @@ export function InstructorWorkspace({ orgSlug }: { orgSlug: string }) {
   const {
     data,
     loadError,
-    error,
+    scheduleError,
+    instructorError,
     busy,
     notice,
     filter,
@@ -51,7 +52,8 @@ export function InstructorWorkspace({ orgSlug }: { orgSlug: string }) {
             </div>
             <h1 className={styles.title}>Comparte lo que sabes.</h1>
             <p className={styles.muted}>
-              Administra tus cursos y las sesiones que se realizan en Soflia Hub.
+              Administra tus cursos y las sesiones que se realizan en Soflia
+              Hub.
             </p>
           </div>
           <div className={styles.actions}>
@@ -68,9 +70,9 @@ export function InstructorWorkspace({ orgSlug }: { orgSlug: string }) {
             </Link>
           </div>
         </header>
-        {(error || loadError) && (
+        {loadError && (
           <div role="alert" className={styles.error}>
-            {error || loadError.message}
+            {loadError.message}
           </div>
         )}
         {notice && (
@@ -194,6 +196,8 @@ export function InstructorWorkspace({ orgSlug }: { orgSlug: string }) {
               <InstructorForms
                 data={data}
                 busy={busy}
+                scheduleError={scheduleError}
+                instructorError={instructorError}
                 schedule={schedule}
                 saveInstructor={saveInstructor}
               />
