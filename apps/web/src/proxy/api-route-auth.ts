@@ -49,6 +49,8 @@ const PUBLIC_PREFIXES = [
 ]
 
 const PUBLIC_AUTH_EXACT_PATHS = new Set([
+  // La sesión del navegador integrado se autentica por bearer en su handler.
+  '/api/auth/hub-session',
   '/api/auth/callback/google',
   '/api/auth/desktop/exchange',
   '/api/auth/desktop/start',
