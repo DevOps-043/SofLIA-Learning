@@ -5,6 +5,7 @@ import { checked, LiveError } from "../errors";
 import { scheduleSchema } from "../schemas";
 import { zoomRequest } from "../zoom.server";
 import { logger } from "@/lib/utils/logger";
+import { LIVE_SESSION_COLUMNS } from "../columns";
 export async function scheduleSession(context: LiveContext, body: unknown) {
   if (!context.canTeach)
     throw new LiveError(403, "Necesitas el rol de instructor");
@@ -37,7 +38,7 @@ export async function scheduleSession(context: LiveContext, body: unknown) {
     const previous = checked(
       await context.db
         .from("live_scheduling_requests")
-        .select("*")
+        .select("payload_hash,state,session_id")
         .eq("id", requestId)
         .eq("organization_id", context.orgId)
         .eq("user_id", context.userId)
@@ -50,7 +51,7 @@ export async function scheduleSession(context: LiveContext, body: unknown) {
         session: checked(
           await context.db
             .from("live_sessions")
-            .select("*")
+            .select(LIVE_SESSION_COLUMNS)
             .eq("id", previous.session_id)
             .single(),
         ),
@@ -62,17 +63,18 @@ export async function scheduleSession(context: LiveContext, body: unknown) {
   }
   checked(reservation);
   let meetingId: string | undefined;
+  const resource = input.session_type === "webinar" ? "webinars" : "meetings";
   try {
     const meeting = await zoomRequest(
-      `/users/${encodeURIComponent(host)}/meetings`,
+      `/users/${encodeURIComponent(host)}/${resource}`,
       "POST",
       {
         topic: input.title,
-        type: 2,
+        type: input.session_type === "webinar" ? 5 : 2,
         start_time: input.starts_at,
         duration: input.duration_minutes,
         timezone: "UTC",
-        settings: {
+        settings: input.session_type === "webinar" ? { approval_type: 2 } : {
           join_before_host: false,
           waiting_room: true,
           mute_upon_entry: true,
@@ -90,7 +92,7 @@ export async function scheduleSession(context: LiveContext, body: unknown) {
           ...input,
           organization_id: context.orgId,
           instructor_id: context.userId,
-          zoom_meeting_id: meetingId,
+          ...(input.session_type === "webinar" ? { zoom_webinar_id: meetingId } : { zoom_meeting_id: meetingId }),
         },
       }),
     );
@@ -107,7 +109,7 @@ export async function scheduleSession(context: LiveContext, body: unknown) {
         session: checked(
           await context.db
             .from("live_sessions")
-            .select("*")
+            .select(LIVE_SESSION_COLUMNS)
             .eq("id", saved.data.session_id)
             .single(),
         ),
@@ -115,7 +117,7 @@ export async function scheduleSession(context: LiveContext, body: unknown) {
     let state: "failed" | "uncertain" = "uncertain";
     if (meetingId && !saved.error) {
       try {
-        await zoomRequest(`/meetings/${meetingId}`, "DELETE");
+        await zoomRequest(`/${resource}/${meetingId}`, "DELETE");
         state = "failed";
       } catch {
         logger.error("Live meeting compensation requires reconciliation", {

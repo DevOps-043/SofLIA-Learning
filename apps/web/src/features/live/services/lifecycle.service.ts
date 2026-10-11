@@ -5,27 +5,26 @@ import { checked, LiveError } from "../errors";
 import type { LiveSession } from "../types";
 import { canTransition } from "../schemas";
 import { zoomRequest } from "../zoom.server";
+import { LIVE_SESSION_COLUMNS } from "../columns";
 export async function changeSessionStatus(
   context: LiveContext,
   session: LiveSession,
   body: unknown,
 ) {
   const { status } = z
-    .object({ status: z.enum(["live", "ended", "cancelled"]) })
+    .object({ status: z.enum(["ended", "cancelled"]) })
     .strict()
     .parse(body);
   if (session.status === status) return { session };
   if (!canTransition(session.status, status))
     throw new LiveError(409, "La sesión ya cambió de estado");
-  if (status === "live" && session.instructor_id !== context.userId)
-    throw new LiveError(
-      403,
-      "Solo el instructor anfitrión puede iniciar la sesión",
-    );
-  if (session.zoom_meeting_id && status === "cancelled")
-    await zoomRequest(`/meetings/${session.zoom_meeting_id}`, "DELETE");
-  if (session.zoom_meeting_id && status === "ended")
-    await zoomRequest(`/meetings/${session.zoom_meeting_id}/status`, "PUT", {
+  const webinar = session.session_type === "webinar";
+  const resourceId = webinar ? session.zoom_webinar_id : session.zoom_meeting_id;
+  const resource = webinar ? "webinars" : "meetings";
+  if (resourceId && status === "cancelled")
+    await zoomRequest(`/${resource}/${resourceId}`, "DELETE");
+  if (resourceId && status === "ended")
+    await zoomRequest(`/${resource}/${resourceId}/status`, "PUT", {
       action: "end",
     });
   const updated = checked(
@@ -34,7 +33,7 @@ export async function changeSessionStatus(
       .update({ status })
       .eq("id", session.id)
       .eq("status", session.status)
-      .select("*")
+      .select(LIVE_SESSION_COLUMNS)
       .maybeSingle(),
   );
   if (!updated) throw new LiveError(409, "La sesión ya cambió de estado");

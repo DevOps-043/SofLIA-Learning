@@ -28,7 +28,7 @@ beforeAll(async () => {
     create table public.users(id uuid primary key,is_banned boolean default false,display_name text,first_name text);
     create table public.organization_users(organization_id uuid,user_id uuid,role text,status text);
     create table public.courses(id uuid primary key,instructor_id uuid,title text);
-    create table public.organization_course_assignments(id uuid default gen_random_uuid(),organization_id uuid,course_id uuid,user_id uuid,completion_percentage numeric);
+    create table public.organization_course_assignments(id uuid default gen_random_uuid(),organization_id uuid,course_id uuid,user_id uuid,completion_percentage numeric,status text default 'assigned');
     create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
     create publication supabase_realtime;
   `);
@@ -40,6 +40,7 @@ beforeAll(async () => {
     "utf8",
   );
   await database.exec(migration);
+  await database.exec(readFileSync(resolve(process.cwd(), "../../supabase/migrations/20261010173000_live_hub_desktop.sql"), "utf8"));
   await database.exec(`
     insert into organizations values('${ids.org}'),('${ids.otherOrg}');
     insert into users(id,display_name) values('${ids.teacher}','Teacher'),('${ids.otherTeacher}','Other teacher'),('${ids.student}','Student'),('${ids.outsider}','Other org student'),('${ids.admin}','Admin');
@@ -63,6 +64,18 @@ async function asUser(userId: string) {
   await database.exec("set role authenticated");
 }
 describe("In Live migration and tenant isolation", () => {
+  it("excluye asignaciones canceladas de catálogo y RLS sin borrar su historia", async () => {
+    await database.exec(`reset role;update organization_course_assignments set status='cancelled' where user_id='${ids.student}'`);
+    try {
+      await asUser(ids.student);
+      expect((await database.query("select * from live_sessions")).rows).toHaveLength(0);
+      await database.exec("reset role;set role service_role");
+      const catalog = await database.query<{ value: { sessions: unknown[]; total: number } }>("select live_catalog($1,$2,false) as value", [ids.org, ids.student]);
+      expect(catalog.rows[0].value.total).toBe(0);
+    } finally {
+      await database.exec(`reset role;update organization_course_assignments set status='assigned' where user_id='${ids.student}'`);
+    }
+  });
   it("shows only the assigned organization despite a shared course", async () => {
     await asUser(ids.student);
     const result = await database.query<{ title: string }>(

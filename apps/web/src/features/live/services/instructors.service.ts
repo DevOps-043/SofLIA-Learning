@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import type { LiveContext } from "../server";
 import { checked, LiveError } from "../errors";
+import { zoomRequest } from "../zoom.server";
 const instructorSchema = z
   .object({
     email: z.string().email(),
@@ -19,7 +20,7 @@ export async function updateInstructor(context: LiveContext, body: unknown) {
   const user = checked(
     await context.db
       .from("users")
-      .select("id")
+      .select("id,email")
       .eq("email", input.email)
       .maybeSingle(),
   );
@@ -47,15 +48,19 @@ export async function updateInstructor(context: LiveContext, body: unknown) {
         .eq("organization_id", context.orgId)
         .eq("user_id", member.user_id),
     );
-  else
+  else {
+    const zoomUser = await zoomRequest(`/users/${encodeURIComponent(input.zoom_user_id)}`);
+    if (!zoomUser?.id || !zoomUser.email || zoomUser.email.toLowerCase() !== user?.email?.toLowerCase() || zoomUser.status !== "active")
+      throw new LiveError(403, "El anfitrión Zoom debe ser la cuenta activa del instructor indicado");
     checked(
       await context.db
         .from("organization_instructors")
         .upsert({
           organization_id: context.orgId,
           user_id: member.user_id,
-          zoom_user_id: input.zoom_user_id,
+          zoom_user_id: String(zoomUser.id),
         }),
     );
+  }
   return { success: true };
 }

@@ -5,11 +5,11 @@ import {
 } from '../content-security-policy'
 
 describe('enforced content security policy', () => {
-  it('restricts Zoom resources to live room policies',()=>{
+  it('does not load Zoom media in Learning after moving sessions to Hub',()=>{
     expect(buildEnforcedContentSecurityPolicy('test')).not.toContain('zoom.us')
-    const policy=buildEnforcedContentSecurityPolicy('test',true)
-    expect(policy).toContain('wss://*.zoom.us')
-    expect(policy).toContain('https://source.zoom.us')
+    const policy=buildEnforcedContentSecurityPolicy('test')
+    expect(policy).not.toContain('wss://*.zoom.us')
+    expect(policy).not.toContain('https://source.zoom.us')
     expect(policy).not.toMatch(/script-src[^;]*'unsafe-inline'/)
   })
   it('uses a unique nonce and never enables arbitrary inline/eval scripts', () => {

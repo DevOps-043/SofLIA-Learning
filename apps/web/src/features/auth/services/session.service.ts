@@ -276,6 +276,7 @@ export class SessionService {
       logger.auth('Destruyendo sesion');
       const cookieStore = await cookies();
       const authClient = await createAuthActionClient();
+      const pulseHubSession = cookieStore.get('pulsehub_session')?.value === '1';
       const {
         data: { user: authUser },
       } = await authClient.auth.getUser();
@@ -319,7 +320,7 @@ export class SessionService {
         }
       }
 
-      if (userId) {
+      if (userId && !pulseHubSession) {
         try {
           await RefreshTokenService.revokeAllUserTokens(userId, 'user_logout');
           logger.auth('Todos los refresh tokens del usuario revocados');
@@ -328,7 +329,8 @@ export class SessionService {
         }
       }
 
-      await authClient.auth.signOut();
+      // Cerrar esta web conserva la sesión independiente del escritorio.
+      await authClient.auth.signOut(pulseHubSession ? { scope: 'local' } : undefined);
 
       const deleteCookieOptions = {
         httpOnly: true,
@@ -342,6 +344,7 @@ export class SessionService {
       cookieStore.set(this.SESSION_COOKIE_NAME, '', deleteCookieOptions);
       cookieStore.set('access_token', '', deleteCookieOptions);
       cookieStore.set('refresh_token', '', deleteCookieOptions);
+      cookieStore.set('pulsehub_session', '', deleteCookieOptions);
 
       try {
         cookieStore.delete(this.SESSION_COOKIE_NAME);

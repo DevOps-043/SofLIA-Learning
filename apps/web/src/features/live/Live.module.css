@@ -213,122 +213,6 @@
   border-bottom: 1px solid color-mix(in srgb, var(--live-text) 10%, transparent);
   padding: 14px 0;
 }
-.room {
-  display: grid;
-  grid-template-columns: 310px minmax(0, 1fr);
-  gap: 18px;
-  align-items: start;
-}
-.roomWithLia {
-  grid-template-columns: 290px minmax(0, 1fr) 300px;
-}
-.chat {
-  display: flex;
-  flex-direction: column;
-  height: calc(100vh - 160px);
-  min-height: 480px;
-  padding: 0;
-  overflow: hidden;
-}
-.chatHeader {
-  padding: 18px;
-  border-bottom: 1px solid color-mix(in srgb, var(--live-text) 10%, transparent);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-}
-.messages {
-  flex: 1;
-  overflow: auto;
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-.message {
-  font-size: 13px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-.message strong {
-  color: var(--live-accent);
-  display: block;
-  font-size: 12px;
-  margin-bottom: 3px;
-}
-.message time {
-  font-size: 10px;
-  opacity: 0.5;
-  margin-left: 7px;
-}
-.composer {
-  padding: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--live-text) 10%, transparent);
-  display: grid;
-  gap: 10px;
-}
-.video {
-  min-height: 420px;
-  background: #070b12;
-  border-radius: 18px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid #ffffff16;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: #f3f6fb;
-}
-.videoPlaceholder {
-  text-align: center;
-  padding: 45px 20px;
-  max-width: 500px;
-  display: grid;
-  justify-items: center;
-  gap: 18px;
-}
-.zoomRoot {
-  width: 100%;
-  min-height: 460px;
-  position: relative;
-}
-.activity {
-  margin-top: 18px;
-}
-.activityList {
-  display: grid;
-  gap: 12px;
-}
-.activityCard {
-  border: 1px solid color-mix(in srgb, var(--live-text) 12%, transparent);
-  border-radius: 12px;
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-}
-.activityCard p {
-  white-space: pre-wrap;
-  font-size: 13px;
-  line-height: 1.65;
-}
-.option {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  font-size: 13px;
-}
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin: 18px 0;
-}
 .widget {
   margin: 24px 0;
   color: var(--dashboard-text, inherit);
@@ -351,13 +235,6 @@
   --live-accent: var(--dashboard-accent, #39d7b0);
 }
 @media (max-width: 1200px) {
-  .roomWithLia {
-    grid-template-columns: 290px minmax(0, 1fr);
-  }
-  .roomWithLia > aside:last-child {
-    grid-column: 1/-1;
-    height: 500px;
-  }
   .workspace {
     grid-template-columns: 1fr;
   }
@@ -365,28 +242,6 @@
 @media (max-width: 760px) {
   .page {
     padding: 16px;
-  }
-  .room,
-  .roomWithLia {
-    display: flex;
-    flex-direction: column;
-  }
-  .room > aside,
-  .room > section {
-    width: 100%;
-  }
-  .room > section {
-    order: -1;
-  }
-  .chat {
-    height: 460px;
-    min-height: 0;
-  }
-  .video {
-    min-height: 300px;
-  }
-  .zoomRoot {
-    min-height: 380px;
   }
   .twoCol {
     grid-template-columns: 1fr;
@@ -402,8 +257,5 @@
   }
   .panel {
     padding: 18px;
-  }
-  .chat {
-    padding: 0;
   }
 }

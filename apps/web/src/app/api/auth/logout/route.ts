@@ -7,6 +7,7 @@ const AUTH_COOKIE_NAMES = [
   'access_token',
   'refresh_token',
   'aprende-y-aplica-session',
+  'pulsehub_session',
 ] as const
 
 function clearAuthCookies(response: NextResponse): void {

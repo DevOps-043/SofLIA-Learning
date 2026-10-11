@@ -1,8 +1,8 @@
-import { LiveRoom } from "@/features/live/LiveRoom";
+import { LiveSessionDetails } from "@/features/live/LiveSessionDetails";
 export default async function Page({
   params,
 }: {
   params: Promise<{ orgSlug: string; sessionId: string }>;
 }) {
-  return <LiveRoom {...await params} />;
+  return <LiveSessionDetails {...await params} />;
 }

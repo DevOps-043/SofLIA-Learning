@@ -49,6 +49,11 @@ const PUBLIC_PREFIXES = [
 ]
 
 const PUBLIC_AUTH_EXACT_PATHS = new Set([
+  // La sesión del navegador integrado se autentica por bearer en su handler.
+  '/api/auth/hub-session',
+  // El handler verifica el bearer SOFIA y el alcance académico del escritorio.
+  '/api/auth/live/access',
+  '/api/auth/live/workspace',
   '/api/auth/callback/google',
   '/api/auth/desktop/exchange',
   '/api/auth/desktop/start',

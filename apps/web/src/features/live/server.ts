@@ -2,28 +2,42 @@ import "server-only";
 import { NextResponse } from "next/server";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireBusinessUser } from "@/lib/auth/requireBusiness";
 import type { LiveDatabase } from "./database.types";
 import { LiveError, checked } from "./errors";
 import { logger } from "@/lib/utils/logger";
 import { incrementCounter } from "@/lib/observability/metrics";
 import { z } from "zod";
-import { LIVE_LEARNING_ENABLED } from "./config";
+import { LIVE_SESSION_COLUMNS } from "./columns";
 export { LiveError, checked, requiredData } from "./errors";
 
 export async function liveContext(orgSlug: string) {
-  if (!LIVE_LEARNING_ENABLED)
-    throw new LiveError(503, "In Live no está habilitado todavía");
-  const auth = await requireBusinessUser({ organizationSlug: orgSlug });
-  if (auth instanceof NextResponse)
-    throw new LiveError(auth.status, "No tienes acceso a esta organización");
-  if (!auth.organizationId) throw new LiveError(403, "Organización requerida");
+  return liveNavigationContext(orgSlug);
+}
+
+/** La navegación y las operaciones usan los mismos permisos académicos. */
+export async function liveNavigationContext(orgSlug: string) {
+  const { SessionService } = await import("@/features/auth/services/session.service");
+  const user = await SessionService.getCurrentUser();
+  if (!user) throw new LiveError(401, "Inicia sesión para acceder a la organización");
+  const db = createAdminClient();
+  const organization = checked(await db.from("organizations").select("id")
+    .eq("slug", orgSlug).eq("is_active", true).maybeSingle());
+  if (!organization) throw new LiveError(403, "Organización sin acceso");
+  return readLiveActorContext(user.id, organization.id);
+}
+
+/** Solo invocar después de verificar la identidad en cookie o Supabase Auth. */
+export async function liveActorContext(userId: string, organizationId: string) {
+  return readLiveActorContext(userId, organizationId);
+}
+
+async function readLiveActorContext(userId: string, organizationId: string) {
   const db = createAdminClient() as unknown as SupabaseClient<LiveDatabase>;
   const account = checked(
     await db
       .from("users")
       .select("is_banned")
-      .eq("id", auth.userId)
+      .eq("id", userId)
       .maybeSingle(),
   );
   if (!account || account.is_banned)
@@ -32,8 +46,8 @@ export async function liveContext(orgSlug: string) {
     await db
       .from("organization_users")
       .select("role")
-      .eq("organization_id", auth.organizationId)
-      .eq("user_id", auth.userId)
+      .eq("organization_id", organizationId)
+      .eq("user_id", userId)
       .eq("status", "active")
       .maybeSingle(),
   );
@@ -41,16 +55,16 @@ export async function liveContext(orgSlug: string) {
   const instructor = checked(
     await db
       .from("organization_instructors")
-      .select("*")
-      .eq("organization_id", auth.organizationId)
-      .eq("user_id", auth.userId)
+      .select("organization_id,user_id,zoom_user_id,created_at")
+      .eq("organization_id", organizationId)
+      .eq("user_id", userId)
       .maybeSingle(),
   );
   const isAdmin = ["owner", "admin"].includes(member.role || "");
   return {
     db,
-    userId: auth.userId,
-    orgId: auth.organizationId,
+    userId,
+    orgId: organizationId,
     isAdmin,
     canTeach: isAdmin || !!instructor,
     instructor,
@@ -66,7 +80,7 @@ export async function liveSession(
   const session = checked(
     await ctx.db
       .from("live_sessions")
-      .select("*")
+      .select(LIVE_SESSION_COLUMNS)
       .eq("id", id)
       .eq("organization_id", ctx.orgId)
       .maybeSingle(),
@@ -84,6 +98,7 @@ export async function liveSession(
         .eq("organization_id", ctx.orgId)
         .eq("course_id", session.course_id)
         .eq("user_id", ctx.userId)
+        .or("status.is.null,status.neq.cancelled")
         .limit(1),
     );
     if (!assigned?.length)

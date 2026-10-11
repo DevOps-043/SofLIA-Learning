@@ -1,4 +1,5 @@
 export interface DropdownUserLike {
+  id?: string
   platform_role?: string
   display_name?: string
   email?: string | null

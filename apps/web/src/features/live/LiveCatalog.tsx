@@ -13,8 +13,8 @@ import { liveFetch, liveDate, statusLabel } from "./client";
 import type { LiveCatalog as Catalog, LiveSession } from "./types";
 import { LiveTheme } from "./LiveTheme";
 import styles from "./Live.module.css";
-import { LIVE_LEARNING_ENABLED } from "./config";
 import { Pagination } from "./Pagination";
+import { buildHubSessionLink } from "./hub-link";
 
 export function SessionCard({
   session,
@@ -38,26 +38,22 @@ export function SessionCard({
         {liveDate(session.starts_at)} · {session.duration_minutes} min
       </div>
       <div className={styles.cardFooter}>
-        <span className={styles.muted}>In Live · Soflia</span>
-        {session.status !== "cancelled" && (
-          <Link
+        <span className={styles.muted}>{session.session_type === "webinar" ? "Webinar" : "Reunión"} · Soflia Hub</span>
+        {["scheduled", "live"].includes(session.status) && (
+          <a
             className={styles.secondary}
-            href={`/${orgSlug}/live/${session.id}`}
+            href={buildHubSessionLink(orgSlug, session.id)}
           >
-            {session.status === "ended" ? "Ver sesión" : "Entrar al aula"}
+            Abrir Soflia Hub
             <ArrowUpRight size={14} />
-          </Link>
+          </a>
         )}
       </div>
+      <Link className={styles.muted} href={`/${orgSlug}/live/${session.id}`}>Ver detalles</Link>
     </article>
   );
 }
 export function LiveSessionsWidget({ orgSlug }: { orgSlug: string }) {
-  return LIVE_LEARNING_ENABLED ? (
-    <EnabledLiveSessionsWidget orgSlug={orgSlug} />
-  ) : null;
-}
-function EnabledLiveSessionsWidget({ orgSlug }: { orgSlug: string }) {
   const { data, error } = useSWR<Catalog>(
     `/api/${orgSlug}/live?period=upcoming`,
     liveFetch,
@@ -77,7 +73,7 @@ function EnabledLiveSessionsWidget({ orgSlug }: { orgSlug: string }) {
           <div className={styles.eyebrow}>
             <Radio size={15} /> In Live
           </div>
-          <h2 className={styles.title}>Aprende en tiempo real</h2>
+          <h2 className={styles.title}>Tus sesiones en Soflia Hub</h2>
         </div>
         <div className={styles.actions}>
           {data?.canTeach && (
@@ -142,10 +138,10 @@ export function LiveCatalogPage({ orgSlug }: { orgSlug: string }) {
               <Radio size={16} /> Soflia In Live
             </div>
             <h1 className={styles.title}>
-              Tu próxima conversación empieza aquí.
+              Tus sesiones síncronas
             </h1>
             <p className={styles.muted}>
-              Clases en vivo, preguntas compartidas y Soflia acompañándote.
+              Consulta tus reuniones y webinars y ábrelos en Soflia Hub de escritorio.
             </p>
           </div>
           {data?.canTeach && (

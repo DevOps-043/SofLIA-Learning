@@ -1,35 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { activitySchema, canTransition, scheduleSchema } from "../schemas";
+import { canTransition, scheduleSchema } from "../schemas";
 describe("Live course domain contracts", () => {
-  it("rejects malformed quizzes and out-of-range answer keys", () => {
-    expect(
-      activitySchema.safeParse({
-        kind: "quiz",
-        title: "Q",
-        content: "?",
-        options: ["A"],
-        correct_option: 0,
-      }).success,
-    ).toBe(false);
-    expect(
-      activitySchema.safeParse({
-        kind: "quiz",
-        title: "Q",
-        content: "?",
-        options: ["A", "B"],
-        correct_option: 2,
-      }).success,
-    ).toBe(false);
-    expect(
-      activitySchema.safeParse({
-        kind: "quiz",
-        title: "Q",
-        content: "?",
-        options: ["A", "B"],
-        correct_option: 1,
-      }).success,
-    ).toBe(true);
-  });
   it("prevents reopening or cancelling an ended live session", () => {
     expect(canTransition("ended", "live")).toBe(false);
     expect(canTransition("live", "cancelled")).toBe(false);

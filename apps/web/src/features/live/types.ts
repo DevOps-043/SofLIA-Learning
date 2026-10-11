@@ -10,6 +10,8 @@ export interface LiveSession {
   duration_minutes: number;
   status: LiveStatus;
   zoom_meeting_id: string | null;
+  zoom_webinar_id?: string | null;
+  session_type?: "meeting" | "webinar";
   created_at: string;
 }
 export interface LiveMessage {

@@ -5,7 +5,7 @@ import {
   liveContext,
   liveSession,
 } from "@/features/live/server";
-import { roomSnapshot } from "@/features/live/services/snapshot.service";
+import { buildHubSessionLink } from "@/features/live/hub-link";
 import { changeSessionStatus } from "@/features/live/services/lifecycle.service";
 type Context = { params: Promise<{ orgSlug: string; sessionId: string }> };
 export async function GET(_request: NextRequest, { params }: Context) {
@@ -13,7 +13,7 @@ export async function GET(_request: NextRequest, { params }: Context) {
     const { orgSlug, sessionId } = await params;
     const context = await liveContext(orgSlug);
     const { session, canManage } = await liveSession(context, sessionId);
-    return json(await roomSnapshot(context, session, canManage));
+    return json({ session, canManage, hub_url: buildHubSessionLink(orgSlug, session.id) });
   });
 }
 export async function PATCH(request: NextRequest, { params }: Context) {
