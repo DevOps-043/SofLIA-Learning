@@ -5,9 +5,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "npm run check:server-runtime && npm run check:zoom-sdk && tsx ../../scripts/generate-openapi.ts",
+    "prebuild": "npm run check:server-runtime && tsx ../../scripts/generate-openapi.ts",
     "check:server-runtime": "node --no-experimental-require-module ../../scripts/check-server-sanitizer-runtime.cjs",
-    "check:zoom-sdk": "node ../../scripts/check-zoom-sdk-build.cjs",
     "build": "next build",
     "postbuild": "node --no-experimental-require-module --conditions=react-server ../../scripts/check-built-notebook-runtime.cjs",
     "start": "next start",
@@ -75,7 +74,6 @@
     "@tsparticles/slim": "^3.9.1",
     "@types/react-grid-layout": "^1.3.5",
     "@types/react-window": "^2.0.0",
-    "@zoom/meetingsdk": "6.5.0",
     "autoprefixer": "^10.4.16",
     "axios": "1.18.0",
     "bcryptjs": "^3.0.2",

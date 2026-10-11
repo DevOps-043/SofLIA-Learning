@@ -17,6 +17,7 @@ import {
   type DropdownUserLike,
 } from './display'
 import { USER_DROPDOWN_CLOSE_EVENT } from './types'
+import { useInstructorPanelAccess } from '@/features/live/useInstructorPanelAccess'
 
 interface UserDropdownLogicOptions {
   certificatesCount?: number
@@ -86,8 +87,11 @@ export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLo
     return () => window.removeEventListener(USER_DROPDOWN_CLOSE_EVENT, closeDropdown)
   }, [])
 
-  const isAdmin = useMemo(() => user?.platform_role?.toLowerCase() === 'administrador', [user?.platform_role])
-  const isInstructor = useMemo(() => user?.platform_role?.toLowerCase() === 'instructor', [user?.platform_role])
+  const isAdmin = useMemo(() => user?.platform_role?.toLowerCase().trim() === 'administrador', [user?.platform_role])
+  const isInstructor = useMemo(() => user?.platform_role?.toLowerCase().trim() === 'instructor', [user?.platform_role])
+  const instructorPanelPath = useInstructorPanelAccess({
+    userId: authUser?.id ?? user?.id, orgSlug: currentOrganization?.slug, isOpen, isAdmin, isOrgAdmin,
+  })
   const profilePath = useMemo(() => currentOrganization?.slug ? `/${currentOrganization.slug}/profile` : '/profile', [currentOrganization?.slug])
   const handleNavigation = useCallback((path: string) => {
     router.push(path); setIsOpen(false); setActiveSubmenu(null); setIsOrgSwitcherOpen(false)
@@ -135,7 +139,7 @@ export function useUserDropdownLogic(userProp?: unknown, options: UserDropdownLo
     handleAnalyticsClick: () => handleOptionalAction(onAnalyticsClick),
     handleCertificatesClick: () => handleOptionalAction(onCertificatesClick),
     handleLogout, handleNavigation, handleOrganizationSwitch, handleProfileClick, handleUserDashboardNavigation,
-    imageError, imageUrl, initials, isAdmin, isB2B, isInstructor, isMounted, isOpen,
+    imageError, imageUrl, initials, instructorPanelPath, isAdmin, isB2B, isInstructor, isMounted, isOpen,
     isMobileViewport, isOrgAdmin, isOrgSwitcherOpen, language, organizations, pathname, pos, primaryColor,
     showAnalyticsAction: Boolean(onAnalyticsClick),
     showCertificatesAction: Boolean(onCertificatesClick),

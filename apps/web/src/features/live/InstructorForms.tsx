@@ -18,6 +18,11 @@ export function InstructorForms({
     <aside>
       <form className={`${styles.panel} ${styles.form}`} onSubmit={schedule}>
         <h2 className={styles.sectionTitle}>Nueva sesión</h2>
+        <label>Tipo de sesión
+          <select name="session_type" className={styles.input} defaultValue="meeting">
+            <option value="meeting">Reunión</option><option value="webinar">Webinar</option>
+          </select>
+        </label>
         <label>
           Curso
           <select
@@ -80,7 +85,7 @@ export function InstructorForms({
         </label>
         <button className={styles.button} disabled={busy}>
           <Plus size={16} />
-          {busy ? "Guardando…" : "Programar con Zoom"}
+          {busy ? "Guardando…" : "Programar sesión en Soflia Hub"}
         </button>
       </form>
       {data.isAdmin && (

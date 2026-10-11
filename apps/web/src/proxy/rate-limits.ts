@@ -11,6 +11,12 @@ type RouteRateLimitPolicy = {
 const ONE_MINUTE_MS = 60 * 1000
 
 const ROUTE_RATE_LIMITS = {
+  liveSessionAccess: {
+    maxRequests: 1200,
+    burst: 300,
+    windowMs: ONE_MINUTE_MS,
+    message: 'Demasiadas solicitudes de acceso a sesiones.',
+  },
   auth: {
     maxRequests: 5,
     burst: 3,
@@ -68,6 +74,11 @@ export async function applyProxyRateLimits(request: NextRequest) {
 export function resolveRouteRateLimitPolicy(request: NextRequest): RouteRateLimitPolicy | null {
   const { pathname } = request.nextUrl
   const method = request.method.toUpperCase()
+  // El ingreso de una clase no es un intento de login. El handler limita
+  // además por usuario verificado; el presupuesto IP admite aulas tras NAT.
+  if ((pathname === '/api/auth/live/access' || pathname === '/api/auth/live/workspace') && method === 'POST') {
+    return { config: ROUTE_RATE_LIMITS.liveSessionAccess, prefix: 'live-access' }
+  }
 
   // Availability-sensitive, authenticated reads must not fail closed merely
   // because the distributed limiter is temporarily unavailable. They retain

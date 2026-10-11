@@ -56,7 +56,7 @@ function PanelSwitcherGrid({ items, label, accentColor }: PanelSwitcherProps) {
 }
 
 export function UserDropdownPanelSwitcher({ logic }: { logic: UserDropdownLogic }) {
-  const { accentColor, currentOrganization, handleNavigation, isAdmin, isInstructor, isOrgAdmin, pathname, t } = logic
+  const { accentColor, currentOrganization, handleNavigation, instructorPanelPath, isAdmin, isOrgAdmin, pathname, t } = logic
 
   const panelLinks = useMemo<PanelSwitcherItem[]>(() => {
     const links: PanelSwitcherItem[] = []
@@ -71,13 +71,13 @@ export function UserDropdownPanelSwitcher({ logic }: { logic: UserDropdownLogic 
       })
     }
 
-    if (isInstructor) {
+    if (instructorPanelPath) {
       links.push({
         id: 'instructor',
         icon: GraduationCap,
         label: t('profileDropdown.panels.instructor'),
-        isActive: pathname?.startsWith('/instructor') ?? false,
-        onClick: () => handleNavigation('/instructor/dashboard'),
+        isActive: pathname === instructorPanelPath || (pathname?.startsWith(`${instructorPanelPath}/`) ?? false),
+        onClick: () => handleNavigation(instructorPanelPath),
       })
     }
 
@@ -102,7 +102,7 @@ export function UserDropdownPanelSwitcher({ logic }: { logic: UserDropdownLogic 
     })
 
     return links
-  }, [currentOrganization, handleNavigation, isAdmin, isInstructor, isOrgAdmin, pathname, t, logic.handleUserDashboardNavigation])
+  }, [currentOrganization, handleNavigation, instructorPanelPath, isAdmin, isOrgAdmin, pathname, t, logic.handleUserDashboardNavigation])
 
   if (panelLinks.length <= 1) return null
 

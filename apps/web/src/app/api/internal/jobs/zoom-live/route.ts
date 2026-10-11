@@ -35,16 +35,16 @@ export async function POST(request: NextRequest) {
       throw new LiveError(403, "Cuenta no autorizada");
     if (
       !event.payload.object ||
-      !["meeting.started", "meeting.ended", "meeting.deleted"].includes(
+      !["meeting.started", "meeting.ended", "meeting.deleted", "webinar.started", "webinar.ended", "webinar.deleted"].includes(
         event.event,
       )
     )
       return json({ received: true });
     // Conditional transitions make retries harmless and prevent late starts reopening ended sessions.
     const status =
-      event.event === "meeting.started"
+      event.event.endsWith(".started")
         ? "live"
-        : event.event === "meeting.ended"
+        : event.event.endsWith(".ended")
           ? "ended"
           : "cancelled";
     const database =
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       await database
         .from("live_sessions")
         .update({ status })
-        .eq("zoom_meeting_id", String(event.payload.object.id))
+        .eq(event.event.startsWith("webinar.") ? "zoom_webinar_id" : "zoom_meeting_id", String(event.payload.object.id))
         .in(
           "status",
           status === "live" ? ["scheduled"] : ["scheduled", "live"],

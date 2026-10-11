@@ -51,6 +51,9 @@ const PUBLIC_PREFIXES = [
 const PUBLIC_AUTH_EXACT_PATHS = new Set([
   // La sesión del navegador integrado se autentica por bearer en su handler.
   '/api/auth/hub-session',
+  // El handler verifica el bearer SOFIA y el alcance académico del escritorio.
+  '/api/auth/live/access',
+  '/api/auth/live/workspace',
   '/api/auth/callback/google',
   '/api/auth/desktop/exchange',
   '/api/auth/desktop/start',
@@ -100,20 +103,20 @@ const PUBLIC_GET_PATTERNS = [
 
 export type ApiRouteAuthRequirement =
   | {
-      kind: 'public'
-      reason: string
-    }
+    kind: 'public'
+    reason: string
+  }
   | {
-      kind: 'internal'
-      reason: string
-    }
+    kind: 'internal'
+    reason: string
+  }
   | {
-      kind: 'authenticated'
-      description: string
-      roles: readonly ValidRole[]
-      organizationSlug?: string
-      organizationMode?: 'business-admin' | 'business-user'
-    }
+    kind: 'authenticated'
+    description: string
+    roles: readonly ValidRole[]
+    organizationSlug?: string
+    organizationMode?: 'business-admin' | 'business-user'
+  }
 
 export function getApiRouteAuthRequirement(
   pathname: string,
@@ -341,9 +344,9 @@ function matchesSegment(pathname: string, segment: string) {
 
 function parseOrgScopedApiRoute(pathname: string):
   | {
-      organizationSlug: string
-      section: 'business' | 'business-user'
-    }
+    organizationSlug: string
+    section: 'business' | 'business-user'
+  }
   | null {
   const segments = pathname.split('/').filter(Boolean)
   if (segments[0] !== 'api' || !segments[1]) return null

@@ -25,16 +25,16 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
   const businessPanelPath = logic.currentOrganization?.slug
     ? `/${logic.currentOrganization.slug}/business-panel`
     : null
-  const { canSwitch } = logic
+  const { canSwitch, instructorPanelPath } = logic
 
   const hasPanelSwitcher = useMemo(() => {
     let count = 0
     if (logic.isAdmin) count++
-    if (logic.isInstructor) count++
+    if (logic.instructorPanelPath) count++
     if ((logic.isOrgAdmin || logic.isAdmin) && logic.currentOrganization) count++
     count++ // user panel is always included
     return count > 1
-  }, [logic.isAdmin, logic.isInstructor, logic.isOrgAdmin, logic.currentOrganization])
+  }, [logic.isAdmin, logic.instructorPanelPath, logic.isOrgAdmin, logic.currentOrganization])
 
   return (
     <div className={cn(styles.menuItems, logic.isMobileViewport && styles.menuItemsMobile)}>
@@ -45,8 +45,8 @@ export function UserDropdownMenuItems({ logic }: { logic: UserDropdownLogic }) {
       {!hasPanelSwitcher && logic.isAdmin && (
         <MenuItem icon={LayoutDashboard} label={logic.t('menu.adminPanel')} onClick={() => logic.handleNavigation('/admin/dashboard')} />
       )}
-      {!hasPanelSwitcher && logic.isInstructor && (
-        <MenuItem icon={LayoutDashboard} label={logic.t('menu.instructorPanel')} onClick={() => logic.handleNavigation('/instructor/dashboard')} />
+      {!hasPanelSwitcher && instructorPanelPath && (
+        <MenuItem icon={LayoutDashboard} label={logic.t('menu.instructorPanel')} onClick={() => logic.handleNavigation(instructorPanelPath)} />
       )}
       {!hasPanelSwitcher && (logic.isOrgAdmin || logic.isAdmin) && businessPanelPath && (
         <MenuItem icon={LayoutDashboard} label={logic.t('business:header.administratorRole')} onClick={() => logic.handleNavigation(businessPanelPath)} />

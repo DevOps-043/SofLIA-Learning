@@ -64,6 +64,16 @@ type LiveTables = {
   }>;
 };
 type LiveFunctions = {
+  live_workspace_snapshot: {
+    Args: { p_org: string; p_user: string; p_session: string };
+    Returns: Json;
+  };
+  live_workspace_ai_context: { Args: { p_org: string; p_user: string; p_session: string }; Returns: Json };
+  live_workspace_command: {
+    Args: { p_org: string; p_user: string; p_session: string; p_id: string; p_command: Json };
+    Returns: Json;
+  };
+  live_workspace_purge: { Args: Record<string, never>; Returns: undefined };
   live_catalog: {
     Args: {
       p_org: string;

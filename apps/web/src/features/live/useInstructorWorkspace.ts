@@ -36,12 +36,13 @@ export function useInstructorWorkspace(orgSlug: string) {
         description: values.get("description"),
         starts_at: new Date(String(values.get("starts"))).toISOString(),
         duration_minutes: Number(values.get("duration")),
+        session_type: values.get("session_type") || "meeting",
       });
       requestId.current = "";
       form.reset();
       await mutate();
       setNotice(
-        "Sesión programada en Zoom. Ya está disponible en la agenda de los alumnos del curso.",
+        "Sesión programada. Los alumnos del curso ya pueden abrirla en Soflia Hub desde su agenda.",
       );
     } catch (e) {
       setError((e as Error).message);

@@ -1,5 +1,4 @@
 import "server-only";
-import { createHmac } from "node:crypto";
 import { LiveError } from "./errors";
 import { fetchWithCircuitBreaker } from "@/lib/resilience/circuit-breaker";
 
@@ -13,6 +12,37 @@ export async function zoomRequest(
   method = "GET",
   body?: unknown,
 ) {
+  const token = await zoomAccessToken();
+  const response = await fetchWithCircuitBreaker(
+    "zoom-api",
+    `https://api.zoom.us/v2${path}`,
+    {
+      method,
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+      cache: "no-store", signal: AbortSignal.timeout(20000),
+    },
+  );
+  if (!response.ok) {
+    if (response.status === 401) cachedToken = null;
+    throw new LiveError(502, "Zoom rechazó la operación. Revisa la cuenta del anfitrión y sus permisos.");
+  }
+  return response.status === 204 ? null : response.json();
+}
+
+let cachedToken: { value: string; expiresAt: number } | null = null;
+let tokenInFlight: Promise<string> | null = null;
+
+/** Una clase comparte token administrativo; no solicita OAuth por cada alumno. */
+async function zoomAccessToken(): Promise<string> {
+  if (cachedToken && cachedToken.expiresAt > Date.now()) return cachedToken.value;
+  if (tokenInFlight) return tokenInFlight;
+  tokenInFlight = requestZoomAccessToken();
+  try { return await tokenInFlight; }
+  finally { tokenInFlight = null; }
+}
+
+async function requestZoomAccessToken(): Promise<string> {
   const credentials = Buffer.from(
     `${env("ZOOM_CLIENT_ID")}:${env("ZOOM_CLIENT_SECRET")}`,
   ).toString("base64");
@@ -29,34 +59,8 @@ export async function zoomRequest(
   if (!tokenResponse.ok)
     throw new LiveError(502, "No fue posible autenticar la cuenta de Zoom");
   const token = await tokenResponse.json();
-  const response = await fetchWithCircuitBreaker(
-    "zoom-api",
-    `https://api.zoom.us/v2${path}`,
-    {
-      method,
-      headers: {
-        Authorization: `Bearer ${token.access_token}`,
-        "Content-Type": "application/json",
-      },
-      ...(body ? { body: JSON.stringify(body) } : {}),
-      cache: "no-store",
-      signal: AbortSignal.timeout(20000),
-    },
-  );
-  if (!response.ok)
-    throw new LiveError(
-      502,
-      "Zoom rechazó la operación. Revisa la cuenta del anfitrión y sus permisos.",
-    );
-  return response.status === 204 ? null : response.json();
-}
-export function meetingSignature(meeting: string, role: 0 | 1) {
-  const key = env("ZOOM_MEETING_SDK_KEY"),
-    secret = env("ZOOM_MEETING_SDK_SECRET");
-  const now = Math.floor(Date.now() / 1000) - 30,
-    exp = now + 3600;
-  const encode = (value: unknown) =>
-    Buffer.from(JSON.stringify(value)).toString("base64url");
-  const unsigned = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sdkKey: key, appKey: key, mn: meeting, role, iat: now, exp, tokenExp: exp })}`;
-  return `${unsigned}.${createHmac("sha256", secret).update(unsigned).digest("base64url")}`;
+  if (typeof token.access_token !== "string" || !token.access_token || !Number.isFinite(token.expires_in) || token.expires_in <= 0)
+    throw new LiveError(502, "Zoom no devolvió un token administrativo válido");
+  cachedToken = { value: token.access_token, expiresAt: Date.now() + Math.max(0, token.expires_in - 60) * 1000 };
+  return token.access_token;
 }

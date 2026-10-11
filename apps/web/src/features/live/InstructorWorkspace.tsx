@@ -51,8 +51,7 @@ export function InstructorWorkspace({ orgSlug }: { orgSlug: string }) {
             </div>
             <h1 className={styles.title}>Comparte lo que sabes.</h1>
             <p className={styles.muted}>
-              Tus cursos de Engine, tus sesiones y la participación de tus
-              alumnos.
+              Administra tus cursos y las sesiones que se realizan en Soflia Hub.
             </p>
           </div>
           <div className={styles.actions}>
@@ -111,18 +110,12 @@ export function InstructorWorkspace({ orgSlug }: { orgSlug: string }) {
             <div className={styles.stats}>
               {[
                 [Radio, "Sesiones", data.stats.sessions],
-                [Users, "Alumnos en el aula", data.stats.attendees],
                 [Users, "Alumnos de tus cursos", data.stats.learners],
                 [ClipboardCheck, "Cursos completados", data.stats.completed],
                 [
                   ClipboardCheck,
                   "Avance promedio (%)",
                   data.stats.averageProgress,
-                ],
-                [
-                  ClipboardCheck,
-                  "Actividades respondidas",
-                  data.stats.responses,
                 ],
               ].map(([Icon, label, value]) => {
                 const Glyph = Icon as typeof Radio;

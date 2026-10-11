@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.typecheck.features.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": [
+    "src/features/live/workspace.contract.ts",
+    "src/features/live/workspace.service.ts",
+    "src/features/live/hub-auth.server.ts",
+    "src/app/api/auth/live/workspace/route.ts",
+    "src/app/api/internal/jobs/live-workspace-retention/route.ts",
+    "next-env.d.ts"
+  ]
+}
