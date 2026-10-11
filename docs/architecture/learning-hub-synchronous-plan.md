@@ -51,7 +51,7 @@ Respuesta privada:
 }
 ```
 
-Cache-Control es no-store y Referrer-Policy es no-referrer. Solo el instructor responsable con vínculo activo recibe start_url; se comprueba que el usuario Zoom del recurso tenga el correo del instructor. Un administrador que supervisa recibe join_url de participante. Sesiones cerradas, recursos sin acceso, destino no Zoom y cuentas ajenas son rechazados.
+Cache-Control es no-store y Referrer-Policy es no-referrer. Solo el instructor responsable con vínculo activo recibe start_url. El ID del anfitrión debe coincidir en el recurso Zoom, las credenciales privadas guardadas al crear la sesión y la vinculación vigente del instructor. Además, Zoom debe confirmar que ese usuario está activo y pertenece a la cuenta maestra configurada. Un administrador que supervisa recibe join_url de participante. Sesiones cerradas, recursos sin acceso, destino no Zoom y cuentas ajenas son rechazados.
 
 El proxy tiene presupuesto específico de acceso académico por IP, separado de login. El handler limita además por usuario verificado. Esto permite clases detrás de NAT sin consumir el límite de intentos de autenticación.
 
@@ -72,6 +72,20 @@ Zoom proporciona audio, video, pantalla, admisión y chat de su cliente web. Abr
 La migración aditiva 20261010173000_live_hub_desktop.sql agrega session_type y zoom_webinar_id y conserva zoom_meeting_id para reuniones existentes. La finalización de programación sigue siendo transaccional/idempotente. Se crean reuniones type 2 o webinars type 5; cancelación/finalización consulta el recurso correspondiente.
 
 El webhook administrativo conserva HMAC y cuenta autorizada y agrega eventos webinar.started/ended/deleted. El inicio se refleja desde Zoom, no desde un PATCH de alumno. Se retiran las publicaciones Realtime de mensajes y actividades antiguas, conservando sus tablas.
+
+### Configuración y diagnóstico
+
+Guardar `ZOOM_ACCOUNT_ID`, `ZOOM_CLIENT_ID` y `ZOOM_CLIENT_SECRET` configura una sola integración administrativa con la cuenta Zoom maestra. Cada instructor no crea una app ni gestiona claves. Un administrador o propietario de su organización vincula al miembro activo de Learning con un anfitrión activo de esa cuenta maestra. Los correos pueden diferir: la autorización es el vínculo explícito por organización e instructor, conservando el ID canónico devuelto por Zoom.
+
+La programación guarda de forma privada el ID del anfitrión utilizado. La apertura comprueba ese ID frente al recurso de Zoom y al vínculo vigente del instructor; cambiar o retirar el vínculo no concede acceso de anfitrión a sesiones de otro usuario. No se asigna la cuenta maestra automáticamente a todos los miembros o empresas.
+
+Esta integración Server-to-Server solo administra usuarios de la cuenta Zoom conectada. Una empresa con una cuenta Zoom independiente necesitaría una conexión OAuth autorizada para esa empresa; ese flujo no está implementado por las tres variables globales. La cuenta maestra tampoco añade por sí sola licencias de anfitrión, capacidad de sesiones simultáneas ni permisos de webinars. Véase [Aplicaciones internas de Zoom](https://developers.zoom.us/docs/internal-apps/).
+
+Reunión es el tipo predeterminado para una clase. Webinar requiere licencia Zoom Webinars para el anfitrión y los scopes correspondientes; los permisos de reuniones no habilitan webinars. Véase [Crear un webinar](https://developers.zoom.us/docs/api/meetings/#tag/webinars/POST/users/{userId}/webinars).
+
+La programación valida los campos en el cliente y vuelve a validarlos en el servidor. Una fecha pasada informa que se necesita una fecha y hora futura. Los errores de programación y vinculación aparecen en su propio formulario; los fallos de carga del catálogo permanecen en la cabecera. Cambiar el filtro de instructores no convierte un error anterior de un formulario en un fallo de la agenda.
+
+El adaptador Zoom distingue anfitrión inexistente, permisos/licencia, autenticación y límite de solicitudes mediante códigos y estados HTTP. Devuelve mensajes propios sin publicar cuerpos ni mensajes remotos, y no reintenta automáticamente mutaciones. Se conserva la solicitud idempotente ante fallos que requieren reconciliación.
 
 ## Límite de revocación
 

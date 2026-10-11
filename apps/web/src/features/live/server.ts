@@ -7,6 +7,7 @@ import { LiveError, checked } from "./errors";
 import { logger } from "@/lib/utils/logger";
 import { incrementCounter } from "@/lib/observability/metrics";
 import { z } from "zod";
+import { liveValidationMessage } from "./validation-message";
 import { LIVE_SESSION_COLUMNS } from "./columns";
 export { LiveError, checked, requiredData } from "./errors";
 
@@ -123,10 +124,9 @@ export async function handleLive(work: () => Promise<NextResponse>) {
       }
       return json({ error: error.message }, error.status);
     }
-    if (
-      error instanceof Error &&
-      (error.name === "ZodError" || error.name === "SyntaxError")
-    )
+    if (error instanceof z.ZodError)
+      return json({ error: liveValidationMessage(error) }, 400);
+    if (error instanceof SyntaxError)
       return json({ error: "Revisa los datos enviados" }, 400);
     incrementCounter("live_request_errors_total");
     logger.error("Live request failed", {

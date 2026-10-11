@@ -2,14 +2,18 @@
 import { useState, useRef, type FormEvent } from "react";
 import useSWR from "swr";
 import { liveFetch } from "./client";
+import { scheduleSchema } from "./schemas";
+import { liveValidationMessage } from "./validation-message";
 import type { LiveCatalog } from "./types";
+const scheduleInputSchema = scheduleSchema.omit({ request_id: true });
 export function useInstructorWorkspace(orgSlug: string) {
   const requestId = useRef<string>("");
   const [page, setPage] = useState(0),
     [coursePage, setCoursePage] = useState(0),
     [instructorPage, setInstructorPage] = useState(0);
   const [filter, setFilter] = useState(""),
-    [error, setError] = useState(""),
+    [scheduleError, setScheduleError] = useState(""),
+    [instructorError, setInstructorError] = useState(""),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState("");
   const {
@@ -25,18 +29,25 @@ export function useInstructorWorkspace(orgSlug: string) {
     const form = event.currentTarget,
       values = new FormData(form);
     setBusy(true);
-    setError("");
+    setScheduleError("");
     setNotice("");
     try {
-      requestId.current ||= crypto.randomUUID();
-      await liveFetch(`/api/${orgSlug}/live`, {
-        request_id: requestId.current,
+      const starts = new Date(String(values.get("starts")));
+      if (!Number.isFinite(starts.getTime()))
+        throw new Error("Elige una fecha y hora futura para la sesión.");
+      const input = scheduleInputSchema.safeParse({
         course_id: values.get("course"),
         title: values.get("title"),
         description: values.get("description"),
-        starts_at: new Date(String(values.get("starts"))).toISOString(),
+        starts_at: starts.toISOString(),
         duration_minutes: Number(values.get("duration")),
         session_type: values.get("session_type") || "meeting",
+      });
+      if (!input.success) throw new Error(liveValidationMessage(input.error));
+      requestId.current ||= crypto.randomUUID();
+      await liveFetch(`/api/${orgSlug}/live`, {
+        request_id: requestId.current,
+        ...input.data,
       });
       requestId.current = "";
       form.reset();
@@ -45,7 +56,7 @@ export function useInstructorWorkspace(orgSlug: string) {
         "Sesión programada. Los alumnos del curso ya pueden abrirla en Soflia Hub desde su agenda.",
       );
     } catch (e) {
-      setError((e as Error).message);
+      setScheduleError((e as Error).message);
     } finally {
       setBusy(false);
     }
@@ -55,7 +66,7 @@ export function useInstructorWorkspace(orgSlug: string) {
     const form = event.currentTarget,
       values = new FormData(form);
     setBusy(true);
-    setError("");
+    setInstructorError("");
     setNotice("");
     try {
       await liveFetch(`/api/${orgSlug}/live/instructors`, {
@@ -67,7 +78,7 @@ export function useInstructorWorkspace(orgSlug: string) {
       await mutate();
       setNotice("Permisos de instructor actualizados.");
     } catch (e) {
-      setError((e as Error).message);
+      setInstructorError((e as Error).message);
     } finally {
       setBusy(false);
     }
@@ -76,7 +87,8 @@ export function useInstructorWorkspace(orgSlug: string) {
   return {
     data,
     loadError,
-    error,
+    scheduleError,
+    instructorError,
     busy,
     notice,
     filter,

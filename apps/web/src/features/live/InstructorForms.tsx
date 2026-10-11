@@ -6,11 +6,15 @@ import styles from "./Live.module.css";
 export function InstructorForms({
   data,
   busy,
+  scheduleError,
+  instructorError,
   schedule,
   saveInstructor,
 }: {
   data: LiveCatalog;
   busy: boolean;
+  scheduleError: string;
+  instructorError: string;
   schedule: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   saveInstructor: (event: FormEvent<HTMLFormElement>) => Promise<void>;
 }) {
@@ -18,11 +22,26 @@ export function InstructorForms({
     <aside>
       <form className={`${styles.panel} ${styles.form}`} onSubmit={schedule}>
         <h2 className={styles.sectionTitle}>Nueva sesión</h2>
-        <label>Tipo de sesión
-          <select name="session_type" className={styles.input} defaultValue="meeting">
-            <option value="meeting">Reunión</option><option value="webinar">Webinar</option>
+        {scheduleError && (
+          <p role="alert" className={styles.error}>
+            {scheduleError}
+          </p>
+        )}
+        <label>
+          Tipo de sesión
+          <select
+            name="session_type"
+            className={styles.input}
+            defaultValue="meeting"
+          >
+            <option value="meeting">Reunión</option>
+            <option value="webinar">Webinar</option>
           </select>
         </label>
+        <p className={styles.muted}>
+          Para una clase normal, elige Reunión. Webinar requiere licencia de
+          Zoom Webinars y permisos adicionales en la integración.
+        </p>
         <label>
           Curso
           <select
@@ -95,9 +114,16 @@ export function InstructorForms({
           onSubmit={saveInstructor}
         >
           <h2 className={styles.sectionTitle}>Acceso de instructor</h2>
+          {instructorError && (
+            <p role="alert" className={styles.error}>
+              {instructorError}
+            </p>
+          )}
           <p className={styles.muted}>
             Asigna esta capacidad a un miembro de la organización, incluido tu
-            propio usuario.
+            propio usuario. El anfitrión debe pertenecer a la cuenta Zoom
+            maestra conectada. Su correo puede ser distinto al del instructor de
+            Soflia: el administrador autoriza la vinculación entre ambos.
           </p>
           <label>
             Email en Soflia
@@ -109,7 +135,7 @@ export function InstructorForms({
             />
           </label>
           <label>
-            Email o ID de Zoom
+            Email o ID del anfitrión en la cuenta Zoom maestra
             <input
               name="zoom"
               className={styles.input}
