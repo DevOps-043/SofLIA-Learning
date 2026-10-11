@@ -76,7 +76,7 @@ export function resolveRouteRateLimitPolicy(request: NextRequest): RouteRateLimi
   const method = request.method.toUpperCase()
   // El ingreso de una clase no es un intento de login. El handler limita
   // además por usuario verificado; el presupuesto IP admite aulas tras NAT.
-  if ((pathname === '/api/auth/live/access' || pathname === '/api/auth/live/workspace') && method === 'POST') {
+  if ((pathname === '/api/auth/live/access' || pathname === '/api/auth/live/workspace' || pathname === '/api/auth/live/catalog') && method === 'POST') {
     return { config: ROUTE_RATE_LIMITS.liveSessionAccess, prefix: 'live-access' }
   }
 

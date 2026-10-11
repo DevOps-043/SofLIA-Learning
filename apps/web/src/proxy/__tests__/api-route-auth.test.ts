@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { getApiRouteAuthRequirement } from '../api-route-auth'
 
 describe('getApiRouteAuthRequirement', () => {
+  it.each(['access', 'workspace', 'catalog'])('delega %s a la verificación bearer del handler sin exigir cookies web', (action) => {
+    expect(getApiRouteAuthRequirement(`/api/auth/live/${action}`, 'POST')).toMatchObject({ kind: 'public' })
+    expect(getApiRouteAuthRequirement(`/api/auth/live/${action}/otra-ruta`, 'POST')).toMatchObject({ kind: 'authenticated' })
+  })
+
   it('keeps documented public routes public', () => {
     expect(getApiRouteAuthRequirement('/api/health')).toMatchObject({
       kind: 'public',

@@ -54,6 +54,7 @@ const PUBLIC_AUTH_EXACT_PATHS = new Set([
   // El handler verifica el bearer SOFIA y el alcance académico del escritorio.
   '/api/auth/live/access',
   '/api/auth/live/workspace',
+  '/api/auth/live/catalog',
   '/api/auth/callback/google',
   '/api/auth/desktop/exchange',
   '/api/auth/desktop/start',
