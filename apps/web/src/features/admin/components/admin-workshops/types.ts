@@ -18,6 +18,8 @@ export interface AdminWorkshopsPageLogic {
   page: number
   stats: WorkshopStats | null
   isLoading: boolean
+  isValidating: boolean
+  hasLoadedData: boolean
   error: string | null
   isUpdating: boolean
   isAddModalOpen: boolean

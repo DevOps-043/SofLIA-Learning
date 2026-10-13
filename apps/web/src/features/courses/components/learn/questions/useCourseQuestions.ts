@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "../../../../../lib/supabase/client";
 import { fetchCourseQuestions, fetchQuestionById, toggleQuestionReaction } from "./api";
 import type { CourseQuestion } from "./types";
@@ -10,6 +10,7 @@ type UseCourseQuestionsOptions = { lessonId: string; slug: string };
 export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions) {
   const [questions, setQuestions] = useState<CourseQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const requestVersion = useRef(0);
   const [loadingMore, setLoadingMore] = useState(false);
   const [selectedQuestionId, setSelectedQuestionId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -47,6 +48,7 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
   }, []);
 
   const reloadQuestions = useCallback(async () => {
+    const version = ++requestVersion.current;
     if (!slug || !lessonId) {
       setQuestions([]);
       syncQuestionMaps([]);
@@ -56,6 +58,7 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
 
     try {
       setLoading(true);
+      setLoadingMore(false);
       setSelectedQuestionId(null);
       setOffset(0);
       setHasMore(true);
@@ -66,6 +69,7 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
         limit: QUESTION_PAGE_SIZE,
         offset: 0,
       });
+      if (version !== requestVersion.current) return;
 
       if (nextQuestions.length === 0) {
         setQuestions([]);
@@ -78,16 +82,24 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
 
       setHasMore(nextQuestions.length === QUESTION_PAGE_SIZE);
     } catch {
+      if (version !== requestVersion.current) return;
       setQuestions([]);
       syncQuestionMaps([]);
       setHasMore(false);
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) setLoading(false);
     }
   }, [activeSearchQuery, lessonId, slug, syncQuestionMaps]);
 
+  // Previous rows are useful for a search, but must not cross lesson boundaries.
+  useEffect(() => {
+    setQuestions([]);
+    syncQuestionMaps([]);
+  }, [lessonId, slug, syncQuestionMaps]);
+
   useEffect(() => {
     void reloadQuestions();
+    return () => { requestVersion.current += 1; };
   }, [reloadQuestions]);
 
   useEffect(() => {
@@ -206,10 +218,11 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
   }, []);
 
   const loadMoreQuestions = useCallback(async () => {
-    if (!slug || !lessonId || loadingMore || !hasMore) {
+    if (!slug || !lessonId || loading || loadingMore || !hasMore) {
       return;
     }
 
+    const version = requestVersion.current;
     try {
       setLoadingMore(true);
       const nextOffset = offset + QUESTION_PAGE_SIZE;
@@ -220,6 +233,7 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
         limit: QUESTION_PAGE_SIZE,
         offset: nextOffset,
       });
+      if (version !== requestVersion.current) return;
       if (nextQuestions.length === 0) {
         setHasMore(false);
         return;
@@ -243,11 +257,11 @@ export function useCourseQuestions({ lessonId, slug }: UseCourseQuestionsOptions
       setOffset(nextOffset);
       setHasMore(nextQuestions.length === QUESTION_PAGE_SIZE);
     } catch {
-      setHasMore(false);
+      if (version === requestVersion.current) setHasMore(false);
     } finally {
-      setLoadingMore(false);
+      if (version === requestVersion.current) setLoadingMore(false);
     }
-  }, [activeSearchQuery, hasMore, lessonId, loadingMore, offset, slug]);
+  }, [activeSearchQuery, hasMore, lessonId, loading, loadingMore, offset, slug]);
 
   const handleReaction = useCallback(
     async (questionId: string) => {

@@ -1,10 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useState } from 'react'
+import useSWR from 'swr'
 import type {
-  AdminReporte,
   ReporteFilters,
-  ReporteStats,
   ReporteUpdateData,
 } from '../services/adminReportes.service'
 import {
@@ -14,50 +13,34 @@ import {
 } from './admin-reportes.api'
 
 export function useAdminReportes() {
-  const [reportes, setReportes] = useState<AdminReporte[]>([])
-  const [stats, setStats] = useState<ReporteStats>(EMPTY_REPORTE_STATS)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [filters, setFilters] = useState<ReporteFilters>({})
-
-  const fetchReportes = useCallback(async (activeFilters: ReporteFilters) => {
-    try {
-      setIsLoading(true)
-      setError(null)
-      const payload = await fetchAdminReportes(activeFilters)
-      setReportes(payload.reportes)
-      setStats(payload.stats)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'load_failed')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
+  const { data, error, isLoading, isValidating, mutate } = useSWR(
+    ['/api/admin/reportes', filters] as const,
+    ([, activeFilters]) => fetchAdminReportes(activeFilters),
+    { keepPreviousData: true, revalidateOnFocus: false },
+  )
 
   const updateReporte = async (reporteId: string, updates: ReporteUpdateData) => {
     await patchAdminReporte(reporteId, updates)
-    await fetchReportes(filters)
+    await mutate()
     return { success: true }
   }
 
-  const refetch = () => {
-    fetchReportes(filters)
-  }
+  const refetch = async () => { await mutate() }
 
   const applyFilters = (newFilters: ReporteFilters) => {
     setFilters(newFilters)
-    fetchReportes(newFilters)
+    // Applying the same filters also acts as an explicit refresh.
+    if (JSON.stringify(newFilters) === JSON.stringify(filters)) void mutate()
   }
 
-  useEffect(() => {
-    fetchReportes({})
-  }, [fetchReportes])
-
   return {
-    reportes,
-    stats,
-    isLoading,
-    error,
+    reportes: data?.reportes ?? [],
+    stats: data?.stats ?? EMPTY_REPORTE_STATS,
+    isLoading: isLoading && !data,
+    isValidating,
+    hasLoadedData: data !== undefined,
+    error: error ? (error instanceof Error ? error.message : 'load_failed') : null,
     filters,
     refetch,
     updateReporte,

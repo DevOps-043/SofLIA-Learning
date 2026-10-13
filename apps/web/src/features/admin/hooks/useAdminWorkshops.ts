@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 import { AdminWorkshop, WorkshopStats } from '../services/adminWorkshops.service'
 
 interface WorkshopPagination {
@@ -23,6 +23,8 @@ interface UseAdminWorkshopsReturn {
   pagination: WorkshopPagination
   stats: WorkshopStats | null
   isLoading: boolean
+  isValidating: boolean
+  hasLoadedData: boolean
   error: string | null
   refetch: () => Promise<void>
 }
@@ -34,80 +36,37 @@ const EMPTY_PAGINATION: WorkshopPagination = {
   totalPages: 0,
 }
 
+async function fetcher<T>(url: string): Promise<T> {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error('Error al cargar los datos de talleres')
+  return response.json()
+}
+
 export function useAdminWorkshops(params: UseAdminWorkshopsParams): UseAdminWorkshopsReturn {
-  const [workshops, setWorkshops] = useState<AdminWorkshop[]>([])
-  const [pagination, setPagination] = useState<WorkshopPagination>(EMPTY_PAGINATION)
-  const [stats, setStats] = useState<WorkshopStats | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const query = new URLSearchParams({ page: String(params.page), limit: String(params.limit) })
+  const search = params.searchTerm.trim()
+  if (search) query.set('search', search)
+  if (params.filterCategory !== 'all') query.set('category', params.filterCategory)
+  if (params.filterStatus !== 'all') query.set('status', params.filterStatus)
 
-  const fetchData = async () => {
-    try {
-      setIsLoading(true)
-      setError(null)
-
-      const query = new URLSearchParams({
-        page: String(params.page),
-        limit: String(params.limit),
-      })
-
-      const normalizedSearch = params.searchTerm.trim()
-      if (normalizedSearch) {
-        query.set('search', normalizedSearch)
-      }
-
-      if (params.filterCategory !== 'all') {
-        query.set('category', params.filterCategory)
-      }
-
-      if (params.filterStatus !== 'all') {
-        query.set('status', params.filterStatus)
-      }
-
-      const [workshopsResponse, statsResponse] = await Promise.all([
-        fetch(`/api/admin/workshops?${query.toString()}`),
-        fetch('/api/admin/workshops/stats')
-      ])
-
-      if (!workshopsResponse.ok || !statsResponse.ok) {
-        throw new Error('Error al cargar los datos de talleres')
-      }
-
-      const [workshopsData, statsData] = await Promise.all([
-        workshopsResponse.json(),
-        statsResponse.json()
-      ])
-
-      setWorkshops(workshopsData.workshops || [])
-      setPagination(workshopsData.pagination || EMPTY_PAGINATION)
-      setStats(statsData.stats || null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [
-    params.filterCategory,
-    params.filterStatus,
-    params.limit,
-    params.page,
-    params.searchTerm,
-  ])
-
-  const refetch = async () => {
-    await fetchData()
-  }
+  // Separate keys keep global stats stable and prevent older searches from
+  // overwriting the latest results when responses arrive out of order.
+  const options = { keepPreviousData: true, revalidateOnFocus: false }
+  const directory = useSWR<{ workshops: AdminWorkshop[]; pagination: WorkshopPagination }>(
+    `/api/admin/workshops?${query}`, fetcher, options,
+  )
+  const statistics = useSWR<{ stats: WorkshopStats }>('/api/admin/workshops/stats', fetcher, options)
+  const error = directory.error || statistics.error
+  const hasLoadedData = directory.data !== undefined
 
   return {
-    workshops,
-    pagination,
-    stats,
-    isLoading,
-    error,
-    refetch
+    workshops: directory.data?.workshops ?? [],
+    pagination: directory.data?.pagination ?? EMPTY_PAGINATION,
+    stats: statistics.data?.stats ?? null,
+    isLoading: !hasLoadedData && (directory.isLoading || statistics.isLoading),
+    isValidating: directory.isValidating || statistics.isValidating,
+    hasLoadedData,
+    error: error ? (error instanceof Error ? error.message : 'Error desconocido') : null,
+    refetch: async () => { await Promise.all([directory.mutate(), statistics.mutate()]) },
   }
 }

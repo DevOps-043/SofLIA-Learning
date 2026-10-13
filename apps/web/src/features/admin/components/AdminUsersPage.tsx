@@ -9,7 +9,8 @@ import { useAdminUsers } from '../hooks/useAdminUsers'
 import { useAdminUserStatsFilters } from '../hooks/useAdminUserStatsFilters'
 import type { AdminUser } from '../services/adminUsers.service'
 import type { NewAdminUserData } from './AddUserModal'
-import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useDebouncedValue } from '@/shared/hooks/useDebouncedValue'
+import { SearchResultsRegion } from '@/shared/components/SearchResultsRegion'
 import { ADMIN_USERS_DEFAULT_PAGE_SIZE } from '../services/admin-users/helpers'
 import {
   AdminUsersErrorState,
@@ -59,7 +60,7 @@ export function AdminUsersPage() {
   // dispararia una peticion.
   const debouncedSearch = useDebouncedValue(state.searchTerm.trim(), 300)
 
-  const { users, stats, total, totalPages, isLoading, isValidating, error, refetch } =
+  const { users, stats, total, totalPages, isLoading, hasLoadedData, isValidating, error, refetch } =
     useAdminUsers({
       page,
       search: debouncedSearch || undefined,
@@ -170,7 +171,7 @@ export function AdminUsersPage() {
   }
 
   if (isLoading) return <AdminUsersLoadingState t={t} />
-  if (error) return <AdminUsersErrorState error={error} isRefreshing={state.isRefreshing} onRetry={handleRefresh} t={t} />
+  if (error && !hasLoadedData) return <AdminUsersErrorState error={error} isRefreshing={state.isRefreshing} onRetry={handleRefresh} t={t} />
 
   return (
     <div>
@@ -195,7 +196,9 @@ export function AdminUsersPage() {
           onLearningPathFilterChange={setLearningPathFilter}
           t={t}
         />
-        <AdminUsersResults users={users} hasFilters={state.hasFilters || hasDirectoryFilters} viewMode={state.viewMode} locale={language} onAddClick={() => state.setIsAddModalOpen(true)} onClearFilters={clearAllFilters} onEditUser={(user) => openMasterPanel(user, 'profile')} onDeleteUser={handleDeleteUser} onViewStats={(user) => openMasterPanel(user, 'stats')} onUserHover={(user) => prefetchMasterPanelData(user.id)} t={t} tc={tc} />
+        <SearchResultsRegion isBusy={isValidating} loadingLabel={t('users.page.loading')} error={error} retryLabel={t('users.page.retry')} onRetry={handleRefresh}>
+          <AdminUsersResults users={users} hasFilters={state.hasFilters || hasDirectoryFilters} viewMode={state.viewMode} locale={language} onAddClick={() => state.setIsAddModalOpen(true)} onClearFilters={clearAllFilters} onEditUser={(user) => openMasterPanel(user, 'profile')} onDeleteUser={handleDeleteUser} onViewStats={(user) => openMasterPanel(user, 'stats')} onUserHover={(user) => prefetchMasterPanelData(user.id)} t={t} tc={tc} />
+        </SearchResultsRegion>
         <AdminUsersPagination page={page} totalPages={totalPages} total={total} pageSize={ADMIN_USERS_DEFAULT_PAGE_SIZE} isBusy={isValidating} onPageChange={setPage} t={t} />
       </div>
       <AdminUsersModals deletingUser={state.deletingUser} isDeleteModalOpen={state.isDeleteModalOpen} isAddModalOpen={state.isAddModalOpen} onCloseDelete={() => { state.setIsDeleteModalOpen(false); state.setDeletingUser(null) }} onCloseAdd={() => state.setIsAddModalOpen(false)} onConfirmDelete={handleConfirmDelete} onSaveNewUser={handleSaveNewUser} />

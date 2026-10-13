@@ -1,6 +1,8 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { SearchResultsRegion } from '@/shared/components/SearchResultsRegion'
 import { useAdminReportes } from '../hooks/useAdminReportes'
 import type { AdminReporte, ReporteUpdateData } from '../services/adminReportes.service'
 import { AdminReportesFilters } from './admin-reportes/AdminReportesFilters'
@@ -12,7 +14,8 @@ import { AdminReportesStatsGrid } from './admin-reportes/AdminReportesStatsGrid'
 import { useAdminReportesFilters } from './admin-reportes/useAdminReportesFilters'
 
 export function AdminReportesPage() {
-  const { reportes, stats, isLoading, error, refetch, updateReporte, applyFilters } = useAdminReportes()
+  const { t } = useTranslation('admin')
+  const { reportes, stats, isLoading, isValidating, hasLoadedData, error, refetch, updateReporte, applyFilters } = useAdminReportes()
   const filters = useAdminReportesFilters(applyFilters)
   const [selectedReporte, setSelectedReporte] = useState<AdminReporte | null>(null)
   const [activeModal, setActiveModal] = useState<'view' | 'edit' | null>(null)
@@ -39,7 +42,7 @@ export function AdminReportesPage() {
   }
 
   if (isLoading) return <AdminReportesPageState type="loading" />
-  if (error) return <AdminReportesPageState type="error" message={error} onRetry={refetch} />
+  if (error && !hasLoadedData) return <AdminReportesPageState type="error" message={error} onRetry={refetch} />
 
   return (
     <div className="min-h-screen p-4 md:p-6">
@@ -58,7 +61,9 @@ export function AdminReportesPage() {
           onApply={filters.apply}
           onReset={filters.reset}
         />
-        <AdminReportesList reportes={reportes} onView={(reporte) => openModal(reporte, 'view')} onEdit={(reporte) => openModal(reporte, 'edit')} />
+        <SearchResultsRegion isBusy={isValidating} loadingLabel={t('reportesPage.loading')} error={error ? t(`reportesPage.errors.${error}`, { defaultValue: error }) : null} retryLabel={t('reportesPage.retry')} onRetry={refetch}>
+          <AdminReportesList reportes={reportes} onView={(reporte) => openModal(reporte, 'view')} onEdit={(reporte) => openModal(reporte, 'edit')} />
+        </SearchResultsRegion>
       </div>
 
       <AdminReportesModals

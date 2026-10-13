@@ -20,7 +20,7 @@ export function useAdminWorkshopsPageLogic() {
   const [filterStatus, setFilterStatus] = useState('all')
   const [page, setPage] = useState(1)
   const debouncedSearchTerm = useDebouncedValue(searchTerm, 300)
-  const { workshops, pagination, stats, isLoading, error, refetch } = useAdminWorkshops({
+  const { workshops, pagination, stats, isLoading, isValidating, hasLoadedData, error, refetch } = useAdminWorkshops({
     page,
     limit: WORKSHOPS_PAGE_SIZE,
     searchTerm: debouncedSearchTerm,
@@ -125,6 +125,8 @@ export function useAdminWorkshopsPageLogic() {
     page,
     stats,
     isLoading,
+    isValidating,
+    hasLoadedData,
     error,
     isUpdating,
     isAddModalOpen,

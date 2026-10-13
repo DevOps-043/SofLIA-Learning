@@ -42,8 +42,11 @@ function makeWorkshop(overrides = {}) {
 function makeUseAdminWorkshopsResult(overrides = {}) {
   return {
     workshops: [],
+    pagination: { page: 1, limit: 24, total: 0, totalPages: 0 },
     stats: { total: 0, active: 0, inactive: 0 },
     isLoading: false,
+    isValidating: false,
+    hasLoadedData: true,
     error: null,
     refetch: vi.fn(),
     ...overrides,

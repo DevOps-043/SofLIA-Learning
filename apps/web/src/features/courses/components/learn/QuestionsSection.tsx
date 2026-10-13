@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { SearchResultsRegion } from "@/shared/components/SearchResultsRegion";
 
 import styles from "./CommunityExperience.module.css";
 import { CreateQuestionForm } from "./CreateQuestionForm";
@@ -66,21 +67,6 @@ export function QuestionsSection({ lessonId, slug }: QuestionsSectionProps) {
       handleClearSearch();
     }
   };
-
-  if (loading) {
-    return (
-      <div className={styles.loadingShell} aria-label="Cargando conversaciones">
-        <div className={styles.loadingHeader}>
-          <div className={styles.loadingTitle} />
-          <div className={styles.loadingButton} />
-        </div>
-        <div className={styles.loadingSearch} />
-        {[1, 2, 3].map((item) => (
-          <div className={styles.loadingCard} key={item} />
-        ))}
-      </div>
-    );
-  }
 
   return (
     <motion.section
@@ -137,7 +123,12 @@ export function QuestionsSection({ lessonId, slug }: QuestionsSectionProps) {
         )}
       </div>
 
-      {questions.length === 0 ? (
+      <SearchResultsRegion isBusy={loading} loadingLabel="Cargando conversaciones">
+      {loading && questions.length === 0 ? (
+        <div className={styles.loadingShell}>
+          {[1, 2, 3].map((item) => <div className={styles.loadingCard} key={item} />)}
+        </div>
+      ) : questions.length === 0 ? (
         <motion.div
           data-tour-id="course-learn--questions-empty"
           initial={{ opacity: 0, y: 10 }}
@@ -304,7 +295,7 @@ export function QuestionsSection({ lessonId, slug }: QuestionsSectionProps) {
             <div className={styles.loadMore}>
               <button
                 onClick={() => void loadMoreQuestions()}
-                disabled={loadingMore}
+                disabled={loading || loadingMore}
                 className={styles.secondaryButton}
                 type="button"
               >
@@ -324,6 +315,7 @@ export function QuestionsSection({ lessonId, slug }: QuestionsSectionProps) {
           )}
         </div>
       )}
+      </SearchResultsRegion>
 
       <AnimatePresence>
         {showCreateForm && (

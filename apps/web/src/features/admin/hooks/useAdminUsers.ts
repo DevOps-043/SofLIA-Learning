@@ -27,6 +27,7 @@ interface UseAdminUsersReturn {
   page: number
   totalPages: number
   isLoading: boolean
+  hasLoadedData: boolean
   /** Hay una recarga en vuelo mostrando aun los datos previos (cambio de página/filtro). */
   isValidating: boolean
   error: string | null
@@ -93,7 +94,10 @@ export function useAdminUsers(options: UseAdminUsersOptions = {}): UseAdminUsers
     total: data?.total ?? 0,
     page: data?.page ?? 1,
     totalPages: data?.totalPages ?? 1,
-    isLoading,
+    // SWR also marks a new key as loading when keepPreviousData supplies rows.
+    // Only the first load may replace the directory with a full-page loader.
+    isLoading: isLoading && !data,
+    hasLoadedData: data !== undefined,
     isValidating,
     error: error ? (error instanceof Error ? error.message : 'Error desconocido') : null,
     refetch: async () => { await mutate() }
