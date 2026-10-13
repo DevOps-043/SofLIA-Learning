@@ -4,6 +4,7 @@ import { createAuthActionClient } from '@/lib/supabase/auth-server';
 import { SessionService } from '@/features/auth/services/session.service';
 import { generateDesktopAccessProof } from '@/features/auth/services/desktop-sso.service';
 import { applyAuthRateLimit } from '@/lib/auth/auth-rate-limit';
+import { readJwtBearerToken } from '@/lib/auth/bearer-token';
 
 const headers = { 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' };
 const fail = (status: number) => NextResponse.json({ success: false }, { status, headers });
@@ -39,13 +40,13 @@ async function connectionInput(request: NextRequest): Promise<{ replace: boolean
 /** Crea una sesión web independiente a partir del bearer SOFIA del escritorio. */
 export async function POST(request: NextRequest) {
   if (!hasSameOrigin(request) || request.headers.get('x-pulsehub-session') !== '1') return fail(403);
-  const match = /^Bearer ([^\s]{40,8192})$/.exec(request.headers.get('authorization') || '');
-  if (!match) return fail(401);
+  const token = readJwtBearerToken(request.headers.get('authorization'));
+  if (!token) return fail(401);
   try {
     const input = await connectionInput(request);
     if (!input) return fail(400);
     const db = createAdminClient();
-    const { data, error } = await db.auth.getUser(match[1]);
+    const { data, error } = await db.auth.getUser(token);
     if (error || !data.user) return fail(401);
     const limited = applyAuthRateLimit(request, data.user.id);
     if (limited) return new NextResponse(limited.body, { status: limited.status, headers: limited.headers });

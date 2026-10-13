@@ -256,7 +256,7 @@ export async function loginAction(formData: FormData) {
 
     scheduleExpiredSessionCleanup()
     await clearLoginLockout(loginAttemptContext)
-    await updateLastLoginAt(supabase, user.id)
+    await updateLastLoginAt(user.id)
 
     const redirectTo = await resolveLoginRedirect({ supabase, user })
     recordSecurityEvent('login-success', {

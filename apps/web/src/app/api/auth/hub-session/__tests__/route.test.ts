@@ -8,7 +8,7 @@ vi.mock('@/features/auth/services/session.service', () => ({ SessionService: { g
 vi.mock('@/features/auth/services/desktop-sso.service', () => ({ generateDesktopAccessProof: mocks.proof, hasActiveMembership: mocks.membership }));
 vi.mock('@/lib/auth/auth-rate-limit', () => ({ applyAuthRateLimit: () => null }));
 import { POST } from '../route';
-function request(replace = false, origin?: string, token = 't'.repeat(48)) {
+function request(replace = false, origin?: string, token = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJodWItdXNlciJ9.signature') {
   return new NextRequest('https://learning.test/api/auth/hub-session', { method: 'POST', headers: { 'X-PulseHub-Session': '1', Authorization: `Bearer ${token}`, ...(origin ? { Origin: origin } : {}) }, body: JSON.stringify({ replace }) });
 }
 beforeEach(() => {
@@ -18,6 +18,10 @@ beforeEach(() => {
   mocks.verify.mockResolvedValue({ data: { user: { id: 'hub-user' } }, error: null });
 });
 describe('Conexión de Learning desde PulseHub', () => {
+  it.each(['undefined', 'sb_secret_key', 'a.b', 'a..c'])('rechaza un bearer malformado sin consultar Auth: %s', async token => {
+    expect((await POST(request(false, undefined, token))).status).toBe(401);
+    expect(mocks.getUser).not.toHaveBeenCalled();
+  });
   it('admite el origen HTTPS público cuando el proxy reconstruye una URL interna HTTP', async () => {
     const req = new NextRequest('http://127.0.0.1:3000/api/auth/hub-session', { method: 'POST', headers: { Host: 'learning.test', Origin: 'https://learning.test', 'X-PulseHub-Session': '1' }, body: '{"replace":false}' });
     expect((await POST(req)).status).toBe(401); expect(mocks.getUser).not.toHaveBeenCalled();
@@ -49,7 +53,7 @@ describe('Conexión de Learning desde PulseHub', () => {
     mocks.verify.mockResolvedValue({ data: { user: { id: 'otro' } }, error: null }); expect((await POST(request())).status).toBe(503);
   });
   it.each(['{', 'null', '{"replace":"yes"}', 'x'.repeat(129)])('rechaza cuerpos inválidos antes de consultar Auth: %s', async body => {
-    const req = new NextRequest('https://learning.test/api/auth/hub-session', { method: 'POST', headers: { 'X-PulseHub-Session': '1', Authorization: `Bearer ${'t'.repeat(48)}` }, body });
+    const req = new NextRequest('https://learning.test/api/auth/hub-session', { method: 'POST', headers: { 'X-PulseHub-Session': '1', Authorization: `Bearer ${'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJodWItdXNlciJ9.signature'}` }, body });
     expect((await POST(req)).status).toBe(400); expect(mocks.getUser).not.toHaveBeenCalled();
   });
 });

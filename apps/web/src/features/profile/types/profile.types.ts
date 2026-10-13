@@ -29,17 +29,16 @@ export interface UserProfile {
 export interface UpdateProfileRequest {
   username?: string
   email?: string
-  first_name?: string
-  last_name?: string
-  display_name?: string
-  phone?: string
-  bio?: string
-  location?: string
-  platform_role?: string
-  job_title?: string
-  job_description?: string
-  profile_picture_url?: string
-  country_code?: string
+  first_name?: string | null
+  last_name?: string | null
+  display_name?: string | null
+  phone?: string | null
+  bio?: string | null
+  location?: string | null
+  job_title?: string | null
+  job_description?: string | null
+  profile_picture_url?: string | null
+  country_code?: string | null
   date_of_birth?: string | null
   gender?: UserGender | null
 }

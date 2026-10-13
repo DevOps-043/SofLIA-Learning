@@ -119,12 +119,15 @@ class CircuitBreaker {
 
   constructor(private options: CircuitBreakerOptions) {}
 
-  async execute<T>(operation: (signal: AbortSignal) => Promise<T>): Promise<T> {
+  async execute<T>(
+    operation: (signal: AbortSignal) => Promise<T>,
+    executionOptions: Partial<Pick<CircuitBreakerOptions, 'timeoutMs' | 'maxRetries'>> = {},
+  ): Promise<T> {
     this.assertCanExecute()
     const startedAt = performance.now()
 
     try {
-      const result = await this.executeWithRetries(operation)
+      const result = await this.executeWithRetries(operation, executionOptions)
       this.recordSuccess()
       this.recordMetrics('success', startedAt)
       return result
@@ -199,14 +202,16 @@ class CircuitBreaker {
 
   private async executeWithRetries<T>(
     operation: (signal: AbortSignal) => Promise<T>,
+    executionOptions: Partial<Pick<CircuitBreakerOptions, 'timeoutMs' | 'maxRetries'>>,
   ): Promise<T> {
-    const maxRetries = this.options.maxRetries ?? 0
+    const maxRetries = executionOptions.maxRetries ?? this.options.maxRetries ?? 0
+    const timeoutMs = executionOptions.timeoutMs ?? this.options.timeoutMs
     let attempt = 0
     let lastError: unknown
 
     while (attempt <= maxRetries) {
       try {
-        return await runWithTimeout(operation, this.options.timeoutMs)
+        return await runWithTimeout(operation, timeoutMs)
       } catch (error) {
         lastError = error
         const nextAttempt = attempt + 1
@@ -299,7 +304,8 @@ export async function executeWithCircuitBreaker<T>(
   options: Omit<CircuitBreakerOptions, 'name'>,
 ): Promise<T> {
   const breaker = getCircuitBreaker({ ...options, name })
-  return breaker.execute(operation)
+  // Circuit state is shared; execution budgets belong to this invocation.
+  return breaker.execute(operation, { timeoutMs: options.timeoutMs, maxRetries: options.maxRetries })
 }
 
 export async function fetchWithCircuitBreaker(

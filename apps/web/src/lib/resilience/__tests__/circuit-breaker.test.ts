@@ -27,6 +27,23 @@ afterEach(() => {
 })
 
 describe('circuit breaker', () => {
+  it('uses each invocation budget even when the circuit already exists', async () => {
+    vi.useFakeTimers()
+    const name = 'per-invocation-budget'
+    await executeWithCircuitBreaker(name, async () => 'warm', {
+      ...baseOptions, timeoutMs: 1_000, maxRetries: 1,
+    })
+    const operation = vi.fn(() => new Promise<string>(resolve => setTimeout(() => resolve('late'), 20)))
+    const pending = executeWithCircuitBreaker(name, operation, {
+      ...baseOptions, timeoutMs: 10, maxRetries: 0,
+    })
+    const assertion = expect(pending).rejects.toBeInstanceOf(OperationTimeoutError)
+    await vi.advanceTimersByTimeAsync(10)
+    await assertion
+    expect(operation).toHaveBeenCalledTimes(1)
+    resetCircuitBreaker(name)
+  })
+
   it('opens after repeated provider failures and blocks the next call', async () => {
     let calls = 0
     const failingOperation = async () => {

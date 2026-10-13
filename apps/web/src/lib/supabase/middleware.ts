@@ -21,6 +21,14 @@ export async function updateSession(
     },
   })
 
+  // Anonymous page loads and internal workers have no browser session to
+  // refresh. They must not depend on Supabase Auth availability.
+  const pathname = request.nextUrl.pathname
+  if (pathname.startsWith('/api/internal/jobs/') || pathname.startsWith('/api/cron/') ||
+      !request.cookies.getAll().some(({ name }) => /^sb-.+-auth-token(?:\.\d+)?$/.test(name))) {
+    return { response, user: null }
+  }
+
   const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -31,6 +39,7 @@ export async function updateSession(
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+          forwardedRequestHeaders.set('cookie', request.cookies.toString())
           response = NextResponse.next({
             request: {
               headers: forwardedRequestHeaders,

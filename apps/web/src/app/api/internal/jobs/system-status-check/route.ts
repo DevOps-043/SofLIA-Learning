@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { validateScheduledJobAuthorization } from '@/lib/jobs/scheduled-job-auth'
 
 import { StatusComponentKey } from '@aprende-y-aplica/shared'
 
@@ -9,12 +10,12 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
-  const authResponse = validateJobAuthorization(request)
+  const authResponse = validateScheduledJobAuthorization(request)
   if (authResponse) return authResponse
 
   const results: Record<string, unknown> = {}
 
-  for (const componentKey of Object.values(StatusComponentKey)) {
+  await Promise.all(Object.values(StatusComponentKey).map(async (componentKey) => {
     try {
       const result = await runStatusCheckPipeline(componentKey, 'cron')
       results[componentKey] = {
@@ -30,26 +31,7 @@ export async function POST(request: NextRequest) {
       })
       results[componentKey] = { error: message }
     }
-  }
+  }))
 
   return NextResponse.json({ success: true, results })
-}
-
-function validateJobAuthorization(request: NextRequest): NextResponse | null {
-  const expectedSecret = process.env.QUEUE_INTERNAL_SECRET
-  if (!expectedSecret) {
-    return NextResponse.json(
-      { success: false, error: 'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED' },
-      { status: 500 },
-    )
-  }
-
-  if (request.headers.get('authorization') !== `Bearer ${expectedSecret}`) {
-    return NextResponse.json(
-      { success: false, error: 'UNAUTHORIZED_QUEUE_REQUEST' },
-      { status: 401 },
-    )
-  }
-
-  return null
 }

@@ -10,6 +10,7 @@ import { deepParseJsonValue, normalizeQuizQuestions } from '@/lib/course-content
 import type { RawQuizQuestion, NormalizedQuizQuestion } from '@/lib/course-content'
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 import { logger } from '@/lib/utils/logger'
+import { generationTimeoutBeforeDeadline } from '@/lib/ai/generation-deadline'
 
 import type { DialogueTranscriptRows } from './lesson-dialogue-transcript.builder'
 import { buildDialogueTranscriptHtml } from './lesson-dialogue-transcript.builder'
@@ -58,6 +59,7 @@ export interface LessonAutoNoteResult {
 }
 
 export interface GenerateLessonAutoNoteInput {
+  generationDeadlineAt?: number
   allowUpdate: boolean
   courseId: string
   courseTitle: string
@@ -588,6 +590,8 @@ async function generateNoteHtml(input: {
     schema: lessonAutoNoteDocumentSchema,
     temperature: settings.temperature ?? 0.25,
     thinkingLevel: settings.thinkingLevel,
+    timeoutMs: generationTimeoutBeforeDeadline(input.generation.generationDeadlineAt),
+    maxRetries: input.generation.generationDeadlineAt === undefined ? undefined : 0,
     untrustedText: input.untrustedText,
   })
   const generatedHtml = buildLessonAutoNoteHtmlFromModel(

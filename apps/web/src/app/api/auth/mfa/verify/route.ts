@@ -204,7 +204,7 @@ async function verifyLoginChallenge(
 
     scheduleExpiredSessionCleanup()
     await clearLoginLockout(loginAttemptContext)
-    await updateLastLoginAt(supabase, user.id)
+    await updateLastLoginAt(user.id)
     cookieStore.delete(LOGIN_MFA_CHALLENGE_COOKIE_NAME)
 
     const redirectTo = await resolveLoginRedirect({ supabase, user })

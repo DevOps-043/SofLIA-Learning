@@ -12,7 +12,7 @@ vi.mock("@/features/live/server", async () => {
 vi.mock("@/features/live/services/hub-access.service", () => ({ getHubSessionAccess: mocks.access }));
 import { POST } from "../route";
 const reference = { organization_slug: "acme", session_id: "00000000-0000-4000-8000-000000000031" };
-function request(token = "verified-token", body: unknown = reference) {
+function request(token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJodWItdXNlciJ9.signature", body: unknown = reference) {
   return new NextRequest("https://learning.test/api/auth/live/access", { method: "POST", headers: token ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" } : {}, body: JSON.stringify(body) });
 }
 beforeEach(() => {
@@ -24,6 +24,10 @@ beforeEach(() => {
   mocks.access.mockResolvedValue({ join_url: "https://zoom.us/j/123" });
 });
 describe("Acceso autenticado del escritorio", () => {
+  it.each(['undefined', 'sb_secret_key', 'a.b', 'a..c'])('rechaza un bearer malformado sin consultar Auth: %s', async token => {
+    expect((await POST(request(token))).status).toBe(401);
+    expect(mocks.getUser).not.toHaveBeenCalled();
+  });
   it("rechaza peticiones sin bearer antes de consultar usuario o reunión", async () => {
     expect((await POST(request(""))).status).toBe(401);
     expect(mocks.getUser).not.toHaveBeenCalled(); expect(mocks.access).not.toHaveBeenCalled();
@@ -34,7 +38,7 @@ describe("Acceso autenticado del escritorio", () => {
     expect(mocks.actor).not.toHaveBeenCalled();
   });
   it("no acepta user_id, rol ni URL del cliente", async () => {
-    expect((await POST(request("verified-token", { ...reference, user_id: "teacher", role: "host" }))).status).toBe(400);
+    expect((await POST(request("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJodWItdXNlciJ9.signature", { ...reference, user_id: "teacher", role: "host" }))).status).toBe(400);
     expect(mocks.access).not.toHaveBeenCalled();
   });
   it("revalida membresía y alcance antes de obtener acceso", async () => {
@@ -47,7 +51,7 @@ describe("Acceso autenticado del escritorio", () => {
   });
   it("el acceso privado no se cachea ni se filtra como referrer", async () => {
     const result = await POST(request());
-    expect(result.status).toBe(200); expect(mocks.getUser).toHaveBeenCalledWith("verified-token");
+    expect(result.status).toBe(200); expect(mocks.getUser).toHaveBeenCalledWith("eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJodWItdXNlciJ9.signature");
     expect(mocks.actor).toHaveBeenCalledWith("student", "org");
     expect(result.headers.get("cache-control")).toBe("no-store");
     expect(result.headers.get("referrer-policy")).toBe("no-referrer");

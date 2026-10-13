@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { validateScheduledJobAuthorization } from '@/lib/jobs/scheduled-job-auth'
 
 import {
   evaluateSecurityAuditAlerts,
@@ -14,7 +15,7 @@ export const dynamic = 'force-dynamic'
 const LOOKBACK_HOURS = 1
 
 export async function POST(request: NextRequest) {
-  const authResponse = validateJobAuthorization(request)
+  const authResponse = validateScheduledJobAuthorization(request)
   if (authResponse) return authResponse
 
   const since = new Date(Date.now() - LOOKBACK_HOURS * 60 * 60 * 1000).toISOString()
@@ -58,23 +59,4 @@ export async function POST(request: NextRequest) {
     alerts,
     scanned: data?.length ?? 0,
   })
-}
-
-function validateJobAuthorization(request: NextRequest): NextResponse | null {
-  const expectedSecret = process.env.QUEUE_INTERNAL_SECRET
-  if (!expectedSecret) {
-    return NextResponse.json(
-      { success: false, error: 'QUEUE_INTERNAL_SECRET_NOT_CONFIGURED' },
-      { status: 500 },
-    )
-  }
-
-  if (request.headers.get('authorization') !== `Bearer ${expectedSecret}`) {
-    return NextResponse.json(
-      { success: false, error: 'UNAUTHORIZED_QUEUE_REQUEST' },
-      { status: 401 },
-    )
-  }
-
-  return null
 }

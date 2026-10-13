@@ -36,6 +36,9 @@ describe('profile.shared', () => {
       pickAllowedProfileUpdates({
         first_name: 'Ada',
         email: 'ada@example.com',
+        platform_role: 'Administrador',
+        is_banned: false,
+        email_verified: true,
         bio: 'Engineer',
         type_rol: 'Data Lead',
         date_of_birth: '1990-05-10',

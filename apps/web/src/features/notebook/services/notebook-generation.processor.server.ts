@@ -328,6 +328,7 @@ async function processLessonJob(
   client: AdminClient,
   job: NotebookGenerationJob,
   workerId: string,
+  generationDeadlineAt: number,
 ): Promise<'done' | 'partial'> {
   if (!job.lessonId) throw new Error('LESSON_JOB_WITHOUT_LESSON')
   const [{ generateLessonAutoNote }, { fetchRequiredLessonQuizStatus }] =
@@ -349,6 +350,7 @@ async function processLessonJob(
 
   const generated = await generateLessonAutoNote({
     allowUpdate: true,
+    generationDeadlineAt,
     courseId: job.courseId,
     courseTitle,
     enrollmentId: job.enrollmentId,
@@ -384,6 +386,7 @@ async function processCourseJob(
   client: AdminClient,
   job: NotebookGenerationJob,
   workerId: string,
+  generationDeadlineAt: number,
 ): Promise<'done' | 'partial' | 'rescheduled'> {
   const activeJobs = await activeLessonJobCount(client, job)
   if (
@@ -411,6 +414,7 @@ async function processCourseJob(
   )
   const generated = await generateCourseCompendium({
     allowUpdate: true,
+    generationDeadlineAt,
     courseId: job.courseId,
     courseTitle,
     enrollmentId: job.enrollmentId,
@@ -450,6 +454,7 @@ export async function processClaimedNotebookGenerationJobs(input: {
   workerId: string
 }): Promise<NotebookGenerationBatchResult> {
   const startedAt = input.startedAt ?? Date.now()
+  const deadlineAt = startedAt + input.maxRuntimeMs
   const result: NotebookGenerationBatchResult = {
     done: 0,
     failed: 0,
@@ -457,14 +462,27 @@ export async function processClaimedNotebookGenerationJobs(input: {
     processed: 0,
     rescheduled: 0,
   }
-  for (const job of input.jobs) {
-    if (Date.now() - startedAt >= input.maxRuntimeMs) break
+  for (const [index, job] of input.jobs.entries()) {
+    if (deadlineAt - Date.now() <= 5_000) {
+      // Release unstarted work instead of leaving it locked for five minutes.
+      for (const pendingJob of input.jobs.slice(index)) {
+        await rescheduleNotebookGenerationJob({
+          client: input.client,
+          delaySeconds: 5,
+          jobId: pendingJob.jobId,
+          reason: 'RUNTIME_BUDGET_EXHAUSTED',
+          workerId: input.workerId,
+        })
+        result.rescheduled += 1
+      }
+      break
+    }
     result.processed += 1
     try {
       const outcome =
         job.jobType === 'lesson_auto_note'
-          ? await processLessonJob(input.client, job, input.workerId)
-          : await processCourseJob(input.client, job, input.workerId)
+          ? await processLessonJob(input.client, job, input.workerId, deadlineAt)
+          : await processCourseJob(input.client, job, input.workerId, deadlineAt)
       result[outcome] += 1
     } catch (error) {
       const message = error instanceof Error ? error.message : 'GENERATION_FAILED'

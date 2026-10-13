@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { applyAuthReadRateLimit } from "@/lib/auth/auth-rate-limit";
+import { readJwtBearerToken } from "@/lib/auth/bearer-token";
 import { handleLive, json, liveActorContext, liveSession, LiveError } from "@/features/live/server";
 import { hubSessionReferenceSchema } from "@/features/live/hub-link";
 import { getHubSessionAccess } from "@/features/live/services/hub-access.service";
@@ -8,11 +9,10 @@ import { getHubSessionAccess } from "@/features/live/services/hub-access.service
 /** El Hub llama desde main. El bearer se valida en Auth, nunca se decodifica sin verificar. */
 export async function POST(request: NextRequest) {
   return handleLive(async () => {
-    const authorization = request.headers.get("authorization") || "";
-    const match = /^Bearer ([^\s]+)$/.exec(authorization);
-    if (!match || match[1].length > 8192) throw new LiveError(401, "Inicia sesión en Soflia Hub");
+    const token = readJwtBearerToken(request.headers.get("authorization"));
+    if (!token) throw new LiveError(401, "Inicia sesión en Soflia Hub");
     const db = createAdminClient();
-    const { data, error } = await db.auth.getUser(match[1]);
+    const { data, error } = await db.auth.getUser(token);
     if (error || !data.user) throw new LiveError(401, "La sesión de Soflia Hub no es válida");
     const limited = applyAuthReadRateLimit(request, data.user.id);
     if (limited) {

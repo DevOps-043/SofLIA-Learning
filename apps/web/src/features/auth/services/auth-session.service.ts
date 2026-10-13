@@ -1,16 +1,13 @@
+import 'server-only';
+
 import { logger } from '../../../lib/logger';
-import { createClient } from '../../../lib/supabase/server';
-import type { createAdminClient } from '../../../lib/supabase/admin';
+import { createAdminClient } from '../../../lib/supabase/admin';
 import { RefreshTokenService } from '../../../lib/auth/refreshToken.service';
 import {
   SECURE_COOKIE_OPTIONS,
   getCustomCookieOptions,
 } from '../../../lib/auth/cookie-config';
 import { SessionService } from './session.service';
-
-type SupabaseServerClient =
-  | Awaited<ReturnType<typeof createClient>>
-  | ReturnType<typeof createAdminClient>;
 
 export interface RequestMetadata {
   ip: string;
@@ -113,9 +110,11 @@ export function writeServerAuthSessionCookies(
 }
 
 export async function updateLastLoginAt(
-  supabase: SupabaseServerClient,
   userId: string
 ): Promise<void> {
+  // Only call after credential verification. Activity fields are server-owned
+  // and intentionally unavailable to authenticated Data API clients.
+  const supabase = createAdminClient();
   const now = new Date().toISOString();
   // Un login también es actividad: se sincronizan ambas marcas para que
   // last_activity_at nunca quede por detrás de last_login_at.

@@ -23,6 +23,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import type { Json } from '@/lib/supabase/types'
 import { sanitizeHtml } from '@/lib/sanitize/html-sanitizer.core'
 import { logger } from '@/lib/utils/logger'
+import { generationTimeoutBeforeDeadline } from '@/lib/ai/generation-deadline'
 
 import { NoteService } from './note.service'
 import {
@@ -49,6 +50,7 @@ export interface CourseCompendiumResult {
 }
 
 export interface GenerateCourseCompendiumInput {
+  generationDeadlineAt?: number
   allowUpdate: boolean
   courseId: string
   courseTitle: string
@@ -201,6 +203,8 @@ async function generateSynthesisHtml(input: {
     schema: courseSynthesisSchema,
     temperature: settings.temperature ?? 0.25,
     thinkingLevel: settings.thinkingLevel,
+    timeoutMs: generationTimeoutBeforeDeadline(input.generation.generationDeadlineAt),
+    maxRetries: input.generation.generationDeadlineAt === undefined ? undefined : 0,
     untrustedText: input.untrustedText,
   })
   const generatedHtml = buildCourseSynthesisHtmlFromModel(

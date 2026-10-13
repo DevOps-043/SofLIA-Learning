@@ -62,6 +62,7 @@ export interface StructuredGenerationInput<T> {
   /** Nivel de razonamiento; normalmente proviene del propósito administrado. */
   thinkingLevel?: AiThinkingLevel
   timeoutMs?: number
+  maxRetries?: number
   /** Only user-authored text belongs here. It is scanned, never logged. */
   untrustedText?: string
 }
@@ -144,6 +145,7 @@ export async function generateStructuredContent<T>(
       temperature: input.temperature ?? DEFAULT_TEMPERATURE,
       ...(input.thinkingLevel ? { thinkingLevel: input.thinkingLevel } : {}),
       timeoutMs: input.timeoutMs ?? DEFAULT_TIMEOUT_MS,
+      ...(input.maxRetries !== undefined ? { maxRetries: input.maxRetries } : {}),
     })
     effectiveModel = response.model
 

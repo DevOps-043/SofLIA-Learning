@@ -194,7 +194,7 @@ export async function processOAuthCallback<TProviderTokens>({
       provider.toOAuthTokens(tokens)
     );
 
-    await updateLastLoginAt(supabase, userId);
+    await updateLastLoginAt(userId);
 
     const session = await createServerAuthSession({
       rememberMe: false,

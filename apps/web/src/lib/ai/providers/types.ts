@@ -65,6 +65,7 @@ export interface AiGenerationRequest {
   temperature?: number
   thinkingLevel?: AiThinkingLevel
   timeoutMs?: number
+  maxRetries?: number
 }
 
 /**

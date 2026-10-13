@@ -1,4 +1,6 @@
-import { createClient } from '../../../../lib/supabase/server'
+import 'server-only'
+
+import { createAdminClient } from '../../../../lib/supabase/admin'
 import type { TablesUpdate } from '../../../../lib/supabase/types'
 import { resolveUserPrimaryMembership } from '../../../../lib/services/user-org-context.service'
 import type {
@@ -21,7 +23,10 @@ export async function updateProfile(
   updates: UpdateProfileRequest,
   organizationId?: string | null,
 ): Promise<UserProfile> {
-  const supabase = await createClient()
+  // The API supplies the verified session's userId. Keep the field allowlist
+  // and owner filters below; protected columns and legacy sessions require
+  // the same server client used by getProfile.
+  const supabase = createAdminClient()
   const [oldProfileResult, oldMembership] = await Promise.all([
     supabase.from('users').select(PROFILE_USER_SELECT).eq('id', userId).single(),
     resolveUserPrimaryMembership(supabase, userId, organizationId),

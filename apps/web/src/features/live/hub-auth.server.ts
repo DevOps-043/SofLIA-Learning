@@ -1,12 +1,13 @@
 import 'server-only';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { readJwtBearerToken } from '@/lib/auth/bearer-token';
 import { liveActorContext, LiveError } from './server';
 
 /** El actor siempre proviene de Auth; el escritorio no envía rol ni user_id. */
 export async function verifiedHubUser(request: Request): Promise<string> {
-  const match = /^Bearer ([^\s]+)$/.exec(request.headers.get('authorization') || '');
-  if (!match || match[1].length > 8192) throw new LiveError(401, 'Inicia sesión en Soflia Hub');
-  const { data, error } = await createAdminClient().auth.getUser(match[1]);
+  const token = readJwtBearerToken(request.headers.get('authorization'));
+  if (!token) throw new LiveError(401, 'Inicia sesión en Soflia Hub');
+  const { data, error } = await createAdminClient().auth.getUser(token);
   if (error || !data.user) throw new LiveError(401, 'La sesión de Soflia Hub no es válida');
   return data.user.id;
 }

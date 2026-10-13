@@ -167,6 +167,10 @@
 [functions."process-notebook-generation"]
   schedule = "* * * * *"
 
+# The HTTP-only background worker does not need document/export dependencies.
+[functions."process-notebook-generation-background"]
+  external_node_modules = []
+
 # Trabajos internos sensibles: al declararlos como scheduled, Netlify no expone
 # una URL de invocacion publica en produccion.
 [functions."process-privacy-deletions"]

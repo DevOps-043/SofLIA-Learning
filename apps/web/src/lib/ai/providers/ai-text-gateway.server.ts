@@ -159,6 +159,7 @@ export interface GenerateAiTextParams {
   /** Nivel de razonamiento explícito; tiene precedencia sobre el del panel. */
   thinkingLevel?: AiThinkingLevel
   timeoutMs?: number
+  maxRetries?: number
 }
 
 /**
@@ -166,11 +167,11 @@ export interface GenerateAiTextParams {
  * propio conjunto de umbrales para que una caída de un proveedor no abra el
  * circuito del otro ni herede su tolerancia a latencia.
  */
-function resolveCircuitBreakerOptions(provider: AiProvider, timeoutMs: number | undefined) {
+function resolveCircuitBreakerOptions(provider: AiProvider, timeoutMs: number | undefined, maxRetries: number | undefined) {
   const defaults =
     provider === 'openai' ? CIRCUIT_BREAKER_DEFAULTS.openai : CIRCUIT_BREAKER_DEFAULTS.gemini
 
-  return { ...defaults, ...(timeoutMs ? { timeoutMs } : {}) }
+  return { ...defaults, ...(timeoutMs ? { timeoutMs } : {}), ...(maxRetries !== undefined ? { maxRetries } : {}) }
 }
 
 /**
@@ -233,6 +234,7 @@ async function buildRequest(params: GenerateAiTextParams): Promise<AiGenerationR
         }
       : {}),
     ...(params.timeoutMs ? { timeoutMs: params.timeoutMs } : {}),
+    ...(params.maxRetries !== undefined ? { maxRetries: params.maxRetries } : {}),
     ...managed,
   }
 }
@@ -256,7 +258,7 @@ async function executeWithObservability<T>(
     return await executeWithCircuitBreaker(
       breakerName,
       () => execute(request),
-      resolveCircuitBreakerOptions(request.provider, request.timeoutMs),
+      resolveCircuitBreakerOptions(request.provider, request.timeoutMs, request.maxRetries),
     )
   } catch (error) {
     const details = describeAiProviderError(error)
