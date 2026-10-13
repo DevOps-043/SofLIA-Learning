@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 import { resolveRouteRateLimitPolicy } from '../rate-limits';
 
 describe('presupuesto de acceso a una clase', () => {
-  it.each(['access', 'workspace', 'catalog'])('permite %s para un grupo tras NAT sin consumir el presupuesto de login', (action) => {
+  it.each(['access', 'workspace', 'catalog', 'studio'])('permite %s para un grupo tras NAT sin consumir el presupuesto de login', (action) => {
     const access = resolveRouteRateLimitPolicy(new NextRequest(`https://learning.test/api/auth/live/${action}`, { method: 'POST' }));
     const login = resolveRouteRateLimitPolicy(new NextRequest('https://learning.test/api/auth/desktop/exchange', { method: 'POST' }));
     expect(access?.prefix).toBe('live-access');

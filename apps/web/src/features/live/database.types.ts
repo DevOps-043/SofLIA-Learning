@@ -8,6 +8,10 @@ type Table<R> = {
   Relationships: [];
 };
 type LiveTables = {
+  live_studio_assets: Table<{ path: string; session_id: string | null; status: 'staged' | 'attached' | 'purging'; created_at: string }>;
+  live_studio_state: Table<{ session_id: string; revision: number; state: Json; updated_at: string }>;
+  live_studio_commands: Table<{ session_id: string; user_id: string; id: string; payload_hash: string; revision: number; created_at: string }>;
+
   organization_instructors: Table<{
     organization_id: string;
     user_id: string;
@@ -64,6 +68,10 @@ type LiveTables = {
   }>;
 };
 type LiveFunctions = {
+  live_studio_claim_asset_gc: { Args: { p_limit: number }; Returns: string[] };
+  live_studio_purge: { Args: Record<string, never>; Returns: undefined };
+  live_studio_commit: { Args: { p_org: string; p_user: string; p_session: string; p_id: string; p_hash: string; p_expected: number; p_type: string; p_state: Json }; Returns: number };
+
   live_workspace_snapshot: {
     Args: { p_org: string; p_user: string; p_session: string };
     Returns: Json;

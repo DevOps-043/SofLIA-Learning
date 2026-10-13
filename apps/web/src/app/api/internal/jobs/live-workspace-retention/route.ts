@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { LiveDatabase } from '@/features/live/database.types';
 import { handleLive, json, checked, LiveError } from '@/features/live/server';
+import { purgeStudioAssets } from '@/features/live/studio-retention.server';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,8 @@ export async function POST(request: NextRequest) {
     if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) throw new LiveError(401, 'Tarea no autorizada');
     const db = createAdminClient() as unknown as SupabaseClient<LiveDatabase>;
     checked(await db.rpc('live_workspace_purge', {}));
-    return json({ success: true });
+    checked(await db.rpc('live_studio_purge', {}));
+    const removedAssets = await purgeStudioAssets(db);
+    return json({ success: true, removedAssets });
   });
 }

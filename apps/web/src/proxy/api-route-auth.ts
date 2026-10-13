@@ -55,6 +55,7 @@ const PUBLIC_AUTH_EXACT_PATHS = new Set([
   '/api/auth/live/access',
   '/api/auth/live/workspace',
   '/api/auth/live/catalog',
+  '/api/auth/live/studio',
   '/api/auth/callback/google',
   '/api/auth/desktop/exchange',
   '/api/auth/desktop/start',
