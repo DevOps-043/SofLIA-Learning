@@ -5,6 +5,7 @@ import { checked, LiveError } from "../errors";
 import type { LiveSession } from "../types";
 import { canTransition } from "../schemas";
 import { zoomRequest } from "../zoom.server";
+import { queueEndedRecordings } from '../recordings/events.server';
 import { LIVE_SESSION_COLUMNS } from "../columns";
 export async function changeSessionStatus(
   context: LiveContext,
@@ -37,5 +38,6 @@ export async function changeSessionStatus(
       .maybeSingle(),
   );
   if (!updated) throw new LiveError(409, "La sesión ya cambió de estado");
+  if(status==='ended')await queueEndedRecordings(context.db,session.id,new Date().toISOString());
   return { session: updated };
 }

@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "incremental": false },
+  "include": [
+    "next-env.d.ts",
+    "../../scripts/live-recording*.ts",
+    "src/features/live/recordings/**/*.ts",
+    "src/features/live/recordings/**/*.tsx",
+    "src/features/live/services/schedule.service.ts",
+    "src/features/live/studio.service.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
+}

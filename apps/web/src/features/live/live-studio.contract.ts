@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { recordingOperationSchema,recordingResponseSchema,recordingSnapshotSchema } from './recordings/contract';
 
 const id = z.string().uuid();
 const text = (max: number) => z.string().trim().min(1).max(max);
@@ -32,6 +33,7 @@ export const studioCommandSchema = z.discriminatedUnion('type', [
 ]);
 export type StudioCommand = z.infer<typeof studioCommandSchema>;
 export const studioOperationSchema = z.discriminatedUnion('type', [
+  z.object({type:z.literal('recordings'),operation:recordingOperationSchema}).strict(),
   z.object({ type: z.literal('snapshot') }).strict(),
   z.object({ type: z.literal('command'), id, revision: z.number().int().nonnegative(), command: studioCommandSchema }).strict(),
   z.object({ type: z.literal('zoom') }).strict(),
@@ -59,7 +61,7 @@ export const studioSnapshotSchema = z.object({
   asset_urls: z.record(z.string(), z.string().url().max(4096)),
 }).strict();
 export type StudioSnapshot = z.infer<typeof studioSnapshotSchema>;
-export const zoomJoinSchema = z.object({ meetingNumber: z.string().regex(/^\d{9,11}$/), signature: text(4096), userName: text(160), password: z.string().max(100), zak: z.string().max(8192).optional() }).strict();
+export const zoomJoinSchema = z.object({ meetingNumber: z.string().regex(/^\d{9,11}$/), signature: text(4096), userName: text(160), password: z.string().max(100), zak: z.string().max(8192).optional(), userEmail:z.string().email().max(254).optional(), recording_required:z.literal(true).default(true), recording_recovery_allowed:z.boolean().default(false) }).strict();
 export type ZoomJoin = z.infer<typeof zoomJoinSchema>;
-export const studioResponseSchema = z.object({ snapshot: studioSnapshotSchema.optional(), zoom: zoomJoinSchema.optional(), upload: z.object({ path: text(500), token: text(8192), url: z.string().url().max(4096) }).strict().optional() }).strict();
+export const studioResponseSchema = z.object({ snapshot: studioSnapshotSchema.optional(), zoom: zoomJoinSchema.optional(), recording_snapshot: recordingSnapshotSchema.optional(), playback: recordingResponseSchema.shape.playback, upload: z.object({ path: text(500), token: text(8192), url: z.string().url().max(4096) }).strict().optional() }).strict();
 export type StudioResult = ({ success: true } & z.infer<typeof studioResponseSchema>) | { success: false; code: 'not_ready' | 'access_denied' | 'conflict' | 'unavailable'; error: string };

@@ -42,6 +42,7 @@ export async function zoomRequest(
         502,
         "El anfitrión no existe en la cuenta de Zoom conectada. Vincula un usuario de esa misma cuenta de Zoom.",
       );
+    if(code===300&&path.startsWith("/users/")&&path.includes("/recordings?")&&path.includes("next_page_token="))throw new LiveError(502,"La paginación de Zoom caducó.");
     const webinar = /\/(?:users\/[^/]+\/)?webinars(?:\/|$)/.test(path);
     if (code === 4711 || code === 200 || response.status === 403)
       throw new LiveError(
@@ -72,6 +73,8 @@ export async function zoomRequest(
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 let tokenInFlight: Promise<string> | null = null;
+/** Credencial de descarga solo para el worker servidor; nunca se devuelve a Hub. */
+export async function recordingDownloadToken(refresh=false){if(refresh)cachedToken=null;return zoomAccessToken();}
 
 /** Una clase comparte token administrativo; no solicita OAuth por cada alumno. */
 async function zoomAccessToken(): Promise<string> {

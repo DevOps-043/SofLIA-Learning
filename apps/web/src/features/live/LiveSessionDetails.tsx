@@ -1,19 +1,20 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import useSWR from "swr";
+import useSWR,{mutate as revalidate} from "swr";
 import { ArrowLeft, ArrowUpRight, CalendarDays } from "lucide-react";
 import { liveDate, liveFetch, statusLabel } from "./client";
 import { LiveTheme } from "./LiveTheme";
 import type { LiveSession } from "./types";
 import styles from "./Live.module.css";
+import { RecordingPanel } from './recordings/RecordingPanel';
 
 interface SessionDetails { session: LiveSession; canManage: boolean; hub_url: string }
 
 /** Ficha administrativa y acceso al escritorio. El aula se ejecuta en Hub. */
 export function LiveSessionDetails({ orgSlug, sessionId }: { orgSlug: string; sessionId: string }) {
   const endpoint = `/api/${orgSlug}/live/${sessionId}`;
-  const { data, error, mutate } = useSWR<SessionDetails>(endpoint, liveFetch, { refreshInterval: 30000 });
+  const { data, error, mutate } = useSWR<SessionDetails>(endpoint, liveFetch, { refreshInterval: 30000,onSuccess:()=>{void revalidate(key=>Array.isArray(key)&&key[0]===endpoint+"/recordings");} });
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
   async function changeStatus(status: "ended" | "cancelled") {
@@ -46,5 +47,6 @@ export function LiveSessionDetails({ orgSlug, sessionId }: { orgSlug: string; se
         {session.status === "live" && <button disabled={busy} className={styles.secondary} onClick={() => changeStatus("ended")}>Finalizar sesión</button>}
       </div>}
     </section>}
+    {session&&<RecordingPanel orgSlug={orgSlug} sessionId={sessionId}/>}
   </main></LiveTheme>;
 }

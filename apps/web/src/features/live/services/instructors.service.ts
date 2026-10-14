@@ -6,7 +6,7 @@ import { configuredZoomHost } from "../zoom-host.server";
 const instructorSchema = z
   .object({
     email: z.string().email(),
-    zoom_user_id: z.string().trim().min(1).max(200),
+    zoom_user_id: z.string().trim().max(200).nullable().optional(),
     revoke: z.boolean().default(false),
   })
   .strict();
@@ -49,12 +49,12 @@ export async function updateInstructor(context: LiveContext, body: unknown) {
         .eq("user_id", member.user_id),
     );
   else {
-    const zoomUser = await configuredZoomHost(input.zoom_user_id);
+    const zoomUser = input.zoom_user_id ? await configuredZoomHost(input.zoom_user_id) : null;
     checked(
       await context.db.from("organization_instructors").upsert({
         organization_id: context.orgId,
         user_id: member.user_id,
-        zoom_user_id: zoomUser.id,
+        zoom_user_id: zoomUser?.id||null,
       }),
     );
   }
