@@ -120,10 +120,7 @@ export function InstructorForms({
             </p>
           )}
           <p className={styles.muted}>
-            Asigna esta capacidad a un miembro de la organización, incluido tu
-            propio usuario. El anfitrión debe pertenecer a la cuenta Zoom
-            maestra conectada. Su correo puede ser distinto al del instructor de
-            Soflia: el administrador autoriza la vinculación entre ambos.
+            Asigna esta capacidad a un miembro de la organización. Soflia gestiona los anfitriones y las grabaciones; el instructor no necesita una cuenta ni una licencia individual de Zoom.
           </p>
           <label>
             Email en Soflia
@@ -132,15 +129,6 @@ export function InstructorForms({
               type="email"
               className={styles.input}
               required
-            />
-          </label>
-          <label>
-            Email o ID del anfitrión en la cuenta Zoom maestra
-            <input
-              name="zoom"
-              className={styles.input}
-              required
-              maxLength={200}
             />
           </label>
           <label className={styles.option}>

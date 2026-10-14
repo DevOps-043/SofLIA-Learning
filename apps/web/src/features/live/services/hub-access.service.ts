@@ -3,7 +3,11 @@ import type { LiveContext } from "../server";
 import type { LiveSession } from "../types";
 import { LiveError, requiredData } from "../errors";
 import { zoomRequest } from "../zoom.server";
-import { configuredZoomHost } from "../zoom-host.server";
+import {
+  preflightRecordingHost,
+  verifyAutomaticRecording,
+  requireIdleHost,
+} from "../recordings/platform-hosts.server";
 
 export function isZoomAccessUrl(value: unknown): value is string {
   if (typeof value !== "string" || value.length > 8192) return false;
@@ -39,10 +43,7 @@ export async function getHubSessionAccess(
   if (!resourceId)
     throw new LiveError(409, "La sesión todavía no tiene acceso disponible");
   const host =
-    canManage &&
-    context.canTeach &&
-    !!context.instructor &&
-    session.instructor_id === context.userId;
+    canManage && context.canTeach && session.instructor_id === context.userId;
   const resource = await zoomRequest(
     `/${webinar ? "webinars" : "meetings"}/${encodeURIComponent(resourceId)}`,
   );
@@ -54,21 +55,14 @@ export async function getHubSessionAccess(
         .eq("session_id", session.id)
         .single(),
     );
-    if (
-      !context.instructor?.zoom_user_id ||
-      credentials.host_id !== context.instructor.zoom_user_id ||
-      resource?.host_id !== credentials.host_id
-    )
+    if (resource?.host_id !== credentials.host_id)
       throw new LiveError(
         403,
         "El anfitrión de Zoom no coincide con la vinculación autorizada de esta sesión.",
       );
-    const zoomHost = await configuredZoomHost(credentials.host_id);
-    if (zoomHost.id !== credentials.host_id)
-      throw new LiveError(
-        403,
-        "Zoom no confirmó el anfitrión autorizado de esta sesión.",
-      );
+    await preflightRecordingHost(credentials.host_id, webinar);
+    await verifyAutomaticRecording(session, credentials.host_id);
+    await requireIdleHost(context, session.id);
   }
   const joinUrl = host ? resource?.start_url : resource?.join_url;
   if (!isZoomAccessUrl(joinUrl))

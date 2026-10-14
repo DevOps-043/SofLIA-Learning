@@ -25,6 +25,7 @@ function context(userId: string, teacher = false): LiveContext {
     canTeach: teacher,
     instructor: teacher ? { zoom_user_id: "host" } : null,
     db: {
+      rpc:async()=>({data:true,error:null}),
       from: () => ({
         select: () => ({
           eq: () => ({
@@ -38,6 +39,7 @@ function context(userId: string, teacher = false): LiveContext {
 beforeEach(() => {
   vi.resetAllMocks();
   vi.stubEnv("ZOOM_ACCOUNT_ID", "master-account");
+  vi.stubEnv("ZOOM_RECORDING_PRIVACY_APPROVED", "true");
 });
 afterEach(() => vi.unstubAllEnvs());
 describe("Acceso de Learning a Hub", () => {
@@ -67,7 +69,7 @@ describe("Acceso de Learning a Hub", () => {
     expect(result.role).toBe("participant");
     expect(result.join_url).toBe("https://zoom.us/j/123");
   });
-  it("el instructor vinculado recibe el inicio del anfitrión de la cuenta maestra aunque sus correos difieran", async () => {
+  it("el instructor sin cuenta propia usa el anfitrión central autorizado", async () => {
     vi.mocked(zoomRequest)
       .mockResolvedValueOnce({
         host_id: "host",
@@ -78,9 +80,13 @@ describe("Acceso de Learning a Hub", () => {
         email: "master@example.test",
         status: "active",
         account_id: "master-account",
-      });
+        type:2,
+      })
+      .mockResolvedValueOnce({recording:{cloud_recording:true}})
+      .mockResolvedValueOnce({host_id:"host",settings:{automatic_recording:"cloud"}});
+    const actor=context("teacher",true);actor.instructor=null;
     expect(
-      (await getHubSessionAccess(context("teacher", true), session, true)).role,
+      (await getHubSessionAccess(actor, session, true)).role,
     ).toBe("host");
   });
   it.each([

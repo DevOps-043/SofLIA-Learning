@@ -71,7 +71,6 @@ export function useInstructorWorkspace(orgSlug: string) {
     try {
       await liveFetch(`/api/${orgSlug}/live/instructors`, {
         email: values.get("email"),
-        zoom_user_id: values.get("zoom"),
         revoke: values.get("revoke") === "on",
       });
       form.reset();

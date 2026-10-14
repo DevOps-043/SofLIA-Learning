@@ -7,6 +7,7 @@ import { studioResponseSchema, studioStateSchema, type studioOperationSchema } f
 import type { z } from 'zod';
 import { createZoomStudioJoin } from './studio-zoom.server';
 import { verifyStudioAssets, studioAssetMime, STUDIO_ASSET_BUCKET } from './studio-assets.server';
+import { recordingOperation } from './recordings/service.server';
 
 const bucket = STUDIO_ASSET_BUCKET;
 async function revalidateStudioAccess(context: LiveContext, sessionId: string) {
@@ -17,6 +18,7 @@ async function revalidateStudioAccess(context: LiveContext, sessionId: string) {
 }
 
 export async function executeStudio(context: LiveContext, sessionId: string, operation: z.infer<typeof studioOperationSchema>) {
+  if(operation.type==='recordings')return recordingOperation(context,sessionId,operation.operation);
   const { session, canManage } = await liveSession(context, sessionId);
   const user = checked(await context.db.from('users').select('display_name,first_name').eq('id', context.userId).single());
   const actor: StudioActor = { id: context.userId, name: (user?.display_name || user?.first_name || 'Participante').slice(0, 160), canManage, courseId: session.course_id, status: session.status };

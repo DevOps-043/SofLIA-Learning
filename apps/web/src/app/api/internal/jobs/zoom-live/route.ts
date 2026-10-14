@@ -5,6 +5,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { LiveDatabase } from "@/features/live/database.types";
 import { verifyZoomWebhook, zoomChallenge } from "@/features/live/zoom-webhook";
 import { handleLive, json, checked, LiveError } from "@/features/live/server";
+import {
+  ingestRecordingEvent,
+  queueEndedRecordings,
+  readZoomWebhookBody,
+} from "@/features/live/recordings/events.server";
 
 const webhookSchema = z.object({
   event: z.string(),
@@ -18,7 +23,7 @@ export async function POST(request: NextRequest) {
   return handleLive(async () => {
     const secret = process.env.ZOOM_WEBHOOK_SECRET_TOKEN;
     if (!secret) throw new LiveError(503, "Webhook de Zoom no configurado");
-    const rawBody = await request.text();
+    const rawBody = await readZoomWebhookBody(request);
     if (
       !verifyZoomWebhook(
         rawBody,
@@ -28,37 +33,87 @@ export async function POST(request: NextRequest) {
       )
     )
       throw new LiveError(401, "Firma inválida");
-    const event = webhookSchema.parse(JSON.parse(rawBody));
+    const original = JSON.parse(rawBody);
+    const event = webhookSchema.parse(original);
     if (event.event === "endpoint.url_validation" && event.payload.plainToken)
       return json(zoomChallenge(event.payload.plainToken, secret));
     if (event.payload.account_id !== process.env.ZOOM_ACCOUNT_ID)
       throw new LiveError(403, "Cuenta no autorizada");
     if (
+      [
+        "recording.started",
+        "recording.stopped",
+        "recording.paused",
+        "recording.resumed",
+        "recording.completed",
+      ].includes(event.event)
+    ) {
+      await ingestRecordingEvent(
+        createAdminClient() as unknown as SupabaseClient<LiveDatabase>,
+        original,
+      );
+      return json({ received: true });
+    }
+    if (
       !event.payload.object ||
-      !["meeting.started", "meeting.ended", "meeting.deleted", "webinar.started", "webinar.ended", "webinar.deleted"].includes(
-        event.event,
-      )
+      ![
+        "meeting.started",
+        "meeting.ended",
+        "meeting.deleted",
+        "webinar.started",
+        "webinar.ended",
+        "webinar.deleted",
+      ].includes(event.event)
     )
       return json({ received: true });
     // Conditional transitions make retries harmless and prevent late starts reopening ended sessions.
-    const status =
-      event.event.endsWith(".started")
-        ? "live"
-        : event.event.endsWith(".ended")
-          ? "ended"
-          : "cancelled";
+    const status = event.event.endsWith(".started")
+      ? "live"
+      : event.event.endsWith(".ended")
+        ? "ended"
+        : "cancelled";
     const database =
       createAdminClient() as unknown as SupabaseClient<LiveDatabase>;
     checked(
       await database
         .from("live_sessions")
         .update({ status })
-        .eq(event.event.startsWith("webinar.") ? "zoom_webinar_id" : "zoom_meeting_id", String(event.payload.object.id))
+        .eq(
+          event.event.startsWith("webinar.")
+            ? "zoom_webinar_id"
+            : "zoom_meeting_id",
+          String(event.payload.object.id),
+        )
         .in(
           "status",
           status === "live" ? ["scheduled"] : ["scheduled", "live"],
         ),
     );
+    if (status === "ended") {
+      const session = checked(
+        await database
+          .from("live_sessions")
+          .select("id")
+          .eq(
+            event.event.startsWith("webinar.")
+              ? "zoom_webinar_id"
+              : "zoom_meeting_id",
+            String(event.payload.object.id),
+          )
+          .maybeSingle(),
+      );
+      if (session) {
+        const end = z
+          .string()
+          .datetime({ offset: true })
+          .safeParse(original.payload?.object?.end_time);
+        await queueEndedRecordings(
+          database,
+          session.id,
+          end.success ? end.data : new Date().toISOString(),
+        );
+      }
+    }
     return json({ received: true });
   });
 }
