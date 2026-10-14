@@ -1,11 +1,6 @@
 # Grabaciones de webinars
 
 Estado: implementado y verificado localmente; pendiente de activación y PoC real.
-Persistencia: cinco migraciones aplicadas con autorización en SOFIA/Learning,
-main PRODUCTION, el 14 de octubre de 2026. Versiones y cuerpos registrados en
-una transacción; integridad, RLS y permisos verificados. Bucket live-recordings
-privado y publicaciones/purga desactivadas. Esto no acredita captura o despliegue
-del worker. La evidencia está en el reporte del cambio coordinado de Hub.
 Cambio coordinado: SofLIA-HUB/openspec/changes/record-webinars-and-publish-replays.
 
 ## Responsabilidad y acceso
